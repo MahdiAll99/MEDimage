@@ -3,54 +3,58 @@
 
 
 from copy import deepcopy
+
 import numpy as np
-from Code_Utilities.imref import imref3d
-from Code_Utilities.interp3 import interp3
-from Code_Radiomics.ImageProcessing.findSpacing import findSpacing
-from Code_Radiomics.ImageProcessing.getPolygonMask import getPolygonMask
+from numpy import ndarray
+from utils.imref import imref3d
+from utils.interp3 import interp3
+
+from processing.findSpacing import findSpacing
+from processing.getPolygonMask import getPolygonMask
 
 
-def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp):
+def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp="") -> ndarray:
     """
-    -------------------------------------------------------------------------
-    HERE, ONLY THE DIMENSION OF SLICES IS ACTAULLY INTERPOLATED --> THIS IS
-    THE ONLY RESOLUTION INFO WE CAN GET FROM THE RTstruct XYZ POINTS.
-    WE ASSUME THAT THE FUNCTION "poly2mask.m" WILL CORRECTLY CLOSE ANY
-    POLYGON IN THE IN-PLANE DIMENSION, EVEN IF WE GO FROM LOWER TO HIGHER
-    RESOLUTION (e.g. RTstruct created on PET and applied to CT)
-    --> ALLOWS TO INTERPOLATE A RTstruct CREATED ON ANOTHER IMAGING VOLUME
-        WITH DIFFERENT RESOLUTIONS, BUT FROM THE SAME FRAM OF REFERENCE
-        (e.g. T1w and T2w in MR scans, PET/CT, etc.)
-    --> IN THE IDEAL AND RECOMMENDED CASE, A SPECIFIC RTstruct WAS CREATED AND
-        SAVED FOR EACH IMAGING VOLUME (SAFE PRACTICE)
-    --> The 'interp' should be used only if tested and verified. 'noInterp'
-            is currently the default in getROI.m
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Computes the ROI (Region of interest) mask using the XYZ coordinates.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Note:
+        HERE, ONLY THE DIMENSION OF SLICES IS ACTAULLY INTERPOLATED --> THIS IS
+        THE ONLY RESOLUTION INFO WE CAN GET FROM THE RTstruct XYZ POINTS.
+        WE ASSUME THAT THE FUNCTION "poly2mask.m" WILL CORRECTLY CLOSE ANY
+        POLYGON IN THE IN-PLANE DIMENSION, EVEN IF WE GO FROM LOWER TO HIGHER
+        RESOLUTION (e.g. RTstruct created on PET and applied to CT)
+        --> ALLOWS TO INTERPOLATE A RTstruct CREATED ON ANOTHER IMAGING VOLUME
+            WITH DIFFERENT RESOLUTIONS, BUT FROM THE SAME FRAM OF REFERENCE
+            (e.g. T1w and T2w in MR scans, PET/CT, etc.)
+        --> IN THE IDEAL AND RECOMMENDED CASE, A SPECIFIC RTstruct WAS CREATED AND
+            SAVED FOR EACH IMAGING VOLUME (SAFE PRACTICE)
+        --> The 'interp' should be used only if tested and verified. 'noInterp'
+                is currently the default in getROI.py
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Args:
+        ROI_XYZ (ndarray): array of (x,y,z) triplets defining a contour in the Patient-Based 
+            Coordinate System extracted from DICOM RTstruct.
+        spatialRef (imref3d): imref3d object (same functionality of MATLAB imref3d class).
+        orientation (str): Imaging data orientation (axial, sagittal or coronal).
+        scanType (str): Imaging modality (MRscan, CTscan...).
+        interp (str): String specifying if we need to use an interpolation 
+            process (using 'interp') prior to "getPolygonMask()" in the slice 
+            axis direction.
+            --> Ex: - 'interp': As a consequence: Interpolation is performed 
+                      in the slice axis dimensions. To be further tested,
+                      thus please use with caution. (no interp may be safer)
+                    - No argument (default): No interpolation. This can 
+                      definitely be safe when the RTstruct has been saved 
+                      specifically for the volume of interest.
+    Returns:
+        ndarray: 3D array of 1's and 0's defining the ROI mask.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------    
-        """
-
-    # USING INTERPOLATION --> THIS PART NEEDS TO BE FURTHER TESTED.
-    # TODO: Consider changing to if statement. Changing interp variable here
-    # will change the interp variable everywhere
+    TODO:
+        * USING INTERPOLATION --> THIS PART NEEDS TO BE FURTHER TESTED.
+        * Consider changing to if statement. Changing interp variable here
+        will change the interp variable everywhere    
+       
+    """
     interp = deepcopy(interp)
 
     while interp == "interp":
@@ -103,7 +107,8 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp):
         yWorldLimits = spatialRef.YWorldLimits.copy()
         zWorldLimits = spatialRef.ZWorldLimits.copy()
 
-        newSpatialRef = imref3d(imageSize=sz, pixelExtentInWorldX=resXYZ[0],
+        newSpatialRef = imref3d(imageSize=sz, 
+                                pixelExtentInWorldX=resXYZ[0],
                                 pixelExtentInWorldY=resXYZ[1],
                                 pixelExtentInWorldZ=resXYZ[2],
                                 xWorldLimits=xWorldLimits,
