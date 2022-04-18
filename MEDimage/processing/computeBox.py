@@ -17,7 +17,7 @@ def computeBox(vol, roi, spatialRef, boxString) -> Union[ndarray, ndarray, imref
     Args:
         vol (ndarray): ROI mask with values of 0 and 1.
         roi (ndarray): ROI mask with values of 0 and 1.
-        spatialRef (imref3d): ROI mask with values of 0 and 1.
+        spatialRef (imref3d): imref3d object (same functionality of MATLAB imref3d class).
         boxString (str): Specifies the new box to be computed
             --> 'full': Full imaging data as output.
             --> 'box' computes the smallest bounding box.
@@ -110,18 +110,19 @@ def computeBox(vol, roi, spatialRef, boxString) -> Union[ndarray, ndarray, imref
         sizeBox[0] = sizeBox[0][0]
         sizeBox[1] = sizeBox[1][0]
         sizeBox[2] = sizeBox[2][0]
-        Xlimit, Ylimit, Zlimit = intrinsicToWorld(spatialRef, boxBound[0, 0],
-                                                  boxBound[1, 0],
-                                                  boxBound[2, 0])
+        Xlimit, Ylimit, Zlimit = intrinsicToWorld(spatialRef, 
+                                                boxBound[0, 0],
+                                                boxBound[1, 0],
+                                                boxBound[2, 0])
         newSpatialRef = imref3d(sizeBox, res[0], res[1], res[2])
 
         # The limit is defined as the border of the first pixel
         newSpatialRef.XWorldLimits = newSpatialRef.XWorldLimits - (
-            newSpatialRef.XWorldLimits[0] - (Xlimit - res[0] / 2))
+            newSpatialRef.XWorldLimits[0] - (Xlimit - res[0]/2))
         newSpatialRef.YWorldLimits = newSpatialRef.YWorldLimits - (
-            newSpatialRef.YWorldLimits[0] - (Ylimit - res[1] / 2))
+            newSpatialRef.YWorldLimits[0] - (Ylimit - res[1]/2))
         newSpatialRef.ZWorldLimits = newSpatialRef.ZWorldLimits - (
-            newSpatialRef.ZWorldLimits[0] - (Zlimit - res[2] / 2))
+            newSpatialRef.ZWorldLimits[0] - (Zlimit - res[2]/2))
 
     elif "full" in boxString:
         newSpatialRef = spatialRef
