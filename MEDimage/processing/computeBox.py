@@ -2,42 +2,42 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import Union
+
 import numpy as np
-from Code_Radiomics.ImageProcessing.computeBoundingBox import computeBoundingBox
-from Code_Utilities.imref import intrinsicToWorld, imref3d
+import computeBoundingBox
+from utils.imref import imref3d, intrinsicToWorld
+from numpy import ndarray
 
 
-def computeBox(vol, roi, spatialRef, boxString):
-    """
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def computeBox(vol, roi, spatialRef, boxString) -> Union[ndarray, ndarray, imref3d]:
+    """Computes a new box around the ROI (Region of interest) from the original box
+    and updates the volume and the spatialRef.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        vol (ndarray): ROI mask with values of 0 and 1.
+        roi (ndarray): ROI mask with values of 0 and 1.
+        spatialRef (imref3d): ROI mask with values of 0 and 1.
+        boxString (str): Specifies the new box to be computed
+            --> 'full': Full imaging data as output.
+            --> 'box' computes the smallest bounding box.
+            --> Ex: 'box10': 10 voxels in all three dimensions are added to
+                the smallest bounding box. The number after 'box' defines the
+                number of voxels to add.
+            --> Ex: '2box': Computes the smallest box and outputs double its
+                size. The number before 'box' defines the multiplication in
+                size.
+    Returns:
+        ndarray: 3D array of imaging data defining the smallest box containing the ROI.
+        ndarray: 3D array of 1's and 0's defining the ROI in ROIbox.
+        imref3d: The associated imref3d object imaging data.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
-    """
-
-    # AZ: comments:
-    # TODO I would not recommend parsing different settings into a string.
-    # Provide two or more parameters instead, and use None if one or more
-    # are not used.
-    # TODO there is no else statement, so "newSpatialRef" might be unset
-
+    TODO:
+        * I would not recommend parsing different settings into a string.
+        Provide two or more parameters instead, and use None if one or more
+        are not used.
+        * there is no else statement, so "newSpatialRef" might be unset
+    """    
     if "box" in boxString:
         comp = boxString == "box"
         boxBound = computeBoundingBox(mask=roi)
