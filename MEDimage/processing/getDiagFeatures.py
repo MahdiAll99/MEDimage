@@ -13,17 +13,17 @@ def getDiagFeatures(volObj, roiObj_Int, roiObj_Morph, im_type) -> Dict:
     """Computes diagnostic features 
     
     The diagnostic features help identify issues with 
-    the implementation of the image processing sequence
+    the implementation of the image processing sequence.
 
     Args:
-        volObj (ImageVolumeObj): Imagign data.
-        roiObj_Int (ImageVolumeObj): Mask data.
+        volObj (ImageVolumeObj): Imaging data.
+        roiObj_Int (ImageVolumeObj): Intensity mask data.
         roiObj_Morph (ImageVolumeObj): Morphological mask data.
         im_type (str): Image processing step.
-        --> Ex: - 'reSeg': Computes Diagnostic features right after the
-                    re-segmentaion step.
-                - 'interp' or any other arg: Computes Diagnostic features 
-                    for any processing step other than re-segmentation
+            - 'reSeg': Computes Diagnostic features right after the
+                re-segmentaion step.
+            - 'interp' or any other arg: Computes Diagnostic features 
+                for any processing step other than re-segmentation.
 
     Returns:
         Dict: Dictionnary containing the computed features.
