@@ -26,8 +26,8 @@ def discretisation(
         PROPER RANGE WAS ALREADY PERFORMED.
 
     Args:
-        vol_RE (ndarray): array of (x,y,z) triplets defining a contour in the Patient-Based 
-            Coordinate System extracted from DICOM RTstruct.
+        vol_RE (ndarray): 3D array of the image volume that will be studied with 
+            NaN value for the excluded voxels (voxels outside the ROI mask).
         discr_type (str): Discretisaion approach/type MUST BE: "FBS", "FBN", "FBSequal"
             or "FBNequal".
         nQ (float): Number of bins for FBS algorithm and bin width for FBN algorithm.
@@ -37,8 +37,7 @@ def discretisation(
         ivh (bool): MUST BE SET TO True FOR IVH (Intensity-Volume histogram) FEATURES.
 
     Returns:
-        ndarray: 3D array of the image volume that will be studied with NaN value for the
-            excluded voxels (voxels outside the ROI mask).
+        ndarray: Same input image volume but with discretised intensities.
         float: bin width.
 
     """
