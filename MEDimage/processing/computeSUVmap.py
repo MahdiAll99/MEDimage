@@ -3,10 +3,9 @@
 
 
 import numpy as np
-from numpy import ndarray
 
 
-def computeSUVmap(rawPET, dicomH) -> ndarray:
+def computeSUVmap(rawPET, dicomH) -> np.ndarray:
     """Computes the SUVmap of a raw input PET volume. It is assumed that 
     the calibration factor was applied beforehand to the PET volume 
     (e.g., rawPET = rawPET*RescaleSlope + RescaleIntercept).

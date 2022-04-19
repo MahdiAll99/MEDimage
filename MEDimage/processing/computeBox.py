@@ -7,10 +7,9 @@ from typing import Union
 import numpy as np
 import computeBoundingBox
 from utils.imref import imref3d, intrinsicToWorld
-from numpy import ndarray
 
 
-def computeBox(vol, roi, spatialRef, boxString) -> Union[ndarray, ndarray, imref3d]:
+def computeBox(vol, roi, spatialRef, boxString) -> Union[np.ndarray, np.ndarray, imref3d]:
     """Computes a new box around the ROI (Region of interest) from the original box
     and updates the volume and the spatialRef.
 

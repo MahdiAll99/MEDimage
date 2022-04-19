@@ -5,11 +5,10 @@
 from copy import deepcopy
 
 import numpy as np
-from numpy import ndarray
 from skimage.exposure import equalize_hist
 
 
-def equalization(vol_RE) -> ndarray:
+def equalization(vol_RE) -> np.ndarray:
     """
     Performs histogram equalisation of the ROI imaging intensities.
 

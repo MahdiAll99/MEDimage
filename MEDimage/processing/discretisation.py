@@ -6,7 +6,6 @@ from copy import deepcopy
 from typing import Union
 
 import numpy as np
-from numpy import ndarray
 
 from processing.equalization import equalization
 
@@ -17,7 +16,7 @@ def discretisation(
     nQ=None, 
     userSetMinVal=None, 
     ivh=False
-    ) -> Union[ndarray, float]:
+    ) -> Union[np.ndarray, float]:
     """
     Quantisizes the image intensities inside the ROI.
 

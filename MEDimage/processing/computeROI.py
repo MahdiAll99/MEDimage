@@ -3,7 +3,6 @@
 
 
 import numpy as np
-from numpy import ndarray
 from utils.imref import imref3d
 from utils.interp3 import interp3
 
@@ -11,7 +10,7 @@ from processing.findSpacing import findSpacing
 from processing.getPolygonMask import getPolygonMask
 
 
-def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp=False) -> ndarray:
+def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp=False) -> np.ndarray:
     """
     Computes the ROI (Region of interest) mask using the XYZ coordinates.
 

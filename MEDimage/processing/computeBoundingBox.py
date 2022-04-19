@@ -3,10 +3,9 @@
 
 
 import numpy as np
-from numpy import ndarray
 
 
-def computeBoundingBox(mask) -> ndarray:
+def computeBoundingBox(mask) -> np.ndarray:
     """Computes the indexes of the ROI (Region of interest) enclosing box 
     in all dimensions.
 
