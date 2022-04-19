@@ -3,42 +3,44 @@
 
 
 from copy import deepcopy
+from typing import Union
+
 import numpy as np
-from Code_Radiomics.ImageProcessing.equalization import equalization
+from numpy import ndarray
+
+from processing.equalization import equalization
 
 
-def discretisation(vol_RE, discr_type, nQ=None, userSetMinVal=None, ivh=""):
+def discretisation(
+    vol_RE, 
+    discr_type, 
+    nQ=None, 
+    userSetMinVal=None, 
+    ivh=False
+    ) -> Union[ndarray, float]:
     """
-    -------------------------------------------------------------------------
-    --> Use useSetValue as the minimum of range re-segmentation. This is the
-    only way to create comparable textures using FBS discretisation. For FBN
-    discretisation, this value has no importance as an argument to the
-    function and will not be used.
-    --> Last argument is optional and MUST BE SET TO 'ivh' FOR IVH FEATURES!
+    Quantisizes the image intensities inside the ROI.
 
-    IMPORTANT --> FOR 'FBS' TYPE, IT IS ASSUMED THAT RE-SEGMENTATION WITH
-                  PROPER RANGE WAS ALREADY PERFORMED.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Note:
+        FOR 'FBS' TYPE, IT IS ASSUMED THAT RE-SEGMENTATION WITH 
+        PROPER RANGE WAS ALREADY PERFORMED.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        vol_RE (ndarray): array of (x,y,z) triplets defining a contour in the Patient-Based 
+            Coordinate System extracted from DICOM RTstruct.
+        discr_type (str): Discretisaion approach/type MUST BE: "FBS", "FBN", "FBSequal"
+            or "FBNequal".
+        nQ (float): Number of bins for FBS algorithm and bin width for FBN algorithm.
+        userSetMinVal (float): Minimum of range re-segmentation for FBS discretisation,
+            for FBN discretisation, this value has no importance as an argument
+            and will not be used.
+        ivh (bool): MUST BE SET TO True FOR IVH (Intensity-Volume histogram) FEATURES.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Returns:
+        ndarray: 3D array of the image volume that will be studied with NaN value for the
+            excluded voxels (voxels outside the ROI mask).
+        float: bin width.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
 
     # AZ: NOTE: the "type" variable that appeared in the MATLAB source code
@@ -92,7 +94,7 @@ def discretisation(vol_RE, discr_type, nQ=None, userSetMinVal=None, ivh=""):
         volQuant_RE = np.floor(
             nQ * ((volQuant_RE - minVal)/(maxVal - minVal))) + 1.0
         volQuant_RE[volQuant_RE == np.nanmax(volQuant_RE)] = nQ
-    if ivh == "ivh" and discr_type in ["FBS", "FBSequal"]:
+    if ivh and discr_type in ["FBS", "FBSequal"]:
         volQuant_RE = minVal + (volQuant_RE - 0.5) * wb
 
     return volQuant_RE, wd
