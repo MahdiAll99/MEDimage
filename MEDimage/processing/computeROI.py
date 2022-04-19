@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-from copy import deepcopy
-
 import numpy as np
 from numpy import ndarray
 from utils.imref import imref3d
@@ -13,7 +11,7 @@ from processing.findSpacing import findSpacing
 from processing.getPolygonMask import getPolygonMask
 
 
-def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp="") -> ndarray:
+def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp=False) -> ndarray:
     """
     Computes the ROI (Region of interest) mask using the XYZ coordinates.
 
@@ -28,7 +26,7 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp="") -> ndarray
             (e.g. T1w and T2w in MR scans, PET/CT, etc.)
         --> IN THE IDEAL AND RECOMMENDED CASE, A SPECIFIC RTstruct WAS CREATED AND
             SAVED FOR EACH IMAGING VOLUME (SAFE PRACTICE)
-        --> The 'interp' should be used only if tested and verified. 'noInterp'
+        --> The 'interp' should be used only if tested and verified. False
                 is currently the default in getROI.py
 
     Args:
@@ -37,15 +35,13 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp="") -> ndarray
         spatialRef (imref3d): imref3d object (same functionality of MATLAB imref3d class).
         orientation (str): Imaging data orientation (axial, sagittal or coronal).
         scanType (str): Imaging modality (MRscan, CTscan...).
-        interp (str): String specifying if we need to use an interpolation 
-            process (using 'interp') prior to "getPolygonMask()" in the slice 
-            axis direction.
-            --> Ex: - 'interp': As a consequence: Interpolation is performed 
-                      in the slice axis dimensions. To be further tested,
-                      thus please use with caution. (no interp may be safer)
-                    - No argument (default): No interpolation. This can 
-                      definitely be safe when the RTstruct has been saved 
-                      specifically for the volume of interest.
+        interp (bool): Specifies if we need to use an interpolation 
+            process prior to "getPolygonMask()" in the slice axis direction.
+            - True: Interpolation is performed in the slice axis dimensions. 
+                To be further tested, thus please use with caution (True is safer).
+            - Fale (default): No interpolation. This can definitely be safe 
+                when the RTstruct has been saved specifically for the volume of 
+                interest.
     Returns:
         ndarray: 3D array of 1's and 0's defining the ROI mask.
 
@@ -55,9 +51,7 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp="") -> ndarray
         will change the interp variable everywhere    
        
     """
-    interp = deepcopy(interp)
-
-    while interp == "interp":
+    while interp:
         # Initialization
         if orientation == "Axial":
             dimIJK = 2
@@ -132,7 +126,7 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp="") -> ndarray
             # manipulation, so we simply compute
             # the ROI mask with spatialRef (i.e. simply using "poly2mask.m"),
             # without performing interpolation.
-            interp = "noInterp"
+            interp = False
             break  # Getting out of the "while" statement
 
         V = getPolygonMask(ROI_XYZ, newSpatialRef, orientation)
@@ -151,11 +145,11 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp="") -> ndarray
         ROImask[Vq >= 0.5] = 1
 
         # Getting out of the "while" statement
-        interp = 'NoMoreInterp'
+        interp = False
 
     # SIMPLY USING "poly2mask.m" or "inpolygon.m". "inpolygon.m" is slower, but
     # apparently more accurate.
-    if interp == "noInterp":
+    if not interp:
         # Using the inpolygon.m function. To be further tested.
         ROImask = getPolygonMask(ROI_XYZ, spatialRef, orientation)
 
