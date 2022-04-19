@@ -2,33 +2,32 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import Dict
+
 import numpy as np
-import Code_Radiomics.ImageProcessing.computeBoundingBox
+
+import computeBoundingBox
 
 
-def getDiagFeatures(volObj, roiObj_Int, roiObj_Morph, im_type):
-    """Compute getDiagFeatures.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def getDiagFeatures(volObj, roiObj_Int, roiObj_Morph, im_type) -> Dict:
+    """Computes diagnostic features 
+    
+    The diagnostic features help identify issues with 
+    the implementation of the image processing sequence
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        volObj (ImageVolumeObj): Imagign data.
+        roiObj_Int (ImageVolumeObj): Mask data.
+        roiObj_Morph (ImageVolumeObj): Morphological mask data.
+        im_type (str): Image processing step.
+        --> Ex: - 'reSeg': Computes Diagnostic features right after the
+                    re-segmentaion step.
+                - 'interp' or any other arg: Computes Diagnostic features 
+                    for any processing step other than re-segmentation
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Returns:
+        Dict: Dictionnary containing the computed features.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
     diag = {}
 
@@ -69,9 +68,9 @@ def getDiagFeatures(volObj, roiObj_Int, roiObj_Morph, im_type):
         diag.update({'image_' + im_type + '_maxInt': np.max(volObj.data)})
 
     # FOR THE ROI
-    boxBound_Int = Code_Radiomics.ImageProcessing.computeBoundingBox.computeBoundingBox(
+    boxBound_Int = computeBoundingBox(
         roiObj_Int.data)
-    boxBound_Morph = Code_Radiomics.ImageProcessing.computeBoundingBox.computeBoundingBox(
+    boxBound_Morph = computeBoundingBox(
         roiObj_Morph.data)
     Xgl_Int = volObj.data[roiObj_Int.data == 1]
     Xgl_Morph = volObj.data[roiObj_Morph.data == 1]
