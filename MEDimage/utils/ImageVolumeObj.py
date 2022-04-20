@@ -2,34 +2,45 @@
 # -*- coding: utf-8 -*-
 
 """
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+-------------------------------------------------------------------------
+AUTHOR(S): MEDomicsLab consortium
+-------------------------------------------------------------------------
+STATEMENT:
+This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
+a package providing MATLAB programming tools for radiomics analysis.
+    --> Copyright (C) MEDomicsLab consortium.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This package is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This package is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+You should have received a copy of the GNU General Public License
+along with this package.  If not, see <http://www.gnu.org/licenses/>.
+-------------------------------------------------------------------------
 """
 
 
 class ImageVolumeObj:
-    # Replicates behaviour of volObj and roiObj as generated
-    # in getMask and getROI
+    """Used to organize Imaging data and their corresponding imref3d object. 
 
-    def __init__(self, data=None, spatialRef=None):
+    Args:
+        data (:obj:`ndarray`, optional): 3D array of imaging data.
+        spatialRef (:obj:`imref3d`, optional): The corresponding imref3d object 
+            (same functionality of MATLAB imref3d class).
+
+    Attributes:
+        data (ndarray): 3D array of imaging data.
+        spatialRef (imref3d): The corresponding imref3d object 
+            (same functionality of MATLAB imref3d class).
+
+    """
+
+    def __init__(self, data=None, spatialRef=None) -> None:
         self.data = data
         self.spatialRef = spatialRef
