@@ -1,35 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 import numpy as np
 
 
-def findVX(fractInt, fractVol, x):
-    """Compute VX.
-    -------------------------------------------------------------------------
-    - x: Percent fraction, between 0 and 100
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def findVX(fractInt, fractVol, x) -> np.ndarray:
+    """Computes volume at intensity fraction.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        fractInt (ndarray): Intensity fraction.
+        fractVol (ndarray): Fractional volume.
+        x (float): Fraction percentage, between 0 and 100.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Returns:
+        ndarray: Array of largest volume fraction `fractVol` that has an 
+            intensity fraction `fractInt` of at least `x`%.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------    """
-
+    """
     ind = np.where(fractInt >= x/100)[0][0]
     Vx = fractVol[ind]
 
