@@ -16,7 +16,7 @@ def getAxisLengths(XYZ) -> Union[float, float, float]:
 
     Returns:
         Union[float, float, float]: Array of three column vectors
-        [Major axis lengths, Minor axis lengths, Least axis lengths].
+            [Major axis lengths, Minor axis lengths, Least axis lengths].
 
     """
     XYZ = XYZ.copy()
