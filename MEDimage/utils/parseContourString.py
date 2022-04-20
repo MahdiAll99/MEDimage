@@ -1,33 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import List, Union
+
 import numpy as np
-from Code_Utilities.strfind import strfind
+
+from utils.strfind import strfind
 
 
-def parseContourString(contourString):
-    """
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def parseContourString(contourString) -> Union[float, int, np.ndarray, List[str]]:
+    """Finds the delimeters('+' and '-') and the contour indexe(s)
+    from the given string.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        contourString (str | float | int): Index or string of indexes with
+        delimeters. FOR EXAMPLE '3' or '1-3+2'.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        ndarray: Array of indexes extracted from `contourString` if it's a string.
+        float: If `contourString` is float we return the passed value.
+        int: If `contourString` is int we return the passed value.
+        List[str]: List of delimeters/operations extracted from the passed value.
+    
+    Example:
+        >>>contourString = '1-3+2'
+        >>>parseContourString(contourString)
+        [1, 2, 3], ['+', '-']
     """
 
     if isinstance(contourString, (int, float)):
