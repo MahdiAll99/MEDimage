@@ -14,8 +14,8 @@ def findIX(levels, fractVol, x) -> np.ndarray:
         x (float): Fraction percentage, between 0 and 100.
 
     Returns:
-        ndarray: Array of largest volume fraction that has an 
-            intensity fraction of at least `x`%.
+        ndarray: Array of minimum discretised intensity present 
+            in at most `x`% of the volume.
     
     """
     ind = np.where(fractVol <= x/100)[0][0]
