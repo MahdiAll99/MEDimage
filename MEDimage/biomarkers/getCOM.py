@@ -1,40 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
+from typing import Union
+
 import numpy as np
 
 
-def getCOM(Xgl_int, Xgl_morph, XYZ_int, XYZ_morph):
-    """Compute COM.
-    -------------------------------------------------------------------------
-    CALCULATE CENTER OF MASS SHIFT (in mm, since "res" is in mm)
-     - Xgl: Vector of intensity values in the volume to analyze.
-     - XYZ: [nPoints X 3] matrix of three column vectors, defining the [X,Y,Z]
-            positions of the points in the ROI (1's) of the mask volume.
-            --> In mm.
+def getCOM(Xgl_int, Xgl_morph, XYZ_int, XYZ_morph) -> Union[float, np.ndarray]:
+    """Calculates center of mass shift (in mm, since resolution is in mm).
 
-    IMPORTANT: Row positions of "Xgl" and "XYZ" must correspond for each point.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Note: 
+        Row positions of "Xgl" and "XYZ" must correspond for each point.
+    
+    Args:
+        Xgl_int (ndarray): Vector of intensity values in the volume to analyze 
+            (only values in the intensity mask).
+        Xgl_morph (ndarray): Vector of intensity values in the volume to analyze 
+            (only values in the morphological mask).
+        XYZ_int (ndarray): [nPoints X 3] matrix of three column vectors, defining the [X,Y,Z]
+            positions of the points in the ROI (1's) of the mask volume (In mm).
+            (Mesh-based volume calculated from the ROI intensity mesh)
+        XYZ_morph (ndarray): [nPoints X 3] matrix of three column vectors, defining the [X,Y,Z]
+            positions of the points in the ROI (1's) of the mask volume (In mm).
+            (Mesh-based volume calculated from the ROI morphological mesh)
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Returns:
+        Union[float, np.ndarray]: The ROI volume centre of mass.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
 
     # Getting the geometric centre of mass
