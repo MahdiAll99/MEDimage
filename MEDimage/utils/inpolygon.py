@@ -1,17 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import numpy as np
-
-
-def inpolygon(xq, yq, xv, yv):
-    """ Implements similar functionality MATLAB inpolygon.
-    xq, yq: grid coordinates, in intrinsic reference system
-    xv, yv: polygon coordinates, in intrinsic reference system
-
-    NOTE: unlike matlab inpolygon, this function does not determine the
-    status of single points (xq, yq). Instead,
-    it determines the status for an entire grid by ray-casting.
+"""
     -------------------------------------------------------------------------
     AUTHOR(S): MEDomicsLab consortium
     -------------------------------------------------------------------------
@@ -33,7 +23,77 @@ def inpolygon(xq, yq, xv, yv):
     You should have received a copy of the GNU General Public License
     along with this package.  If not, see <http://www.gnu.org/licenses/>.
     -------------------------------------------------------------------------
+""" 
+
+import numpy as np
+
+
+def inpolygon(xq, yq, xv, yv) -> np.ndarray:
+    """Implements similar functionality MATLAB inpolygon.
+    Finds points located inside or on edge of polygonal region.
+
+    Note: 
+        unlike matlab inpolygon, this function does not determine the
+        status of single points (xq, yq). Instead, it determines the 
+        status for an entire grid by ray-casting.
+
+    Args:
+        xq (ndarray): x-coordinates of query points, in intrinsic reference system.
+        yq (ndarray): y-coordinates of query points, in intrinsic reference system.
+        xq (ndarray): x-coordinates of polygon vertices, in intrinsic reference system.
+        yq (ndarray): y-coordinates of polygon vertices, in intrinsic reference system.
+
+    Returns:
+        array: boolean array indicating if the query points are on the edge of the polygon area.
+
     """
+    def ray_line_intersection(ray_orig, ray_dir, vert_1, vert_2):
+
+        epsilon = 0.000001
+
+        # Define edge
+        edge_line = vert_1 - vert_2
+
+        # Define ray vertices
+        r_vert_1 = ray_orig
+        r_vert_2 = ray_orig + ray_dir
+        edge_ray = - ray_dir
+
+        # Calculate determinant - if close to 0, lines are parallel and will
+        # not intersect
+        det = np.cross(edge_ray, edge_line)
+        if (det > -epsilon) and (det < epsilon):
+            return np.nan
+
+        # Calculate inverse of the determinant
+        inv_det = 1.0 / det
+
+        # Calculate determinant
+        a11 = np.cross(r_vert_1, r_vert_2)
+        a21 = np.cross(vert_1, vert_2)
+
+        # Solve for x
+        a12 = edge_ray[0]
+        a22 = edge_line[0]
+        x = np.linalg.det(np.array([[a11, a12], [a21, a22]])) * inv_det
+
+        # Solve for y
+        b12 = edge_ray[1]
+        b22 = edge_line[1]
+        y = np.linalg.det(np.array([[a11, b12], [a21, b22]])) * inv_det
+
+        t = np.array([x, y])
+
+        # Check whether the solution falls within the line segment
+        u1 = np.around(np.dot(edge_line, edge_line), 5)
+        u2 = np.around(np.dot(edge_line, vert_1-t), 5)
+        if (u2 / u1) < 0.0 or (u2 / u1) > 1.0:
+            return np.nan
+
+        # Return scalar length from ray origin
+        t_scal = np.linalg.norm(ray_orig - t)
+
+        return t_scal
 
     # These are hacks to actually make this function work
     spacing = np.array([1.0, 1.0])
@@ -115,52 +175,3 @@ def inpolygon(xq, yq, xv, yv):
                  :] += np.logical_and(vox_col_frwd % 2, vox_col_bkwd % 2)
 
     return vox_grid.astype(dtype=np.bool)
-
-
-def ray_line_intersection(ray_orig, ray_dir, vert_1, vert_2):
-
-    epsilon = 0.000001
-
-    # Define edge
-    edge_line = vert_1 - vert_2
-
-    # Define ray vertices
-    r_vert_1 = ray_orig
-    r_vert_2 = ray_orig + ray_dir
-    edge_ray = - ray_dir
-
-    # Calculate determinant - if close to 0, lines are parallel and will
-    # not intersect
-    det = np.cross(edge_ray, edge_line)
-    if (det > -epsilon) and (det < epsilon):
-        return np.nan
-
-    # Calculate inverse of the determinant
-    inv_det = 1.0 / det
-
-    # Calculate determinant
-    a11 = np.cross(r_vert_1, r_vert_2)
-    a21 = np.cross(vert_1, vert_2)
-
-    # Solve for x
-    a12 = edge_ray[0]
-    a22 = edge_line[0]
-    x = np.linalg.det(np.array([[a11, a12], [a21, a22]])) * inv_det
-
-    # Solve for y
-    b12 = edge_ray[1]
-    b22 = edge_line[1]
-    y = np.linalg.det(np.array([[a11, b12], [a21, b22]])) * inv_det
-
-    t = np.array([x, y])
-
-    # Check whether the solution falls within the line segment
-    u1 = np.around(np.dot(edge_line, edge_line), 5)
-    u2 = np.around(np.dot(edge_line, vert_1-t), 5)
-    if (u2 / u1) < 0.0 or (u2 / u1) > 1.0:
-        return np.nan
-
-    # Return scalar length from ray origin
-    t_scal = np.linalg.norm(ray_orig - t)
-
-    return t_scal
