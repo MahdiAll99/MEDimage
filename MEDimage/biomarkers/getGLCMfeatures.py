@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 
 
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
-import Code_Radiomics.ImageBiomarkers.getGLCMmatrix
-import Code_Radiomics.ImageBiomarkers.gclm_DiagProb
-import Code_Radiomics.ImageBiomarkers.gclm_CrossDiagProb
-from Code_Utilities.textureTools import get_neighbour_direction, is_list_all_none, coord2index, get_value
-from copy import deepcopy
+from utils.textureTools import (coord2index, get_neighbour_direction,
+                                get_value, is_list_all_none)
+
+from biomarkers.gclm_CrossDiagProb import gclm_CrossDiagProb
+from biomarkers.gclm_DiagProb import gclm_DiagProb
+from biomarkers.getGLCMmatrix import getGLCMmatrix
 
 
 def getGLCMfeatures(vol, distCorrection=None, method="new"):
@@ -786,16 +789,16 @@ def get_cm_features_deprecated(vol, distCorrection):
     levels = np.arange(
         1, np.max(vol[~np.isnan(vol[:])]) + 100 * np.finfo(float).eps)
     if distCorrection is None:
-        GLCM = Code_Radiomics.ImageBiomarkers.getGLCMmatrix.getGLCMmatrix(vol, levels)
+        GLCM = getGLCMmatrix(vol, levels)
     else:
-        GLCM = Code_Radiomics.ImageBiomarkers.getGLCMmatrix.getGLCMmatrix(
+        GLCM = getGLCMmatrix(
             vol, levels, distCorrection)
 
     p_ij = GLCM / np.sum(GLCM[:])  # Normalization of GLCM
     p_i = np.sum(p_ij, axis=1, keepdims=True)
     p_j = np.sum(p_ij, axis=0, keepdims=True)
-    p_iminusj = Code_Radiomics.ImageBiomarkers.gclm_DiagProb.gclm_DiagProb(p_ij)
-    p_iplusj = Code_Radiomics.ImageBiomarkers.gclm_CrossDiagProb.gclm_CrossDiagProb(p_ij)
+    p_iminusj = gclm_DiagProb(p_ij)
+    p_iplusj = gclm_CrossDiagProb(p_ij)
     Ng = np.max(np.shape(GLCM))
     vectNg = np.arange(1, Ng + 100 * np.finfo(float).eps)
     colGrid, rowGrid = np.meshgrid(vectNg, vectNg)
@@ -879,7 +882,6 @@ def get_cm_features_deprecated(vol, distCorrection):
     for i in range(0, Ng):
         for j in range(i + 1, Ng):
             p = p + p_ij[i, j] / ((i - j) ** 2)
-
     glcm['Fcm_inv_var'] = 2 * p
 
     # Correlation
