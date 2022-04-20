@@ -25,6 +25,8 @@
     -------------------------------------------------------------------------
 """
 
+from typing import Union
+
 import numpy as np
 
 
@@ -37,20 +39,85 @@ def worldToIntrinsic(R, xWorld, yWorld, zWorld):
 
 
 def sizesMatch(R, A):
-    """
-    Compares whether R and A have the same size
-    :param R: an imref3d object
-    :param A: another imref3d object
-    :return: True if R and A have the same size, and false if not
+    """Compares whether the two imref3d objects have the same size.
+
+    Args:
+        R (imref3d): First imref3d object.
+        A (imref3d): Second imref3d object.
+
+    Returns:
+        bool: True if R and A have the same size, and false if not.
+
     """
     return np.all(R.imageSize == A.imageSize)
 
 
 class imref3d:
-    # Mirrors the functionality of the matlab imref3d class
-    def __init__(self, imageSize=None, pixelExtentInWorldX=1.0,
-                 pixelExtentInWorldY=1.0, pixelExtentInWorldZ=1.0,
-                 xWorldLimits=None, yWorldLimits=None, zWorldLimits=None):
+    """This class mirrors the functionality of the matlab imref3d class
+
+    An imref3d object stores the relationship between the intrinsic coordinates 
+    anchored to the columns,  rows, and planes of a 3-D image and the spatial 
+    location of the same column, row, and plane locations in a world coordinate system.
+
+    The image is sampled regularly in the planar world-x, world-y, and world-z coordinates 
+    of the coordinate system such that intrinsic-x, -y and -z values align with world-x, -y 
+    and -z values, respectively. The resolution in each dimension can be different.
+    REF: <https://www.mathworks.com/help/images/ref/imref3d.html>
+
+    Args:
+        ImageSize (:obj:`ndarray`, optional): Number of elements in each spatial dimension, 
+            specified as a 3-element positive row vector.
+        PixelExtentInWorldX (:obj:`float`, optional): Size of a single pixel in the x-dimension 
+            measured in the world coordinate system.
+        PixelExtentInWorldY (:obj:`float`, optional): Size of a single pixel in the y-dimension 
+            measured in the world coordinate system.
+        PixelExtentInWorldZ (:obj:`float`, optional): Size of a single pixel in the z-dimension 
+            measured in the world coordinate system.
+        xWorldLimits (:obj:`ndarray`, optional): Limits of image in world x, specified as a 2-element row vector, 
+            [xMin xMax].
+        yWorldLimits (:obj:`ndarray`, optional): Limits of image in world y, specified as a 2-element row vector, 
+            [yMin yMax].
+        zWorldLimits (:obj:`ndarray`, optional): Limits of image in world z, specified as a 2-element row vector, 
+            [zMin zMax].
+        
+    Attributes:
+        ImageSize (:obj:`ndarray`): Number of elements in each spatial dimension, 
+            specified as a 3-element positive row vector.
+        PixelExtentInWorldX (:obj:`float`): Size of a single pixel in the x-dimension 
+            measured in the world coordinate system.
+        PixelExtentInWorldY (:obj:`float`): Size of a single pixel in the y-dimension 
+            measured in the world coordinate system.
+        PixelExtentInWorldZ (:obj:`float`): Size of a single pixel in the z-dimension 
+            measured in the world coordinate system.
+        XIntrinsicLimits (:obj:`ndarray`): Limits of image in intrinsic units in the x-dimension, 
+            specified as a 2-element row vector [xMin xMax].
+        YIntrinsicLimits (:obj:`ndarray`): Limits of image in intrinsic units in the y-dimension, 
+            specified as a 2-element row vector [yMin yMax].
+        ZIntrinsicLimits (:obj:`ndarray`): Limits of image in intrinsic units in the z-dimension, 
+            specified as a 2-element row vector [zMin zMax].
+        ImageExtentInWorldX (:obj:`float`): Span of image in the x-dimension in 
+            the world coordinate system.
+        ImageExtentInWorldY (:obj:`float`): Span of image in the y-dimension in 
+            the world coordinate system.
+        ImageExtentInWorldZ (:obj:`float`): Span of image in the z-dimension in 
+            the world coordinate system.
+        xWorldLimits (:obj:`ndarray`): Limits of image in world x, specified as a 2-element row vector, 
+            [xMin xMax].
+        yWorldLimits (:obj:`ndarray`): Limits of image in world y, specified as a 2-element row vector, 
+            [yMin yMax].
+        zWorldLimits (:obj:`ndarray`): Limits of image in world z, specified as a 2-element row vector, 
+            [zMin zMax].
+
+    """
+
+    def __init__(self, 
+                imageSize=None, 
+                pixelExtentInWorldX=1.0,
+                pixelExtentInWorldY=1.0, 
+                pixelExtentInWorldZ=1.0,
+                xWorldLimits=None, 
+                yWorldLimits=None, 
+                zWorldLimits=None) -> None:
 
         # Check if imageSize is an ndarray, and cast to ndarray otherwise
         self.ImageSize = self._parse_to_ndarray(x=imageSize, n=3)
@@ -95,12 +162,16 @@ class imref3d:
         if zWorldLimits is None and imageSize is not None:
             self.ZWorldLimits = np.array([0.0, self.ImageExtentInWorldZ])
 
-    def _parse_to_ndarray(self, x, n=None):
-        """
-        Internal function to cast input to a numpy array
-        :param x: input iterable
-        :param n: expected length
-        :return: iterable as a numpy array
+    def _parse_to_ndarray(self, x, n=None) -> np.ndarray:
+        """Internal function to cast input to a numpy array.
+
+        Args:
+            x (iterable): Object that supports __iter__.
+            n (:obj:`int`, optional): expected length.
+
+        Returns:
+            array: iterable input as a numpy array.
+        
         """
         if x is not None:
             # Cast to ndarray
@@ -115,15 +186,25 @@ class imref3d:
 
         return x
 
-    def intrinsicToWorld(self, xIntrinsic, yIntrinsic, zIntrinsic):
-        """
-        Converts from intrinsic coordinates to world coordinates
-        :param xIntrinsic: x intrinsic voxel coordinate
-        :param yIntrinsic: y intrinsic voxel coordinate
-        :param zIntrinsic: z intrinsic voxel coordinate
-        :return: x, y, and z in world coordinates
-        """
+    def intrinsicToWorld(self, 
+                        xIntrinsic, 
+                        yIntrinsic, 
+                        zIntrinsic
+                        ) -> Union[np.ndarray, np.ndarray, np.ndarray]:
+        """Convert from intrinsic to world coordinates.
 
+        Args:
+            xIntrinsic (ndarray): Coordinates along the x-dimension in 
+                the intrinsic coordinate system.
+            yIntrinsic (ndarray): Coordinates along the y-dimension in 
+                the intrinsic coordinate system.
+            zIntrinsic (ndarray): Coordinates along the z-dimension in 
+                the intrinsic coordinate system.
+
+        Returns:
+            array: [xWorld, yWorld, zWorld] in world coordinate system.
+        
+        """
         xWorld = (self.XWorldLimits[0] + 0.5*self.PixelExtentInWorldX) + \
             xIntrinsic * self.PixelExtentInWorldX
         yWorld = (self.YWorldLimits[0] + 0.5*self.PixelExtentInWorldY) + \
@@ -133,13 +214,25 @@ class imref3d:
 
         return xWorld, yWorld, zWorld
 
-    def worldToIntrinsic(self, xWorld, yWorld, zWorld):
-        """
-        Converts from world coordinates to intrinsic coordinates
-        :param xWorld: x world coordinate
-        :param yWorld: y world coordinate
-        :param zWorld: z world coordinate
-        :return: x, y, and z in intrinsic voxel coordinates
+    def worldToIntrinsic(self, 
+                        xWorld, 
+                        yWorld, 
+                        zWorld
+                        )-> Union[np.ndarray, np.ndarray, np.ndarray]:
+        """Converts from world coordinates to intrinsic coordinates.
+
+        Args:
+            xWorld (ndarray): Coordinates along the x-dimension in 
+                the world coordinate system.
+            yWorld (ndarray): Coordinates along the y-dimension in 
+                the world coordinate system.
+            zWorld (ndarray): Coordinates along the z-dimension in 
+                the world coordinate system.
+
+        Returns:
+            array: [xIntrinsic,yIntrinsic,zIntrinsic] in intrinsic 
+                coordinate system.
+
         """
 
         xIntrinsic = (
@@ -151,16 +244,22 @@ class imref3d:
 
         return xIntrinsic, yIntrinsic, zIntrinsic
 
-    def contains_point(self, xWorld, yWorld, zWorld):
-        """
-        Determines which points defined by xWorld, yWorld and zWorld
-        coordinates are inside the image
-        :param xWorld: x world coordinate
-        :param yWorld: y world coordinate
-        :param zWorld: z world coordinate
-        :return: boolean array for coordinate sets that are within the image
-        """
+    def contains_point(self, xWorld, yWorld, zWorld) -> np.ndarray:
+        """Determines which points defined by xWorld, yWorld and zWorld.
 
+        Args:
+            xWorld (ndarray): Coordinates along the x-dimension in 
+                the world coordinate system.
+            yWorld (ndarray): Coordinates along the y-dimension in 
+                the world coordinate system.
+            zWorld (ndarray): Coordinates along the z-dimension in 
+                the world coordinate system.
+
+        Returns:
+            array: boolean array for coordinate sets that are within 
+                the bounds of the image.
+
+        """
         xInside = np.logical_and(
             xWorld >= self.XWorldLimits[0], xWorld <= self.XWorldLimits[1])
         yInside = np.logical_and(
@@ -170,7 +269,20 @@ class imref3d:
 
         return xInside + yInside + zInside == 3
 
-    def WorldLimits(self, axis=None, newValue=None):
+    def WorldLimits(self, axis=None, newValue=None) -> Union[np.ndarray, None]:
+        """Sets the WorldLimits to the new value for the given axis.
+        If the newValue is None, the method returns the attribute value.
+
+        Args:
+            axis (:obj:`str`, optional): Specify the dimension,
+                MUST BE 'X', 'Y' or 'Z'.
+            newValue (:obj:`iterable`, optional): New value for the
+                WorldLimits attribute.
+
+        Returns:
+            array: Limits of image in world along the axis-dimension.
+
+        """
         if newValue is None:
             # Get value
             if axis == "X":
@@ -188,7 +300,18 @@ class imref3d:
             elif axis == "Z":
                 self.ZWorldLimits = self._parse_to_ndarray(x=newValue, n=2)
 
-    def PixelExtentInWorld(self, axis=None):
+    def PixelExtentInWorld(self, axis=None) -> Union[float, None]:
+        """Returns the PixelExtentInWorld attribute value for the given axis.
+
+        Args:
+            axis (:obj:`str`, optional): Specify the dimension,
+                MUST BE 'X', 'Y' or 'Z'.
+
+        Returns:
+            float: Size of a single pixel in the axis-dimension measured 
+                in the world coordinate system.
+
+        """
         if axis == "X":
             return self.PixelExtentInWorldX
         elif axis == "Y":
@@ -196,7 +319,18 @@ class imref3d:
         elif axis == "Z":
             return self.PixelExtentInWorldZ
 
-    def IntrinsicLimits(self, axis=None):
+    def IntrinsicLimits(self, axis=None) -> Union[np.ndarray, None]:
+        """Returns the IntrinsicLimits attribute value for the given axis.
+
+        Args:
+            axis (:obj:`str`, optional): Specify the dimension,
+                MUST BE 'X', 'Y' or 'Z'.
+
+        Returns:
+            array: Limits of image in intrinsic units in the axis-dimension, 
+                specified as a 2-element row vector [xMin xMax].
+
+        """
         if axis == "X":
             return self.XIntrinsicLimits
         elif axis == "Y":
@@ -204,7 +338,18 @@ class imref3d:
         elif axis == "Z":
             return self.ZIntrinsicLimits
 
-    def ImageExtentInWorld(self, axis=None):
+    def ImageExtentInWorld(self, axis=None) -> Union[float, None]:
+        """Returns the ImageExtentInWorld attribute value for the given axis.
+
+        Args:
+            axis (:obj:`str`, optional): Specify the dimension,
+                MUST BE 'X', 'Y' or 'Z'.
+
+        Returns:
+            array: Span of image in the axis-dimension in the world coordinate 
+                system.
+
+        """
         if axis == "X":
             return self.ImageExtentInWorldX
         elif axis == "Y":
