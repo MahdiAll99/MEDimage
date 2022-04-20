@@ -17,7 +17,7 @@ def rangeReSeg(vol, roi, im_range=None) -> ndarray:
         re-segmentation intensity range.
 
     Returns:
-        array: Intensity mask with intensities within the re-segmentation
+        ndarray: Intensity mask with intensities within the re-segmentation
             range.
     """
 

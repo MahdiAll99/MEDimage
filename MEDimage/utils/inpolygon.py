@@ -21,7 +21,7 @@ def inpolygon(xq, yq, xv, yv) -> np.ndarray:
         yq (ndarray): y-coordinates of polygon vertices, in intrinsic reference system.
 
     Returns:
-        array: boolean array indicating if the query points are on the edge of the polygon area.
+        ndarray: boolean array indicating if the query points are on the edge of the polygon area.
 
     """
     def ray_line_intersection(ray_orig, ray_dir, vert_1, vert_2):

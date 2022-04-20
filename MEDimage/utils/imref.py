@@ -147,7 +147,7 @@ class imref3d:
             n (int, optional): expected length.
 
         Returns:
-            array: iterable input as a numpy array.
+            ndarray: iterable input as a numpy array.
         
         """
         if x is not None:
@@ -179,7 +179,7 @@ class imref3d:
                 the intrinsic coordinate system.
 
         Returns:
-            array: [xWorld, yWorld, zWorld] in world coordinate system.
+            ndarray: [xWorld, yWorld, zWorld] in world coordinate system.
         
         """
         xWorld = (self.XWorldLimits[0] + 0.5*self.PixelExtentInWorldX) + \
@@ -207,7 +207,7 @@ class imref3d:
                 the world coordinate system.
 
         Returns:
-            array: [xIntrinsic,yIntrinsic,zIntrinsic] in intrinsic 
+            ndarray: [xIntrinsic,yIntrinsic,zIntrinsic] in intrinsic 
                 coordinate system.
 
         """
@@ -233,7 +233,7 @@ class imref3d:
                 the world coordinate system.
 
         Returns:
-            array: boolean array for coordinate sets that are within 
+            ndarray: boolean array for coordinate sets that are within 
                 the bounds of the image.
 
         """
@@ -257,7 +257,7 @@ class imref3d:
                 WorldLimits attribute.
 
         Returns:
-            array: Limits of image in world along the axis-dimension.
+            ndarray: Limits of image in world along the axis-dimension.
 
         """
         if newValue is None:
@@ -304,7 +304,7 @@ class imref3d:
                 MUST BE 'X', 'Y' or 'Z'.
 
         Returns:
-            array: Limits of image in intrinsic units in the axis-dimension, 
+            ndarray: Limits of image in intrinsic units in the axis-dimension, 
                 specified as a 2-element row vector [xMin xMax].
 
         """
@@ -323,7 +323,7 @@ class imref3d:
                 MUST BE 'X', 'Y' or 'Z'.
 
         Returns:
-            array: Span of image in the axis-dimension in the world coordinate 
+            ndarray: Span of image in the axis-dimension in the world coordinate 
                 system.
 
         """

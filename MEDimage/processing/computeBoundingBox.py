@@ -13,7 +13,7 @@ def computeBoundingBox(mask) -> np.ndarray:
         mask (ndarray): ROI mask with values of 0 and 1.
 
     Returns:
-        array: An array containing the indexes of the bounding box.
+        ndarray: An array containing the indexes of the bounding box.
 
     """
 

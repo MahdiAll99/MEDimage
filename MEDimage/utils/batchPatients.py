@@ -13,7 +13,7 @@ def batchPatients(nPatient, nBatch) -> np.ndarray:
             to the cores number on your machine.
 
     Returns:
-        array: List of indexes with size nBatch and max value nPatient.
+        ndarray: List of indexes with size nBatch and max value nPatient.
     """
 
     # FIND THE NUMBER OF PATIENTS IN EACH BATCH

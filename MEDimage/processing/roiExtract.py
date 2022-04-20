@@ -15,7 +15,7 @@ def roiExtract(vol, roi) -> np.ndarray:
         roi (ndarray): ROI mask with values of 0's and 1's.
 
     Returns:
-        array: Imaging data with original intensities in the ROI 
+        ndarray: Imaging data with original intensities in the ROI 
             and NaN for intensities outside the ROI.
     """
 

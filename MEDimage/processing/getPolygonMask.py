@@ -19,7 +19,7 @@ def getPolygonMask(ROI_XYZ, spatialRef, orientation) -> np.ndarray:
         orientation (str): Imaging data orientation (axial, sagittal or coronal).
 
     Returns:
-        array: 3D array of 1's and 0's defining the ROI mask.
+        ndarray: 3D array of 1's and 0's defining the ROI mask.
 
     """
 

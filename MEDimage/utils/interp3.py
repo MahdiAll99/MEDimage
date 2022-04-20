@@ -16,7 +16,7 @@ def interp3(V, Xq, Yq, Zq, method) -> np.ndarray:
         method (str): {nearest, linear, spline, cubic}, Interpolation method.
 
     Returns:
-        array: Array of interpolated values.
+        ndarray: Array of interpolated values.
     
     Raises:
         ValueError: If `method` is not 'nearest', 'linear', 'spline' or 'cubic'.

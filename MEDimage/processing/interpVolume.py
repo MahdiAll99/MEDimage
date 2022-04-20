@@ -50,7 +50,7 @@ def interpVolume(MEDimage,
                 size.
 
     Returns:
-        array: 3D array of 1's and 0's defining the ROI mask.
+        ndarray: 3D array of 1's and 0's defining the ROI mask.
 
     """
     try:

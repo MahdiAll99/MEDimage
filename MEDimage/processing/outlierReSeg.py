@@ -15,7 +15,7 @@ def outlierReSeg(vol, roi) -> np.ndarray:
         roi (ndarray): ROI mask with values of 0 and 1.
 
     Returns:
-        array: An array with values of 0 and 1.
+        ndarray: An array with values of 0 and 1.
     
     """
 
