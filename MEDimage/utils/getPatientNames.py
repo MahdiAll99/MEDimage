@@ -24,25 +24,22 @@
 # -------------------------------------------------------------------------
 
 
+from typing import List
+
 import numpy as np
 
 
-def getPatientNames(roiNames):
-    """TODO: Document this function
+def getPatientNames(roiNames) -> List[str]:
+    """Generates all file names for scans using CSV data. 
 
-    Parameters
-    ----------
+    Args:
+        roiNames (ndarray): Array with CSV data organized as follows 
+            [[PatientID], [ImagingScanName], [ImagingModality]]
+        
+    Returns:
+        list[str]: List of scans files name.
 
-    roiNames: np.ndarray[str]
-        Description of the parameter
-
-    Returns
-    -------
-
-    list[str]
-        Description of return value
     """
-
     nNames = np.size(roiNames[0])
     patientNames = [0] * nNames
     for n in range(0, nNames):
