@@ -1,30 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
-
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
-"""
-
 from typing import Union
 
 import numpy as np
@@ -62,50 +38,51 @@ class imref3d:
     The image is sampled regularly in the planar world-x, world-y, and world-z coordinates 
     of the coordinate system such that intrinsic-x, -y and -z values align with world-x, -y 
     and -z values, respectively. The resolution in each dimension can be different.
+
     REF: <https://www.mathworks.com/help/images/ref/imref3d.html>
 
     Args:
-        ImageSize (:obj:`ndarray`, optional): Number of elements in each spatial dimension, 
+        ImageSize (ndarray, optional): Number of elements in each spatial dimension, 
             specified as a 3-element positive row vector.
-        PixelExtentInWorldX (:obj:`float`, optional): Size of a single pixel in the x-dimension 
+        PixelExtentInWorldX (float, optional): Size of a single pixel in the x-dimension 
             measured in the world coordinate system.
-        PixelExtentInWorldY (:obj:`float`, optional): Size of a single pixel in the y-dimension 
+        PixelExtentInWorldY (float, optional): Size of a single pixel in the y-dimension 
             measured in the world coordinate system.
-        PixelExtentInWorldZ (:obj:`float`, optional): Size of a single pixel in the z-dimension 
+        PixelExtentInWorldZ (float, optional): Size of a single pixel in the z-dimension 
             measured in the world coordinate system.
-        xWorldLimits (:obj:`ndarray`, optional): Limits of image in world x, specified as a 2-element row vector, 
+        xWorldLimits (ndarray, optional): Limits of image in world x, specified as a 2-element row vector, 
             [xMin xMax].
-        yWorldLimits (:obj:`ndarray`, optional): Limits of image in world y, specified as a 2-element row vector, 
+        yWorldLimits (ndarray, optional): Limits of image in world y, specified as a 2-element row vector, 
             [yMin yMax].
-        zWorldLimits (:obj:`ndarray`, optional): Limits of image in world z, specified as a 2-element row vector, 
+        zWorldLimits (ndarray, optional): Limits of image in world z, specified as a 2-element row vector, 
             [zMin zMax].
         
     Attributes:
-        ImageSize (:obj:`ndarray`): Number of elements in each spatial dimension, 
+        ImageSize (ndarray): Number of elements in each spatial dimension, 
             specified as a 3-element positive row vector.
-        PixelExtentInWorldX (:obj:`float`): Size of a single pixel in the x-dimension 
+        PixelExtentInWorldX (float): Size of a single pixel in the x-dimension 
             measured in the world coordinate system.
-        PixelExtentInWorldY (:obj:`float`): Size of a single pixel in the y-dimension 
+        PixelExtentInWorldY (float): Size of a single pixel in the y-dimension 
             measured in the world coordinate system.
-        PixelExtentInWorldZ (:obj:`float`): Size of a single pixel in the z-dimension 
+        PixelExtentInWorldZ (float): Size of a single pixel in the z-dimension 
             measured in the world coordinate system.
-        XIntrinsicLimits (:obj:`ndarray`): Limits of image in intrinsic units in the x-dimension, 
+        XIntrinsicLimits (ndarray): Limits of image in intrinsic units in the x-dimension, 
             specified as a 2-element row vector [xMin xMax].
-        YIntrinsicLimits (:obj:`ndarray`): Limits of image in intrinsic units in the y-dimension, 
+        YIntrinsicLimits (ndarray): Limits of image in intrinsic units in the y-dimension, 
             specified as a 2-element row vector [yMin yMax].
-        ZIntrinsicLimits (:obj:`ndarray`): Limits of image in intrinsic units in the z-dimension, 
+        ZIntrinsicLimits (ndarray): Limits of image in intrinsic units in the z-dimension, 
             specified as a 2-element row vector [zMin zMax].
-        ImageExtentInWorldX (:obj:`float`): Span of image in the x-dimension in 
+        ImageExtentInWorldX (float): Span of image in the x-dimension in 
             the world coordinate system.
-        ImageExtentInWorldY (:obj:`float`): Span of image in the y-dimension in 
+        ImageExtentInWorldY (float): Span of image in the y-dimension in 
             the world coordinate system.
-        ImageExtentInWorldZ (:obj:`float`): Span of image in the z-dimension in 
+        ImageExtentInWorldZ (float): Span of image in the z-dimension in 
             the world coordinate system.
-        xWorldLimits (:obj:`ndarray`): Limits of image in world x, specified as a 2-element row vector, 
+        xWorldLimits (ndarray): Limits of image in world x, specified as a 2-element row vector, 
             [xMin xMax].
-        yWorldLimits (:obj:`ndarray`): Limits of image in world y, specified as a 2-element row vector, 
+        yWorldLimits (ndarray): Limits of image in world y, specified as a 2-element row vector, 
             [yMin yMax].
-        zWorldLimits (:obj:`ndarray`): Limits of image in world z, specified as a 2-element row vector, 
+        zWorldLimits (ndarray): Limits of image in world z, specified as a 2-element row vector, 
             [zMin zMax].
 
     """
@@ -167,7 +144,7 @@ class imref3d:
 
         Args:
             x (iterable): Object that supports __iter__.
-            n (:obj:`int`, optional): expected length.
+            n (int, optional): expected length.
 
         Returns:
             array: iterable input as a numpy array.
@@ -274,9 +251,9 @@ class imref3d:
         If the newValue is None, the method returns the attribute value.
 
         Args:
-            axis (:obj:`str`, optional): Specify the dimension,
+            axis (str, optional): Specify the dimension,
                 MUST BE 'X', 'Y' or 'Z'.
-            newValue (:obj:`iterable`, optional): New value for the
+            newValue (iterable, optional): New value for the
                 WorldLimits attribute.
 
         Returns:
@@ -304,7 +281,7 @@ class imref3d:
         """Returns the PixelExtentInWorld attribute value for the given axis.
 
         Args:
-            axis (:obj:`str`, optional): Specify the dimension,
+            axis (str, optional): Specify the dimension,
                 MUST BE 'X', 'Y' or 'Z'.
 
         Returns:
@@ -323,7 +300,7 @@ class imref3d:
         """Returns the IntrinsicLimits attribute value for the given axis.
 
         Args:
-            axis (:obj:`str`, optional): Specify the dimension,
+            axis (str, optional): Specify the dimension,
                 MUST BE 'X', 'Y' or 'Z'.
 
         Returns:
@@ -342,7 +319,7 @@ class imref3d:
         """Returns the ImageExtentInWorld attribute value for the given axis.
 
         Args:
-            axis (:obj:`str`, optional): Specify the dimension,
+            axis (str, optional): Specify the dimension,
                 MUST BE 'X', 'Y' or 'Z'.
 
         Returns:
