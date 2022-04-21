@@ -748,7 +748,7 @@ def get_cm_features_deprecated(vol, distCorrection):
     """Calculates co-occurrence matrix features
 
     Note:
-        Deprecated code. Calculates co-occurrence matrix features, but slowl.
+        Deprecated code. Calculates co-occurrence matrix features, but slowly.
         A newer and faster method is available : `get_cm_features()`
     Args:
         vol (ndarray): 3D input volume.
