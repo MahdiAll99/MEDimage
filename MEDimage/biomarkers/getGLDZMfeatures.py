@@ -13,10 +13,10 @@ def getGLDZMfeatures(volInt, maskMorph) -> Dict:
     """Compute GLDZM features.
      
      Args:
-        volInt (ndarray): 3D volume, isotropically resampled, quantized
-        (e.g. Ng = 32, levels = [1, ..., Ng]), with NaNs 
-        outside the region of interest
-        maskMorph (ndarray): Morphological mask.
+        volInt (ndarray): 3D volume, isotropically resampled, 
+            quantized (e.g. Ng = 32, levels = [1, ..., Ng]), 
+            with NaNs outside the region of interest.
+        maskMorph (ndarray): Morphological ROI mask.
     
     Returns:
         Dict: Dict of GLDZM features.
@@ -43,7 +43,7 @@ def getGLDZMfeatures(volInt, maskMorph) -> Dict:
     levels = np.arange(1, np.max(volInt[~np.isnan(volInt[:])])+1)
 
     # GET THE GLDZM MATRIX
-    GLDZM = getGLDZMmatrix.getGLDZMmatrix(volInt, maskMorph, levels)
+    GLDZM = getGLDZMmatrix(volInt, maskMorph, levels)
     Ns = np.sum(GLDZM)
     GLDZM = GLDZM/np.sum(GLDZM)  # Normalization of GLDZM
     sz = np.shape(GLDZM)  # Size of GLDZM
