@@ -531,7 +531,7 @@ class CooccurrenceMatrix:
         # Add matrix and number of voxels to object
         self.matrix = df_cm
 
-    def calculate_cm_features(self, intensity_range):
+    def calculate_cm_features(self, intensity_range) -> pd.DataFrame:
         """Wrapper to json.dump function.
 
         Args:
@@ -715,7 +715,7 @@ class CooccurrenceMatrix:
 
         return df_feat
 
-    def _parse_names(self):
+    def _parse_names(self) -> str:
         """"
         Adds additional settings-related identifiers to each feature.
         Not used currently, as the use of different settings for the
@@ -744,7 +744,7 @@ class CooccurrenceMatrix:
         return parse_str
 
 @deprecated(reason="Use the new and the faster method get_cm_features()")
-def get_cm_features_deprecated(vol, distCorrection):
+def get_cm_features_deprecated(vol, distCorrection) -> Dict:
     """Calculates co-occurrence matrix features
 
     Note:

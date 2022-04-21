@@ -532,7 +532,7 @@ class RunLengthMatrix:
         # Add matrix to object
         self.matrix = df_rltable
 
-    def calculate_rlm_features(self, intensity_range):
+    def calculate_rlm_features(self, intensity_range) -> pd.DataFrame:
         """Computes run length matrix features for the current run length matrix.
 
         Note:
@@ -636,7 +636,7 @@ class RunLengthMatrix:
 
         return df_feat
 
-    def _parse_feature_names(self):
+    def _parse_feature_names(self) -> str:
         """"
         Adds additional settings-related identifiers to each feature.
         Not used currently, as the use of different settings for the
@@ -663,7 +663,7 @@ class RunLengthMatrix:
 
 
 @deprecated(reason="Use the new and the faster method get_rlm_features()")
-def get_rlm_features_deprecated(vol, distCorrection):
+def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
     """Calculates grey level run length matrix features.
 
      Note:
