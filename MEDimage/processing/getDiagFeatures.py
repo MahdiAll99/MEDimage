@@ -6,7 +6,7 @@ from typing import Dict
 
 import numpy as np
 
-import computeBoundingBox
+from .computeBoundingBox import computeBoundingBox
 
 
 def getDiagFeatures(volObj, roiObj_Int, roiObj_Morph, im_type) -> Dict:
@@ -68,10 +68,9 @@ def getDiagFeatures(volObj, roiObj_Int, roiObj_Morph, im_type) -> Dict:
         diag.update({'image_' + im_type + '_maxInt': np.max(volObj.data)})
 
     # FOR THE ROI
-    boxBound_Int = computeBoundingBox(
-        roiObj_Int.data)
-    boxBound_Morph = computeBoundingBox(
-        roiObj_Morph.data)
+    boxBound_Int = computeBoundingBox(roiObj_Int.data)
+    boxBound_Morph = computeBoundingBox(roiObj_Morph.data)
+
     Xgl_Int = volObj.data[roiObj_Int.data == 1]
     Xgl_Morph = volObj.data[roiObj_Morph.data == 1]
 
