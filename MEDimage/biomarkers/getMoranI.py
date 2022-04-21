@@ -4,29 +4,17 @@
 import numpy as np
 
 
-def getMoranI(vol, res):
-    """Compute MoranI.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def getMoranI(vol, res) -> float:
+    """Compute Moran's Index.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
+        res (List[float]): [a,b,c] vector specfying the resolution of the volume in mm.
+            XYZ resolution (world) or JIK resolution (intrinsic matlab).
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Returns:
+        float: Value of Moran's Index.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
 
     vol = vol.copy()
@@ -48,9 +36,9 @@ def getMoranI(vol, res):
     y = res[1]*((np.arange(1, np.shape(vol)[1]+1))-0.5)
     z = res[2]*((np.arange(1, np.shape(vol)[2]+1))-0.5)
     X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+
     temp = 0
     sumW = 0
-
     for i in range(1, nVox+1):
         # Distance mesh
         tempX = X - X[I[i-1], J[i-1], K[i-1]]
@@ -58,7 +46,7 @@ def getMoranI(vol, res):
         tempZ = Z - Z[I[i-1], J[i-1], K[i-1]]
 
         # meshgrid of weigths
-        tempDistMesh = 1/np.sqrt(tempX**2 + tempY**2 + tempZ**2)
+        tempDistMesh = 1 / np.sqrt(tempX**2 + tempY**2 + tempZ**2)
 
         # Removing NaNs
         tempDistMesh[np.isnan(vol)] = np.NaN
