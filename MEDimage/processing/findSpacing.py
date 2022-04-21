@@ -3,7 +3,7 @@
 
 
 import numpy as np
-from utils.mode import mode
+from ..utils.mode import mode
 
 
 def findSpacing(points, scanType) -> float:

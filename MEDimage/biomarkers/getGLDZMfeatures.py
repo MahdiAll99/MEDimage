@@ -6,7 +6,7 @@ from typing import Dict
 
 import numpy as np
 
-from getGLDZMmatrix import getGLDZMmatrix
+from ..biomarkers.getGLDZMmatrix import getGLDZMmatrix
 
 
 def getGLDZMfeatures(volInt, maskMorph) -> Dict:

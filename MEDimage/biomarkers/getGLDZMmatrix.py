@@ -18,7 +18,7 @@ def getGLDZMmatrix(ROIOnlyInt, mask, levels) -> np.ndarray:
             quantized (e.g. Ng = 32, levels = [1, ..., Ng]), 
             with NaNs outside the region of interest.
         mask (ndarray): Morphological ROI mask.
-        levels (ndarray | List): Vector containing the quantized gray-levels 
+        levels (ndarray or List): Vector containing the quantized gray-levels 
         in the tumor region (or reconstruction levels of quantization).
 
     Returns:

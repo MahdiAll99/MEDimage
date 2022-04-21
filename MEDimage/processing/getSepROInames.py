@@ -5,7 +5,7 @@
 from typing import List, Union
 
 import numpy as np
-from utils.strfind import strfind
+from ..utils.strfind import strfind
 
 
 def getSepROInames(nameROIin, delimiters) -> Union[List[str], List[int]]:

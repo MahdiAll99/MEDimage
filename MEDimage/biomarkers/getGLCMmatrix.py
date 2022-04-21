@@ -23,7 +23,7 @@ def getGLCMmatrix(ROIonly, levels, distCorrection=True) -> np.ndarray:
         ROIonly (ndarray): Smallest box containing the ROI, with the imaging data 
             ready for texture analysis computations. Voxels outside the ROI are
             set to NaNs.
-        levels (ndarray | List): Vector containing the quantized gray-levels in the tumor region
+        levels (ndarray or List): Vector containing the quantized gray-levels in the tumor region
             (or reconstruction levels of quantization).
         distCorrection (bool, optional): Set this variable to true in order to use
             discretization length difference corrections as used

@@ -13,7 +13,7 @@ def parseContourString(contourString) -> Union[float, int, List[str]]:
     from the given string.
 
     Args:
-        contourString (str | float | int): Index or string of indexes with
+        contourString (str, float or int): Index or string of indexes with
         delimeters. FOR EXAMPLE '3' or '1-3+2'.
 
     Returns:

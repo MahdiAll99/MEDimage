@@ -3,11 +3,11 @@
 
 
 import numpy as np
-from utils.imref import imref3d
-from utils.interp3 import interp3
+from ..utils.imref import imref3d
+from ..utils.interp3 import interp3
 
-from processing.findSpacing import findSpacing
-from processing.getPolygonMask import getPolygonMask
+from ..processing.findSpacing import findSpacing
+from ..processing.getPolygonMask import getPolygonMask
 
 
 def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp=False) -> np.ndarray:

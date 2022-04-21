@@ -6,11 +6,11 @@ from copy import deepcopy
 import logging
 
 import numpy as np
-from utils.ImageVolumeObj import ImageVolumeObj
-from utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
-from utils.interp3 import interp3
+from ..utils.ImageVolumeObj import ImageVolumeObj
+from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
+from ..utils.interp3 import interp3
 
-from processing.computeBox import computeBox
+from ..processing.computeBox import computeBox
 
 _logger = logging.getLogger(__name__)
 

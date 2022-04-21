@@ -6,12 +6,12 @@ import logging
 from typing import Union
 
 import numpy as np
-from utils.ImageVolumeObj import ImageVolumeObj
-from utils.parseContourString import parseContourString
+from ..utils.ImageVolumeObj import ImageVolumeObj
+from ..utils.parseContourString import parseContourString
 
-import getSepROInames
-from processing.computeBox import computeBox
-from processing.computeROI import computeROI
+from .getSepROInames import getSepROInames
+from ..processing.computeBox import computeBox
+from ..processing.computeROI import computeROI
 
 _logger = logging.getLogger(__name__)
 

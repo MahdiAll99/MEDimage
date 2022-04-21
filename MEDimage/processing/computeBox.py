@@ -5,8 +5,8 @@
 from typing import Union
 
 import numpy as np
-import computeBoundingBox
-from utils.imref import imref3d, intrinsicToWorld
+from .computeBoundingBox import computeBoundingBox
+from ..utils.imref import imref3d, intrinsicToWorld
 
 
 def computeBox(vol, roi, spatialRef, boxString) -> Union[np.ndarray, np.ndarray, imref3d]:

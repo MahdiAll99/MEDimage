@@ -7,7 +7,7 @@ from typing import Union
 
 import numpy as np
 
-from processing.equalization import equalization
+from ..processing.equalization import equalization
 
 
 def discretisation(

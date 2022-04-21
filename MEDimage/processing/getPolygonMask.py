@@ -3,9 +3,9 @@
 
 
 import numpy as np
-from utils.imref import worldToIntrinsic
-from utils.inpolygon import inpolygon
-from utils.mode import mode
+from ..utils.imref import worldToIntrinsic
+from ..utils.inpolygon import inpolygon
+from ..utils.mode import mode
 
 
 def getPolygonMask(ROI_XYZ, spatialRef, orientation) -> np.ndarray:

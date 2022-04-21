@@ -8,12 +8,12 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 from deprecated import deprecated
-from utils.textureTools import (coord2index, get_neighbour_direction,
+from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                 get_value, is_list_all_none)
 
-from biomarkers.gclm_CrossDiagProb import gclm_CrossDiagProb
-from biomarkers.gclm_DiagProb import gclm_DiagProb
-from biomarkers.getGLCMmatrix import getGLCMmatrix
+from ..biomarkers.gclm_CrossDiagProb import gclm_CrossDiagProb
+from ..biomarkers.gclm_DiagProb import gclm_DiagProb
+from ..biomarkers.getGLCMmatrix import getGLCMmatrix
 
 
 def getGLCMfeatures(vol, distCorrection=None, method="new") -> Dict:
@@ -447,7 +447,7 @@ class CooccurrenceMatrix:
         Args:
             df_img (pandas.DataFrame): Data table containing image intensities, x, y and z coordinates, 
                 and mask labels corresponding to voxels in the volume.
-            img_dims (ndarray | List[float]): Dimensions of the image volume.
+            img_dims (ndarray, List[float]): Dimensions of the image volume.
             dist_weight_norm (str): Norm for distance weighting. Weighting is only 
                 performed if this parameter is either "manhattan", "euclidean" or "chebyshev".
 
