@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import Dict
+
 import numpy as np
-import Code_Radiomics.ImageBiomarkers.findVX
-import Code_Radiomics.ImageBiomarkers.findIX
+
+from ..biomarkers.findIX import findIX
+from ..biomarkers.findVX import findVX
 
 
-def getIntVolHistFeatures(vol, wd=None, userSetRange=None):
+def getIntVolHistFeatures(vol, wd=None, userSetRange=None) -> Dict:
     """Computes Intensity-volume Histogram Features.
 
     Note:
@@ -23,12 +26,6 @@ def getIntVolHistFeatures(vol, wd=None, userSetRange=None):
 
     Returns:
         Dict: Dict of the Intensity Histogram Features.
-    -------------------------------------------------------------------------
-    - vol: 3D volume, QUANTIZED, with NaNs outside the region of interest
-    1) Naturally discretised volume can be kept as is (e.g. HU values of
-    CT scans)
-    2) All other volumes with continuous intensity distribution should be
-    quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     """
     # INITIALIZATION
@@ -75,25 +72,25 @@ def getIntVolHistFeatures(vol, wd=None, userSetRange=None):
     fractInt = (levels - np.min(levels))/(np.max(levels) - np.min(levels))
 
     # Volume at intensity fraction 10
-    V10 = Code_Radiomics.ImageBiomarkers.findVX.findVX(fractInt, fractVol, 10)
+    V10 = findVX(fractInt, fractVol, 10)
     intVolHist['Fivh_V10'] = V10
 
     # Volume at intensity fraction 90
-    V90 = Code_Radiomics.ImageBiomarkers.findVX.findVX(fractInt, fractVol, 90)
+    V90 = findVX(fractInt, fractVol, 90)
     intVolHist['Fivh_V90'] = V90
 
     # Intensity at volume fraction 10
     #   For initial arbitrary intensities,
     #   we will always be discretising (1000 bins).
     #   So intensities are definite here.
-    I10 = Code_Radiomics.ImageBiomarkers.findIX.findIX(levels, fractVol, 10)
+    I10 = findIX(levels, fractVol, 10)
     intVolHist['Fivh_I10'] = I10
 
     # Intensity at volume fraction 90
     #   For initial arbitrary intensities,
     #   we will always be discretising (1000 bins).
     #   So intensities are definite here.
-    I90 = Code_Radiomics.ImageBiomarkers.findIX.findIX(levels, fractVol, 90)
+    I90 = findIX(levels, fractVol, 90)
     intVolHist['Fivh_I90'] = I90
 
     # Volume at intensity fraction difference V10-V90
