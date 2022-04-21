@@ -1,58 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import Tuple
+
 import numpy as np
 from skimage.measure import marching_cubes
 
 
-def getMesh(mask, res):
+def getMesh(mask, res) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Compute Mesh.
-    -------------------------------------------------------------------------
-    - mask: Contains only 0's and 1's.
-    - res: [a,b,c] vector specfying the resolution of the volume in mm.
-      XYZ resolution (world), or JIK resolution (intrinsic matlab).
-    - XYZ: [nPoints X 3] matrix of three column vectors, defining the [X,Y,Z]
-    positions of the points in the ROI (1's) of the mask volume.
-    --> In mm.
-    - faces: [nPoints X 3] matrix of three column vectors, defining the [X,Y,Z]
-      positions of the faces of the isosurface of the mask (output
-      from "isosurface.m" function of MATLAB).
-    --> These are more precisely indexes to "vertices".
-    - vertices: [nPoints X 3] matrix of three column vectors, defining the
-      [X,Y,Z] positions of the vertices of the isosurface of the mask (output
-      from "isosurface.m" function of MATLAB).
-    --> In mm.
 
-    --> IMPORTANT: Make sure the "mask" is padded with a layer of 0's in all
-        dimensions to reduce potential isosurface computation errors.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Note:
+      Make sure the `mask` is padded with a layer of 0's in all
+      dimensions to reduce potential isosurface computation errors.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        mask (ndarray): Contains only 0's and 1's.
+        res (ndarray or List): [a,b,c] vector specfying the resolution of the volume in mm.
+            XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        Tuple[np.ndarray, np.ndarray, np.ndarray]: 
+            - Array of the [X,Y,Z] positions of the ROI.
+            - Array of the spatial coordinates for `mask` unique mesh vertices.
+            - Array of triangular faces via referencing vertex indices from vertices.
     """
-
     # Getting the grid of X,Y,Z positions, where the coordinate reference
     # system (0,0,0) is located at the upper left corner of the first voxel
     # (-0.5: half a voxel distance). For the whole volume defining the mask,
     # no matter if it is a 1 or a 0.
-
     mask = mask.copy()
     res = res.copy()
 
@@ -62,8 +38,7 @@ def getMesh(mask, res):
     X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
 
     # Getting the isosurface of the mask
-    vertices, faces, norms, values = marching_cubes(
-        volume=mask, level=0.5, spacing=res)
+    vertices, faces, _, _ = marching_cubes(volume=mask, level=0.5, spacing=res)
 
     # Getting the X,Y,Z positions of the ROI (i.e. 1's) of the mask
     X = np.reshape(X, (np.size(X), 1), order='F')
