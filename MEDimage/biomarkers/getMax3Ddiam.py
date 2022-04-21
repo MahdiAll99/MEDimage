@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from deprecated import deprecated
 
 
+@deprecated(reason="Use scipy.distance.pdist() instaed")
 def getMax3Ddiam(faces, vertices) -> float:
     """Compute Maximum 3D diameter.
     
