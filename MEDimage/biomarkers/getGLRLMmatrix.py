@@ -29,9 +29,9 @@ def getGLRLMmatrix(ROIonly, levels, distCorrection=None) -> np.ndarray:
         This function is compatible with 2D analysis (language not adapted in the text).
 
     Args:
-        ROIOnlyInt (ndarray): 3D volume, isotropically resampled, 
-            quantized (e.g. Ng = 32, levels = [1, ..., Ng]), 
-            with NaNs outside the region of interest.
+        ROIOnlyInt (ndarray): Smallest box containing the ROI, with the imaging 
+            data readyfor texture analysis computations. Voxels outside the ROI 
+            are set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels 
             in the tumor region (or reconstruction levels of quantization).
         distCorrection: (optional). Set this variable to true in order to use
