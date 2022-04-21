@@ -1,62 +1,39 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import Dict
+
 import numpy as np
 import skimage.measure as skim
 
 
-def getGLSZMmatrix(ROIOnly, levels):
+def getGLSZMmatrix(ROIOnly, levels) -> Dict:
     """Compute GLSZMmatrix.
-    -------------------------------------------------------------------------
-    getGLSZMmatrix(ROIOnly,levels)
-    -------------------------------------------------------------------------
-    DESCRIPTION:
+
     This function computes the Gray-Level Size Zone Matrix (GLSZM) of the
     region of interest (ROI) of an input volume. The input volume is assumed
     to be isotropically resampled. The zones of different sizes are computed
     using 26-voxel connectivity.
 
-    --> This function is compatible with 2D analysis
-        (language not adapted in the text)
-    -------------------------------------------------------------------------
-    REFERENCE:
-    [1] Thibault, G., Fertil, B., Navarro, C., Pereira, S., Cau, P., Levy,
-         N., Mari, J.-L. (2009). Texture Indexes and Gray Level Size Zone
-         Matrix. Application to Cell Nuclei Classification. In Pattern
-         Recognition and Information Processing (PRIP) (pp. 140–145).
-    -------------------------------------------------------------------------
-    INPUTS:
-     - ROIonly: Smallest box containing the ROI, with the imaging data ready
-                for texture analysis computations. Voxels outside the ROI are
-                set to NaNs.
-     - levels: Vector containing the quantized gray-levels in the tumor region
-               (or reconstruction levels of quantization).
+    Note:
+        This function is compatible with 2D analysis (language not adapted in the text).
 
-     ** 'ROIonly' and 'levels' should be outputs from 'prepareVolume.m' **
-    -------------------------------------------------------------------------
-    OUTPUTS:
-     - GLSZM: Gray-Level Size Zone Matrix of 'ROIOnly'.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Args:
+        ROIOnlyInt (ndarray): Smallest box containing the ROI, with the imaging data ready
+            for texture analysis computations. Voxels outside the ROI are
+            set to NaNs.
+        levels (ndarray or List): Vector containing the quantized gray-levels 
+            in the tumor region (or reconstruction levels of quantization).
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Returns:
+        ndarray: Array of Gray-Level Size Zone Matrix of 'ROIOnly'.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    REFERENCES:
+        [1] Thibault, G., Fertil, B., Navarro, C., Pereira, S., Cau, P., Levy,
+            N., Mari, J.-L. (2009). Texture Indexes and Gray Level Size Zone
+            Matrix. Application to Cell Nuclei Classification. In Pattern
+            Recognition and Information Processing (PRIP) (pp. 140–145).
+    
     """
 
     # PRELIMINARY
