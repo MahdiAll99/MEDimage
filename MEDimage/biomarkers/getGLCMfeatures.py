@@ -87,7 +87,7 @@ def get_cm_features(vol,
             MUST BE "2d", "2.5d" or "3d".
         glcm_dist (float, optional): chebyshev distance for comparison between neighbouring
             voxels.
-        glcm_merge_method (, optional): merging method which determines how features are
+        glcm_merge_method (str, optional): merging method which determines how features are
             calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
             Note that not all combinations of spatial and merge method are valid.
         dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
