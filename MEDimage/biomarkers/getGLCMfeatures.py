@@ -3,9 +3,11 @@
 
 
 from copy import deepcopy
+from typing import Dict
 
 import numpy as np
 import pandas as pd
+from deprecated import deprecated
 from utils.textureTools import (coord2index, get_neighbour_direction,
                                 get_value, is_list_all_none)
 
@@ -14,48 +16,39 @@ from biomarkers.gclm_DiagProb import gclm_DiagProb
 from biomarkers.getGLCMmatrix import getGLCMmatrix
 
 
-def getGLCMfeatures(vol, distCorrection=None, method="new"):
-    """Compute GLCMfeatures.
-    - vol: 3D volume, isotropically resampled, quantized
-    (e.g. Ng = 32, levels = [1, ..., Ng]), with NaNs outside the region
-    of interest
-    - distCorrection: % Set this variable to true in order to use
-    discretization length difference corrections as used here:
-    https://doi.org/10.1088/0031-9155/60/14/5471.
-    Set this variable to false to replicate IBSI results.
-    - method: fast or slow (deprecated) calculations
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def getGLCMfeatures(vol, distCorrection=None, method="new") -> Dict:
+    """Computes GLCM features.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        vol (ndarray): 3D volume, isotropically resampled, quantized
+            (e.g. Ng = 32, levels = [1, ..., Ng]), with NaNs outside the region
+            of interest.
+        distCorrection (Union[bool, str], optional): Set this variable to true in order to use
+            discretization length difference corrections as used here:
+            <https://doi.org/10.1088/0031-9155/60/14/5471>.
+            Set this variable to false to replicate IBSI results.
+            Or use string and specify the norm for distance weighting. Weighting is 
+            only performed if this argument is "manhattan", "euclidean" or "chebyshev".
+        method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Returns:
+        Dict: Dict of the GLCM features.
+    
+    Raises:
+        ValueError: If `method` is not 'old' or 'new'.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
-    TODO: - Enable calculation of CM features using different spatial
+    Todo:
+        *Enable calculation of CM features using different spatial
             methods (2d, 2.5d, 3d)
-    TODO: - Enable calculation of CM features using different CM
+        *Enable calculation of CM features using different CM
             distance settings
-    TODO: - Enable calculation of CM features for different merge methods
+        *Enable calculation of CM features for different merge methods
             (average, slice_merge, dir_merge, vol_merge)
-    TODO: - Provide the range of discretised intensities from a calling
+        *Provide the range of discretised intensities from a calling
             function and pass to get_cm_features.
-    TODO: - Test if distCorrection works as expected.
-    """
+        *Test if distCorrection works as expected.
 
+    """
     if method == "old":
         glcm = get_cm_features_deprecated(
             vol=vol, distCorrection=distCorrection)
@@ -71,54 +64,42 @@ def getGLCMfeatures(vol, distCorrection=None, method="new"):
     return glcm
 
 
-def get_cm_features(vol, intensity_range, glcm_spatial_method="3d", glcm_dist=1.0, glcm_merge_method="vol_merge", dist_weight_norm=None):
+def get_cm_features(vol, 
+                    intensity_range, 
+                    glcm_spatial_method="3d", 
+                    glcm_dist=1.0, 
+                    glcm_merge_method="vol_merge", 
+                    dist_weight_norm=None) -> Dict:
+    """Extracts co-occurrence matrix-based features from the intensity roi mask.
+
+    Note:
+        This code was adapted from the in-house radiomics software created at
+        OncoRay, Dresden, Germany.
+    
+    Args:
+        vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
+        intensity_range (ndarray): range of potential discretised intensities,
+            provided as a list: [minimal discretised intensity, maximal discretised
+            intensity]. If one or both values are unknown, replace the respective values 
+            with np.nan.
+        glcm_spatial_method (str, optional): spatial method which determines the way
+            co-occurrence matrices are calculated and how features are determined.
+            MUST BE "2d", "2.5d" or "3d".
+        glcm_dist (float, optional): chebyshev distance for comparison between neighbouring
+            voxels.
+        glcm_merge_method (, optional): merging method which determines how features are
+            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+            Note that not all combinations of spatial and merge method are valid.
+        dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
+            performed if this argument is either "manhattan", "euclidean", "chebyshev" or bool.
+    
+    Returns: 
+        Dict: Dict of the GLCM features.
+    
+    Raises:
+        ValueError: If `glcm_spatial_method` is not "2d", "2.5d" or "3d".
+    
     """
-    Extract co-occurrence matrix-based features from the intensity roi mask
-
-    :param vol: volume with discretised intensities as 3D numpy array (x, y, z).
-    :param intensity_range: range of potential discretised intensities,
-     provided as a list: [minimal discretised intensity, maximal discretised
-     intensity]. If one or both values
-     are unknown, replace the respective values with np.nan.
-    :param glcm_spatial_method: spatial method which determines the way
-     co-occurrence matrices are calculated and how features are determined.
-     One of "2d", "2.5d" or "3d".
-    :param glcm_dist: chebyshev distance for comparison between neighbouring
-     voxels.
-    :param glcm_merge_method: merging method which determines how features are
-     calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
-     Note that not all
-     combinations of spatial and merge method are valid.
-    :param dist_weight_norm: norm for distance weighting. Weighting is only
-     performed if this parameter is either "manhattan", "euclidean"
-     or "chebyshev".
-    :return: dictionary with feature values.
-
-    This code was adapted from the in-house radiomics software created at
-    OncoRay, Dresden, Germany.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
-
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
-    """
-
     if type(glcm_spatial_method) is not list:
         glcm_spatial_method = [glcm_spatial_method]
 
@@ -148,41 +129,49 @@ def get_cm_features(vol, intensity_range, glcm_spatial_method="3d", glcm_dist=1.
 
     # Iterate over spatial arrangements
     for ii_spatial in glcm_spatial_method:
-
         # Iterate over distances
         for ii_dist in glcm_dist:
-
             # Initiate list of glcm objects
             glcm_list = []
-
             # Perform 2D analysis
             if ii_spatial.lower() in ["2d", "2.5d"]:
-
                 # Iterate over slices
                 for ii_slice in np.arange(0, img_dims[2]):
-
                     # Get neighbour direction and iterate over neighbours
                     nbrs = get_neighbour_direction(
-                        d=1, distance="chebyshev", centre=False, complete=False, dim3=False) * np.int(ii_dist)
+                        d=1, 
+                        distance="chebyshev", 
+                        centre=False, 
+                        complete=False, 
+                        dim3=False) * np.int(ii_dist)
                     for ii_direction in np.arange(0, np.shape(nbrs)[1]):
-
                         # Add glcm matrices to list
-                        glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), direction=nbrs[:, ii_direction], direction_id=ii_direction,
-                                                         spatial_method=ii_spatial.lower(), img_slice=ii_slice)]
+                        glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), 
+                                                        direction=nbrs[:, ii_direction], 
+                                                        direction_id=ii_direction,
+                                                        spatial_method=ii_spatial.lower(), 
+                                                        img_slice=ii_slice)]
+
             # Perform 3D analysis
             elif ii_spatial.lower() == "3d":
-
                 # Get neighbour direction and iterate over neighbours
                 nbrs = get_neighbour_direction(
-                    d=1, distance="chebyshev", centre=False, complete=False, dim3=True) * np.int(ii_dist)
+                    d=1, 
+                    distance="chebyshev", 
+                    centre=False, 
+                    complete=False, 
+                    dim3=True) * np.int(ii_dist)
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
-
                     # Add glcm matrices to list
-                    glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), direction=nbrs[:, ii_direction], direction_id=ii_direction,
-                                                     spatial_method=ii_spatial.lower())]
+                    glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), 
+                                                    direction=nbrs[:, ii_direction], 
+                                                    direction_id=ii_direction,
+                                                    spatial_method=ii_spatial.lower())]
+
             else:
                 raise ValueError(
-                    "GCLM matrices can be determined in \"2d\", \"2.5d\" and \"3d\". The requested method (%s) is not implemented.", ii_spatial)
+                    "GCLM matrices can be determined in \"2d\", \"2.5d\" and \"3d\". \
+                        The requested method (%s) is not implemented.", ii_spatial)
 
             # Calculate glcm matrices
             for glcm in glcm_list:
@@ -205,8 +194,7 @@ def get_cm_features(vol, intensity_range, glcm_spatial_method="3d", glcm_dist=1.
                         intensity_range=intensity_range)]
 
                 # Average feature values
-                feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0,
-                                                                    skipna=True).to_frame().transpose()]
+                feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
 
     # Merge feature tables into a single table and return as a dictionary
     df_feat = pd.concat(feat_list, axis=1).to_dict(orient="records")[0]
@@ -748,7 +736,7 @@ class CooccurrenceMatrix:
 
         return parse_str
 
-
+@deprecated(reason="Use the new method get_cm_features()")
 def get_cm_features_deprecated(vol, distCorrection):
     """
     Deprecated code. Calculates co-occurrence matrix features, but slowly
