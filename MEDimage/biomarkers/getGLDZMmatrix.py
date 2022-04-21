@@ -1,50 +1,35 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 - Creation: June 2018
-
 """
 
 import numpy as np
-import skimage.measure as skim
 import scipy.ndimage as sc
-  
-def getGLDZMmatrix(ROIOnlyInt,mask,levels):
-    """Compute GLDZMmatrix.
-    -------------------------------------------------------------------------
-    getGLDZMmatrix(ROIOnlyInt,mask,levels)
-    -------------------------------------------------------------------------
-    AUTHOR(S): 
-     - Martin Vallieres <mart.vallieres@gmail.com>
-     - Jorge Barrios Ginart <numeroj@gmail.com>
-     - Olivier Morin <Olivier.Morin@ucsf.edu>
-    -------------------------------------------------------------------------
-    HISTORY:
-    - Creation: June 2018
-    -------------------------------------------------------------------------
-    DISCLAIMER:
-    "I'm not a programmer, I'm just a scientist doing stuff!"
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/mvallieres/radiomics-develop/>, 
-    a private repository dedicated to the development of programming code for
-    new radiomics applications.
-     --> Copyright (C) 2017  Martin Vallieres
-        All rights reserved.
-    This file is written on the basis of a scientific collaboration for the 
-    "radiomics-develop" team.
+import skimage.measure as skim
+
+
+def getGLDZMmatrix(ROIOnlyInt, mask, levels) -> np.ndarray:
+    """Computes GLDZM matrix.
+
+    Args:
+        ROIOnlyInt (ndarray): 3D volume, isotropically resampled, 
+            quantized (e.g. Ng = 32, levels = [1, ..., Ng]), 
+            with NaNs outside the region of interest.
+        mask (ndarray): Morphological ROI mask.
+        levels (ndarray | List): Vector containing the quantized gray-levels 
+        in the tumor region (or reconstruction levels of quantization).
+
+    Returns:
+        ndarray: Grey level distance zone Matrix.
+
+    Todo:
+        *levels: should be removed at some point, no longer needed if we always
+            quantize our volume such that `levels = 1,2,3,4,...,max(quantized Volume)`. 
+            So simply calculate `levels = 1:max(ROIOnly(~isnan(ROIOnly(:))))`
+            directly in this function
     
-    By using this file, all members of the team acknowledge that it is to be 
-    kept private until public release. Other scientists willing to join the 
-    "radiomics-develop" team is however highly encouraged. Please contact 
-    Martin Vallieres for this matter.
-    -------------------------------------------------------------------------
-    - vol: 3D volume, isotropically resampled, quantized, with NaNs outside 
-      the region of interest
-    - levels: should be removed at some point, no longer needed if we always
-      quantize our volume such that levels = 1,2,3,4,...,max(quantized Volume). 
-      So simply calculate levels = 1:max(ROIOnly(~isnan(ROIOnly(:))))
-      directly in this function
-    -------------------------------------------------------------------------
     """
     
     ROIOnlyInt = ROIOnlyInt.copy()
@@ -52,19 +37,20 @@ def getGLDZMmatrix(ROIOnlyInt,mask,levels):
     morph_voxel_grid = mask.copy().astype(np.uint8)
     
     # COMPUTATION OF DISTANCE MAP
-    morph_voxel_grid = np.pad(morph_voxel_grid, [1,1],
-                              'constant', constant_values=0)
+    morph_voxel_grid = np.pad(morph_voxel_grid, 
+                            [1,1],
+                            'constant', 
+                            constant_values=0)
     
     # Computing the smallest ROI edge possible. 
     # Distances are determined in 3D
     binary_struct = sc.generate_binary_structure(rank=3, connectivity=1)
-    perimeter = morph_voxel_grid - sc.binary_erosion(
-            morph_voxel_grid,structure=binary_struct)
+    perimeter = morph_voxel_grid - sc.binary_erosion(morph_voxel_grid, structure=binary_struct)
     perimeter = perimeter[1:-1,1:-1,1:-1] # Removing the padding.
     morph_voxel_grid = morph_voxel_grid[1:-1,1:-1,1:-1] # Removing the padding
+    
     # +1 according to the definition of the IBSI    
-    dist_map = sc.distance_transform_cdt(np.logical_not(perimeter),
-                                         metric='cityblock') + 1  
+    dist_map = sc.distance_transform_cdt(np.logical_not(perimeter), metric='cityblock') + 1  
     
     # INITIALIZATION
     # Since levels is always defined as 1,2,3,4,...,max(quantized Volume)
