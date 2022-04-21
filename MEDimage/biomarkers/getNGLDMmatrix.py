@@ -15,7 +15,7 @@ def getNGLDMmatrix(ROIonly, levels) -> np.ndarray:
             in the tumor region (or reconstruction levels of quantization).
 
     Returns:
-        ndarray: Array of Neighbourhood grey tone difference Matrix of 'ROIOnly'.
+        ndarray: Array of neighbouring grey level dependence matri of 'ROIOnly'.
 
     """
     ROIonly = ROIonly.copy()
