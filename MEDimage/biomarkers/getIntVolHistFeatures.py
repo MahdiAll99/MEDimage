@@ -7,7 +7,22 @@ import Code_Radiomics.ImageBiomarkers.findIX
 
 
 def getIntVolHistFeatures(vol, wd=None, userSetRange=None):
-    """Compute IntVolHistFeatures.
+    """Computes Intensity-volume Histogram Features.
+
+    Note:
+        For the input volume:
+        - Naturally discretised volume can be kept as it is (e.g. HU values ofCT scans) 
+        - All other volumes with continuous intensity distribution should be
+            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+
+    Args:
+        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        wd (float, optional): Discretisation width.
+        userSetRange (ndarray, optional): 1-D array with shape (1,2) of the 
+            intensity range.
+
+    Returns:
+        Dict: Dict of the Intensity Histogram Features.
     -------------------------------------------------------------------------
     - vol: 3D volume, QUANTIZED, with NaNs outside the region of interest
     1) Naturally discretised volume can be kept as is (e.g. HU values of
@@ -15,33 +30,8 @@ def getIntVolHistFeatures(vol, wd=None, userSetRange=None):
     2) All other volumes with continuous intensity distribution should be
     quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
-    -> Third argument is optional. It needs to be used when a priori
-    discretising with "FBS" or "FBSequal".
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
-
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
-
     # INITIALIZATION
-
     X = vol[~np.isnan(vol[:])]
 
     if (vol is not None) & (wd is not None) & (userSetRange is not None):
