@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import Tuple
+
 import numpy as np
 
 
-def getNGTDMmatrix(ROIOnly, levels, distCorrection=False):
-    """Compute NGTDMmatrix.
-    -------------------------------------------------------------------------
-    DESCRIPTION:
+def getNGTDMmatrix(ROIOnly, levels, distCorrection=False) -> Tuple[np.ndarray, np.ndarray]:
+    """Computes NGTDM matrix.
+
     This function computes the Neighborhood Gray-Tone Difference Matrix
     (NGTDM) of the region of interest (ROI) of an input volume. The input
     volume is assumed to be isotropically resampled. The NGTDM is computed
@@ -16,52 +17,30 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False):
     the neighbours at a distance of sqrt(3) voxels are given a weight of
     1/sqrt(3), and the neighbours at a distance of sqrt(2) voxels are given a
     weight of 1/sqrt(2).
-    --> This function is compatible with 2D analysis
-        (language not adapted in the text)
-    -------------------------------------------------------------------------
+
+    Note:
+        This function is compatible with 2D analysis (language not adapted in the text)
+
     REFERENCE:
-     [1] Amadasun, M., & King, R. (1989). Textural Features Corresponding to
-         Textural Properties. IEEE Transactions on Systems Man and Cybernetics,
-         19(5), 1264–1274.
-    -------------------------------------------------------------------------
-    INPUTS:
-     - ROIonly: Smallest box containing the ROI, with the imaging data ready
-                for texture analysis computations. Voxels outside the ROI are
-                set to NaNs.
-     - levels: Vector containing the quantized gray-levels in the tumor region
-               (or reconstruction levels of quantization).
-     - distCorrection: (optional). Set this variable to true in order to use
-                       discretization length difference corrections as used
-                       here: https://doi.org/10.1088/0031-9155/60/14/5471.
-                       Set this variable to false to replicate IBSI results.
-     ** 'ROIonly' and 'levels' should be outputs from 'prepareVolume.m' **
-    -------------------------------------------------------------------------
-    OUTPUTS:
-     - NGTDM: Neighborhood Gray-Tone Difference Matrix of 'ROIOnly'.
-     - countValid: Number of valid voxels used in the NGTDM computation.
-                   Required for the computation of texture features in
-                   'getNGTDMtextures.m'
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+        [1] Amadasun, M., & King, R. (1989). Textural Features Corresponding to
+        Textural Properties. IEEE Transactions on Systems Man and Cybernetics,
+        19(5), 1264–1274.
+    
+    Args:
+        ROIonly (ndarray): Smallest box containing the ROI, with the imaging data ready
+            for texture analysis computations. Voxels outside the ROI are set to NaNs.
+        levels (ndarray): Vector containing the quantized gray-levels in the tumor region
+            (or reconstruction levels of quantization).
+        distCorrection (str, optional): Set this variable to true in order to use
+            discretization length difference corrections as used 
+            here: https://doi.org/10.1088/0031-9155/60/14/5471.
+            Set this variable to false to replicate IBSI results.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: 
+            - NGTDM: Neighborhood Gray-Tone Difference Matrix of 'ROIOnly'.
+            - countValid: Array of number of valid voxels used in the NGTDM computation.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
 
     # PARSING "distCorrection" ARGUMENT
@@ -132,8 +111,8 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False):
         if distCorrection:
             # Weights given to different neighbors to correct
             # for discretization length differences
-            w26 = 1/np.sqrt(3)
-            w18 = 1/np.sqrt(2)
+            w26 = 1 / np.sqrt(3)
+            w18 = 1 / np.sqrt(2)
         else:
             w26 = 1
             w18 = 1
@@ -143,20 +122,18 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False):
                             w26, w18, w6, w18, w26, w18, w26])
 
         for n in range(1, nValid_temp+1):
-
-            neighbours = ROIOnly[(posValid[0][n-1]-1):(posValid[0][n-1]+2),
-                                 (posValid[1][n-1]-1):(posValid[1][n-1]+2),
-                                 (posValid[2][n-1]-1):(posValid[2][n-1]+2)].copy()
+            neighbours = ROIOnly[(posValid[0][n-1]-1) : (posValid[0][n-1]+2),
+                                 (posValid[1][n-1]-1) : (posValid[1][n-1]+2),
+                                 (posValid[2][n-1]-1) : (posValid[2][n-1]+2)].copy()
             neighbours = np.reshape(neighbours, 27, order='F')
-            neighbours = neighbours*weights
+            neighbours = neighbours * weights
             value = neighbours[13].astype('int')
             neighbours[13] = np.NaN
-            neighbours = neighbours/np.sum(weights[~np.isnan(neighbours)])
+            neighbours = neighbours / np.sum(weights[~np.isnan(neighbours)])
             neighbours = np.delete(neighbours, 13)  # Remove the center voxel
             # Thus only excluding voxels with NaNs only as neighbors.
             if np.size(neighbours[~np.isnan(neighbours)]) > 0:
-                NGTDM[value-1] = NGTDM[value-1] + np.abs(
-                    value-np.sum(neighbours[~np.isnan(neighbours)]))
+                NGTDM[value-1] = NGTDM[value-1] + np.abs(value - np.sum(neighbours[~np.isnan(neighbours)]))
                 countValid[value-1] = countValid[value-1] + 1
 
     return NGTDM, countValid
