@@ -8,12 +8,12 @@ from typing import Dict, List
 import numpy as np
 import pandas as pd
 from deprecated import deprecated
-from ..utils.textureTools import (coord2index, get_neighbour_direction,
-                                get_value, is_list_all_none)
 
 from ..biomarkers.gclm_CrossDiagProb import gclm_CrossDiagProb
 from ..biomarkers.gclm_DiagProb import gclm_DiagProb
 from ..biomarkers.getGLCMmatrix import getGLCMmatrix
+from ..utils.textureTools import (coord2index, get_neighbour_direction,
+                                  get_value, is_list_all_none)
 
 
 def getGLCMfeatures(vol, distCorrection=None, method="new") -> Dict:
