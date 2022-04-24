@@ -4,8 +4,8 @@ AUTHOR(S): MEDomicsLab consortium
 -------------------------------------------------------------------------
 STATEMENT:
 This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-a package providing MATLAB programming tools for radiomics analysis.
-    --> Copyright (C) MEDomicsLab consortium.
+a package providing PYTHON programming tools for radiomics analysis.
+--> Copyright (C) MEDomicsLab consortium.
 
 This package is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
