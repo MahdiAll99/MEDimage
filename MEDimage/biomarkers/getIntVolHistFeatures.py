@@ -22,7 +22,9 @@ def getIntVolHistFeatures(MEDimg, vol, volInt_RE, wd=None, userSetRange=None) ->
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     Args:
+        MEDimg (MEDimage): MEDimage instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        volInt_RE (ndarray): 3D volume, with NaNs outside the region of interest
         wd (float, optional): Discretisation width.
         userSetRange (ndarray, optional): 1-D array with shape (1,2) of the 
             intensity range.
