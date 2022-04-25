@@ -519,11 +519,6 @@ class CooccurrenceMatrix:
             elif dist_weight_norm == "chebyshev":
                 weight = np.max(abs(self.direction))
             df_cm.n /= weight
-              
-        elif dist_weight_norm is not None:
-            raise ValueError("Invalid distance norm was provided. Must be one of \
-                \"manhattan\", \"euclidean\" or \"chebyshev\".")
-            
 
         # Set the number of voxels
         self.n_v = np.sum(df_cm.n)
