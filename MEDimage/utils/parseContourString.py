@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 
 from ..utils.strfind import strfind
 
 
-def parseContourString(contourString) -> Union[float, int, List[str]]:
+def parseContourString(contourString) -> Union[
+                                        Tuple[float, List[str]], 
+                                        Tuple[int, List[str]], 
+                                        Tuple[List[int], List[str]]
+                                        ]:
     """Finds the delimeters('+' and '-') and the contour indexe(s)
     from the given string.
 
@@ -17,11 +21,13 @@ def parseContourString(contourString) -> Union[float, int, List[str]]:
         delimeters. FOR EXAMPLE '3' or '1-3+2'.
 
     Returns:
-        Union[float, int, List[str]]: If `contourString` is a string, the return 
-            is a List of strings. If `contourString` is a an int or float we return 
+        float, int: If `contourString` is a an int or float we return 
             `contourString`.
+        List[str]: List of the delimeters.
+        List[int]: List of the contour indexes.
 
     Example:
+    -------------------------------------------------------
         >>>contourString = '1-3+2'
         >>>parseContourString(contourString)
         [1, 2, 3], ['+', '-']
@@ -29,6 +35,8 @@ def parseContourString(contourString) -> Union[float, int, List[str]]:
         >>>contourString = 1
         >>>parseContourString(contourString)
         1, []
+    -------------------------------------------------------
+
     """
 
     if isinstance(contourString, (int, float)):
