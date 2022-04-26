@@ -20,8 +20,10 @@ def getDiagFeatures(volObj, roiObj_Int, roiObj_Morph, im_type) -> Dict:
         roiObj_Int (ImageVolumeObj): Intensity mask data.
         roiObj_Morph (ImageVolumeObj): Morphological mask data.
         im_type (str): Image processing step.
+            
             - 'reSeg': Computes Diagnostic features right after the
                 re-segmentaion step.
+            
             - 'interp' or any other arg: Computes Diagnostic features 
                 for any processing step other than re-segmentation.
 
