@@ -13,7 +13,7 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   is_list_all_none)
 
 
-def getGLRLMfeatures(vol, distCorrection=None, method="new") -> Dict:
+def getGLRLMfeatures(vol, distCorrection=None, glrlm_merge_method="vol_merge", method="new") -> Dict:
     """Computes GLRLM features.
 
     Note:
@@ -29,6 +29,9 @@ def getGLRLMfeatures(vol, distCorrection=None, method="new") -> Dict:
             Set this variable to false to replicate IBSI results.
             Or use string and specify the norm for distance weighting. Weighting is 
             only performed if this argument is "manhattan", "euclidean" or "chebyshev".
+        glrlm_merge_method (str, optional): merging method which determines how features are
+            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+            Note that not all combinations of spatial and merge method are valid.
         method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
 
     Returns:
@@ -53,7 +56,12 @@ def getGLRLMfeatures(vol, distCorrection=None, method="new") -> Dict:
         glrlm = get_rlm_features_deprecated(vol=vol, distCorrection=distCorrection)
 
     elif method == "new":
-        glrlm = get_rlm_features(vol=vol, intensity_range=[np.nan, np.nan], dist_weight_norm=distCorrection)
+        glrlm = get_rlm_features(
+                                vol=vol, 
+                                intensity_range=[np.nan, np.nan],
+                                glrlm_merge_method=glrlm_merge_method, 
+                                dist_weight_norm=distCorrection
+                                )
 
     else:
         raise ValueError(
