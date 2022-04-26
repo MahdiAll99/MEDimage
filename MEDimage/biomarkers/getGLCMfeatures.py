@@ -16,7 +16,7 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   get_value, is_list_all_none)
 
 
-def getGLCMfeatures(vol, distCorrection=None, method="new") -> Dict:
+def getGLCMfeatures(vol, distCorrection=None, glcm_merge_method="vol_merge", method="new") -> Dict:
     """Computes GLCM features.
 
     Args:
@@ -29,6 +29,9 @@ def getGLCMfeatures(vol, distCorrection=None, method="new") -> Dict:
             Set this variable to false to replicate IBSI results.
             Or use string and specify the norm for distance weighting. Weighting is 
             only performed if this argument is "manhattan", "euclidean" or "chebyshev".
+        glcm_merge_method (str, optional): merging method which determines how features are
+            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+            Note that not all combinations of spatial and merge method are valid.
         method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
 
     Returns:
@@ -54,8 +57,12 @@ def getGLCMfeatures(vol, distCorrection=None, method="new") -> Dict:
             vol=vol, distCorrection=distCorrection)
 
     elif method == "new":
-        glcm = get_cm_features(vol=vol, intensity_range=[
-                               np.nan, np.nan], dist_weight_norm=distCorrection)
+        glcm = get_cm_features(
+                            vol=vol, 
+                            intensity_range=[np.nan, np.nan], 
+                            glcm_merge_method=glcm_merge_method, 
+                            dist_weight_norm=distCorrection
+                            )
 
     else:
         raise ValueError(
