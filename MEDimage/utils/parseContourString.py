@@ -27,15 +27,12 @@ def parseContourString(contourString) -> Union[
         List[int]: List of the contour indexes.
 
     Example:
-    -------------------------------------------------------
-        >>>contourString = '1-3+2'
-        >>>parseContourString(contourString)
+        >>> contourString = '1-3+2'
+        >>> parseContourString(contourString)
         [1, 2, 3], ['+', '-']
-
-        >>>contourString = 1
-        >>>parseContourString(contourString)
+        >>> contourString = 1
+        >>> parseContourString(contourString)
         1, []
-    -------------------------------------------------------
 
     """
 
