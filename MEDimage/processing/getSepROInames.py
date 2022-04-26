@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import List, Union
+from typing import List, Tuple
 
 import numpy as np
+
 from ..utils.strfind import strfind
 
 
-def getSepROInames(nameROIin, delimiters) -> Union[List[str], List[int]]:
+def getSepROInames(nameROIin, delimiters) -> Tuple[List[int], np.ndarray]:
     """Seperated ROI names present in the given ROI name. An ROI name can
     have multiple ROI names seperated with curly brackets and delimeters.
 
@@ -16,12 +17,13 @@ def getSepROInames(nameROIin, delimiters) -> Union[List[str], List[int]]:
         WORKS ONLY FOR DELIMITERS "+" and "-".
 
     Args:
-        nameROIin (str): Name of ROI that will be extracted from the imagign volume.
+        nameROIin (str): Name of ROIs that will be extracted from the imagign volume.
+            Separated with curly brackets and delimeters. Ex: '{ED}+{ET}'.
         delimiters (List): List of delimeters of "+" and "-".
 
     Returns:
-        List: List ROI names seperated and excluding curly brackets({}).
-        List: List of 1's and -1's that defines the regions that will
+        List[int]: List of ROI names seperated and excluding curly brackets.
+        ndarray: array of 1's and -1's that defines the regions that will
             included and/or excluded in/from the imaging data.
 
     Examples:
