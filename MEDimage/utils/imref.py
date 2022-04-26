@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Union
+from typing import Tuple, Union
 
 import numpy as np
 
@@ -167,7 +167,7 @@ class imref3d:
                         xIntrinsic, 
                         yIntrinsic, 
                         zIntrinsic
-                        ) -> Union[np.ndarray, np.ndarray, np.ndarray]:
+                        ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Convert from intrinsic to world coordinates.
 
         Args:
@@ -179,7 +179,8 @@ class imref3d:
                 the intrinsic coordinate system.
 
         Returns:
-            ndarray: [xWorld, yWorld, zWorld] in world coordinate system.
+            Tuple[np.ndarray, np.ndarray, np.ndarray]: [xWorld, yWorld, zWorld] in 
+                world coordinate system.
         
         """
         xWorld = (self.XWorldLimits[0] + 0.5*self.PixelExtentInWorldX) + \

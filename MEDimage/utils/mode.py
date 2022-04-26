@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Union
+from typing import Tuple, Union
 
 import numpy as np
 
 
-def mode(x, return_counts=False) -> Union[np.ndarray, np.ndarray]:
+def mode(x, return_counts=False) -> Union[Tuple[np.ndarray, np.ndarray], np.ndarray]:
     """Implementation of mode that also returns counts,
     unlike the standard statistics.mode.
 
@@ -18,7 +18,7 @@ def mode(x, return_counts=False) -> Union[np.ndarray, np.ndarray]:
     Returns:
         ndarray: Array of the modal (most common) value in the
             given array.
-        ndarray: Array of the counts.
+        ndarray: Array of the counts if `return_counts` is True.
 
     """
 

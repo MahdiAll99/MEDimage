@@ -155,7 +155,7 @@ def coord2index(x, y, z, dims) -> Union[np.ndarray, List]:
         dims (ndarray or List): dimensions of the image.
 
     Returns:
-        ndarray, List: Array or List of indexes corresponding the requested coordinates
+        ndarray or List: Array or List of indexes corresponding the requested coordinates
 
     """
 

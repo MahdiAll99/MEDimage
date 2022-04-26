@@ -3,7 +3,7 @@
 
 
 from copy import deepcopy
-from typing import Union
+from typing import Tuple
 
 import numpy as np
 
@@ -16,7 +16,7 @@ def discretisation(
     nQ=None, 
     userSetMinVal=None, 
     ivh=False
-    ) -> Union[np.ndarray, float]:
+    ) -> Tuple[np.ndarray, float]:
     """
     Quantisizes the image intensities inside the ROI.
 

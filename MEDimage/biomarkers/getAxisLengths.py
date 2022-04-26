@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Union
+from typing import Tuple
 
 import numpy as np
 
 
-def getAxisLengths(XYZ) -> Union[float, float, float]:
+def getAxisLengths(XYZ) -> Tuple[float, float, float]:
     """Computes AxisLengths.
     
     Args:
@@ -15,7 +15,7 @@ def getAxisLengths(XYZ) -> Union[float, float, float]:
             positions of the points in the ROI (1's) of the mask volume. In mm.
 
     Returns:
-        Union[float, float, float]: Array of three column vectors
+        Tuple[float, float, float]: Array of three column vectors
             [Major axis lengths, Minor axis lengths, Least axis lengths].
 
     """

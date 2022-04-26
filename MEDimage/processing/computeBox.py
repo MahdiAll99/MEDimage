@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Union
+from typing import Tuple
 
 import numpy as np
 from .computeBoundingBox import computeBoundingBox
 from ..utils.imref import imref3d, intrinsicToWorld
 
 
-def computeBox(vol, roi, spatialRef, boxString) -> Union[np.ndarray, np.ndarray, imref3d]:
+def computeBox(vol, roi, spatialRef, boxString) -> Tuple[np.ndarray, np.ndarray, imref3d]:
     """Computes a new box around the ROI (Region of interest) from the original box
     and updates the volume and the spatialRef.
 
