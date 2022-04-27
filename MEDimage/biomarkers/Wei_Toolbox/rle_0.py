@@ -4,13 +4,16 @@
 import numpy as np
 
 def rle_0(si,NL):
-    """Compute rle_0
+    """Compute rle_0.
+    
     RLE: image gray level Run Length matrix for 0degree
-    -------------------------------------------------------------------------
-    AUTHOR(S): - MEDomicsLab consortium
-               - Adapted from MATLAB code of Xunkai Wei <xunkai.wei@gmail.com>
-                 Beijing Aeronautical Technology Research Center
-    -------------------------------------------------------------------------
+
+    AUTHOR(S):  
+        
+        - MEDomicsLab consortium
+        - Adapted from MATLAB code of Xunkai Wei <xunkai.wei@gmail.com>
+            Beijing Aeronautical Technology Research Center
+    
     """
 
     # Assure row number is exactly the gray level

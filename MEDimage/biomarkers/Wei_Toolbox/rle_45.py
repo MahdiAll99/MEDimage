@@ -7,33 +7,20 @@ import numpy as np
 
 def rle_45(seq, NL):
     """Compute rle_45.
-    --------------------------------------------------------------------------
+    
     RLE   image gray level Run Length matrix for 45 and 135
     This file is to handle the zigzag scanned sequence for 45 or 135 degree
-    direction. Note for 135, just swap the left and the right colum
-    -------------------------------------------------------------------------
-    AUTHOR(S): - MEDomicsLab consortium
-               - Adapted from MATLAB code of Xunkai Wei <xunkai.wei@gmail.com>
-                 Beijing Aeronautical Technology Research Center
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    direction. 
+    
+    Note:
+        For 135, just swap the left and the right colum.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    AUTHOR(S): 
+        
+        - MEDomicsLab consortium
+        - Adapted from MATLAB code of Xunkai Wei <xunkai.wei@gmail.com>
+            Beijing Aeronautical Technology Research Center
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
 
     # Assure row number is exactly the gray level
