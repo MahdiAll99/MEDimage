@@ -45,7 +45,7 @@ For windows users, use
 $ activate medimage
 ```
 
-Once the environment is activated, you can start running the [IBSI-Tests](#4-ibsi-tests)
+Once the environment is activated, you can generate the documentation in the [doc section](#3-generating-the-documentation-locally) or start running the [IBSI-Tests](#4-ibsi-tests) without documentation (not recommended).
 
 ## 3. Generating the Documentation Locally
 The package documentation can be generated locally using [pdoc3](https://pdoc.dev/docs/pdoc.html).
