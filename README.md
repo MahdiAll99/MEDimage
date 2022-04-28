@@ -1,6 +1,5 @@
 # MEDimage
 
-
 ## Table of Contents
   * [1. Introduction](#1-introduction)
   * [2. Installation](#2-installation)
