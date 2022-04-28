@@ -1,39 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
+from typing import Dict
+
 import numpy as np
-import Code_Radiomics.ImageBiomarkers.getGLDZMmatrix
+
+from ..biomarkers.getGLDZMmatrix import getGLDZMmatrix
 
 
-def getGLDZMfeatures(volInt, maskMorph):
-    """Compute GLDZMfeatures.
-    -------------------------------------------------------------------------
-     - vol: 3D volume, isotropically resampled, quantized
-       (e.g. Ng = 32, levels = [1, ..., Ng]),
-        with NaNs outside the region of interest
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def getGLDZMfeatures(volInt, maskMorph) -> Dict:
+    """Compute GLDZM features.
+     
+     Args:
+        volInt (ndarray): 3D volume, isotropically resampled, 
+            quantized (e.g. Ng = 32, levels = [1, ..., Ng]), 
+            with NaNs outside the region of interest.
+        maskMorph (ndarray): Morphological ROI mask.
+    
+    Returns:
+        Dict: Dict of GLDZM features.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
-
     gldzm = {'Fdzm_sde': [],
              'Fdzm_lde': [],
              'Fdzm_lgze': [],
@@ -51,13 +39,11 @@ def getGLDZMfeatures(volInt, maskMorph):
              'Fdzm_zd_var': [],
              'Fdzm_zd_entr': []}
 
-    # GET THE GLDZM MATRIX
-
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(volInt[~np.isnan(volInt[:])])+1)
 
-    GLDZM = Code_Radiomics.ImageBiomarkers.getGLDZMmatrix.getGLDZMmatrix(
-        volInt, maskMorph, levels)
+    # GET THE GLDZM MATRIX
+    GLDZM = getGLDZMmatrix(volInt, maskMorph, levels)
     Ns = np.sum(GLDZM)
     GLDZM = GLDZM/np.sum(GLDZM)  # Normalization of GLDZM
     sz = np.shape(GLDZM)  # Size of GLDZM

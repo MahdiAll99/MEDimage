@@ -3,30 +3,22 @@
 
 from copy import deepcopy
 
+from numpy import ndarray
 
-def rangeReSeg(vol, roi, im_range=None):
-    """
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+def rangeReSeg(vol, roi, im_range=None) -> ndarray:
+    """Removs voxels from the intensity mask that fall outside
+    the given range (intensities outside the range are set to 0).
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Args:
+        vol (ndarray): Imaging data.
+        roi (ndarray): ROI mask with values of 0's and 1's.
+        im_range (ndarray): 1-D array with shape (1,2) of the 
+        re-segmentation intensity range.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        ndarray: Intensity mask with intensities within the re-segmentation
+            range.
     """
 
     if im_range is not None and len(im_range) == 2:

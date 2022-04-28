@@ -2,33 +2,27 @@
 # -*- coding: utf-8 -*-
 
 from re import finditer
+from typing import List
 
 
-def strfind(pattern, string):
-    """
-    Finds indices of pattern in string. Based on regex.
-    AZ: NOTE: Be careful with + and - symbols. Use \+ and \- instead.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def strfind(pattern, string) -> List[int]:
+    """Finds indices of pattern in string. Based on regex.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Note:
+        Be careful with + and - symbols. Use \+ and \- instead.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Args:
+        pattern (str): Substring to be searched in the string.
+        string (str): String used to find matches.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        List[int]: List of indexes of every occurence of pattern
+            in the passed string.
+    
+    Raises:
+        ValueError: If the pattern does not use backslash with 
+            special regex symbols
+
     """
 
     if pattern in ('+', '-'):

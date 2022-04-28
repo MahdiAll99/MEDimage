@@ -6,29 +6,25 @@ from copy import deepcopy
 import numpy as np
 
 
-def outlierReSeg(vol, roi, outliers=None):
-    """
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def outlierReSeg(vol, roi, outliers="") -> np.ndarray:
+    """Removes voxels with outlier intensities from the given mask
+    using the Collewet method.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        vol (ndarray): Imaging data.
+        roi (ndarray): ROI mask with values of 0 and 1.
+        outliers (str, optional): Algo used to define outliers.
+            (For now this methods only implements "Collewet" method). 
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Returns:
+        ndarray: An array with values of 0 and 1.
+    
+    Raises:
+        ValueError: If `outliers` is not "Collewet" or None.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    TODO:
+        * Delete outliers argument or implements others outlining methods.
+        
     """
 
     if outliers != '':

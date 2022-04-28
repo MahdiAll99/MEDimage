@@ -5,9 +5,9 @@
 import numpy as np
 import pandas as pd
 
-import Code_Radiomics.ImageBiomarkers.getNGLDMmatrix
+from ..biomarkers.getNGLDMmatrix import getNGLDMmatrix
 from copy import deepcopy
-from Code_Utilities.textureTools import get_neighbour_direction, is_list_all_none, coord2index, get_value
+from ..utils.textureTools import get_neighbour_direction, is_list_all_none, coord2index, get_value
 
 
 def getNGLDMfeatures(vol, method="new"):
@@ -513,7 +513,7 @@ def get_ngldm_features_deprecated(vol):
     # GET THE NGLDM MATRIX
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
-    NGLDM = Code_Radiomics.ImageBiomarkers.getNGLDMmatrix.getNGLDMmatrix(vol, levels)
+    NGLDM = getNGLDMmatrix(vol, levels)
     Ns = np.sum(NGLDM)
     # Normalization of NGLDM
     NGLDM = NGLDM/Ns

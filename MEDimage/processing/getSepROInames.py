@@ -2,34 +2,36 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import List, Tuple
+
 import numpy as np
-from Code_Utilities.strfind import strfind
+
+from ..utils.strfind import strfind
 
 
-def getSepROInames(nameROIin, delimiters):
-    """
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def getSepROInames(nameROIin, delimiters) -> Tuple[List[int], np.ndarray]:
+    """Seperated ROI names present in the given ROI name. An ROI name can
+    have multiple ROI names seperated with curly brackets and delimeters.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Note:
+        WORKS ONLY FOR DELIMITERS "+" and "-".
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Args:
+        nameROIin (str): Name of ROIs that will be extracted from the imagign volume.
+            Separated with curly brackets and delimeters. Ex: '{ED}+{ET}'.
+        delimiters (List): List of delimeters of "+" and "-".
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
-    WORKS ONLY FOR DELIMITERS "+" and "-"
+    Returns:
+        List[int]: List of ROI names seperated and excluding curly brackets.
+        ndarray: array of 1's and -1's that defines the regions that will
+            included and/or excluded in/from the imaging data.
+
+    Examples:
+        >>> getSepROInames('{ED}+{ET}', ['+', '-'])
+        ['ED', 'ET'], [1]
+        >>> getSepROInames('{ED}-{ET}', ['+', '-'])
+        ['ED', 'ET'], [-1]
+    
     """
     # EX:
     #nameROIin = '{GTV-1}'

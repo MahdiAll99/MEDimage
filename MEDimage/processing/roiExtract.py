@@ -3,32 +3,20 @@
 
 
 from copy import deepcopy
+
 import numpy as np
 
 
-def roiExtract(vol, roi):
-    """
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def roiExtract(vol, roi) -> np.ndarray:
+    """Replaces volume intensities outside the ROI with NaN.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        vol (ndarray): Imaging data.
+        roi (ndarray): ROI mask with values of 0's and 1's.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        ndarray: Imaging data with original intensities in the ROI 
+            and NaN for intensities outside the ROI.
     """
 
     vol_RE = deepcopy(vol)

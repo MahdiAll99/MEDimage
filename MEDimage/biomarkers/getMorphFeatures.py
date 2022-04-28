@@ -1,60 +1,56 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import Dict
+
 import numpy as np
 import scipy.spatial as sc
-import Code_Radiomics.ImageBiomarkers.getMesh
-import Code_Radiomics.ImageBiomarkers.getMeshVolume
-import Code_Radiomics.ImageBiomarkers.getMeshArea
-import Code_Radiomics.ImageBiomarkers.getCOM
-import Code_Radiomics.ImageBiomarkers.getMax3Ddiam
-import Code_Radiomics.ImageBiomarkers.getAxisLengths
-import Code_Radiomics.ImageBiomarkers.getAreaDensApprox
-import Code_Radiomics.ImageBiomarkers.getMoranI
-import Code_Radiomics.ImageBiomarkers.getGearyC
-import Code_Radiomics.ImageBiomarkers.getOrientedBoundBox
-import Code_Radiomics.ImageBiomarkers.MinVolEllipse.MinVolEllipse as minv
+
+from ..biomarkers.getAreaDensApprox import getAreaDensApprox
+from ..biomarkers.getAxisLengths import getAxisLengths
+from ..biomarkers.getCOM import getCOM
+from ..biomarkers.getGearyC import getGearyC
+from ..biomarkers.getMesh import getMesh
+from ..biomarkers.getMeshArea import getMeshArea
+from ..biomarkers.getMeshVolume import getMeshVolume
+from ..biomarkers.getMoranI import getMoranI
+from ..biomarkers.getOrientedBoundBox import minOrientedBoundBox
+from ..biomarkers.MinVolEllipse import MinVolEllipse as minv
 
 
-def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
-    """Compute MorphFeatures.
-    -------------------------------------------------------------------------
-     - vol: 3D volume, NON-QUANTIZED, continous imaging intensity distribution
-     - maskInt: Intensity mask
-     - maskMorph: Morphological mask
-     - res: [a,b,c] vector specfying the resolution of the volume in mm.
-       # XYZ resolution (world), or JIK resolution (intrinsic matlab).
-     - intensity (optional): If 'arbitrary', some feature will not be computed.
-       If 'definite', all feature will be computed. If not present as an
-       argument, all features will be computed. If 'filter', most features
-       will not be computed, except some. The 'filter' option encompasses
-       'arbitrary', must is even more stringent. Please see below.
+def getMorphFeatures(vol, 
+                    maskInt, 
+                    maskMorph, 
+                    res, 
+                    intensity=None, 
+                    computeMoranI=False, 
+                    computeGearyC=False) -> Dict:
+    """Compute Morphological Features.
+    
+    Note:
+        Moran's Index and Geary's C measure takes so much computation time. Please
+        use `computeMoranI` `computeGearyC` carefully.
 
-    REFERENCES
-    [1] https://arxiv.org/abs/1612.07003 (make it formal with authors, etc.)
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Args:
+        vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
+        maskInt (ndarray): Intensity mask.
+        maskMorph (ndarray): Morphological mask.
+        res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
+            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+        intensity (str, optional): If 'arbitrary', some feature will not be computed.
+            If 'definite' or None, all feature will be computed. If 'filter', most features
+            will not be computed, except some. The 'filter' option encompasses
+            'arbitrary', and is even more stringent. Please see below.
+        computeMoranI (bool, optional): True to compute Moran's Index.
+        computeGearyC (bool, optional): True to compute Geary's C measure.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Raises:
+        ValueError: `intensity` mus be either "arbitrary", "definite", "filter" or None.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    REFERENCES:
+        [1] <https://arxiv.org/abs/1612.07003>
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
-
     morph = {'Fmorph_vol': [],
              'Fmorph_approx_vol': [],
              'Fmorph_area': [],
@@ -86,14 +82,11 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
              'Fmorph_geary_c': []}
 
     # INTIALIZATION
-    if intensity is None:
+    if intensity == 'definite' or intensity is None:
         definite = True
         im_filter = False
     elif intensity == 'arbitrary':
         definite = False
-        im_filter = False
-    elif intensity == 'definite':
-        definite = True
         im_filter = False
     elif intensity == 'filter':
         definite = False
@@ -109,11 +102,9 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
     # PADDING THE MASKS WITH A LAYER OF 0's
     # (reduce mesh computation errors of associated mask)
     maskInt = maskInt.copy()
-    maskInt = np.pad(maskInt, pad_width=1, mode="constant",
-                     constant_values=0.0)
+    maskInt = np.pad(maskInt, pad_width=1, mode="constant", constant_values=0.0)
     maskMorph = maskMorph.copy()
-    maskMorph = np.pad(maskMorph, pad_width=1, mode="constant",
-                       constant_values=0.0)
+    maskMorph = np.pad(maskMorph, pad_width=1, mode="constant", constant_values=0.0)
 
     # GETTING IMPORTANT VARIABLES
     Xgl_int = np.reshape(vol, np.size(vol), order='F')[np.where(
@@ -121,10 +112,9 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
     Xgl_morph = np.reshape(vol, np.size(vol), order='F')[np.where(
         np.reshape(maskMorph, np.size(maskMorph), order='F') == 1)[0]].copy()
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
-    XYZ_int, _, _ = Code_Radiomics.ImageBiomarkers.getMesh.getMesh(maskInt, res)
+    XYZ_int, _, _ = getMesh(maskInt, res)
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
-    XYZ_morph, faces, vertices = Code_Radiomics.ImageBiomarkers.getMesh.getMesh(
-        maskMorph, res)
+    XYZ_morph, faces, vertices = getMesh(maskMorph, res)
     # [X,Y,Z] points of the convex hull.
     # convHull Matlab is convHull.simplices
     convHull = sc.ConvexHull(vertices)
@@ -133,7 +123,7 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
 
     if im_filter is not True:
         # In mm^3
-        volume = Code_Radiomics.ImageBiomarkers.getMeshVolume.getMeshVolume(faces, vertices)
+        volume = getMeshVolume(faces, vertices)
         morph['Fmorph_vol'] = volume  # Volume
 
         # Approximate Volume
@@ -141,7 +131,7 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
 
         # Surface area
         # In mm^2
-        area = Code_Radiomics.ImageBiomarkers.getMeshArea.getMeshArea(faces, vertices)
+        area = getMeshArea(faces, vertices)
         morph['Fmorph_area'] = area
 
         # Surface to volume ratio
@@ -160,21 +150,16 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
         morph['Fmorph_sphericity'] = ((36*np.pi*volume**2)**(1/3))/area
 
         # Asphericity
-        morph['Fmorph_asphericity'] = ((area**3)/(36*np.pi*volume**2))**(
-            1/3) - 1
+        morph['Fmorph_asphericity'] = ((area**3) / (36*np.pi*volume**2))**(1/3) - 1
 
         # Centre of mass shift
-        morph['Fmorph_com'] = Code_Radiomics.ImageBiomarkers.getCOM.getCOM(
-            Xgl_int, Xgl_morph, XYZ_int, XYZ_morph)
+        morph['Fmorph_com'] = getCOM(Xgl_int, Xgl_morph, XYZ_int, XYZ_morph)
 
         # Maximum 3D diameter
-        #morph['Fmorph_diam'] = Code_Radiomics.ImageBiomarkers.getMax3Ddiam.getMax3Ddiam
-        morph['Fmorph_diam'] = np.max(
-            sc.distance.pdist(convHull.points[convHull.vertices]))
+        morph['Fmorph_diam'] = np.max(sc.distance.pdist(convHull.points[convHull.vertices]))
 
         # Major axis length
-        [major, minor, least] = Code_Radiomics.ImageBiomarkers.getAxisLengths.getAxisLengths(
-            XYZ_morph)
+        [major, minor, least] = getAxisLengths(XYZ_morph)
         morph['Fmorph_pca_major'] = 4*np.sqrt(major)
 
         # Minor axis length
@@ -184,10 +169,10 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
         morph['Fmorph_pca_least'] = 4*np.sqrt(least)
 
         # Elongation
-        morph['Fmorph_pca_elongation'] = np.sqrt(minor/major)
+        morph['Fmorph_pca_elongation'] = np.sqrt(minor / major)
 
         # Flatness
-        morph['Fmorph_pca_flatness'] = np.sqrt(least/major)
+        morph['Fmorph_pca_flatness'] = np.sqrt(least / major)
 
         # Volume density - axis-aligned bounding box
         Xc_aabb = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
@@ -205,8 +190,7 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
         # Determination of the minimum bounding box of an
         # arbitrary solid: an iterative approach.
         # Comp Struc 79 (2001) 1433-1449
-        boundBoxDims = Code_Radiomics.ImageBiomarkers.getOrientedBoundBox.minOrientedBoundBox(
-            vertices)
+        boundBoxDims = minOrientedBoundBox(vertices)
         volBB = np.prod(boundBoxDims)
         morph['Fmorph_v_dens_ombb'] = volume / volBB
 
@@ -224,7 +208,7 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
         morph['Fmorph_v_dens_aee'] = volume / Vaee
 
         # Area density - approximate enclosing ellipsoid
-        Aaee = Code_Radiomics.ImageBiomarkers.getAreaDensApprox.getAreaDensApprox(a, b, c, 20)
+        Aaee = getAreaDensApprox(a, b, c, 20)
         morph['Fmorph_a_dens_aee'] = area / Aaee
 
         # Volume density - minimum volume enclosing ellipsoid
@@ -253,8 +237,7 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
         # Area density - minimum volume enclosing ellipsoid
         # Using a new set of (a,b,c), see Volume density - minimum
         # volume enclosing ellipsoid
-        Amvee = Code_Radiomics.ImageBiomarkers.getAreaDensApprox.getAreaDensApprox(
-            a, b, c, 20)
+        Amvee = getAreaDensApprox(a, b, c, 20)
         morph['Fmorph_a_dens_mvee'] = area / Amvee
 
         # Volume density - convex hull
@@ -270,11 +253,13 @@ def getMorphFeatures(vol, maskInt, maskMorph, res, intensity=None):
         morph['Fmorph_integ_int'] = np.mean(Xgl_int) * volume
 
     # Moran's I index
-    #vol_Mor = vol.copy()
-    #vol_Mor[maskInt == 0] = np.NaN
-    #morph['Fmorph_moran_i'] = Code_Radiomics.ImageBiomarkers.getMoranI.getMoranI(vol_Mor,res)
+    if computeMoranI:
+        vol_Mor = vol.copy()
+        vol_Mor[maskInt == 0] = np.NaN
+        morph['Fmorph_moran_i'] = getMoranI(vol_Mor,res)
 
     # Geary's C measure
-    #morph['Fmorph_geary_c'] = Code_Radiomics.ImageBiomarkers.getGearyC.getGearyC(vol_Mor,res)
+    if computeGearyC:
+        morph['Fmorph_geary_c'] = getGearyC(vol_Mor,res)
 
     return morph

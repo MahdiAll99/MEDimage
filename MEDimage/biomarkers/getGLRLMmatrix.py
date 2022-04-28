@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import math
+
 import numpy as np
 from scipy.sparse import spdiags
-import math
-import Code_Radiomics.ImageBiomarkers.Wei_Toolbox.rle_0 as rle
-import Code_Radiomics.ImageBiomarkers.Wei_Toolbox.rle_45 as rle45
-import Code_Radiomics.ImageBiomarkers.Wei_Toolbox.zigzag as zig
 
+from ..biomarkers.Wei_Toolbox.rle_0 import  rle_0 as rle
+from ..biomarkers.Wei_Toolbox.rle_45 import  rle_45 as rle45
+from ..biomarkers.Wei_Toolbox.zigzag import  zigzag as zig
 
-def getGLRLMmatrix(ROIonly, levels, distCorrection=None):
-    """Compute GLRLMmatrix.
-    -------------------------------------------------------------------------
-    getGLRLM(ROIonly,levels,distCorrection)
-    -------------------------------------------------------------------------
-    DESCRIPTION:
+def getGLRLMmatrix(ROIonly, levels, distCorrection=None) -> np.ndarray:
+    """Compute GLRLM matrix.
+
     This function computes the Gray-Level Run-Length Matrix (GLRLM) of the
     region of interest (ROI) of an input volume. The input volume is assumed
     to be isotropically resampled. Only one GLRLM is computed per scan,
@@ -27,57 +25,34 @@ def getGLRLMmatrix(ROIonly, levels, distCorrection=None):
     by a value of 1. This function uses other functions from Wei's GLRLM
     toolbox [2].
 
-    --> This function is compatible with 2D analysis
-    (language not adapted in the text)
-    -------------------------------------------------------------------------
+    Note:
+        This function is compatible with 2D analysis (language not adapted in the text).
+
+    Args:
+        ROIOnlyInt (ndarray): Smallest box containing the ROI, with the imaging 
+            data readyfor texture analysis computations. Voxels outside the ROI 
+            are set to NaNs.
+        levels (ndarray or List): Vector containing the quantized gray-levels 
+            in the tumor region (or reconstruction levels of quantization).
+        distCorrection: (optional). Set this variable to true in order to use
+            discretization length difference corrections as used
+            here: <https://doi.org/10.1088/0031-9155/60/14/5471>.
+            Set this variable to false to replicate IBSI results.
+
+    Returns:
+        ndarray: Array of Gray-Level Run-Length Matrix of 'ROIOnly'.
+
     REFERENCES:
-    [1] Galloway, M. M. (1975). Texture analysis using gray level run lengths.
-        Computer Graphics and Image Processing, 4(2), 172–179.
-    [2] Wei's GLRLM toolbox: Xunkai Wei, Gray Level Run Length Matrix Toolbox
-        v1.0, Software,Beijing Aeronautical Technology Research Center, 2007.
-        <http://www.mathworks.com/matlabcentral/fileexchange/
-        17482-gray-level-run-length-matrix-toolbox>
-    -------------------------------------------------------------------------
-    INPUTS:
-    - ROIonly: Smallest box containing the ROI, with the imaging data ready
-               for texture analysis computations. Voxels outside the ROI are
-               set to NaNs.
-    - levels: Vector containing the quantized gray-levels in the tumor region
-               (or reconstruction levels of quantization).
-    - distCorrection: (optional). Set this variable to true in order to use
-                       discretization length difference corrections as used
-                       here: https://doi.org/10.1088/0031-9155/60/14/5471.
-                       Set this variable to false to replicate IBSI results.
+        [1] Galloway, M. M. (1975). Texture analysis using gray level run lengths.
+            Computer Graphics and Image Processing, 4(2), 172–179.
+        [2] Wei's GLRLM toolbox: Xunkai Wei, Gray Level Run Length Matrix Toolbox
+            v1.0, Software,Beijing Aeronautical Technology Research Center, 2007.
+            <http://www.mathworks.com/matlabcentral/fileexchange/
+            17482-gray-level-run-length-matrix-toolbox>
 
-    ** 'ROIonly' and 'levels' should be outputs from 'prepareVolume.m' **
-    -------------------------------------------------------------------------
-    OUTPUTS:
-    - GLRLM: Gray-Level Run-Length Matrix of 'ROIOnly'.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
-
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
 
     # PARSING "distCorrection" ARGUMENT
-
     if (distCorrection is None) or (type(distCorrection) is not bool):
         distCorrection = True  # By default
 
@@ -270,8 +245,8 @@ def getGLRLMmatrix(ROIonly, levels, distCorrection=None):
 
             try:
                 diagMat2[:, :, i-1] = (np.transpose(spdiags(np.fliplr(image),
-                                                            np.arange(-(sizeV[2]-1),
-                                                                      1), sizeV[1]+sizeV[2]-1,
+                                                            np.arange(-(sizeV[2]-1),1),
+                                                            sizeV[1]+sizeV[2]-1,
                                                             sizeV[1]).todense()))
             except:
                 # Add a column at the beginning to prevent errors
@@ -296,10 +271,8 @@ def getGLRLMmatrix(ROIonly, levels, distCorrection=None):
             image2 = np.zeros((sizeV[0], nTemp))
 
             for k in range(1, sizeV[0]+1):
-                image1[k-1, 0:nTemp] = np.transpose(
-                    diagMat1[index_clean, j-1, k-1])
-                image2[k-1, 0:nTemp] = np.transpose(
-                    diagMat2[index_clean, j-1, k-1])
+                image1[k-1, 0:nTemp] = np.transpose(diagMat1[index_clean, j-1, k-1])
+                image2[k-1, 0:nTemp] = np.transpose(diagMat2[index_clean, j-1, k-1])
 
             # 2 first corners
             uniqueIm = np.unique(image1)

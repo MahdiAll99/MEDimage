@@ -1,52 +1,41 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
+from typing import List, Union
+
 import numpy as np
 
 
-def get_neighbour_direction(d=1.8, distance="euclidian", centre=False,
-                            complete=False, dim3=True):
-    """
-    Defines transitions to neighbour voxels.
+def get_neighbour_direction(d=1.8, 
+                            distance="euclidian", 
+                            centre=False,
+                            complete=False, 
+                            dim3=True) -> np.ndarray:
+    """Defines transitions to neighbour voxels.
 
-    :param d: max distance between voxels.
-    :param distance: distance norm used to compute distances.
-    :param centre: flags whether the [0,0,0] direction should be included
-    :param complete: flags whether all directions should be computed (True)
-    or just the primary ones (False). For example, including [0,0,1] and
-    [0,0,-1] directions may lead to
-    redundant texture matrices.
-    :param dim3: flags whether full 3D (True) or only in-slice (2D; False)
-     directions should be considered.
-    :return: set of k neighbour direction vectors
+    Note:
+        This code was adapted from the in-house radiomics software created at
+        OncoRay, Dresden, Germany.
 
-    This code was adapted from the in-house radiomics software created at
-    OncoRay, Dresden, Germany.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Args:
+        d (float, optional): Max distance between voxels.
+        distance (str, optional): Distance norm used to compute distances. MUST BE
+            "manhattan", "l1", "l_1", "euclidian", "l2", "l_2", "chebyshev", "linf" or "l_inf".
+        centre (bool, optional): Flags whether the [0,0,0] direction should be included
+        complete(bool, optional): Flags whether all directions should be computed (True)
+            or just the primary ones (False). For example, including [0,0,1] and [0,0,-1] 
+            directions may lead to redundant texture matrices.
+        dim3(bool, optional): flags whether full 3D (True) or only in-slice (2D; False)
+            directions should be considered.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        ndarray: set of k neighbour direction vectors.
+    
     """
 
     # Base transition vector
-    trans = np.arange(start=-np.ceil(d), stop=np.ceil(d) + 1)
+    trans = np.arange(start=-np.ceil(d), stop=np.ceil(d)+1)
     n = np.size(trans)
 
     # Build transition array [x,y,z]
@@ -86,34 +75,23 @@ def get_neighbour_direction(d=1.8, distance="euclidian", centre=False,
     return nbrs[:, index]
 
 
-def rep(x, each=1, times=1):
-    """"
-    This function replicates the "rep" function found in R for tiling and
-    repeating vectors.
+def rep(x, each=1, times=1) -> np.ndarray:
+    """"replicates the values in `x`.
+    Replicates the "rep" function found in R for tiling and repeating vectors.
 
-    Code was adapted from the in-house radiomics software created at OncoRay,
-    Dresden, Germany.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Note:
+        Code was adapted from the in-house radiomics software created at OncoRay,
+        Dresden, Germany.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        x (ndarray): Array to replicate.
+        each (int): Integer (non-negative) giving the number of times to repeat
+            each element of the passed array.
+        times (int): Integer (non-negative). Each element of `x` is repeated each times.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        ndarray: Array with same values but replicated.
+    
     """
 
     each = int(each)
@@ -128,40 +106,23 @@ def rep(x, each=1, times=1):
     return x
 
 
-def get_value(x, index, replace_invalid=True):
-    """
-    Retrieve intensity values from an image intensity table used for computing
-    texture features
+def get_value(x, index, replace_invalid=True) -> np.ndarray:
+    """Retrieves intensity values from an image intensity table used for computing
+    texture features.
 
-    :param x: set of intensity values.
-    :param index: index to the provided set of intensity values.
-    :param replace_invalid: whether entries corresponding invalid indices
-     should be replaced by a placeholder "NaN" value.
-    :return: intensity values found at the requested indices.
+    Note:
+        Code was adapted from the in-house radiomics software created at OncoRay,
+        Dresden, Germany.
 
-    Code was adapted from the in-house radiomics software created at OncoRay,
-    Dresden, Germany.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Args:
+        x (ndarray): set of intensity values.
+        index (int): Index to the provided set of intensity values.
+        replace_invalid (bool, optional): If True, invalid indices will be replaced 
+            by a placeholder "NaN" value.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Returns:
+        ndarray: Array of the intensity values found at the requested indices.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
 
     # Initialise placeholder
@@ -180,42 +141,22 @@ def get_value(x, index, replace_invalid=True):
     return read_x
 
 
-def coord2index(x, y, z, dims):
-    """
-    Translate requested coordinates to row indices in image intensity tables.
+def coord2index(x, y, z, dims) -> Union[np.ndarray, List]:
+    """Translate requested coordinates to row indices in image intensity tables.
 
-    :param x: set of discrete x coordinates
-    :param y: set of discrete y coordinates
-    :param z: set of discrete z coordinates
-    :param dims: dimensions of the image
-    :return: index corresponding the requested coordinates
+    Note:
+        Code was adapted from the in-house radiomics software created at OncoRay,
+        Dresden, Germany.
 
-    Typical use involves finding the index to neighbouring voxels.
-    A check for invalid transitions is therefore performed.
+    Args:
+        x (ndarray): set of discrete x-coordinates.
+        y (ndarray): set of discrete y-coordinates.
+        z (ndarray): set of discrete z-coordinates.
+        dims (ndarray or List): dimensions of the image.
 
-    Code was adapted from the in-house radiomics software created at OncoRay,
-    Dresden, Germany.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Returns:
+        ndarray or List: Array or List of indexes corresponding the requested coordinates
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
 
     # Translate coordinates to indices
@@ -229,6 +170,14 @@ def coord2index(x, y, z, dims):
     return index
 
 
-def is_list_all_none(x):
-    """Determines if all list elements are None"""
+def is_list_all_none(x) -> bool:
+    """Determines if all list elements are None.
+
+    Args:
+        x (List): List of elements to check.
+
+    Returns:
+        bool: True if all elemets in `x` are None.
+
+    """
     return all(y is None for y in x)

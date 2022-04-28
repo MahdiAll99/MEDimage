@@ -3,36 +3,26 @@
 
 
 from copy import deepcopy
+
 import numpy as np
 from skimage.exposure import equalize_hist
 
 
-def equalization(vol_RE):  # def equalization(vol_RE, Ng=64):
+def equalization(vol_RE) -> np.ndarray:
     """
-    -------------------------------------------------------------------------
-    THIS IS A PURE "WHAT IS CONTAINED WITHIN THE ROI" EQUALIZATION. THIS IS
-    NOT INFLUENCED BY THE "userSetMinVal" USED FOR FBS DISCRESTISATION.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+    Performs histogram equalisation of the ROI imaging intensities.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Note:
+        THIS IS A PURE "WHAT IS CONTAINED WITHIN THE ROI" EQUALIZATION. THIS IS
+        NOT INFLUENCED BY THE "userSetMinVal" USED FOR FBS DISCRESTISATION.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Args:
+        vol_RE (ndarray): 3D array of the image volume that will be studied with 
+            NaN value for the excluded voxels (voxels outside the ROI mask).
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        ndarray: Same input image volume but with redistributed intensities.
+
     """
 
     # AZ: This was made part of the function call

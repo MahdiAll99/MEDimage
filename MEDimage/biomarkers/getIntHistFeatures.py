@@ -2,36 +2,23 @@
 # -*- coding: utf-8 -*-
 
 import warnings
+from typing import Dict
+
 import numpy as np
 from scipy.stats import scoreatpercentile, variation
 
 
-def getIntHistFeatures(vol):
-    """Compute IntHistFeatures.
-    -------------------------------------------------------------------------
-    - vol: 3D volume, QUANTIZED (e.g. nBins = 100, levels = [1, ..., max]),
-           with NaNs outside the region of interest.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def getIntHistFeatures(vol) -> Dict:
+    """Computes Intensity Histogram Features.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        vol (ndarray): 3D volume, QUANTIZED (e.g. nBins = 100, 
+            levels = [1, ..., max]), with NaNs outside the region of interest.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------    """
+    Returns:
+        Dict: Dict of the Intensity Histogram Features.
+    
+    """
     warnings.simplefilter("ignore")
 
     # INITIALIZATION
@@ -132,7 +119,7 @@ def getIntHistFeatures(vol):
     # Intensity histogram interquantile range
     #    Since X goes from 1:max(X), all with integer values,
     #    the result is an integer
-    intHist['Fih_iqr'] = scoreatpercentile(X, 75)-scoreatpercentile(X, 25)
+    intHist['Fih_iqr'] = scoreatpercentile(X, 75) - scoreatpercentile(X, 25)
 
     # Intensity histogram range
     intHist['Fih_range'] = np.max(X) - np.min(X)
@@ -151,12 +138,12 @@ def getIntHistFeatures(vol):
     intHist['Fih_cov'] = variation(X)
 
     # Intensity histogram quartile coefficient of dispersion
-    X_75_25 = scoreatpercentile(X, 75)+scoreatpercentile(X, 25)
-    intHist['Fih_qcod'] = intHist['Fih_iqr']/X_75_25
+    X_75_25 = scoreatpercentile(X, 75) + scoreatpercentile(X, 25)
+    intHist['Fih_qcod'] = intHist['Fih_iqr'] / X_75_25
 
     # Intensity histogram entropy
     p = p[p > 0]
-    intHist['Fih_entropy'] = -np.sum(p*np.log2(p))
+    intHist['Fih_entropy'] = -np.sum(p * np.log2(p))
 
     # Intensity histogram uniformity
     intHist['Fih_uniformity'] = np.sum(np.power(p, 2))

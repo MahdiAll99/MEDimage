@@ -3,41 +3,32 @@
 
 
 import numpy as np
-from Code_Utilities.imref import worldToIntrinsic
-from Code_Utilities.mode import mode
-from Code_Utilities.inpolygon import inpolygon
+from ..utils.imref import worldToIntrinsic
+from ..utils.inpolygon import inpolygon
+from ..utils.mode import mode
 
 
-def getPolygonMask(ROI_XYZ, spatialRef, orientation):
-    """
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def getPolygonMask(ROI_XYZ, spatialRef, orientation) -> np.ndarray:
+    """Computes the indexes of the ROI (Region of interest) enclosing box 
+    in all dimensions.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        ROI_XYZ (ndarray): array of (x,y,z) triplets defining a contour in the 
+            Patient-Based Coordinate System extracted from DICOM RTstruct.
+        spatialRef (imref3d): imref3d object (same functionality of MATLAB imref3d class).
+        orientation (str): Imaging data orientation (axial, sagittal or coronal).
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Returns:
+        ndarray: 3D array of 1's and 0's defining the ROI mask.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
     """
 
     # COMPUTING MASK
     sz = spatialRef.ImageSize.copy()
     ROImask = np.zeros(sz)
     # X,Y,Z in intrinsic image coordinates
-    X, Y, Z = worldToIntrinsic(R=spatialRef, xWorld=ROI_XYZ[:, 0],
+    X, Y, Z = worldToIntrinsic(R=spatialRef, 
+                               xWorld=ROI_XYZ[:, 0],
                                yWorld=ROI_XYZ[:, 1],
                                zWorld=ROI_XYZ[:, 2])
 

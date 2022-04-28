@@ -2,41 +2,28 @@
 # -*- coding: utf-8 -*-
 
 import math
+
 import numpy as np
 
 
-def getLocPeak(imgObj, roiObj, res):
-    """Compute LocPeak
-    -------------------------------------------------------------------------
-    - imgObj: Image object
-    - roiObj: ROI objecy
-    - res: [X,Y,Z] resolution vector in mm, e.g. [2,2,2]
-    This works only in 3D for now.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def getLocPeak(imgObj, roiObj, res) -> float:
+    """Computes Local intensity peak.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Note:
+        This works only in 3D for now.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Args:
+        imgObj (ndarray): Continous image intentisity distribution, with no NaNs
+            outside the ROI.
+        roiObj (ndarray): Array of the mask defining the ROI.
+        res (List[float]): [a,b,c] vector specfying the resolution of the volume in mm.
+            XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        float: Value of the local intensity peak.
+    
     """
-
     # INITIALIZATION
-
     # About 6.2 mm, as defined in document
     distThresh = (3/(4*math.pi))**(1/3)*10
 
@@ -66,7 +53,8 @@ def getLocPeak(imgObj, roiObj, res):
         tempX = X - X[I[n], J[n], K[n]]
         tempY = Y - Y[I[n], J[n], K[n]]
         tempZ = Z - Z[I[n], J[n], K[n]]
-        tempDistMesh = (np.sqrt(np.power(tempX, 2) + np.power(tempY, 2) +
+        tempDistMesh = (np.sqrt(np.power(tempX, 2) + 
+                                np.power(tempY, 2) +
                                 np.power(tempZ, 2)))
         val = imgObj[tempDistMesh <= distThresh]
         val[np.isnan(val)] = []

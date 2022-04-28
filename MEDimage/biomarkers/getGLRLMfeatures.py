@@ -1,57 +1,67 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from copy import deepcopy
+from typing import Dict
+
 import numpy as np
 import pandas as pd
-import Code_Radiomics.ImageBiomarkers.getGLRLMmatrix
-from copy import deepcopy
-from Code_Utilities.textureTools import get_neighbour_direction, is_list_all_none, coord2index
+from deprecated import deprecated
+
+from ..biomarkers.getGLRLMmatrix import getGLRLMmatrix
+from ..utils.textureTools import (coord2index, get_neighbour_direction,
+                                  is_list_all_none)
 
 
-def getGLRLMfeatures(vol, distCorrection=None, method="new"):
-    """Compute GLRLMfeatures.
-    -------------------------------------------------------------------------
-    - vol: 3D volume, isotropically resampled, quantized
-    (e.g. Ng = 32, levels = [1, ..., Ng]), with NaNs outside the
-    region of interest
-    - distCorrection: # Set this variable to true in order to
-    use discretization length difference corrections as used here:
-    https://doi.org/10.1088/0031-9155/60/14/5471.
-    Set this variable to false to replicate IBSI results.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def getGLRLMfeatures(vol, distCorrection=None, glrlm_merge_method="vol_merge", method="new") -> Dict:
+    """Computes GLRLM features.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Note:
+        the intensity range is currently not used.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    Args:
+        vol (ndarray): 3D volume, isotropically resampled, quantized
+            (e.g. Ng = 32, levels = [1, ..., Ng]), with NaNs outside the region
+            of interest.
+        distCorrection (Union[bool, str], optional): Set this variable to true in order to use
+            discretization length difference corrections as used here:
+            <https://doi.org/10.1088/0031-9155/60/14/5471>.
+            Set this variable to false to replicate IBSI results.
+            Or use string and specify the norm for distance weighting. Weighting is 
+            only performed if this argument is "manhattan", "euclidean" or "chebyshev".
+        glrlm_merge_method (str, optional): merging method which determines how features are
+            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+            Note that not all combinations of spatial and merge method are valid.
+        method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
 
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        Dict: Dict of the GLRLM features.Compute GLRLMfeatures.
 
-    TODO: - Enable calculation of RLM features using different spatial methods (2d, 2.5d, 3d)
-    TODO: - Enable calculation of RLM features for different merge methods (average, slice_merge, dir_merge, vol_merge)
-    TODO: - Provide the range of discretised intensities from a calling function and pass to get_rlm_features. Note: the intensity range is currently not used.
-    TODO: - Test if distCorrection works as expected.
+    Raises:
+        ValueError: If `method` is not 'old' or 'new'.
+
+    Todo:
+        *Enable calculation of RLM features using different spatial
+            methods (2d, 2.5d, 3d)
+        *Enable calculation of RLM features using different RLM
+            distance settings
+        *Enable calculation of RLM features for different merge methods
+            (average, slice_merge, dir_merge, vol_merge)
+        *Provide the range of discretised intensities from a calling
+            function and pass to get_rlm_features.
+        *Test if distCorrection works as expected.
 
     """
-
     if method == "old":
         glrlm = get_rlm_features_deprecated(vol=vol, distCorrection=distCorrection)
 
     elif method == "new":
-        glrlm = get_rlm_features(vol=vol, intensity_range=[np.nan, np.nan], dist_weight_norm=distCorrection)
+        glrlm = get_rlm_features(
+                                vol=vol, 
+                                intensity_range=[np.nan, np.nan],
+                                glrlm_merge_method=glrlm_merge_method, 
+                                dist_weight_norm=distCorrection
+                                )
 
     else:
         raise ValueError(
@@ -60,51 +70,36 @@ def getGLRLMfeatures(vol, distCorrection=None, method="new"):
     return glrlm
 
 
-def get_rlm_features(vol, intensity_range, glrlm_spatial_method="3d", glrlm_merge_method="vol_merge", dist_weight_norm=None):
+def get_rlm_features(vol, 
+                    intensity_range, 
+                    glrlm_spatial_method="3d", 
+                    glrlm_merge_method="vol_merge", 
+                    dist_weight_norm=None) -> Dict:
+    """Extract run length matrix-based features from the intensity roi mask.
+
+    Note:
+        This code was adapted from the in-house radiomics software created at
+        OncoRay, Dresden, Germany.
+    
+    Args:
+        vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
+        intensity_range (ndarray): range of potential discretised intensities,
+            provided as a list: [minimal discretised intensity, maximal discretised
+            intensity]. If one or both values are unknown, replace the respective values 
+            with np.nan.
+        glrlm_spatial_method (str, optional): spatial method which determines the way
+            co-occurrence matrices are calculated and how features are determined.
+            MUST BE "2d", "2.5d" or "3d".
+        glrlm_merge_method (str, optional): merging method which determines how features are
+            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+            Note that not all combinations of spatial and merge method are valid.
+        dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
+            performed if this argument is either "manhattan", "euclidean", "chebyshev" or bool.
+    
+    Returns: 
+        Dict: Dict of the length matrix features.
+
     """
-    Extract run length matrix-based features from the intensity roi mask
-
-    :param vol: volume with discretised intensities as 3D numpy array (x, y, z).
-    :param intensity_range: range of potential discretised intensities,
-     provided as a list: [minimal discretised intensity, maximal discretised
-     intensity]. If one or both values
-     are unknown, replace the respective values with np.nan.
-    :param glrlm_spatial_method: spatial method which determines the way
-     run length matrices are calculated and how features are determined.
-     One of "2d", "2.5d" or "3d".
-    :param glrlm_merge_method: merging method which determines how features are
-     calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
-     Note that not all combinations of spatial and merge method are valid.
-    :param dist_weight_norm: norm for distance weighting. Weighting is only
-     performed if this parameter is either "manhattan", "euclidean"
-     or "chebyshev".
-    :return: dictionary with feature values.
-
-    This code was adapted from the in-house radiomics software created at
-    OncoRay, Dresden, Germany.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
-
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
-    """
-
     if type(glrlm_spatial_method) is not list:
         glrlm_spatial_method = [glrlm_spatial_method]
 
@@ -131,40 +126,53 @@ def get_rlm_features(vol, intensity_range, glrlm_spatial_method="3d", glrlm_merg
 
     # Iterate over spatial arrangements
     for ii_spatial in glrlm_spatial_method:
-
         # Initiate list of rlm objects
         rlm_list = []
 
         # Perform 2D analysis
         if ii_spatial.lower() in ["2d", "2.5d"]:
-
             # Iterate over slices
             for ii_slice in np.arange(0, img_dims[2]):
-
                 # Get neighbour direction and iterate over neighbours
-                nbrs = get_neighbour_direction(d=1, distance="chebyshev", centre=False, complete=False, dim3=False)
+                nbrs = get_neighbour_direction(d=1, 
+                                            distance="chebyshev", 
+                                            centre=False, 
+                                            complete=False, 
+                                            dim3=False)
+                
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
-
                     # Add rlm matrices to list
-                    rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction], direction_id=ii_direction, spatial_method=ii_spatial.lower(), img_slice=ii_slice)]
+                    rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction], 
+                                                direction_id=ii_direction, 
+                                                spatial_method=ii_spatial.lower(), 
+                                                img_slice=ii_slice)]
 
         # Perform 3D analysis
         if ii_spatial.lower() == "3d":
-
             # Get neighbour direction and iterate over neighbours
-            nbrs = get_neighbour_direction(d=1, distance="chebyshev", centre=False, complete=False, dim3=True)
-            for ii_direction in np.arange(0, np.shape(nbrs)[1]):
+            nbrs = get_neighbour_direction(d=1, 
+                                        distance="chebyshev", 
+                                        centre=False, 
+                                        complete=False, 
+                                        dim3=True)
 
+            for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                 # Add rlm matrices to list
-                rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction], direction_id=ii_direction, spatial_method=ii_spatial.lower())]
+                rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction], 
+                                            direction_id=ii_direction, 
+                                            spatial_method=ii_spatial.lower())]
 
         # Calculate run length matrices
         for rlm in rlm_list:
-            rlm.calculate_rlm_matrix(df_img=df_img, img_dims=img_dims, dist_weight_norm=dist_weight_norm)
+            rlm.calculate_rlm_matrix(df_img=df_img, 
+                                    img_dims=img_dims, 
+                                    dist_weight_norm=dist_weight_norm)
 
         # Merge matrices according to the given method
         for merge_method in glrlm_merge_method:
-            upd_list = combine_rlm_matrices(rlm_list=rlm_list, merge_method=merge_method, spatial_method=ii_spatial.lower())
+            upd_list = combine_rlm_matrices(rlm_list=rlm_list, 
+                                            merge_method=merge_method, 
+                                            spatial_method=ii_spatial.lower())
 
             # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
             if upd_list is None:
@@ -185,56 +193,40 @@ def get_rlm_features(vol, intensity_range, glrlm_spatial_method="3d", glrlm_merg
 
 
 def combine_rlm_matrices(rlm_list, merge_method, spatial_method):
+    """Merges run length matrices prior to feature calculation.
+
+    Note:
+        This code was adapted from the in-house radiomics software created at
+        OncoRay, Dresden, Germany.
+    
+    Args:
+        rlm_list (List): List of RunLengthMatrix objects.
+        merge_method (str): Merging method which determines how features are calculated. 
+            One of "average", "slice_merge", "dir_merge" and "vol_merge". Note that not all
+            combinations of spatial and merge method are valid.
+        spatial_method (str): spatial method which determines the way co-occurrence 
+            matrices are calculated and how features are determined. One of "2d", "2.5d"
+            or "3d".
+    
+    Returns: 
+        List[CooccurrenceMatrix]: list of one or more merged RunLengthMatrix objects.
+
     """
-    Function to merge run length matrices prior to feature calculation.
-
-    :param rlm_list: list of RunLengthMatrix objects.
-    :param spatial_method: spatial method which determines the way run length matrices are calculated and how features are determined. One of "2d", "2.5d" or "3d".
-    :param merge_method: merging method which determines how features are calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge". Note that not all
-     combinations of spatial and merge method are valid.
-    :return: list of one or more merged RunLengthMatrix objects.
-
-    This code was adapted from the in-house radiomics software created at OncoRay, Dresden, Germany.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-    --> Copyright (C) MEDomicsLab consortium.
-
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
-    """
-
     # Initiate empty list
     use_list = []
 
+    # For average features over direction, maintain original run length matrices
     if merge_method == "average" and spatial_method in ["2d", "3d"]:
-        # For average features over direction, maintain original run length matrices
-
         # Make copy of rlm_list
         for rlm in rlm_list:
-            use_list += [rlm.copy()]
+            use_list += [rlm._copy()]
 
         # Set merge method to average
         for rlm in use_list:
             rlm.merge_method = "average"
 
+    # Merge rlms within each slice
     elif merge_method == "slice_merge" and spatial_method == "2d":
-        # Merge rlms within each slice
-
         # Find slice_ids
         slice_id = []
         for rlm in rlm_list:
@@ -252,8 +244,13 @@ def combine_rlm_matrices(rlm_list, merge_method, spatial_method):
             # Check if any matrix has been created for the currently selected slice
             if is_list_all_none(sel_matrix_list):
                 # No matrix was created
-                use_list += [RunLengthMatrix(direction=None, direction_id=None, spatial_method=spatial_method, img_slice=ii_slice,
-                                             merge_method=merge_method, matrix=None, n_v=0.0)]
+                use_list += [RunLengthMatrix(direction=None, 
+                                            direction_id=None, 
+                                            spatial_method=spatial_method, 
+                                            img_slice=ii_slice,
+                                            merge_method=merge_method, 
+                                            matrix=None, 
+                                            n_v=0.0)]
             else:
                 # Merge matrices within the slice
                 merge_rlm = pd.concat(sel_matrix_list, axis=0)
@@ -265,12 +262,16 @@ def combine_rlm_matrices(rlm_list, merge_method, spatial_method):
                     merge_n_v += rlm_list[rlm_id].n_v
 
                 # Create new run length matrix
-                use_list += [RunLengthMatrix(direction=None, direction_id=None, spatial_method=spatial_method, img_slice=ii_slice,
-                                             merge_method=merge_method, matrix=merge_rlm, n_v=merge_n_v)]
+                use_list += [RunLengthMatrix(direction=None, 
+                                            direction_id=None, 
+                                            spatial_method=spatial_method, 
+                                            img_slice=ii_slice,
+                                            merge_method=merge_method, 
+                                            matrix=merge_rlm, 
+                                            n_v=merge_n_v)]
 
+    # Merge rlms within each slice
     elif merge_method == "dir_merge" and spatial_method == "2.5d":
-        # Merge rlms within each slice
-
         # Find direction ids
         dir_id = []
         for rlm in rlm_list:
@@ -288,8 +289,13 @@ def combine_rlm_matrices(rlm_list, merge_method, spatial_method):
             # Check if any matrix has been created for the currently selected direction
             if is_list_all_none(sel_matrix_list):
                 # No matrix was created
-                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction, direction_id=ii_dir, spatial_method=spatial_method, img_slice=None,
-                                             merge_method=merge_method, matrix=None, n_v=0.0)]
+                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction, 
+                                            direction_id=ii_dir, 
+                                            spatial_method=spatial_method, 
+                                            img_slice=None,
+                                            merge_method=merge_method, 
+                                            matrix=None, 
+                                            n_v=0.0)]
             else:
                 # Merge matrices with the same direction
                 merge_rlm = pd.concat(sel_matrix_list, axis=0)
@@ -301,12 +307,16 @@ def combine_rlm_matrices(rlm_list, merge_method, spatial_method):
                     merge_n_v += rlm_list[rlm_id].n_v
 
                 # Create new run length matrix
-                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction, direction_id=ii_dir, spatial_method=spatial_method, img_slice=None,
-                                             merge_method=merge_method, matrix=merge_rlm, n_v=merge_n_v)]
+                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction, 
+                                            direction_id=ii_dir, 
+                                            spatial_method=spatial_method, 
+                                            img_slice=None,
+                                            merge_method=merge_method, 
+                                            matrix=merge_rlm, 
+                                            n_v=merge_n_v)]
 
+    # Merge all rlms into a single representation
     elif merge_method == "vol_merge" and spatial_method in ["2.5d", "3d"]:
-        # Merge all rlms into a single representation
-
         # Select all matrices within the slice
         sel_matrix_list = []
         for rlm_id in np.arange(len(rlm_list)):
@@ -315,8 +325,13 @@ def combine_rlm_matrices(rlm_list, merge_method, spatial_method):
         # Check if any matrix has been created
         if is_list_all_none(sel_matrix_list):
             # No matrix was created
-            use_list += [RunLengthMatrix(direction=None, direction_id=None, spatial_method=spatial_method, img_slice=None,
-                                         merge_method=merge_method, matrix=None, n_v=0.0)]
+            use_list += [RunLengthMatrix(direction=None, 
+                                        direction_id=None, 
+                                        spatial_method=spatial_method, 
+                                        img_slice=None,
+                                        merge_method=merge_method, 
+                                        matrix=None, 
+                                        n_v=0.0)]
         else:
             # Merge run length matrices
             merge_rlm = pd.concat(sel_matrix_list, axis=0)
@@ -328,8 +343,13 @@ def combine_rlm_matrices(rlm_list, merge_method, spatial_method):
                 merge_n_v += rlm_list[rlm_id].n_v
 
             # Create new run length matrix
-            use_list += [RunLengthMatrix(direction=None, direction_id=None, spatial_method=spatial_method, img_slice=None,
-                                         merge_method=merge_method, matrix=merge_rlm, n_v=merge_n_v)]
+            use_list += [RunLengthMatrix(direction=None, 
+                                        direction_id=None, 
+                                        spatial_method=spatial_method, 
+                                        img_slice=None,
+                                        merge_method=merge_method, 
+                                        matrix=merge_rlm, 
+                                        n_v=merge_n_v)]
 
     else:
         use_list = None
@@ -339,43 +359,50 @@ def combine_rlm_matrices(rlm_list, merge_method, spatial_method):
 
 
 class RunLengthMatrix:
-    """ Class that contains a single run length matrix.
+    """Class that contains a single run length matrix.
 
-        Code was adapted from the in-house radiomics software created at OncoRay, Dresden, Germany.
+    Note :
+        Code was adapted from the in-house radiomics software created at 
+        OncoRay, Dresden, Germany.
 
-        -------------------------------------------------------------------------
-        AUTHOR(S): MEDomicsLab consortium
-        -------------------------------------------------------------------------
-        STATEMENT:
-        This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-        a package providing MATLAB programming tools for radiomics analysis.
-         --> Copyright (C) MEDomicsLab consortium.
+    Args:
+        direction (ndarray): Direction along which neighbouring voxels are found.
+        direction_id (int): Direction index to identify unique direction vectors.
+        spatial_method (str): Spatial method used to calculate the co-occurrence 
+            matrix: "2d", "2.5d" or "3d".
+        img_slice (ndarray, optional): Corresponding slice index (only if the 
+            co-occurrence matrix corresponds to a 2d image slice).
+        merge_method (str, optional): Method for merging the co-occurrence matrix 
+            with other co-occurrence matrices.
+        matrix (pandas.DataFrame, optional): The actual co-occurrence matrix in 
+            sparse format (row, column, count).
+        n_v (int, optional): The number of voxels in the volume.
 
-        This package is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Attributes:
+        direction (ndarray): Direction along which neighbouring voxels are found.
+        direction_id (int): Direction index to identify unique direction vectors.
+        spatial_method (str): Spatial method used to calculate the co-occurrence 
+            matrix: "2d", "2.5d" or "3d".
+        img_slice (ndarray): Corresponding slice index (only if the co-occurrence 
+            matrix corresponds to a 2d image slice).
+        merge_method (str): Method for merging the co-occurrence matrix with other 
+            co-occurrence matrices.
+        matrix (pandas.DataFrame): The actual co-occurrence matrix in sparse format 
+            (row, column, count).
+        n_v (int): The number of voxels in the volume.
 
-        This package is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this package.  If not, see <http://www.gnu.org/licenses/>.
-        -------------------------------------------------------------------------
         """
 
-    def __init__(self, direction, direction_id, spatial_method, img_slice=None, merge_method=None, matrix=None, n_v=None):
+    def __init__(self, 
+                direction, 
+                direction_id, 
+                spatial_method, 
+                img_slice=None, 
+                merge_method=None, 
+                matrix=None, 
+                n_v=None) -> None:
         """
         Initialising function for a new run length matrix
-        :param direction: direction along which neighbouring voxels are found
-        :param direction_id: direction index to identify unique direction vectors
-        :param spatial_method: spatial method used to calculate the run length matrix: 2d, 2.5d or 3d
-        :param img_slice: corresponding slice index (only if the run length matrix corresponds to a 2d image slice)
-        :param merge_method: method for merging the run length matrix with other run length matrices
-        :param matrix: the actual run length matrix in sparse format (row, column, count)
-        :param n_v: the number of voxels in the volume
         """
 
         # Direction and slice for which the current matrix is extracted
@@ -391,34 +418,45 @@ class RunLengthMatrix:
         self.matrix = matrix
         self.n_v = n_v
 
-    def copy(self):
+    def _copy(self):
         """Returns a copy of the RunLengthMatrix object."""
 
         return deepcopy(self)
 
-    def set_empty(self):
+    def _set_empty(self):
         """Creates an empty RunLengthMatrix"""
-
         self.n_v = 0
         self.matrix = None
 
-    def calculate_rlm_matrix(self, df_img, img_dims, dist_weight_norm):
-        """
-        Function that calculates a run length matrix for the settings provided during initialisation and the input image.
+    def calculate_rlm_matrix(self, df_img, img_dims, dist_weight_norm) -> None:
+        """Function that calculates a run length matrix for the settings provided 
+        during initialisation and the input image.
 
-        :param df_img: data table containing image intensities, x, y and z coordinates, and mask labels corresponding to voxels in the volume.
-        :param img_dims: dimensions of the image volume
-        :param dist_weight_norm: norm for distance weighting. Weighting is only performed if this parameter is either "manhattan", "euclidean" or "chebyshev".
+        Args:
+            df_img (pandas.DataFrame): Data table containing image intensities, x, y and z coordinates, 
+                and mask labels corresponding to voxels in the volume.
+            img_dims (ndarray, List[float]): Dimensions of the image volume.
+            dist_weight_norm (str): Norm for distance weighting. Weighting is only 
+                performed if this parameter is either "manhattan", "euclidean" or "chebyshev".
+
+        Returns:
+            None. Assigns the created image table (rlm matrix) to the `matrix` attribute.
+        
+        Raises:
+            ValueError: 
+                If `self.spatial_method` is not "2d", "2.5d" or "3d".
+                If `dist_weight_norm` is not "manhattan", "euclidean" or "chebyshev".
+
         """
 
         # Check if the df_img actually exists
         if df_img is None:
-            self.set_empty()
+            self._set_empty()
             return
 
         # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLRLM.
         if not np.any(df_img.roi_int_mask):
-            self.set_empty()
+            self._set_empty()
             return
 
         # Create local copies of the image table
@@ -452,7 +490,7 @@ class RunLengthMatrix:
 
         # Check if the number of segments is greater than one
         if n_seg == 0:
-            self.set_empty()
+            self._set_empty()
             return
 
         seg_len = (len(df_rlm) - 1) // ind_update + 1  # Nominal segment length
@@ -461,7 +499,8 @@ class RunLengthMatrix:
         trans_seg_len[0:full_len_trans] += 1  # Update full segments
 
         # Create transition vector
-        trans_vec = np.tile(np.arange(start=0, stop=len(df_rlm), step=ind_update), reps=ind_update) + np.repeat(np.arange(start=0, stop=n_seg), repeats=seg_len)
+        trans_vec = np.tile(np.arange(start=0, stop=len(df_rlm), step=ind_update), reps=ind_update)
+        trans_vec += np.repeat(np.arange(start=0, stop=n_seg), repeats=seg_len)
         trans_vec = trans_vec[trans_vec < len(df_rlm)]
 
         # Determine valid transitions
@@ -493,22 +532,26 @@ class RunLengthMatrix:
                 weight = np.sqrt(sum(np.power(self.direction, 2.0)))
             elif dist_weight_norm == "chebyshev":
                 weight = np.max(abs(self.direction))
-            else:
-                raise ValueError("No valid distance norm was provided")
             df_rltable.n /= weight
 
         # Add matrix to object
         self.matrix = df_rltable
 
-    def calculate_rlm_features(self, intensity_range):
-        """
-        Computes run length matrix features for the current run length matrix.
+    def calculate_rlm_features(self, intensity_range) -> pd.DataFrame:
+        """Computes run length matrix features for the current run length matrix.
 
-        :param intensity_range: range of potential discretised intensities, provided as a list: [minimal discretised intensity, maximal
-        discretised intensity]. If one or both values are unknown, replace the respective values with np.nan.
-        :return: pandas data frame with values for each feature.
-        """
+        Note:
+            the intensity range is currently not used.
 
+        Args:
+            intensity_range (ndarray): Range of potential discretised intensities,
+                provided as a list: [minimal discretised intensity, maximal discretised intensity]. 
+                If one or both values are unknown, replace the respective values with np.nan.
+
+        Returns:
+            pandas.DataFrame: Data frame with values for each feature.
+
+        """
         # Create feature table
         feat_names = ["Frlm_sre", "Frlm_lre", "Frlm_lgre", "Frlm_hgre", "Frlm_srlge", "Frlm_srhge", "Frlm_lrlge",
                       "Frlm_lrhge", "Frlm_glnu", "Frlm_glnu_norm", "Frlm_rlnu", "Frlm_rlnu_norm", "Frlm_r_perc",
@@ -519,11 +562,11 @@ class RunLengthMatrix:
         # Don't return data for empty slices or slices without a good matrix
         if self.matrix is None:
             # Update names
-            # df_feat.columns += self.parse_feature_names()
+            # df_feat.columns += self._parse_feature_names()
             return df_feat
         elif len(self.matrix) == 0:
             # Update names
-            # df_feat.columns += self.parse_feature_names()
+            # df_feat.columns += self._parse_feature_names()
             return df_feat
 
         # Create local copy of the run length matrix and set column names
@@ -540,10 +583,9 @@ class RunLengthMatrix:
         n_s = np.sum(df_rij.rij) * 1.0  # Number of runs
         n_v = self.n_v * 1.0  # Number of voxels
 
-        ###############################################
-        # GLRLM features
-        ###############################################
-
+        ##############################################
+        ######          GLRLM features          ######
+        ##############################################
         # Short runs emphasis
         df_feat.loc[0, "Frlm_sre"] = np.sum(df_rj.rj / df_rj.j ** 2.0) / n_s
 
@@ -595,11 +637,11 @@ class RunLengthMatrix:
         df_feat.loc[0, "Frlm_rl_entr"] = - np.sum(df_rij.rij * np.log2(df_rij.rij / n_s)) / n_s
 
         # Update names
-        # df_feat.columns += self.parse_feature_names()
+        # df_feat.columns += self._parse_feature_names()
 
         return df_feat
 
-    def parse_feature_names(self):
+    def _parse_feature_names(self) -> str:
         """"
         Adds additional settings-related identifiers to each feature.
         Not used currently, as the use of different settings for the
@@ -625,12 +667,26 @@ class RunLengthMatrix:
         return parse_str
 
 
-def get_rlm_features_deprecated(vol, distCorrection):
-    """
-    Deprecated code. Calculated grey level run length matrix features, but slowly.
-    :param vol: Input volume
-    :param distCorrection: distance correction flag
-    :return: Dictionary of glrlm features
+@deprecated(reason="Use the new and the faster method get_rlm_features()")
+def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
+    """Calculates grey level run length matrix features.
+
+     Note:
+        Deprecated code. Calculates grey level run length features, but slowly.
+        A newer and faster method is available : `get_rlm_features()`
+
+    Args:
+        vol (ndarray): 3D input volume.
+        distCorrection (Union[bool, str], optional): Set this variable to true in order to use
+            discretization length difference corrections as used here:
+            <https://doi.org/10.1088/0031-9155/60/14/5471>.
+            Set this variable to false to replicate IBSI results.
+            Or use string and specify the norm for distance weighting. Weighting is 
+            only performed if this argument is "manhattan", "euclidean" or "chebyshev".
+
+    Returns:
+        Dict: Dict of GLCM features.
+
     """
 
     glrlm = {'Frlm_sre': [],
@@ -656,9 +712,9 @@ def get_rlm_features_deprecated(vol, distCorrection):
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
 
     if distCorrection is None:
-        GLRLM = Code_Radiomics.ImageBiomarkers.getGLRLMmatrix.getGLRLMmatrix(vol, levels)
+        GLRLM = getGLRLMmatrix(vol, levels)
     else:
-        GLRLM = (Code_Radiomics.ImageBiomarkers.getGLRLMmatrix.getGLRLMmatrix(vol, levels, distCorrection))
+        GLRLM = (getGLRLMmatrix(vol, levels, distCorrection))
 
     Ns = np.sum(GLRLM)
     GLRLM = GLRLM/Ns  # Normalization of GLRLM
@@ -670,39 +726,32 @@ def get_rlm_features_deprecated(vol, distCorrection):
     pg = np.transpose(np.sum(GLRLM, 1))  # Gray-Level Run-Number Vector
     pr = np.sum(GLRLM, 0)  # Run-Length Run-Number Vector
 
-    # COMPUTING TEXTURES
-
+    ##############################################
+    ######          GLRLM features          ######
+    ##############################################
     # Short runs emphasis
-    glrlm['Frlm_sre'] = (np.matmul(pr, np.transpose(np.power(
-        1.0/np.array(cVect), 2))))
+    glrlm['Frlm_sre'] = (np.matmul(pr, np.transpose(np.power(1.0/np.array(cVect), 2))))
 
     # Long runs emphasis
-    glrlm['Frlm_lre'] = np.matmul(
-        pr, np.transpose(np.power(np.array(cVect), 2)))
+    glrlm['Frlm_lre'] = np.matmul(pr, np.transpose(np.power(np.array(cVect), 2)))
 
     # Low grey level run emphasis
-    glrlm['Frlm_lgre'] = np.matmul(pg, np.transpose(np.power(
-        1.0/np.array(rVect), 2)))
+    glrlm['Frlm_lgre'] = np.matmul(pg, np.transpose(np.power(1.0/np.array(rVect), 2)))
 
     # High grey level run emphasis
-    glrlm['Frlm_hgre'] = np.matmul(pg, np.transpose(np.power(
-        np.array(rVect), 2)))
+    glrlm['Frlm_hgre'] = np.matmul(pg, np.transpose(np.power(np.array(rVect), 2)))
 
     # Short run low grey level emphasis
-    glrlm['Frlm_srlge'] = np.sum(np.sum(GLRLM*(np.power(
-        1.0/rMat, 2))*(np.power(1.0/cMat, 2))))
+    glrlm['Frlm_srlge'] = np.sum(np.sum(GLRLM*(np.power(1.0/rMat, 2))*(np.power(1.0/cMat, 2))))
 
     # Short run high grey level emphasis
-    glrlm['Frlm_srhge'] = np.sum(np.sum(GLRLM*(np.power(
-        rMat, 2))*(np.power(1.0/cMat, 2))))
+    glrlm['Frlm_srhge'] = np.sum(np.sum(GLRLM*(np.power(rMat, 2))*(np.power(1.0/cMat, 2))))
 
     # Long run low grey levels emphasis
-    glrlm['Frlm_lrlge'] = np.sum(np.sum(GLRLM*(np.power(
-        1.0/rMat, 2))*(np.power(cMat, 2))))
+    glrlm['Frlm_lrlge'] = np.sum(np.sum(GLRLM*(np.power(1.0/rMat, 2))*(np.power(cMat, 2))))
 
     # Long run high grey level emphasis
-    glrlm['Frlm_lrhge'] = np.sum(np.sum(GLRLM*(np.power(
-        rMat, 2))*(np.power(cMat, 2))))
+    glrlm['Frlm_lrhge'] = np.sum(np.sum(GLRLM*(np.power(rMat, 2))*(np.power(cMat, 2))))
 
     # Gray level non-uniformity
     temp = np.sum(np.power(pg, 2))
