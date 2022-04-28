@@ -30,6 +30,10 @@ In order to run the package code, you need to create and activate the `medimage`
 ```
 $ make create_environment
 ```
+If the above command does not work try the following
+```
+$ make -f Makefile.mk create_environment
+```
 This command will install all the dependencies required. And now we activate the `medimage` environment with
 ```
 $ conda activate medimage
