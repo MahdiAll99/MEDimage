@@ -4,12 +4,15 @@
   * [1. Introduction](#1-introduction)
   * [2. Installation](#2-installation)
   * [3. Generating the Documentation Locally](#3-generating-the-documentation-locally)
-  * [4. Project Files Organization](#4-project-files-organization)
-  * [5. Authors](#5-authors)
-  * [6. Statement](#6-statement)
+  * [4. IBSI Tests](#4-ibsi-tests)
+    * [IBSI Chapter 1](#ibsi-chapter-1)
+    * [IBSI Chapter 2](#ibsi-chapter-2)
+  * [5. Project Files Organization](#4-project-files-organization)
+  * [6. Authors](#5-authors)
+  * [7. Statement](#6-statement)
 
 ## 1. Introduction
-*MEdimage* is a Python package for processing and extracting features from medical images. It gives you the ability to process and filter images and compute all types of radiomic features. This package has been standarised with the [IBSI](https://theibsi.github.io/) norms.
+*MEDimage* is a Python package for processing and extracting features from medical images. It gives you the ability to process and filter images and compute all types of radiomic features. This package has been standarised with the [IBSI](https://theibsi.github.io/) norms.
 
 ## 2. Installation
 
@@ -60,7 +63,18 @@ $ pdoc3 --http localhost:8080 -c latex_math=True MEDimage
 
 The documentation will be available on the *8080 localhost* via the link http://localhost:8080.
 
-## 4. Project Files Organization
+## 4. IBSI Tests
+The image biomarker standardisation initiative (IBSI) is an independent international collaboration which works towards standardising the extraction of image biomarkers from acquired imaging. The IBSI therefore seeks to provide image biomarker nomenclature and definitions, benchmark data sets, and benchmark values to verify image processing and image biomarker calculations, as well as reporting guidelines, for high-throughput image analysis.
+
+  - ### IBSI Chapter 1
+      [The IBSI chapter 1](https://theibsi.github.io/ibsi1/) was initiated in September 2016, and it reached completion in March 2020 and is dedicated to the standardisation of commonly used radiomic features. Two notebooks ([ibsi1p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi1p1.ipynb) and [ibsi1p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi1p2.ipynb)) have been made to test the MEDimage package implementations and validate image processing and image biomarker calculations.
+
+  - ### IBSI Chapter 2
+      [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and still ongoing. It is dedicated to the standardisation of commonly used imaging filters in radiomic studies. Two notebooks ([ibsi2p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p1.ipynb) and [ibsi2p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p2.ipynb)) have been made to test the MEDimage package implementations and validate image filtering and image biomarker calculations from filter response maps.
+
+The *Udes* (a.k.a. Université de Sherbrooke) Team has already submitted the benchmarked values to the IBSI ulpoading website and can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
+
+## 5. Project Files Organization
 ```
 ├── LICENSE
 ├── Makefile           <- Makefile with multiple commands for the environment setup.
@@ -91,10 +105,10 @@ The documentation will be available on the *8080 localhost* via the link http://
 └── setup.py           <- Allows MEDimage package to be installed as a python package.
 ```
 
-## 5. Authors
+## 6. Authors
 * [MEDOMICS](https://github.com/medomics/): MEDomics consortium
 
-## 6. Statement
+## 7. Statement
 
 This package is part of https://github.com/medomics, a package providing research utility tools for developing precision medicine applications.
 
