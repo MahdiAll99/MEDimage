@@ -10,7 +10,7 @@
   * [6. Statement](#6-statement)
 
 ## 1. Introduction
-*MEdimage* is Python package for extracting features from medical images. It gives you the ability to process and filter images and compute all types of radiomics features. This package is standarised with the [IBSI](https://theibsi.github.io/).
+*MEdimage* is a Python package for processing and extracting features from medical images. It gives you the ability to process and filter images and compute all types of radiomic features. This package has been standarised with the [IBSI](https://theibsi.github.io/) norms.
 
 ## 2. Installation
 
@@ -39,13 +39,12 @@ This command will install all the dependencies required. And now we activate the
 $ conda activate medimage
 ```
 
-Once activated, you can start running the [IBSI-Tests](#1-IBSI-TESTs)
-
+Once the environment is activated, you can start running the [IBSI-Tests](#1-IBSI-TESTs)
 
 ## 3. Generating the Documentation Locally
 The package documentation can be generated locally using [pdoc3](https://pdoc.dev/docs/pdoc.html).
 
-From your terminal follow these instructions
+From your terminal, acces the MEDimage package folder and follow these instructions
 
 Activate the conda environment
 ```
@@ -60,7 +59,7 @@ And finally, generate the documentation with
 $ pdoc3 --http localhost:8080 -c latex_math=True MEDimage
 ```
 
-The documentation will be available on the *8080 localhost* vie the link http://localhost:8080.
+The documentation will be available on the *8080 localhost* via the link http://localhost:8080.
 
 ## 4. Project Files Organization
 ```
