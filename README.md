@@ -12,7 +12,7 @@
   * [7. Statement](#6-statement)
 
 ## 1. Introduction
-*MEDimage* is a Python package for processing and extracting features from medical images. It gives you the ability to process and filter images and compute all types of radiomic features. This package has been standarised with the [IBSI](https://theibsi.github.io/) norms.
+*MEDimage* is a Python package for processing and extracting features from medical images. It gives you the ability to process and filter images and compute all types of radiomic features. This package has been standarized with the [IBSI](https://theibsi.github.io/) norms.
 
 ## 2. Installation
 
@@ -46,7 +46,7 @@ Once the environment is activated, you can start running the [IBSI-Tests](#1-IBS
 ## 3. Generating the Documentation Locally
 The package documentation can be generated locally using [pdoc3](https://pdoc.dev/docs/pdoc.html).
 
-From your terminal, acces the MEDimage package folder and follow these instructions
+From your terminal, access the MEDimage package folder and follow these instructions
 
 Activate the conda environment
 ```
@@ -64,15 +64,15 @@ $ pdoc3 --http localhost:8080 -c latex_math=True MEDimage
 The documentation will be available on the *8080 localhost* via the link http://localhost:8080.
 
 ## 4. IBSI Tests
-The image biomarker standardisation initiative (IBSI) is an independent international collaboration which works towards standardising the extraction of image biomarkers from acquired imaging. The IBSI therefore seeks to provide image biomarker nomenclature and definitions, benchmark data sets, and benchmark values to verify image processing and image biomarker calculations, as well as reporting guidelines, for high-throughput image analysis.
+The image biomarker standardization initiative (IBSI) is an independent international collaboration which works towards standardizing the extraction of image biomarkers from acquired imaging. The IBSI therefore seeks to provide image biomarker nomenclature and definitions, benchmark data sets, and benchmark values to verify image processing and image biomarker calculations, as well as reporting guidelines, for high-throughput image analysis.
 
   - ### IBSI Chapter 1
-      [The IBSI chapter 1](https://theibsi.github.io/ibsi1/) was initiated in September 2016, and it reached completion in March 2020 and is dedicated to the standardisation of commonly used radiomic features. Two notebooks ([ibsi1p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi1p1.ipynb) and [ibsi1p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi1p2.ipynb)) have been made to test the MEDimage package implementations and validate image processing and image biomarker calculations.
+      [The IBSI chapter 1](https://theibsi.github.io/ibsi1/) was initiated in September 2016, and it reached completion in March 2020 and is dedicated to the standardization of commonly used radiomic features. Two notebooks ([ibsi1p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi1p1.ipynb) and [ibsi1p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi1p2.ipynb)) have been made to test the MEDimage package implementations and validate image processing and image biomarker calculations.
 
   - ### IBSI Chapter 2
-      [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and still ongoing. It is dedicated to the standardisation of commonly used imaging filters in radiomic studies. Two notebooks ([ibsi2p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p1.ipynb) and [ibsi2p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p2.ipynb)) have been made to test the MEDimage package implementations and validate image filtering and image biomarker calculations from filter response maps.
+      [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and still ongoing. It is dedicated to the standardization of commonly used imaging filters in radiomic studies. Two notebooks ([ibsi2p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p1.ipynb) and [ibsi2p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p2.ipynb)) have been made to test the MEDimage package implementations and validate image filtering and image biomarker calculations from filter response maps.
 
-The *Udes* (a.k.a. Université de Sherbrooke) Team has already submitted the benchmarked values to the IBSI ulpoading website and can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
+The *Udes* (a.k.a. Université de Sherbrooke) Team has already submitted the benchmarked values to the IBSI uploading website and can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
 
 ## 5. Project Files Organization
 ```
