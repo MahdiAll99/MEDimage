@@ -40,8 +40,12 @@ This command will install all the dependencies required. And now we activate the
 ```
 $ conda activate medimage
 ```
+For windows users, use 
+```
+$ activate medimage
+```
 
-Once the environment is activated, you can start running the [IBSI-Tests](#1-IBSI-TESTs)
+Once the environment is activated, you can start running the [IBSI-Tests](#4-ibsi-tests)
 
 ## 3. Generating the Documentation Locally
 The package documentation can be generated locally using [pdoc3](https://pdoc.dev/docs/pdoc.html).
@@ -61,7 +65,7 @@ And finally, generate the documentation with
 $ pdoc3 --http localhost:8080 -c latex_math=True MEDimage
 ```
 
-The documentation will be available on the *8080 localhost* via the link http://localhost:8080.
+The documentation will be available on the *8080 localhost* via the link http://localhost:8080. The IBSI tests can now be run by following the [IBSI Tests](#4-ibsi-tests) section.
 
 ## 4. IBSI Tests
 The image biomarker standardization initiative (IBSI) is an independent international collaboration which works towards standardizing the extraction of image biomarkers from acquired imaging. The IBSI therefore seeks to provide image biomarker nomenclature and definitions, benchmark data sets, and benchmark values to verify image processing and image biomarker calculations, as well as reporting guidelines, for high-throughput image analysis.
@@ -72,7 +76,20 @@ The image biomarker standardization initiative (IBSI) is an independent internat
   - ### IBSI Chapter 2
       [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and still ongoing. It is dedicated to the standardization of commonly used imaging filters in radiomic studies. Two notebooks ([ibsi2p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p1.ipynb) and [ibsi2p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p2.ipynb)) have been made to test the MEDimage package implementations and validate image filtering and image biomarker calculations from filter response maps.
 
-The *Udes* (a.k.a. Université de Sherbrooke) Team has already submitted the benchmarked values to the IBSI uploading website and can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
+In order to run the notebooks we need to install *ipykernel* using the command 
+```
+$ conda install -c anaconda ipykernel
+```
+Now we add our `medimage` environment to the jupyter notebook kernels using
+```
+$ python -m ipykernel install --user --name=medimage
+```
+Finally, from the MEDimage folder we launch the jupyter notebook to navigate through the IBSI notebooks and have fun testing
+```
+$ jupyter notebook
+```
+
+Our team *Udes* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
 
 ## 5. Project Files Organization
 ```
