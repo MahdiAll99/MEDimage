@@ -1,10 +1,12 @@
 import logging
+import math
 import os
 import warnings
 from pathlib import Path
 
 import numpy as np
 
+from MEDimage.Filter import Gabor, LaplacianOfGaussian, Laws, Mean, Wavelet
 from MEDimage.MEDimage import MEDimage
 
 _logger = logging.getLogger(__name__)
@@ -166,3 +168,84 @@ class MEDimageProcessing(MEDimage):
             print(message)
             _logger.error(message)
             self.Continue = True
+
+    def applyFilter(self, filterType, volObj):
+        """Applies filter (depending on the filter name) on the given volume object
+        and returns new filtred image.
+        
+        Args:
+            filterType (str): Name of the filter to use (Mean, Laws, Wavelet...).
+            volObj (imref3d): Volume object containing the data that will be filterd.
+
+        Returns:
+            ndarray: volObj: 3D array of filtered imaging data.
+        """
+        
+        VOLEX_LENGTH = self.Params['scaleNonText'][0]
+        input = np.expand_dims(volObj.data.astype(np.float64), axis=0)   # Convert to shape : (B, W, H, D)
+        params = self.Params['filter']
+
+        if filterType.lower() == "mean":
+            params = params['Mean']
+            _filter = Mean(ndims=params['ndims'], size=params['size'], padding=params['padding'])
+            result = _filter.convolve(input)
+
+        elif filterType.lower() == "log":
+            params = params['LoG']
+            sigma = params['sigma'] / VOLEX_LENGTH
+            length = 2 * int(4 * params['sigma'] + 0.5) + 1
+            _filter = LaplacianOfGaussian(ndims=params['ndims'], size=length, sigma=sigma, padding=params['padding'])
+            result = _filter.convolve(input, 
+                            orthogonal_rot=params['orthogonal_rot']
+                            )
+
+        elif filterType.lower() == "laws":
+            params = params['Laws']
+            _filter = Laws(params['config'], 
+                            energy_distance=params['energy_distance'], 
+                            rot_invariance=params['rot_invariance'], 
+                            padding=params['padding']
+                            )
+            result = _filter.convolve(input, 
+                            orthogonal_rot=params['orthogonal_rot'],
+                            energy_image=params['energy_image']
+                            )
+            if params['energy_image']:
+                result = result[1]
+        
+        elif filterType.lower() == "gabor":
+            params = params['Gabor']
+            sigma = params['sigma'] / VOLEX_LENGTH
+            lamb = params['lambda'] / VOLEX_LENGTH
+            size = 2 * int(7 * params['sigma'] + 0.5) + 1
+            if type(params["theta"]) is str and params["theta"].startswith('Pi/'):
+                theta = math.pi / int(params["theta"].split('/')[1])
+            else:
+                theta = float(params["theta"])
+
+            _filter = Gabor(size=size, 
+                            sigma=sigma, 
+                            lamb=lamb,
+                            gamma=params['gamma'], 
+                            theta=-theta,
+                            rot_invariance=params['rot_invariance'],
+                            padding=params['padding']
+                            )
+            result = _filter.convolve(input, orthogonal_rot=params['orthogonal_rot'])
+        
+        elif filterType.lower().startswith("wavelet"):
+            params = params[filterType]
+            _filter = Wavelet(ndims=params['ndims'], 
+                            wavelet_name=params['basis_function'],
+                            rot_invariance=params['rot_invariance'],
+                            padding=params['padding']
+                            )
+            result = _filter.convolve(input, _filter=params['subband'], level=params['level'])
+        
+        else:
+            raise ValueError(
+                    r'Filter name should either be: "mean", "log", "laws", "gabor" or "wavelet".')
+
+        volObj.data = np.squeeze(result)
+
+        return volObj
