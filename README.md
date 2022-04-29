@@ -7,9 +7,9 @@
   * [4. IBSI Tests](#4-ibsi-tests)
     * [IBSI Chapter 1](#ibsi-chapter-1)
     * [IBSI Chapter 2](#ibsi-chapter-2)
-  * [5. Project Files Organization](#4-project-files-organization)
-  * [6. Authors](#5-authors)
-  * [7. Statement](#6-statement)
+  * [5. Project Files Organization](#5-project-files-organization)
+  * [6. Authors](#6-authors)
+  * [7. Statement](#7-statement)
 
 ## 1. Introduction
 *MEDimage* is a Python package for processing and extracting features from medical images. It gives you the ability to process and filter images and compute all types of radiomic features. This package has been standarized with the [IBSI](https://theibsi.github.io/) norms.
