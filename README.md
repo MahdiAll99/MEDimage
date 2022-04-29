@@ -89,7 +89,7 @@ Finally, from the MEDimage folder we launch the jupyter notebook to navigate thr
 $ jupyter notebook
 ```
 
-Our team *Udes* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
+Our team *UdeS* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
 
 ## 5. Project Files Organization
 ```
