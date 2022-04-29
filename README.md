@@ -121,7 +121,7 @@ $ jupyter notebook
 ```
 
 ## 6. Authors
-* [MEDOMICS](https://github.com/medomics/): MEDomics consortium
+* [MEDomics](https://github.com/medomics/): MEDomics consortium
 
 ## 7. Statement
 
