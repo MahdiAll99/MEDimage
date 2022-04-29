@@ -84,7 +84,11 @@ Now we add our `medimage` environment to the jupyter notebook kernels using
 ```
 $ python -m ipykernel install --user --name=medimage
 ```
-Finally, from the MEDimage folder we launch the jupyter notebook to navigate through the IBSI notebooks and have fun testing
+Then access the IBSI tests folder using
+```
+$ cd IBSI-TESTs
+```
+Finally, from the IBSI-TESTs folder, we launch jupyter notebook to navigate through the IBSI notebooks and have fun testing
 ```
 $ jupyter notebook
 ```
