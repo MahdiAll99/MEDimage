@@ -74,7 +74,7 @@ The image biomarker standardization initiative (IBSI) is an independent internat
       [The IBSI chapter 1](https://theibsi.github.io/ibsi1/) was initiated in September 2016, and it reached completion in March 2020 and is dedicated to the standardization of commonly used radiomic features. Two notebooks ([ibsi1p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi1p1.ipynb) and [ibsi1p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi1p2.ipynb)) have been made to test the MEDimage package implementations and validate image processing and image biomarker calculations.
 
   - ### IBSI Chapter 2
-      [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and still ongoing. It is dedicated to the standardization of commonly used imaging filters in radiomic studies. Two notebooks ([ibsi2p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p1.ipynb) and [ibsi2p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p2.ipynb)) have been made to test the MEDimage package implementations and validate image filtering and image biomarker calculations from filter response maps.
+      [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and still ongoing. It is dedicated to the standardization of commonly used imaging filters in radiomic studies. Two notebooks ([ibsi2p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p1.ipynb) and [ibsi2p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p2.ipynb)) have been made to test the MEDimage package implementations and validate image filtering and image biomarker calculations from filter response maps. Our team *UdeS* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and it can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
 
 In order to run the notebooks we need to install *ipykernel* using the command 
 ```
@@ -88,8 +88,6 @@ Finally, from the MEDimage folder we launch the jupyter notebook to navigate thr
 ```
 $ jupyter notebook
 ```
-
-Our team *UdeS* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
 
 ## 5. Project Files Organization
 ```
