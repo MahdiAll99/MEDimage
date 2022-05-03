@@ -18,4 +18,5 @@ dependencies:
     - SimpleITK==2.1.1.2
     - pandas==1.2.1
     - numpyencoder==0.3.0
+    - notebook
     - pdoc3
