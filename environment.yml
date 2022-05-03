@@ -12,6 +12,7 @@ dependencies:
   - PyWavelets==1.1.1
   - scikit-image==0.18.2
   - scipy==1.7.0
+  - ipykernel
   - pip
   - pip:
     - SimpleITK==2.1.1.2

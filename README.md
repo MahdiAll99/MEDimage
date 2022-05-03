@@ -61,19 +61,20 @@ The image biomarker standardization initiative (IBSI) is an independent internat
   - ### IBSI Chapter 2
       [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and still ongoing. It is dedicated to the standardization of commonly used imaging filters in radiomic studies. Two notebooks ([ibsi2p1.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p1.ipynb) and [ibsi2p2.ipynb](https://github.com/MahdiAll99/MEDimage/blob/main/IBSI-TESTs/ibsi2p2.ipynb)) have been made to test the MEDimage package implementations and validate image filtering and image biomarker calculations from filter response maps. Our team *UdeS* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and it can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
 
-In order to run the notebooks we need to install *ipykernel* using the command 
-```
-conda install -c anaconda ipykernel
-```
-Now we add our `medimage` environment to the jupyter notebook kernels using
+In order to run the notebooks we need to add the installed `medimage` environment to the jupyter notebook kernels using
+
 ```
 python -m ipykernel install --user --name=medimage
 ```
+
 Then access the IBSI tests folder using
+
 ```
 cd IBSI-TESTs
 ```
-Finally, from the IBSI-TESTs folder, we launch jupyter notebook to navigate through the IBSI notebooks and have fun testing
+
+Finally, we launch jupyter notebook to navigate through the IBSI notebooks and have fun testing
+
 ```
 jupyter notebook
 ```
