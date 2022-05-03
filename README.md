@@ -19,30 +19,25 @@
 ### Cloning the repository
 In your terminal, clone the repository
 ```
-$ git clone https://github.com/MahdiAll99/MEDimage.git
+git clone https://github.com/MahdiAll99/MEDimage.git
 ```
 
 Then access the package directory using:
 ```
-$ cd MEDimage
+cd MEDimage
 ```
 
 ### Making the environment
-In order to run the package code, you need to create and activate the `medimage` environment
+In order to use the package, you need to create and activate the `medimage` environment. You can do so by running this command
+
 ```
-$ make create_environment
+make -f Makefile.mk create_environment
 ```
-If the above command does not work try the following
-```
-$ make -f Makefile.mk create_environment
-```
+
 This command will install all the dependencies required. And now we activate the `medimage` environment with
+
 ```
-$ conda activate medimage
-```
-For windows users, use 
-```
-$ activate medimage
+activate medimage
 ```
 
 Once the environment is activated, you can generate the documentation in the [doc section](#3-generating-the-documentation-locally) or start running the [IBSI-Tests](#4-ibsi-tests) without documentation (not recommended).
@@ -52,7 +47,7 @@ The package documentation can be generated locally using [pdoc3](https://pdoc.de
 
 From your terminal, from the MEDimage package folder use the following command to generate the documentation
 ```
-$ pdoc3 --http localhost:8080 -c latex_math=True MEDimage
+pdoc3 --http localhost:8080 -c latex_math=True MEDimage
 ```
 
 The documentation will be available on the *8080 localhost* via the link http://localhost:8080. The IBSI tests can now be run by following the [IBSI Tests](#4-ibsi-tests) section.
@@ -68,19 +63,19 @@ The image biomarker standardization initiative (IBSI) is an independent internat
 
 In order to run the notebooks we need to install *ipykernel* using the command 
 ```
-$ conda install -c anaconda ipykernel
+conda install -c anaconda ipykernel
 ```
 Now we add our `medimage` environment to the jupyter notebook kernels using
 ```
-$ python -m ipykernel install --user --name=medimage
+python -m ipykernel install --user --name=medimage
 ```
 Then access the IBSI tests folder using
 ```
-$ cd IBSI-TESTs
+cd IBSI-TESTs
 ```
 Finally, from the IBSI-TESTs folder, we launch jupyter notebook to navigate through the IBSI notebooks and have fun testing
 ```
-$ jupyter notebook
+jupyter notebook
 ```
 
 ## 5. Project Files Organization
