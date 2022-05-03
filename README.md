@@ -50,17 +50,7 @@ Once the environment is activated, you can generate the documentation in the [do
 ## 3. Generating the Documentation Locally
 The package documentation can be generated locally using [pdoc3](https://pdoc.dev/docs/pdoc.html).
 
-From your terminal, access the MEDimage package folder and follow these instructions
-
-Activate the conda environment
-```
-$ conda activate medimage
-```
-Then we install the pdoc tool using
-```
-$ pip install pdoc3
-```
-And finally, generate the documentation with
+From your terminal, from the MEDimage package folder use the following command to generate the documentation
 ```
 $ pdoc3 --http localhost:8080 -c latex_math=True MEDimage
 ```
