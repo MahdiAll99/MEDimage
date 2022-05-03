@@ -50,7 +50,7 @@ From your terminal, from the MEDimage package folder use the following command t
 pdoc3 --http localhost:8080 -c latex_math=True MEDimage
 ```
 
-The documentation will be available on the *8080 localhost* via the link http://localhost:8080. The IBSI tests can now be run by following the [IBSI Tests](#4-ibsi-tests) section.
+The documentation will be available on the *8080 localhost* via the link http://localhost:8080/MEDimage/. The IBSI tests can now be run by following the [IBSI Tests](#4-ibsi-tests) section.
 
 ## 4. IBSI Tests
 The image biomarker standardization initiative (IBSI) is an independent international collaboration which works towards standardizing the extraction of image biomarkers from acquired imaging. The IBSI therefore seeks to provide image biomarker nomenclature and definitions, benchmark data sets, and benchmark values to verify image processing and image biomarker calculations, as well as reporting guidelines, for high-throughput image analysis.
