@@ -28,7 +28,7 @@ cd MEDimage
 ```
 
 ### Making the environment
-In order to use the package, you should make sure to have anaconda distribution on your machine, you can download it and install it y following this [link](https://docs.anaconda.com/anaconda/install/index.html).
+In order to use the package, make sure to have Anaconda distribution on your machine, you can download and install it by following the instructions on [this link](https://docs.anaconda.com/anaconda/install/index.html).
 
 Using anaconda distribution, we will create and activate the `medimage` environment. You can do so by running this command
 
