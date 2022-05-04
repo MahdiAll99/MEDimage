@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from MEDimage.Filter import Gabor, LaplacianOfGaussian, Laws, Mean, Wavelet
+from MEDimage.MEDimageFilter import Gabor, LaplacianOfGaussian, Laws, Mean, Wavelet
 from MEDimage.MEDimage import MEDimage
 
 _logger = logging.getLogger(__name__)

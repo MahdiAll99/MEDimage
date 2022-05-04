@@ -7,7 +7,7 @@ import pywt
 from scipy.signal import fftconvolve
 
 
-class Filter(ABC):
+class MEDimageFilter(ABC):
     """
     Class frame of each filters classes like laplacian of gaussian, wavelet...
     """
@@ -108,7 +108,7 @@ class Filter(ABC):
 
         return np.pad(images, pad_tuple, mode=self.padding)
 
-class Mean(Filter):
+class Mean(MEDimageFilter):
     """
     The mean filter class
     """
@@ -157,7 +157,7 @@ class Mean(Filter):
         result = np.squeeze(self._convolve(image, orthogonal_rot), axis=1)
         return np.swapaxes(result, 1, 3)
 
-class LaplacianOfGaussian(Filter):
+class LaplacianOfGaussian(MEDimageFilter):
     """
     The Laplacian of gaussian filter class.
     """
@@ -222,7 +222,7 @@ class LaplacianOfGaussian(Filter):
         result = np.squeeze(self._convolve(image, orthogonal_rot), axis=1)
         return np.swapaxes(result, 1, 3)
 
-class Gabor(Filter):
+class Gabor(MEDimageFilter):
     """
     The Gabor filter class
     """
@@ -324,7 +324,7 @@ class Gabor(Filter):
             
         return np.swapaxes(result, 1, 3)
 
-class Laws(Filter):
+class Laws(MEDimageFilter):
     """
     The Laws filter class
     """
@@ -505,7 +505,7 @@ class Laws(Filter):
         else:
             return np.swapaxes(result, 1, 3)
 
-class Wavelet(Filter):
+class Wavelet(MEDimageFilter):
     """
     The wavelet filter class.
     """
