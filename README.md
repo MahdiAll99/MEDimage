@@ -16,6 +16,9 @@
 
 ## 2. Installation
 
+### Python installation
+The MEDimage package requires *python 3.8* or more to be run. If you don't have it installed  on your machine, follow the instructions [here](https://github.com/MahdiAll99/MEDimage/blob/main/python.md).
+
 ### Cloning the repository
 In your terminal, clone the repository
 ```
