@@ -96,7 +96,7 @@ Let’s verify that Python and IDLE installed correctly. To do that, double-clic
 
 ## References
 
-All the pictures used in the this document are extracted from the following links:
+Some of the information and all the pictures used in [Windows tutorial](#windows-users) and [MAC tutorial](#mac-os-users) are extracted from the following links
 
 - [How To Install Python 3.8 On Windows](https://www.c-sharpcorner.com/article/how-to-install-python-3-8-in-windows/).
 - [Tutorial: Installing Python on Mac](https://www.dataquest.io/blog/installing-python-on-mac/).
