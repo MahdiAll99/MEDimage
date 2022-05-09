@@ -7,8 +7,6 @@ import numpy as np
 import scipy.spatial as sc
 
 from ..biomarkers.getAreaDensApprox import getAreaDensApprox
-from ..biomarkers.getAxisLengths import getAxisLengths
-from ..biomarkers.utils import getCOM
 from ..biomarkers.getGearyC import getGearyC
 from ..biomarkers.getMesh import getMesh
 from ..biomarkers.getMeshArea import getMeshArea
@@ -16,6 +14,7 @@ from ..biomarkers.getMeshVolume import getMeshVolume
 from ..biomarkers.getMoranI import getMoranI
 from ..biomarkers.getOrientedBoundBox import minOrientedBoundBox
 from ..biomarkers.MinVolEllipse import MinVolEllipse as minv
+from ..biomarkers.utils import getAxisLengths, getCOM
 
 
 def getMorphFeatures(vol, 
