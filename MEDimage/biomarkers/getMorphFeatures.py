@@ -8,7 +8,7 @@ import scipy.spatial as sc
 
 from ..biomarkers.getAreaDensApprox import getAreaDensApprox
 from ..biomarkers.getAxisLengths import getAxisLengths
-from ..biomarkers.getCOM import getCOM
+from ..biomarkers.utils import getCOM
 from ..biomarkers.getGearyC import getGearyC
 from ..biomarkers.getMesh import getMesh
 from ..biomarkers.getMeshArea import getMeshArea
