@@ -7,6 +7,42 @@ from typing import Union
 import numpy as np
 
 
+def findIX(levels, fractVol, x) -> np.ndarray:
+    """Computes intensity at volume fraction.
+
+    Args:
+        levels (ndarray): COMPLETE INTEGER grey-levels.
+        fractVol (ndarray): Fractional volume.
+        x (float): Fraction percentage, between 0 and 100.
+
+    Returns:
+        ndarray: Array of minimum discretised intensity present 
+            in at most `x`% of the volume.
+    
+    """
+    ind = np.where(fractVol <= x/100)[0][0]
+    Ix = levels[ind]
+
+    return Ix
+    
+def findVX(fractInt, fractVol, x) -> np.ndarray:
+    """Computes volume at intensity fraction.
+
+    Args:
+        fractInt (ndarray): Intensity fraction.
+        fractVol (ndarray): Fractional volume.
+        x (float): Fraction percentage, between 0 and 100.
+
+    Returns:
+        ndarray: Array of largest volume fraction `fractVol` that has an 
+            intensity fraction `fractInt` of at least `x`%.
+
+    """
+    ind = np.where(fractInt >= x/100)[0][0]
+    Vx = fractVol[ind]
+
+    return Vx
+
 def getCOM(Xgl_int, Xgl_morph, XYZ_int, XYZ_morph) -> Union[float, np.ndarray]:
     """Calculates center of mass shift (in mm, since resolution is in mm).
 

@@ -6,8 +6,7 @@ from typing import Dict
 
 import numpy as np
 
-from ..biomarkers.findIX import findIX
-from ..biomarkers.findVX import findVX
+from ..biomarkers.utils import findIX, findVX
 
 _logger = logging.getLogger(__name__)
 
