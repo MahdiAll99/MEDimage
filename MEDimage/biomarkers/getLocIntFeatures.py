@@ -3,18 +3,17 @@
 
 from typing import Dict
 
-from ..biomarkers.getGlobPeak import getGlobPeak
-from ..biomarkers.getLocPeak import getLocPeak
+from ..biomarkers.utils import getGlobPeak, getLocPeak
 
 
 def getLocIntFeatures(imgObj, roiObj, res, intensity=None) -> Dict:
     """Compute Local Intensity Features.
 
     Args:
-        imgObj (ndarray): Continous image intentisity distribution, with no NaNs
+        imgObj (ndarray): Continuos image intensity distribution, with no NaNs
             outside the ROI.
         roiObj (ndarray): Array of the mask defining the ROI.
-        res (List[float]): [a,b,c] vector specfying the resolution of the volume in mm.
+        res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.
             XYZ resolution (world), or JIK resolution (intrinsic matlab).
         intensity (str, optional): If 'arbitrary', some feature will not be computed.
             If 'definite', all feature will be computed. If not present as an
@@ -28,8 +27,7 @@ def getLocIntFeatures(imgObj, roiObj, res, intensity=None) -> Dict:
         ValueError: If `intensity` is not "arbitrary", "definite" or "filter".
 
     """
-    # INTIALIZATION
-
+    # INITIALIZATION
     if intensity is None:
         definite = True
     elif intensity == 'arbitrary':
