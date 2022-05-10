@@ -24,7 +24,7 @@ def voxel_to_spatial(affine, voxel_pos: list) -> np.array:
     translation = affine[:3, 3]
     return m.dot(voxel_pos) + translation
 
-def spatial_to_voxel(self, spatial_pos: list) -> np.array:
+def spatial_to_voxel(spatial_pos: list) -> np.array:
     """
     Convert spatial position into voxel position
 
@@ -36,9 +36,7 @@ def spatial_to_voxel(self, spatial_pos: list) -> np.array:
         ndarray: A numpy array that correspond to the position in the voxel.
 
     """
-    affine = self.get_nifti().affine
     affine = np.linalg.inv(affine)
-
     m = affine[:3, :3]
     translation = affine[:3, 3]
     return m.dot(spatial_pos) + translation
