@@ -10,7 +10,7 @@ This document provides instructions on how to install Python on  different opera
 
 ## Windows users
 
-First, go the Python official [download website](https://www.python.org/downloads/).
+First, go to the Python official [download website](https://www.python.org/downloads/).
 
 ![alt](https://csharpcorner-mindcrackerinc.netdna-ssl.com/article/how-to-install-python-3-8-in-windows/Images/How%20To%20Install%20Python%20on%20Windows02.png)
 
