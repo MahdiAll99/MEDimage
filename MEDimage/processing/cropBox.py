@@ -63,7 +63,7 @@ def cropBox(image: Nifti1Image,
         Tuple[Nifti1Image, Nifti1Image] : Two numpy arrays of the cropped image and roi 
 
     """
-    assert np.sum(np.array(crop_shape) % 2) == 0, "All element of crop_shape should be even number."
+    assert np.sum(np.array(crop_shape) % 2) == 0, "All elements of crop_shape should be even number."
 
     radius = [int(x / 2) - 1 for x in crop_shape]
     if center is None:
