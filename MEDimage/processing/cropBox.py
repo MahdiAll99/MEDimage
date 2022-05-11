@@ -24,7 +24,7 @@ def voxel_to_spatial(affine, voxel_pos: list) -> np.array:
     translation = affine[:3, 3]
     return m.dot(voxel_pos) + translation
 
-def spatial_to_voxel(spatial_pos: list) -> np.array:
+def spatial_to_voxel(affine, spatial_pos: list) -> np.array:
     """
     Convert spatial position into voxel position
 
@@ -65,12 +65,15 @@ def cropBox(image: Nifti1Image,
     """
     assert np.sum(np.array(crop_shape) % 2) == 0, "All elements of crop_shape should be even number."
 
+    image_data = image.get_fdata()
+    roi_data = roi.get_fdata()
+
     radius = [int(x / 2) - 1 for x in crop_shape]
     if center is None:
-        list(np.array(list(center_of_mass(roi))).astype(int))
+        center = list(np.array(list(center_of_mass(roi_data))).astype(int))
 
-    center_min = np.floor(spatial_to_voxel(center)).astype(int)
-    center_max = np.ceil(spatial_to_voxel(center)).astype(int)
+    center_min = np.floor(center).astype(int)
+    center_max = np.ceil(center).astype(int)
 
     # If center_max and center_min are equal we add 1 to center_max to avoid trouble with crop.
     for i in range(3):
@@ -85,11 +88,9 @@ def cropBox(image: Nifti1Image,
             [abs(min(cent_min - rad, 0)), max(cent_max + rad + 1 - shape, 0)]
         )
 
-    image_data = image.get_fdata()
-    roi_data = roi.get_fdata()
-
     image_data = np.pad(image_data, tuple([tuple(x) for x in padding]))
-    roi = np.pad(roi, tuple([tuple(x) for x in padding]))
+    roi_data = np.pad(roi_data, tuple([tuple(x) for x in padding]))
+
     center_min = [center_min[i] + padding[i][0] for i in range(3)]
     center_max = [center_max[i] + padding[i][0] for i in range(3)]
 
