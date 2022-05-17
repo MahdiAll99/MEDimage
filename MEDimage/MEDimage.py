@@ -227,7 +227,7 @@ class MEDimage(object):
         
         rows = int(np.round(np.sqrt(len(slices))))
         lines = int(np.ceil(len(slices) / rows))
-        fig, axs =  plt.subplots(rows, lines)
+        fig, axs =  plt.subplots(rows, lines, figsize=(20, 10))
         
         fig.suptitle('XY-Plane')
         plt.set_cmap(plt.gray())
