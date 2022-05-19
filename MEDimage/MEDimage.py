@@ -201,11 +201,12 @@ class MEDimage(object):
         self.scan.volume.convert_to_LPS()
         self.scan.volume.scanRot = None
 
-    def display(self):
-        """Displays slices from the ROI of the MEDimage imaging data in XY-Plane.
+    def display(self, 
+                _slice: int = None) -> None:
+        """Displays slices from imaging data with the ROI contour in XY-Plane.
 
         Args:
-            None.
+            _slice (int, optional): Index of the slice you want to plot.
 
         Returns:
             None.
@@ -222,24 +223,36 @@ class MEDimage(object):
         K = K[ind_mask]
         slices = np.unique(K)
 
-        vol_obj_init = self.scan.volume.data.swapaxes(0, 1)[:, :, slices]
-        roi_obj_init = self.scan.get_ROI_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
+        vol_data = self.scan.volume.data.swapaxes(0, 1)[:, :, slices]
+        roi_data = self.scan.get_ROI_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
         
         rows = int(np.round(np.sqrt(len(slices))))
         lines = int(np.ceil(len(slices) / rows))
-        fig, axs =  plt.subplots(rows, lines, figsize=(20, 10))
         
-        fig.suptitle('XY-Plane')
         plt.set_cmap(plt.gray())
-
-        for i in range(0,rows):
-            for j in range(0,lines):
-                axs[i,j].axis('off')
-                axs[i,j].imshow(vol_obj_init[:, :, i+j])
-                im = Image.fromarray((roi_obj_init[:, :, i+j]))
-                axs[i,j].contour(im, colors='red', linewidths=0.4, alpha=0.45)
         
-        lps_ax = fig.add_subplot(1, lines,axs.shape[1])
+        if _slice:
+            fig, ax =  plt.subplots(1, 1, figsize=(10, 5))
+            ax.axis('off')
+            ax.imshow(vol_data[:, :, _slice])
+            im = Image.fromarray((roi_data[:, :, _slice]))
+            ax.contour(im, colors='red', linewidths=0.4, alpha=0.45)
+            lps_ax = fig.add_subplot(1, lines, 1)
+        else:
+            fig, axs =  plt.subplots(rows, lines, figsize=(20, 10))
+            s = 0
+            for i in range(0,rows):
+                for j in range(0,lines):
+                    axs[i,j].axis('off')
+                    if s < len(slices):
+                        axs[i,j].imshow(vol_data[:, :, s])
+                        im = Image.fromarray((roi_data[:, :, s]))
+                        axs[i,j].contour(im, colors='red', linewidths=0.4, alpha=0.45)
+                    s += 1
+            lps_ax = fig.add_subplot(1, lines, axs.shape[1])
+
+        fig.suptitle('XY-Plane')
+        
         lps_ax.axis([-1.5, 1.5, -1.5, 1.5])
         lps_ax.set_title("Coordinates system")
         
