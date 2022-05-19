@@ -368,7 +368,7 @@ class MEDimage(object):
                 # flip y
                 self.data = np.flip(self.data, 1)
                 # to LPS
-                #self.data = self.data.swapaxes(0, 1) #TODO
+                self.data = self.data.swapaxes(0, 1) #TODO
             
             def spatialRef_from_NIFTI(self, NiftiImagePath):
                 """Computes the imref3d spatialRef using a NIFTI file and
@@ -535,7 +535,7 @@ class MEDimage(object):
                 # flip y
                 data = np.flip(data, 1)
                 # to LPS
-                #data = data.swapaxes(0, 1)
+                data = data.swapaxes(0, 1)
 
                 return data
 
