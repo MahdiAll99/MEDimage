@@ -2,6 +2,7 @@ import logging
 import os
 import warnings
 from pathlib import Path
+from typing import List
 
 import matplotlib.pyplot as plt
 import nibabel as nib
@@ -48,7 +49,7 @@ class MEDimage(object):
             try:
                 self.scan = MEDimg.scan
             except:
-                self.scan = None
+                self.scan = self.scan()
 
     @property
     def get_patientID(self):
@@ -90,7 +91,7 @@ class MEDimage(object):
         return self.type
     
     @get_type.setter
-    def set_type(self, type) -> str:
+    def set_type(self, type) -> None:
         """type attribute setter.
 
         Args:
@@ -116,7 +117,7 @@ class MEDimage(object):
         return self.format
     
     @get_format.setter
-    def set_format(self, format) -> str:
+    def set_format(self, format) -> None:
         """format attribute setter.
 
         Args:
@@ -129,7 +130,7 @@ class MEDimage(object):
         self.format = format
     
     @property
-    def get_dicomH(self) -> str:
+    def get_dicomH(self) -> List:
         """dicomH attribute getter.
 
         Args:
@@ -142,7 +143,7 @@ class MEDimage(object):
         return self.dicomH
     
     @get_dicomH.setter
-    def set_dicomH(self, dicomH) -> str:
+    def set_dicomH(self, dicomH) -> None:
         """dicomH attribute setter.
 
         Args:
@@ -155,7 +156,7 @@ class MEDimage(object):
         self.dicomH = dicomH
     
     @property
-    def get_scan(self) -> str:
+    def get_scan(self) -> scan:
         """scan attribute getter.
 
         Args:
@@ -168,7 +169,7 @@ class MEDimage(object):
         return self.scan
     
     @get_scan.setter
-    def set_scan(self, scan) -> str:
+    def set_scan(self, scan) -> None:
         """scan attribute setter.
 
         Args:
@@ -180,7 +181,7 @@ class MEDimage(object):
         """
         self.scan = scan
     
-    def init_from_nifti(self, NiftiImagePath):
+    def init_from_nifti(self, NiftiImagePath) -> None:
         """Initializes the MEDimage class using a NIFTI file.
 
         Args:
