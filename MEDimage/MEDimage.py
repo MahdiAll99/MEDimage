@@ -212,6 +212,7 @@ class MEDimage(object):
             None.
         
         """
+        # extract slices containing ROI
         size_m = self.scan.volume.data.shape
         i = np.arange(0, size_m[0])
         j = np.arange(0, size_m[1])
@@ -227,32 +228,40 @@ class MEDimage(object):
         roi_data = self.scan.get_ROI_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
         
         rows = int(np.round(np.sqrt(len(slices))))
-        lines = int(np.ceil(len(slices) / rows))
+        columns = int(np.ceil(len(slices) / rows))
         
         plt.set_cmap(plt.gray())
         
+        # plot only one slice
         if _slice:
             fig, ax =  plt.subplots(1, 1, figsize=(10, 5))
             ax.axis('off')
+            ax.set_title(_slice)
             ax.imshow(vol_data[:, :, _slice])
             im = Image.fromarray((roi_data[:, :, _slice]))
             ax.contour(im, colors='red', linewidths=0.4, alpha=0.45)
-            lps_ax = fig.add_subplot(1, lines, 1)
+            lps_ax = fig.add_subplot(1, columns, 1)
+        
+        # plot multiple slices containing an ROI.
         else:
-            fig, axs =  plt.subplots(rows, lines, figsize=(20, 10))
+            fig, axs =  plt.subplots(rows, columns+1, figsize=(20, 10))
             s = 0
             for i in range(0,rows):
-                for j in range(0,lines):
+                for j in range(0,columns):
                     axs[i,j].axis('off')
                     if s < len(slices):
+                        axs[i,j].set_title(str(s))
                         axs[i,j].imshow(vol_data[:, :, s])
                         im = Image.fromarray((roi_data[:, :, s]))
                         axs[i,j].contour(im, colors='red', linewidths=0.4, alpha=0.45)
                     s += 1
-            lps_ax = fig.add_subplot(1, lines, axs.shape[1])
+                axs[i,columns].axis('off')
+            lps_ax = fig.add_subplot(1, columns+1, axs.shape[1])
 
         fig.suptitle('XY-Plane')
+        fig.tight_layout()
         
+        # add the coordinates system
         lps_ax.axis([-1.5, 1.5, -1.5, 1.5])
         lps_ax.set_title("Coordinates system")
         
