@@ -2,7 +2,6 @@ import logging
 import os
 import warnings
 from pathlib import Path
-from typing import List
 
 import matplotlib.pyplot as plt
 import nibabel as nib
@@ -29,157 +28,26 @@ class MEDimage(object):
     """
 
     def __init__(self, MEDimg=None) -> None:
-        if MEDimg is not None:
-            try:
-                self.patientID = MEDimg.patientID
-            except:
-                self.patientID = None
-            try:
-                self.type = MEDimg.type
-            except:
-                self.type = None
-            try:
-                self.format = MEDimg.format
-            except:
-                self.format = ""
-            try:
-                self.dicomH = MEDimg.dicomH
-            except:
-                self.dicomH = None
-            try:
-                self.scan = MEDimg.scan
-            except:
-                self.scan = self.scan()
-
-    @property
-    def get_patientID(self):
-        """patientID attribute getter.
-
-        Args:
-            None.
-
-        Returns:
-            str: Patient ID attribute.
-        
-        """
-        return self.patientID
-    
-    @get_patientID.setter
-    def set_patientID(self, ID):
-        """patientID attribute setter.
-
-        Args:
-            patientID (str): Patient ID.
-
-        Returns:
-            None.
-        
-        """
-        self.patientID = ID
-    
-    @property
-    def get_type(self) -> str:
-        """type attribute getter.
-
-        Args:
-            None.
-
-        Returns:
-            str: type attrbiute.
-        
-        """
-        return self.type
-    
-    @get_type.setter
-    def set_type(self, type) -> None:
-        """type attribute setter.
-
-        Args:
-            type (str): Scan type.
-
-        Returns:
-            None.
-        
-        """
-        self.type = type
-    
-    @property
-    def get_format(self) -> str:
-        """format attribute getter.
-
-        Args:
-            None.
-
-        Returns:
-            str: format attrbiute.
-        
-        """
-        return self.format
-    
-    @get_format.setter
-    def set_format(self, format) -> None:
-        """format attribute setter.
-
-        Args:
-            format (str): Scan file format.
-
-        Returns:
-            None.
-        
-        """
-        self.format = format
-    
-    @property
-    def get_dicomH(self) -> List:
-        """dicomH attribute getter.
-
-        Args:
-            None.
-
-        Returns:
-            pydicom.dataset.FileDataset: dicomH attrbiute.
-        
-        """
-        return self.dicomH
-    
-    @get_dicomH.setter
-    def set_dicomH(self, dicomH) -> None:
-        """dicomH attribute setter.
-
-        Args:
-            dicomH (pydicom.dataset.FileDataset): DICOM Header.
-
-        Returns:
-            None.
-        
-        """
-        self.dicomH = dicomH
-    
-    @property
-    def get_scan(self) -> scan:
-        """scan attribute getter.
-
-        Args:
-            None.
-
-        Returns:
-            object: scan attrbiute.
-        
-        """
-        return self.scan
-    
-    @get_scan.setter
-    def set_scan(self, scan) -> None:
-        """scan attribute setter.
-
-        Args:
-            scan (MEDimage.scan): Instance of MEDimage.scan inner class.
-
-        Returns:
-            None.
-        
-        """
-        self.scan = scan
+        try:
+            self.patientID = MEDimg.patientID
+        except:
+            self.patientID = ""
+        try:
+            self.type = MEDimg.type
+        except:
+            self.type = ""
+        try:
+            self.format = MEDimg.format
+        except:
+            self.format = ""
+        try:
+            self.dicomH = MEDimg.dicomH
+        except:
+            self.dicomH = []
+        try:
+            self.scan = MEDimg.scan
+        except:
+            self.scan = self.scan()
     
     def init_from_nifti(self, NiftiImagePath) -> None:
         """Initializes the MEDimage class using a NIFTI file.
