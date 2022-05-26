@@ -71,82 +71,6 @@ class MEDimage(object):
         self.scan.volume.convert_to_LPS()
         self.scan.volume.scanRot = None
 
-    def display(self, 
-                _slice: int = None) -> None:
-        """Displays slices from imaging data with the ROI contour in XY-Plane.
-
-        Args:
-            _slice (int, optional): Index of the slice you want to plot.
-
-        Returns:
-            None.
-        
-        """
-        # extract slices containing ROI
-        size_m = self.scan.volume.data.shape
-        i = np.arange(0, size_m[0])
-        j = np.arange(0, size_m[1])
-        k = np.arange(0, size_m[2])
-        ind_mask = np.nonzero(self.scan.get_ROI_from_indexes(0))
-        J, I, K = np.meshgrid(j, i, k, indexing='ij')
-        I = I[ind_mask]
-        J = J[ind_mask]
-        K = K[ind_mask]
-        slices = np.unique(K)
-
-        vol_data = self.scan.volume.data.swapaxes(0, 1)[:, :, slices]
-        roi_data = self.scan.get_ROI_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
-        
-        rows = int(np.round(np.sqrt(len(slices))))
-        columns = int(np.ceil(len(slices) / rows))
-        
-        plt.set_cmap(plt.gray())
-        
-        # plot only one slice
-        if _slice:
-            fig, ax =  plt.subplots(1, 1, figsize=(10, 5))
-            ax.axis('off')
-            ax.set_title(_slice)
-            ax.imshow(vol_data[:, :, _slice])
-            im = Image.fromarray((roi_data[:, :, _slice]))
-            ax.contour(im, colors='red', linewidths=0.4, alpha=0.45)
-            lps_ax = fig.add_subplot(1, columns, 1)
-        
-        # plot multiple slices containing an ROI.
-        else:
-            fig, axs =  plt.subplots(rows, columns+1, figsize=(20, 10))
-            s = 0
-            for i in range(0,rows):
-                for j in range(0,columns):
-                    axs[i,j].axis('off')
-                    if s < len(slices):
-                        axs[i,j].set_title(str(s))
-                        axs[i,j].imshow(vol_data[:, :, s])
-                        im = Image.fromarray((roi_data[:, :, s]))
-                        axs[i,j].contour(im, colors='red', linewidths=0.4, alpha=0.45)
-                    s += 1
-                axs[i,columns].axis('off')
-            lps_ax = fig.add_subplot(1, columns+1, axs.shape[1])
-
-        fig.suptitle('XY-Plane')
-        fig.tight_layout()
-        
-        # add the coordinates system
-        lps_ax.axis([-1.5, 1.5, -1.5, 1.5])
-        lps_ax.set_title("Coordinates system")
-        
-        lps_ax.quiver([-0.5], [0], [1.5], [0], scale_units='xy', angles='xy', scale=1.0, color='green')
-        lps_ax.quiver([-0.5], [0], [0], [-1.5], scale_units='xy', angles='xy', scale=3, color='blue')
-        lps_ax.quiver([-0.5], [0], [1.5], [1.5], scale_units='xy', angles='xy', scale=3, color='red')
-        lps_ax.text(1.0, 0, "L")
-        lps_ax.text(-0.3, -0.5, "P")
-        lps_ax.text(0.3, 0.4, "S")
-
-        lps_ax.set_xticks([])
-        lps_ax.set_yticks([])
-
-        plt.show()
-
 
     class scan:
         """Organizes all imaging data (volume and ROI). 
@@ -212,6 +136,81 @@ class MEDimage(object):
             roi_volume = np.zeros_like(self.volume.data).flatten()
             roi_volume[self.ROI.get_indexes(ROIname_key)] = 1
             return roi_volume.reshape(self.volume.data.shape)
+
+        def display(self, _slice: int = None) -> None:
+            """Displays slices from imaging data with the ROI contour in XY-Plane.
+
+            Args:
+                _slice (int, optional): Index of the slice you want to plot.
+
+            Returns:
+                None.
+            
+            """
+            # extract slices containing ROI
+            size_m = self.volume.data.shape
+            i = np.arange(0, size_m[0])
+            j = np.arange(0, size_m[1])
+            k = np.arange(0, size_m[2])
+            ind_mask = np.nonzero(self.get_ROI_from_indexes(0))
+            J, I, K = np.meshgrid(j, i, k, indexing='ij')
+            I = I[ind_mask]
+            J = J[ind_mask]
+            K = K[ind_mask]
+            slices = np.unique(K)
+
+            vol_data = self.volume.data.swapaxes(0, 1)[:, :, slices]
+            roi_data = self.get_ROI_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
+            
+            rows = int(np.round(np.sqrt(len(slices))))
+            columns = int(np.ceil(len(slices) / rows))
+            
+            plt.set_cmap(plt.gray())
+            
+            # plot only one slice
+            if _slice:
+                fig, ax =  plt.subplots(1, 1, figsize=(10, 5))
+                ax.axis('off')
+                ax.set_title(_slice)
+                ax.imshow(vol_data[:, :, _slice])
+                im = Image.fromarray((roi_data[:, :, _slice]))
+                ax.contour(im, colors='red', linewidths=0.4, alpha=0.45)
+                lps_ax = fig.add_subplot(1, columns, 1)
+            
+            # plot multiple slices containing an ROI.
+            else:
+                fig, axs =  plt.subplots(rows, columns+1, figsize=(20, 10))
+                s = 0
+                for i in range(0,rows):
+                    for j in range(0,columns):
+                        axs[i,j].axis('off')
+                        if s < len(slices):
+                            axs[i,j].set_title(str(s))
+                            axs[i,j].imshow(vol_data[:, :, s])
+                            im = Image.fromarray((roi_data[:, :, s]))
+                            axs[i,j].contour(im, colors='red', linewidths=0.4, alpha=0.45)
+                        s += 1
+                    axs[i,columns].axis('off')
+                lps_ax = fig.add_subplot(1, columns+1, axs.shape[1])
+
+            fig.suptitle('XY-Plane')
+            fig.tight_layout()
+            
+            # add the coordinates system
+            lps_ax.axis([-1.5, 1.5, -1.5, 1.5])
+            lps_ax.set_title("Coordinates system")
+            
+            lps_ax.quiver([-0.5], [0], [1.5], [0], scale_units='xy', angles='xy', scale=1.0, color='green')
+            lps_ax.quiver([-0.5], [0], [0], [-1.5], scale_units='xy', angles='xy', scale=3, color='blue')
+            lps_ax.quiver([-0.5], [0], [1.5], [1.5], scale_units='xy', angles='xy', scale=3, color='red')
+            lps_ax.text(1.0, 0, "L")
+            lps_ax.text(-0.3, -0.5, "P")
+            lps_ax.text(0.3, 0.4, "S")
+
+            lps_ax.set_xticks([])
+            lps_ax.set_yticks([])
+
+            plt.show()
 
         class volume:
             """Organizes all volume data and information. 
