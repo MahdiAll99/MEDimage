@@ -62,7 +62,8 @@ class MEDimage(object):
         self.patientID = os.path.basename(NiftiImagePath).split("_")[0]
         self.type = os.path.basename(NiftiImagePath).split(".")[-3]
         self.format = "nifti"
-        self.scan = self.scan(orientation="Axial", patientPosition="HFS")
+        self.scan.set_orientation(orientation="Axial")
+        self.scan.set_patientPosition(patientPosition="HFS")
         self.scan.ROI.get_ROI_from_path(ROI_path=os.path.dirname(NiftiImagePath), 
                                         ID=Path(NiftiImagePath).name.split("(")[0])
         self.scan.volume.data = nib.load(NiftiImagePath).get_fdata()
@@ -169,8 +170,11 @@ class MEDimage(object):
             self.orientation = orientation
             self.patientPosition = patientPosition
 
-        def set_orientation(self, new_orientation):
-            self.orientation = new_orientation
+        def set_patientPosition(self, patientPosition):
+            self.patientPosition = patientPosition
+
+        def set_orientation(self, orientation):
+            self.orientation = orientation
         
         def set_volume(self, volume):
             self.volume = volume
