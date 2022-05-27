@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import List
 import warnings
 from pathlib import Path
 
@@ -49,6 +50,66 @@ class MEDimage(object):
         except:
             self.scan = self.scan()
     
+    @property
+    def patientID(self) -> str:
+        """
+        Patient ID
+
+        Returns:
+            patientID (str): Patient ID
+        """
+        return self._patientID
+    
+    @patientID.setter
+    def patientID(self, patientID: str) -> None:
+        """
+        Patient ID setter
+
+        Args:
+            patientID (str): Patient ID
+        """
+        self._patientID = patientID
+    
+    @property
+    def type(self) -> str:
+        """
+        Imaging scan type
+
+        Returns:
+            type (str): Imaging scan type
+        """
+        return self._type
+    
+    @type.setter
+    def type(self, type: str) -> None:
+        """
+        Imaging scan type
+
+        Args:
+            type (str): Imaging scan type
+        """
+        self._type = type
+    
+    @property
+    def dicomH(self) -> List:
+        """
+        DICOM header
+
+        Returns:
+            dicomH (List): DICOM header
+        """
+        return self._dicomH
+    
+    @dicomH.setter
+    def dicomH(self, dicomH: List) -> None:
+        """
+        DICOM header
+
+        Args:
+            dicomH (List): DICOM header
+        """
+        self._dicomH = dicomH
+
     def init_from_nifti(self, NiftiImagePath) -> None:
         """Initializes the MEDimage class using a NIFTI file.
 
