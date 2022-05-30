@@ -1,13 +1,14 @@
 import logging
 import os
-from typing import List
 import warnings
 from pathlib import Path
+from typing import List
 
 import matplotlib.pyplot as plt
 import nibabel as nib
 import numpy as np
 from PIL import Image
+from pydicom.dataset import FileDataset
 
 from .utils.imref import imref3d
 
@@ -91,7 +92,7 @@ class MEDimage(object):
         self._type = type
     
     @property
-    def dicomH(self) -> List:
+    def dicomH(self) -> List[FileDataset]:
         """
         DICOM header
 
@@ -101,7 +102,7 @@ class MEDimage(object):
         return self._dicomH
     
     @dicomH.setter
-    def dicomH(self, dicomH: List) -> None:
+    def dicomH(self, dicomH: List[FileDataset]) -> None:
         """
         DICOM header
 
