@@ -2,11 +2,13 @@ import logging
 import os
 import warnings
 from pathlib import Path
+from typing import List
 
 import matplotlib.pyplot as plt
 import nibabel as nib
 import numpy as np
 from PIL import Image
+from pydicom.dataset import FileDataset
 
 from .utils.imref import imref3d
 
@@ -28,159 +30,88 @@ class MEDimage(object):
     """
 
     def __init__(self, MEDimg=None) -> None:
-        if MEDimg is not None:
-            try:
-                self.patientID = MEDimg.patientID
-            except:
-                self.patientID = None
-            try:
-                self.type = MEDimg.type
-            except:
-                self.type = None
-            try:
-                self.format = MEDimg.format
-            except:
-                self.format = ""
-            try:
-                self.dicomH = MEDimg.dicomH
-            except:
-                self.dicomH = None
-            try:
-                self.scan = MEDimg.scan
-            except:
-                self.scan = None
-
-    @property
-    def get_patientID(self):
-        """patientID attribute getter.
-
-        Args:
-            None.
-
-        Returns:
-            str: Patient ID attribute.
-        
-        """
-        return self.patientID
-    
-    @get_patientID.setter
-    def set_patientID(self, ID):
-        """patientID attribute setter.
-
-        Args:
-            patientID (str): Patient ID.
-
-        Returns:
-            None.
-        
-        """
-        self.patientID = ID
+        try:
+            self.patientID = MEDimg.patientID
+        except:
+            self.patientID = ""
+        try:
+            self.type = MEDimg.type
+        except:
+            self.type = ""
+        try:
+            self.format = MEDimg.format
+        except:
+            self.format = ""
+        try:
+            self.dicomH = MEDimg.dicomH
+        except:
+            self.dicomH = []
+        try:
+            self.scan = MEDimg.scan
+        except:
+            self.scan = self.scan()
     
     @property
-    def get_type(self) -> str:
-        """type attribute getter.
-
-        Args:
-            None.
+    def patientID(self) -> str:
+        """
+        Patient ID
 
         Returns:
-            str: type attrbiute.
-        
+            patientID (str): Patient ID
         """
-        return self.type
+        return self._patientID
     
-    @get_type.setter
-    def set_type(self, type) -> str:
-        """type attribute setter.
+    @patientID.setter
+    def patientID(self, patientID: str) -> None:
+        """
+        Patient ID setter
 
         Args:
-            type (str): Scan type.
-
-        Returns:
-            None.
-        
+            patientID (str): Patient ID
         """
-        self.type = type
+        self._patientID = patientID
     
     @property
-    def get_format(self) -> str:
-        """format attribute getter.
-
-        Args:
-            None.
+    def type(self) -> str:
+        """
+        Imaging scan type
 
         Returns:
-            str: format attrbiute.
-        
+            type (str): Imaging scan type
         """
-        return self.format
+        return self._type
     
-    @get_format.setter
-    def set_format(self, format) -> str:
-        """format attribute setter.
+    @type.setter
+    def type(self, type: str) -> None:
+        """
+        Imaging scan type
 
         Args:
-            format (str): Scan file format.
-
-        Returns:
-            None.
-        
+            type (str): Imaging scan type
         """
-        self.format = format
+        self._type = type
     
     @property
-    def get_dicomH(self) -> str:
-        """dicomH attribute getter.
-
-        Args:
-            None.
+    def dicomH(self) -> List[FileDataset]:
+        """
+        DICOM header
 
         Returns:
-            pydicom.dataset.FileDataset: dicomH attrbiute.
-        
+            dicomH (List): DICOM header
         """
-        return self.dicomH
+        return self._dicomH
     
-    @get_dicomH.setter
-    def set_dicomH(self, dicomH) -> str:
-        """dicomH attribute setter.
+    @dicomH.setter
+    def dicomH(self, dicomH: List[FileDataset]) -> None:
+        """
+        DICOM header
 
         Args:
-            dicomH (pydicom.dataset.FileDataset): DICOM Header.
-
-        Returns:
-            None.
-        
+            dicomH (List): DICOM header
         """
-        self.dicomH = dicomH
-    
-    @property
-    def get_scan(self) -> str:
-        """scan attribute getter.
+        self._dicomH = dicomH
 
-        Args:
-            None.
-
-        Returns:
-            object: scan attrbiute.
-        
-        """
-        return self.scan
-    
-    @get_scan.setter
-    def set_scan(self, scan) -> str:
-        """scan attribute setter.
-
-        Args:
-            scan (MEDimage.scan): Instance of MEDimage.scan inner class.
-
-        Returns:
-            None.
-        
-        """
-        self.scan = scan
-    
-    def init_from_nifti(self, NiftiImagePath):
+    def init_from_nifti(self, NiftiImagePath) -> None:
         """Initializes the MEDimage class using a NIFTI file.
 
         Args:
@@ -193,67 +124,14 @@ class MEDimage(object):
         self.patientID = os.path.basename(NiftiImagePath).split("_")[0]
         self.type = os.path.basename(NiftiImagePath).split(".")[-3]
         self.format = "nifti"
-        self.scan = self.scan(orientation="Axial", patientPosition="HFS")
+        self.scan.set_orientation(orientation="Axial")
+        self.scan.set_patientPosition(patientPosition="HFS")
         self.scan.ROI.get_ROI_from_path(ROI_path=os.path.dirname(NiftiImagePath), 
                                         ID=Path(NiftiImagePath).name.split("(")[0])
         self.scan.volume.data = nib.load(NiftiImagePath).get_fdata()
         # RAS to LPS
         self.scan.volume.convert_to_LPS()
         self.scan.volume.scanRot = None
-
-    def display(self):
-        """Displays slices from the ROI of the MEDimage imaging data in XY-Plane.
-
-        Args:
-            None.
-
-        Returns:
-            None.
-        
-        """
-        size_m = self.scan.volume.data.shape
-        i = np.arange(0, size_m[0])
-        j = np.arange(0, size_m[1])
-        k = np.arange(0, size_m[2])
-        ind_mask = np.nonzero(self.scan.get_ROI_from_indexes(0))
-        J, I, K = np.meshgrid(j, i, k, indexing='ij')
-        I = I[ind_mask]
-        J = J[ind_mask]
-        K = K[ind_mask]
-        slices = np.unique(K)
-
-        vol_obj_init = self.scan.volume.data.swapaxes(0, 1)[:, :, slices]
-        roi_obj_init = self.scan.get_ROI_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
-        
-        rows = int(np.round(np.sqrt(len(slices))))
-        lines = int(np.ceil(len(slices) / rows))
-        fig, axs =  plt.subplots(rows, lines)
-        
-        fig.suptitle('XY-Plane')
-        plt.set_cmap(plt.gray())
-
-        for i in range(0,rows):
-            for j in range(0,lines):
-                axs[i,j].axis('off')
-                axs[i,j].imshow(vol_obj_init[:, :, i+j])
-                im = Image.fromarray((roi_obj_init[:, :, i+j]))
-                axs[i,j].contour(im, colors='red', linewidths=0.4, alpha=0.45)
-        
-        lps_ax = fig.add_subplot(1, lines,axs.shape[1])
-        lps_ax.axis([-1.5, 1.5, -1.5, 1.5])
-        lps_ax.set_title("Coordinates system")
-        
-        lps_ax.quiver([-0.5], [0], [1.5], [0], scale_units='xy', angles='xy', scale=1.0, color='green')
-        lps_ax.quiver([-0.5], [0], [0], [-1.5], scale_units='xy', angles='xy', scale=3, color='blue')
-        lps_ax.quiver([-0.5], [0], [1.5], [1.5], scale_units='xy', angles='xy', scale=3, color='red')
-        lps_ax.text(1.0, 0, "L")
-        lps_ax.text(-0.3, -0.5, "P")
-        lps_ax.text(0.3, 0.4, "S")
-
-        lps_ax.set_xticks([])
-        lps_ax.set_yticks([])
-
-        plt.show()
 
 
     class scan:
@@ -278,8 +156,11 @@ class MEDimage(object):
             self.orientation = orientation
             self.patientPosition = patientPosition
 
-        def set_orientation(self, new_orientation):
-            self.orientation = new_orientation
+        def set_patientPosition(self, patientPosition):
+            self.patientPosition = patientPosition
+
+        def set_orientation(self, orientation):
+            self.orientation = orientation
         
         def set_volume(self, volume):
             self.volume = volume
@@ -317,6 +198,81 @@ class MEDimage(object):
             roi_volume = np.zeros_like(self.volume.data).flatten()
             roi_volume[self.ROI.get_indexes(ROIname_key)] = 1
             return roi_volume.reshape(self.volume.data.shape)
+
+        def display(self, _slice: int = None) -> None:
+            """Displays slices from imaging data with the ROI contour in XY-Plane.
+
+            Args:
+                _slice (int, optional): Index of the slice you want to plot.
+
+            Returns:
+                None.
+            
+            """
+            # extract slices containing ROI
+            size_m = self.volume.data.shape
+            i = np.arange(0, size_m[0])
+            j = np.arange(0, size_m[1])
+            k = np.arange(0, size_m[2])
+            ind_mask = np.nonzero(self.get_ROI_from_indexes(0))
+            J, I, K = np.meshgrid(j, i, k, indexing='ij')
+            I = I[ind_mask]
+            J = J[ind_mask]
+            K = K[ind_mask]
+            slices = np.unique(K)
+
+            vol_data = self.volume.data.swapaxes(0, 1)[:, :, slices]
+            roi_data = self.get_ROI_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
+            
+            rows = int(np.round(np.sqrt(len(slices))))
+            columns = int(np.ceil(len(slices) / rows))
+            
+            plt.set_cmap(plt.gray())
+            
+            # plot only one slice
+            if _slice:
+                fig, ax =  plt.subplots(1, 1, figsize=(10, 5))
+                ax.axis('off')
+                ax.set_title(_slice)
+                ax.imshow(vol_data[:, :, _slice])
+                im = Image.fromarray((roi_data[:, :, _slice]))
+                ax.contour(im, colors='red', linewidths=0.4, alpha=0.45)
+                lps_ax = fig.add_subplot(1, columns, 1)
+            
+            # plot multiple slices containing an ROI.
+            else:
+                fig, axs =  plt.subplots(rows, columns+1, figsize=(20, 10))
+                s = 0
+                for i in range(0,rows):
+                    for j in range(0,columns):
+                        axs[i,j].axis('off')
+                        if s < len(slices):
+                            axs[i,j].set_title(str(s))
+                            axs[i,j].imshow(vol_data[:, :, s])
+                            im = Image.fromarray((roi_data[:, :, s]))
+                            axs[i,j].contour(im, colors='red', linewidths=0.4, alpha=0.45)
+                        s += 1
+                    axs[i,columns].axis('off')
+                lps_ax = fig.add_subplot(1, columns+1, axs.shape[1])
+
+            fig.suptitle('XY-Plane')
+            fig.tight_layout()
+            
+            # add the coordinates system
+            lps_ax.axis([-1.5, 1.5, -1.5, 1.5])
+            lps_ax.set_title("Coordinates system")
+            
+            lps_ax.quiver([-0.5], [0], [1.5], [0], scale_units='xy', angles='xy', scale=1.0, color='green')
+            lps_ax.quiver([-0.5], [0], [0], [-1.5], scale_units='xy', angles='xy', scale=3, color='blue')
+            lps_ax.quiver([-0.5], [0], [1.5], [1.5], scale_units='xy', angles='xy', scale=3, color='red')
+            lps_ax.text(1.0, 0, "L")
+            lps_ax.text(-0.3, -0.5, "P")
+            lps_ax.text(0.3, 0.4, "S")
+
+            lps_ax.set_xticks([])
+            lps_ax.set_yticks([])
+
+            plt.show()
 
         class volume:
             """Organizes all volume data and information. 
@@ -368,7 +324,7 @@ class MEDimage(object):
                 # flip y
                 self.data = np.flip(self.data, 1)
                 # to LPS
-                #self.data = self.data.swapaxes(0, 1) #TODO
+                self.data = self.data.swapaxes(0, 1) #TODO
             
             def spatialRef_from_NIFTI(self, NiftiImagePath):
                 """Computes the imref3d spatialRef using a NIFTI file and
@@ -535,7 +491,7 @@ class MEDimage(object):
                 # flip y
                 data = np.flip(data, 1)
                 # to LPS
-                #data = data.swapaxes(0, 1)
+                data = data.swapaxes(0, 1)
 
                 return data
 
