@@ -1,4 +1,5 @@
 [![PyPI - Python Version](https://img.shields.io/badge/python-3.8-blue)](https://www.python.org/downloads/release/python-380/)
+[![License](https://img.shields.io/badge/License-GPL%203.0-brightgreen.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 
 # MEDimage
 
