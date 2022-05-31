@@ -221,19 +221,22 @@ class MEDimageComputeRadiomics(MEDimageProcessing):
             self.Params['radiomics']['image']['texture'][self.nameTextTypes[t]].update(
                 self.results[self.nameTextTypes[t]])
 
-    def saveRadiomicsStructure(self, ScanFielName, savingPath, TypeOfRoi, LabelOfRoiType, patient):
-        self.Params['radiomics']['imParam']['roiType'] = TypeOfRoi
+    def saveRadiomicsStructure(self, scan_file_name, path_save, type_of_roi, label_of_roi_type, patient_num):
+        """
+        Saves extracted radiomics features in a JSON file.
+        """
+        self.Params['radiomics']['imParam']['roiType'] = type_of_roi
         self.Params['radiomics']['imParam']['patientID'] = self.patientID
         self.Params['radiomics']['imParam']['voxDim'] = list([self.scan.volume.spatialRef.PixelExtentInWorldX, 
                                                             self.scan.volume.spatialRef.PixelExtentInWorldY,
                                                             self.scan.volume.spatialRef.PixelExtentInWorldZ])
 
-        indDot = ScanFielName[patient].find('.')
-        ext = ScanFielName[patient].find('.npy')
-        nameSave = ScanFielName[patient][:indDot] + \
-            '('+LabelOfRoiType+')' + ScanFielName[patient][indDot:ext]
+        indDot = scan_file_name[patient_num].find('.')
+        ext = scan_file_name[patient_num].find('.npy')
+        nameSave = scan_file_name[patient_num][:indDot] + \
+            '(' + label_of_roi_type + ')' + scan_file_name[patient_num][indDot:ext]
 
-        os.chdir(savingPath)
+        os.chdir(path_save)
 
         # IMPORTANT: HERE, WE COULD ADD SOME CODE TO APPEND A NEW "radiomics"
         # STRUCTURE TO AN EXISTING ONE WITH THE SAME NAME IN "pathSave"
