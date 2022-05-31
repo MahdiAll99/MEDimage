@@ -221,7 +221,7 @@ class MEDimageComputeRadiomics(MEDimageProcessing):
             self.Params['radiomics']['image']['texture'][self.nameTextTypes[t]].update(
                 self.results[self.nameTextTypes[t]])
 
-    def saveRadiomicsStructure(self, scan_file_name, path_save, type_of_roi, label_of_roi_type, patient_num):
+    def save_radiomics_structure(self, scan_file_name, path_save, type_of_roi, label_of_roi_type, patient_num):
         """
         Saves extracted radiomics features in a JSON file.
         """
