@@ -5,8 +5,19 @@ from typing import Dict
 
 from ..biomarkers.utils import getGlobPeak, getLocPeak
 
+def get_local_peak(imgObj, roiObj, res) -> float:
+    """
+    Computes local intensity peak
+    """
+    return getLocPeak(imgObj, roiObj, res)
 
-def getLocIntFeatures(imgObj, roiObj, res, intensity=None) -> Dict:
+def get_global_peak(imgObj, roiObj, res) -> float:
+    """
+    Computes global intensity peak
+    """
+    return getGlobPeak(imgObj, roiObj, res)
+
+def extract_all(imgObj, roiObj, res, intensity=None) -> Dict:
     """Compute Local Intensity Features.
 
     Args:
