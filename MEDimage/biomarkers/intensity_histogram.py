@@ -7,8 +7,27 @@ from typing import Dict
 import numpy as np
 from scipy.stats import scoreatpercentile, variation
 
+def get_mean(vol):
+    # INITIALIZATION
+    X = vol[~np.isnan(vol[:])]
+    Nv = X.size
 
-def getIntHistFeatures(vol) -> Dict:
+    # Always defined from 1 to the maximum value of
+    # the volume to remove any ambiguity
+    levels = np.arange(1, np.max(X) + 100*np.finfo(float).eps)
+    Ng = levels.size  # Number of gray-levels
+    H = np.zeros(Ng)  # The histogram of X
+
+    for i in range(0, Ng):
+        H[i] = np.sum(X == i+1)
+
+    p = (H/Nv)  # Occurrence probability for each grey level bin i
+    pt = p.transpose()
+
+    # Intensity histogram mean
+    return np.matmul(levels, pt)
+
+def extract_all(vol) -> Dict:
     """Computes Intensity Histogram Features.
 
     Args:
