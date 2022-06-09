@@ -14,7 +14,6 @@ from ..biomarkers.utils import getGLCMCrossDiagProb, getGLCMDiagProb
 from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   get_value, is_list_all_none)
 
-
 def getGLCMfeatures(vol, distCorrection=None, glcm_merge_method="vol_merge", method="new") -> Dict:
     """Computes GLCM features.
 
