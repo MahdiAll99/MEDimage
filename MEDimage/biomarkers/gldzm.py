@@ -9,7 +9,31 @@ import numpy as np
 from ..biomarkers.getGLDZMmatrix import getGLDZMmatrix
 
 
-def getGLDZMfeatures(volInt, maskMorph) -> Dict:
+def get_matrix(volInt, maskMorph):
+    """
+    Computes gray level distance zone matrix
+    """
+    # Correct definition, without any assumption
+    levels = np.arange(1, np.max(volInt[~np.isnan(volInt[:])])+1)
+
+    # GET THE GLDZM MATRIX
+    GLDZM = getGLDZMmatrix(volInt, maskMorph, levels)
+
+    return GLDZM
+    
+def sde(GLDZM):
+    """
+    Computes distance zone matrix small distance emphasis feature
+    """
+    GLDZM = GLDZM / np.sum(GLDZM)  # Normalization of GLDZM
+    sz = np.shape(GLDZM)  # Size of GLDZM
+    cVect = range(1, sz[1]+1)  # Row vectors
+    pd = np.sum(GLDZM, 0)  # Distance Zone Vector
+
+    # Small distance emphasis
+    return (np.matmul(pd, np.transpose(np.power(1.0 / np.array(cVect), 2))))
+
+def extract_all(volInt, maskMorph) -> Dict:
     """Compute GLDZM features.
      
      Args:
