@@ -18,13 +18,15 @@ from MEDimage.MEDimage import MEDimage
 from MEDimage.MEDimageProcessing import MEDimageProcessing
 from MEDimage.processing.getROI import getROI
 
-from .save_MEDimage import save_MEDimage
+from ..utils.save_MEDimage import save_MEDimage
 
 
 @ray.remote
-def process_dicom_scan_files(pathImages: Path, 
+def process_dicom_scan_files(
+                            pathImages: Path, 
                             pathRS: Path = None,
-                            pathSave: Path = None) -> MEDimage:
+                            pathSave: Path = None
+                            ) -> MEDimage:
     """
     Reads DICOM data according to the path info found in the
     input cells, and then organizes it in the MEDimage class.
