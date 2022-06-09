@@ -21,3 +21,9 @@ You should have received a copy of the GNU General Public License
 along with this package.  If not, see <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------
 """
+from .GLCM import *
+from .GLDZM import *
+from .intensity_histogram import *
+from .local_intensity import *
+from .morph import *
+from .stats import *
