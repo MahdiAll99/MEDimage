@@ -4,8 +4,6 @@
 import pickle
 
 from MEDimage.MEDimage import MEDimage
-from MEDimage.MEDimageComputeRadiomics import MEDimageComputeRadiomics
-from MEDimage.MEDimageProcessing import MEDimageProcessing
 
 
 def initMEDimage(nameRead, pathRead, roiType, imParams, log_file):
@@ -28,21 +26,14 @@ def initMEDimage(nameRead, pathRead, roiType, imParams, log_file):
         # MEDimage instance is now in Workspace
         with open(pathRead / nameRead, 'rb') as f: MEDimg = pickle.load(f)
 
-        # MEDimageProcess instance is now in Workspace
-        MEDimageProcess = MEDimageProcessing(MEDimg=MEDimg, log_file=pathRead / log_file)
-
-        # MEDimageComputeRadiomics instance is now in Workspace
-        MEDimageCR = MEDimageComputeRadiomics(MEDimg=MEDimg, log_file=MEDimageProcess.log_file)
+        MEDimg = MEDimage(MEDimg, log_file)
 
         # Initialize processing & computation parameters
-        MEDimageProcess.init_Params(imParamScan=imParams,
+        MEDimg.init_params(imParamScan=imParams,
                                     imParamFilter=imParams['imParamFilter'],
                                     roiType=roiType)
 
-        # Clear MEDimage instance # Clear up RAM
-        MEDimg = None 
-
-        return MEDimageProcess, MEDimageCR
+        return MEDimg
 
     # Set up NIFTI Image path 
     NiftiImage = pathRead / nameRead
@@ -56,18 +47,9 @@ def initMEDimage(nameRead, pathRead, roiType, imParams, log_file):
     # spatialRef Creation : 
     MEDimg.scan.volume.spatialRef_from_NIFTI(NiftiImage)
 
-    # MEDimageProcess instance is now in Workspace
-    MEDimageProcess = MEDimageProcessing(MEDimg=MEDimg, log_file=pathRead / log_file)
-
-    # MEDimageComputeRadiomics instance is now in Workspace
-    MEDimageCR = MEDimageComputeRadiomics(MEDimg=MEDimg, log_file=MEDimageProcess.log_file)
-
     # Initialize processing & computation parameters
-    MEDimageProcess.init_Params(imParamScan=imParams,
+    MEDimg.init_Params(imParamScan=imParams,
                                 imParamFilter=imParams['imParamFilter'],
                                 roiType=roiType)
 
-    # Clear MEDimage instance, clear up RAM
-    MEDimg = None
-
-    return MEDimageProcess, MEDimageCR
+    return MEDimg
