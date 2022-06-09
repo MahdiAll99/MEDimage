@@ -16,7 +16,39 @@ from ..biomarkers.utils import (getAreaDensApprox, getAxisLengths, getCOM,
                                 getMesh)
 
 
-def getMorphFeatures(vol, 
+def vol(vol, maskInt, maskMorph, res):
+    """Computes morphological volume feature
+
+    Args:
+        vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
+        maskInt (ndarray): Intensity mask.
+        maskMorph (ndarray): Morphological mask.
+        res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
+            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+
+    Returns:
+        float: Value of the morphological volume feature
+
+    """
+    vol = vol.copy()
+    # PADDING THE VOLUME WITH A LAYER OF NaNs
+    # (reduce mesh computation errors of associated mask)
+    vol = np.pad(vol, pad_width=1, mode="constant", constant_values=np.NaN)
+    # PADDING THE MASKS WITH A LAYER OF 0's
+    # (reduce mesh computation errors of associated mask)
+    maskInt = maskInt.copy()
+    maskInt = np.pad(maskInt, pad_width=1, mode="constant", constant_values=0.0)
+    maskMorph = maskMorph.copy()
+    maskMorph = np.pad(maskMorph, pad_width=1, mode="constant", constant_values=0.0)
+
+    # GETTING IMPORTANT VARIABLES
+    # XYZ refers to [Xc,Yc,Zc] in ref. [1].
+    _, faces, vertices = getMesh(maskMorph, res)
+
+    return getMeshVolume(faces, vertices)
+    
+
+def extract_all(vol, 
                     maskInt, 
                     maskMorph, 
                     res, 
