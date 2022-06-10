@@ -102,3 +102,4 @@ def extract_all(vol, intensity=None):
         stats['Fstat_rms'] = np.sqrt(np.mean(np.power(X, 2)))  # Root mean square
 
     return stats
+
