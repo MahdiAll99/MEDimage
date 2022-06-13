@@ -25,9 +25,9 @@ def get_geary_c(vol, res) -> float:
 
     # Get the mean
     u = np.mean(vol[~np.isnan(vol[:])])
-    vol_m_mean_s = np.power((vol.copy() - u), 2)  # (Xgl,i - u).^2
+    vol_m_mean_s = np.power((vol.copy() - u), 2)  # (x_gl,i - u).^2
     
-    # Sum of (Xgl,i - u).^2 over all i
+    # Sum of (x_gl,i - u).^2 over all i
     sum_s = np.sum(vol_m_mean_s[~np.isnan(vol_m_mean_s[:])])
 
     # Get a meshgrid first
@@ -57,17 +57,17 @@ def get_geary_c(vol, res) -> float:
         sum_w = sum_w + w_sum
 
         # Inside sum calculation
-        val = vol[I[i-1], J[i-1], K[i-1]].copy()  # Xgl,i
-        # wij.*(Xgl,i - Xgl,j).^2
+        val = vol[I[i-1], J[i-1], K[i-1]].copy()  # x_gl,i
+        # wij.*(x_gl,i - x_gl,j).^2
         temp_vol = temp_dist_mesh*(vol - val)**2
 
         # Removing i voxel to be sure;
         temp_vol[I[i-1], J[i-1], K[i-1]] = np.NaN
 
-        # Sum of wij.*(Xgl,i - Xgl,j).^2 over all j
+        # Sum of wij.*(x_gl,i - x_gl,j).^2 over all j
         sum_val = np.sum(temp_vol[~np.isnan(temp_vol[:])])
 
-        # Running sum of (sum of wij.*(Xgl,i - Xgl,j).^2 over all j) over all i
+        # Running sum of (sum of wij.*(x_gl,i - x_gl,j).^2 over all j) over all i
         temp = temp + sum_val
 
     geary_c = temp * (n_vox-1) / sum_s / (2*sum_w)

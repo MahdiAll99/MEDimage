@@ -6,7 +6,7 @@ from copy import deepcopy
 import numpy as np
 
 
-def outlierReSeg(vol, roi, outliers="") -> np.ndarray:
+def outlier_re_seg(vol, roi, outliers="") -> np.ndarray:
     """Removes voxels with outlier intensities from the given mask
     using the Collewet method.
 

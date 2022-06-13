@@ -10,12 +10,12 @@ import scipy.ndimage as sc
 import skimage.measure as skim
 
 
-def getGLDZMmatrix(ROIOnlyInt, mask, levels) -> np.ndarray:
+def getGLDZMmatrix(roi_only_int, mask, levels) -> np.ndarray:
     """Computes GLDZM matrix.
 
     Args:
-        ROIOnlyInt (ndarray): 3D volume, isotropically resampled, 
-            quantized (e.g. Ng = 32, levels = [1, ..., Ng]), 
+        roi_only_int (ndarray): 3D volume, isotropically resampled, 
+            quantized (e.g. n_g = 32, levels = [1, ..., n_g]), 
             with NaNs outside the region of interest.
         mask (ndarray): Morphological ROI mask.
         levels (ndarray or List): Vector containing the quantized gray-levels 
@@ -27,12 +27,12 @@ def getGLDZMmatrix(ROIOnlyInt, mask, levels) -> np.ndarray:
     Todo:
         *levels: should be removed at some point, no longer needed if we always
             quantize our volume such that `levels = 1,2,3,4,...,max(quantized Volume)`. 
-            So simply calculate `levels = 1:max(ROIOnly(~isnan(ROIOnly(:))))`
+            So simply calculate `levels = 1:max(roi_only(~isnan(roi_only(:))))`
             directly in this function
     
     """
     
-    ROIOnlyInt = ROIOnlyInt.copy()
+    roi_only_int = roi_only_int.copy()
     levels = levels.copy().astype("int")
     morph_voxel_grid = mask.copy().astype(np.uint8)
     
@@ -54,23 +54,23 @@ def getGLDZMmatrix(ROIOnlyInt, mask, levels) -> np.ndarray:
     
     # INITIALIZATION
     # Since levels is always defined as 1,2,3,4,...,max(quantized Volume)
-    Ng = np.size(levels)
-    levelTemp = np.max(levels) + 1
-    ROIOnlyInt[np.isnan(ROIOnlyInt)] = levelTemp
+    n_g = np.size(levels)
+    level_temp = np.max(levels) + 1
+    roi_only_int[np.isnan(roi_only_int)] = level_temp
     # Since the ROI morph always encompasses ROI int,
     # using the mask as defined from ROI morph does not matter since 
     # we want to find the maximal possible distance.
-    distInit = np.max(dist_map[morph_voxel_grid == 1]) 
-    GLDZM = np.zeros((Ng,distInit))
+    dist_init = np.max(dist_map[morph_voxel_grid == 1]) 
+    GLDZM = np.zeros((n_g,dist_init))
         
     # COMPUTATION OF GLDZM
-    temp = ROIOnlyInt.copy().astype('int')
-    for i in range(1,Ng+1):
-        temp[ROIOnlyInt!=levels[i-1]] = 0
-        temp[ROIOnlyInt==levels[i-1]] = 1
-        connObjects, nZone = skim.label(temp,return_num = True)
-        for j in range(1,nZone+1): 
-            col = np.min(dist_map[connObjects==j]).astype("int")
+    temp = roi_only_int.copy().astype('int')
+    for i in range(1,n_g+1):
+        temp[roi_only_int!=levels[i-1]] = 0
+        temp[roi_only_int==levels[i-1]] = 1
+        conn_objects, n_zone = skim.label(temp,return_num = True)
+        for j in range(1,n_zone+1): 
+            col = np.min(dist_map[conn_objects==j]).astype("int")
             GLDZM[i-1,col-1] = GLDZM[i-1,col-1] + 1
               
     # REMOVE UNECESSARY COLUMNS

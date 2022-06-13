@@ -7,7 +7,7 @@ from copy import deepcopy
 import numpy as np
 
 
-def roiExtract(vol, roi) -> np.ndarray:
+def roi_extract(vol, roi) -> np.ndarray:
     """Replaces volume intensities outside the ROI with NaN.
 
     Args:
@@ -19,7 +19,7 @@ def roiExtract(vol, roi) -> np.ndarray:
             and NaN for intensities outside the ROI.
     """
 
-    vol_RE = deepcopy(vol)
-    vol_RE[roi == 0] = np.nan
+    vol_re = deepcopy(vol)
+    vol_re[roi == 0] = np.nan
 
-    return vol_RE
+    return vol_re

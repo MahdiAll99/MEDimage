@@ -14,7 +14,7 @@ def getNGLDMfeatures(vol, method="new"):
     """Compute NGLDMfeatures.
     -------------------------------------------------------------------------
      - vol: 3D volume, isotropically resampled, quantized,
-       (e.g. Ng = 32, levels = [1, ..., Ng]) with NaNs
+       (e.g. n_g = 32, levels = [1, ..., n_g]) with NaNs
        outside the region of interest
     -------------------------------------------------------------------------
     AUTHOR(S): MEDomicsLab consortium
@@ -514,14 +514,14 @@ def get_ngldm_features_deprecated(vol):
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
     NGLDM = getNGLDMmatrix(vol, levels)
-    Ns = np.sum(NGLDM)
+    n_s = np.sum(NGLDM)
     # Normalization of NGLDM
-    NGLDM = NGLDM/Ns
+    NGLDM = NGLDM/n_s
     sz = np.shape(NGLDM)  # Size of NGLDM
-    cVect = range(1, sz[1]+1)  # Row vectors
-    rVect = range(1, sz[0]+1)  # Column vectors
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    r_vect = range(1, sz[0]+1)  # Column vectors
     # Column and row indicators for each entry of the NGLDM
-    cMat, rMat = np.meshgrid(cVect, rVect)
+    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
     pg = np.transpose(np.sum(NGLDM, 1))  # Gray-Level Vector
     pd = np.sum(NGLDM, 0)  # Dependence Count Vector
 
@@ -529,42 +529,42 @@ def get_ngldm_features_deprecated(vol):
 
     # Low dependence emphasis
     ngldm['Fngl_lde'] = (np.matmul(pd, np.transpose(np.power(
-        1.0/np.array(cVect), 2))))
+        1.0/np.array(c_vect), 2))))
 
     # High dependence emphasis
     ngldm['Fngl_hde'] = (np.matmul(pd, np.transpose(np.power(
-        np.array(cVect), 2))))
+        np.array(c_vect), 2))))
 
     # Low grey level count emphasis
     ngldm['Fngl_lgce'] = np.matmul(pg, np.transpose(np.power(
-        1.0/np.array(rVect), 2)))
+        1.0/np.array(r_vect), 2)))
     # High grey level count emphasis
     ngldm['Fngl_hgce'] = np.matmul(pg, np.transpose(np.power(
-        np.array(rVect), 2)))
+        np.array(r_vect), 2)))
     # Low dependence low grey level emphasis
     ngldm['Fngl_ldlge'] = np.sum(np.sum(NGLDM*(np.power(
-        1.0/rMat, 2))*(np.power(1.0/cMat, 2))))
+        1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Low dependence high grey level emphasis
     ngldm['Fngl_ldhge'] = np.sum(np.sum(NGLDM*(np.power(
-        rMat, 2))*(np.power(1.0/cMat, 2))))
+        r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # High dependence low grey levels emphasis
     ngldm['Fngl_hdlge'] = np.sum(np.sum(NGLDM*(np.power(
-        1.0/rMat, 2))*(np.power(cMat, 2))))
+        1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
     # High dependence high grey level emphasis
     ngldm['Fngl_hdhge'] = np.sum(np.sum(NGLDM*(np.power(
-        rMat, 2))*(np.power(cMat, 2))))
+        r_mat, 2))*(np.power(c_mat, 2))))
 
     # Gray level non-uniformity
-    ngldm['Fngl_glnu'] = np.sum(np.power(pg, 2)) * Ns
+    ngldm['Fngl_glnu'] = np.sum(np.power(pg, 2)) * n_s
 
     # Gray level non-uniformity normalised
     ngldm['Fngl_glnu_norm'] = np.sum(np.power(pg, 2))
 
     # Dependence count non-uniformity
-    ngldm['Fngl_dcnu'] = np.sum(np.power(pd, 2)) * Ns
+    ngldm['Fngl_dcnu'] = np.sum(np.power(pd, 2)) * n_s
 
     # Dependence count non-uniformity normalised
     ngldm['Fngl_dcnu_norm'] = np.sum(np.power(pd, 2))
@@ -573,20 +573,20 @@ def get_ngldm_features_deprecated(vol):
     # Omitted, always evaluates to 1.
 
     # Grey level variance
-    temp = rMat * NGLDM
+    temp = r_mat * NGLDM
     u = np.sum(temp)
-    temp = (np.power(rMat - u, 2)) * NGLDM
+    temp = (np.power(r_mat - u, 2)) * NGLDM
     ngldm['Fngl_gl_var'] = np.sum(temp)
 
     # Dependence count variance
-    temp = cMat * NGLDM
+    temp = c_mat * NGLDM
     u = np.sum(temp)
-    temp = (np.power(cMat - u, 2)) * NGLDM
+    temp = (np.power(c_mat - u, 2)) * NGLDM
     ngldm['Fngl_dc_var'] = np.sum(temp)
 
     # Dependence count entropy
-    valPos = NGLDM[np.nonzero(NGLDM)]
-    temp = valPos * np.log2(valPos)
+    val_pos = NGLDM[np.nonzero(NGLDM)]
+    temp = val_pos * np.log2(val_pos)
     ngldm['Fngl_dc_entr'] = -np.sum(temp)
 
     # Dependence count energy

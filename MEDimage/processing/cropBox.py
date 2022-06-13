@@ -41,7 +41,7 @@ def spatial_to_voxel(affine, spatial_pos: list) -> np.array:
     translation = affine[:3, 3]
     return m.dot(spatial_pos) + translation
 
-def cropNiftiBox(image: Nifti1Image,
+def crop_nifti_box(image: Nifti1Image,
         roi: Nifti1Image,
         crop_shape: List[int],
         center: Union[Sequence[int], None] = None
@@ -105,7 +105,7 @@ def cropNiftiBox(image: Nifti1Image,
     
     return image, roi
 
-def cropBox(image_data: np.ndarray,
+def crop_box(image_data: np.ndarray,
         roi_data: np.ndarray,
         crop_shape: List[int],
         center: Union[Sequence[int], None] = None

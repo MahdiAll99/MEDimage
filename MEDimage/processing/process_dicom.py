@@ -15,18 +15,18 @@ warnings.simplefilter("ignore")
 ray.init(local_mode=True, include_dashboard=True)
 
 
-def processDICOM(pathRead: Path, 
-                pathSave: Path = None, 
-                nBatch: int = 2) -> None:
+def process_dicom(path_read: Path, 
+                path_save: Path = None, 
+                n_batch: int = 2) -> None:
     """
     This function reads the DICOM content of all the sub-folder tree of a
-    starting directory defined by 'pathRead'. It then organizes the data
+    starting directory defined by 'path_read'. It then organizes the data
     (files throughout the starting directory are associated by
     'SeriesInstanceUID') in the MEDimage class, and it finally computes the region of 
     interest (ROI) defined by an associated RTstruct, and save as well all the  REG, 
     RTdose and RTplan structures(if present in the sub-folder tree of the starting
     directory).
-    All MEDimage classes hereby created are saved in 'pathSave' with a name
+    All MEDimage classes hereby created are saved in 'path_save' with a name
     varying with the variable 'nameSaveOption'.
 
     DIFFERENTIATION/ASSOCIATION OF DICOM FILES: 1)imaging, 2)RTstruct, 3)REG,
@@ -48,18 +48,18 @@ def processDICOM(pathRead: Path,
     that same field.
 
     Args:
-        pathRead (Path): String specifying the full path to the starting directory
+        path_read (Path): String specifying the full path to the starting directory
             where the DICOM path to read are located.
-        pathSave (Path, optional): Full path to the directory where to
+        path_save (Path, optional): Full path to the directory where to
             save all the MEDimage classes (if specified) created by the current function.
-        nBatch (int, optional): Numerical value specifying the number of batch to use in the
+        n_batch (int, optional): Numerical value specifying the number of batch to use in the
             parallel computations (use 0 for serial).
         nameSaveOption: (int, optional). If this argument is not present (default)
             all MEDimage classes will be saved with a filename
             defined by the 'Modality' field present in the
             DICOM header of their corresponding imaging volume. If
             multiple volumes of the same modality are present for
-            the same 'PatientID', the different volumes will be
+            the same 'patient_id', the different volumes will be
             numerated (e.g. CT1, CT2, CT3, etc.). If this argument
             is present and set to 'folder', all MEDimage classes
             will be saved with a filename defined by the name of
@@ -73,10 +73,10 @@ def processDICOM(pathRead: Path,
             'modality',  all MEDimage classes will be saved with a
             filename defined by the 'Modality' field in the DICOM
             header, but without enumerating multiple volumes of
-            the same modality and same 'PatientID' (this may lead
+            the same modality and same 'patient_id' (this may lead
             to overwriting, but is faster if the user is sure
             that only one scan of each modality for each patient
-            is present in 'pathRead'.
+            is present in 'path_read'.
             --> Options: 
                 - No argument
                 - 'folder'
@@ -87,10 +87,10 @@ def processDICOM(pathRead: Path,
         None.
     """
 
-    def findUIDcellIndex(uid, cell): 
+    def find_uid_cell_index(uid, cell): 
         """
         LAMBDA FUNCTION
-        substitution of the Matlab function findUIDcellIndex
+        substitution of the Matlab function find_uid_cell_index
         If not is present in cellString, create a new position
         in the cell for the new UID"""
         return [len(cell)] if uid not in cell else[i for i, e in enumerate(cell) if e == uid]
@@ -110,76 +110,76 @@ def processDICOM(pathRead: Path,
 
     # INITIALIZATION
     # Full path, FrameOfReferenceUID and References SeriesInstanceUID of the RTstruct files.
-    stackPathRS = []
-    stackSeriesRS = []
-    stackFrameRS = []
+    stack_path_rs = []
+    stack_series_rs = []
+    stack_frame_rs = []
 
     # Cell of 'SeriesInstanceUID' of different imaging volumes (string).
-    cellSeriesID = []
+    cell_series_id = []
 
     # Cell of 'FrameOfReferenceUID' of different imaging volumes (string).
-    # Cell index is associated to the index of cellSeriesID.
-    cellFrameID = []
+    # Cell index is associated to the index of cell_series_id.
+    cell_frame_id = []
 
     # Cell of paths to the different imaging volumes.
-    # Cell index is associated to the index of cellSeriesID.
+    # Cell index is associated to the index of cell_series_id.
     # Each cell in turn contains all the different path to the dicom
     # images of a given volume.
-    cellPathImages = []
+    cell_path_images = []
 
     # Cell of paths to the different RTstruct file (struct).
-    # Cell index is associated to the index of cellSeriesID.
-    cellPathRS = []
+    # Cell index is associated to the index of cell_series_id.
+    cell_path_rs = []
 
     # Cell of filenames for all created sData structures (string).
-    # Cell index is associated to the index of cellSeriesID.
-    nameSave = []
+    # Cell index is associated to the index of cell_series_id.
+    name_save = []
 
     # SCANNING ALL FOLDERS IN INITIAL DIRECTORY
     print('\n--> Scanning all folders in initial directory ... ', end='')
-    p = Path(pathRead)
+    p = Path(path_read)
     e_rglob = '*.[!xlsx,!xls,!py,!.DS_Store,!csv,!.,!txt,!..,!TXT,!npy,!m,!CT.npy]*'
 
-    if pathRead.is_dir():
-        stackFolderTemp = list(p.rglob(e_rglob))
-        stackFolder = [x for x in stackFolderTemp if not x.is_dir()]
-    elif str(pathRead).find('json') != -1:
-        with open(pathRead) as f:
+    if path_read.is_dir():
+        stack_folder_temp = list(p.rglob(e_rglob))
+        stack_folder = [x for x in stack_folder_temp if not x.is_dir()]
+    elif str(path_read).find('json') != -1:
+        with open(path_read) as f:
             data = json.load(f)
             for value in data.values():
-                stackFolderTemp = value
-        directory_name = str(stackFolderTemp).replace("'", '').replace('[', '').replace(']', '')
+                stack_folder_temp = value
+        directory_name = str(stack_folder_temp).replace("'", '').replace('[', '').replace(']', '')
 
-        stackFolder = get_list_of_files(directory_name)
+        stack_folder = get_list_of_files(directory_name)
 
-    for file in tqdm(stackFolder):
+    for file in tqdm(stack_folder):
         if pydicom.misc.is_dicom(file):
             try:
                 info = pydicom.dcmread(str(file))
                 if info.Modality in ['MR', 'PT', 'CT']:
-                    indSeriesID = findUIDcellIndex(
-                        info.SeriesInstanceUID, cellSeriesID)[0]
-                    if indSeriesID == len(cellSeriesID):  # New volume
-                        cellSeriesID = cellSeriesID + [info.SeriesInstanceUID]
-                        cellFrameID = cellFrameID + [info.FrameOfReferenceUID]
-                        cellPathImages = cellPathImages + [[]]
-                        cellPathRS = cellPathRS + [[]]
-                        nameSave = nameSave + [[]]
-                        nameSave[indSeriesID] = info.Modality
-                    cellPathImages[indSeriesID] = cellPathImages[indSeriesID] + [file]
+                    ind_series_id = find_uid_cell_index(
+                        info.SeriesInstanceUID, cell_series_id)[0]
+                    if ind_series_id == len(cell_series_id):  # New volume
+                        cell_series_id = cell_series_id + [info.SeriesInstanceUID]
+                        cell_frame_id = cell_frame_id + [info.FrameOfReferenceUID]
+                        cell_path_images = cell_path_images + [[]]
+                        cell_path_rs = cell_path_rs + [[]]
+                        name_save = name_save + [[]]
+                        name_save[ind_series_id] = info.Modality
+                    cell_path_images[ind_series_id] = cell_path_images[ind_series_id] + [file]
                 elif info.Modality == 'RTSTRUCT':
-                    stackPathRS = stackPathRS + [file]
+                    stack_path_rs = stack_path_rs + [file]
                     try:
-                        seriesUID = info.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[
+                        series_uid = info.ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[
                             0].RTReferencedSeriesSequence[0].SeriesInstanceUID
                     except:
-                        seriesUID = 'NotFound'
-                    stackSeriesRS = stackSeriesRS + [seriesUID]
+                        series_uid = 'NotFound'
+                    stack_series_rs = stack_series_rs + [series_uid]
                     try:
-                        frameUID = info.ReferencedFrameOfReferenceSequence[0].FrameOfReferenceUID
+                        frame_uid = info.ReferencedFrameOfReferenceSequence[0].FrameOfReferenceUID
                     except:
-                        frameUID = info.FrameOfReferenceUID
-                    stackFrameRS = stackFrameRS + [frameUID]
+                        frame_uid = info.FrameOfReferenceUID
+                    stack_frame_rs = stack_frame_rs + [frame_uid]
             except Exception:
                 print(f'Error while reading: {file}\n')
                 continue
@@ -187,43 +187,43 @@ def processDICOM(pathRead: Path,
 
     print('--> Associating all RT objects to imaging volumes')
     # ASSOCIATING ALL RTSTRUCT TO IMAGING VOLUMES
-    nRS = len(stackPathRS)
-    if nRS:
-        for i in trange(0, nRS):
+    n_rs = len(stack_path_rs)
+    if n_rs:
+        for i in trange(0, n_rs):
             try:
-                indSeriesID = findUIDcellIndex(stackSeriesRS[i], cellSeriesID)
-                for n in range(len(indSeriesID)):
-                    cellPathRS[indSeriesID[n]] = (cellPathRS[indSeriesID[n]] + [stackPathRS[i]])
+                ind_series_id = find_uid_cell_index(stack_series_rs[i], cell_series_id)
+                for n in range(len(ind_series_id)):
+                    cell_path_rs[ind_series_id[n]] = (cell_path_rs[ind_series_id[n]] + [stack_path_rs[i]])
             except:
-                indSeriesID = findUIDcellIndex(stackFrameRS[i], cellFrameID)
-                for n in range(len(indSeriesID)):
-                    cellPathRS[indSeriesID[n]] = (cellPathRS[indSeriesID[n]] + [stackPathRS[i]])
+                ind_series_id = find_uid_cell_index(stack_frame_rs[i], cell_frame_id)
+                for n in range(len(ind_series_id)):
+                    cell_path_rs[ind_series_id[n]] = (cell_path_rs[ind_series_id[n]] + [stack_path_rs[i]])
 
     print('DONE')
 
     # READING ALL IMAGES TO CREATE ALL MEDimage classes
     print('--> Reading all DICOM objects to create MEDimage classes')
-    nScans = len(cellPathImages)
+    n_scans = len(cell_path_images)
 
-    if nBatch is None:
-        nBatch = 1
-    elif nScans < nBatch:
-        nBatch = nScans
+    if n_batch is None:
+        n_batch = 1
+    elif n_scans < n_batch:
+        n_batch = n_scans
 
     # Distribute the first tasks to all workers
-    ids = [pdsf.remote(cellPathImages[i], cellPathRS[i], pathSave)
-           for i in range(nBatch)]
+    ids = [pdsf.remote(cell_path_images[i], cell_path_rs[i], path_save)
+           for i in range(n_batch)]
 
-    nb_job_left = nScans - nBatch
+    nb_job_left = n_scans - n_batch
 
-    for _ in trange(nScans):
+    for _ in trange(n_scans):
         _, not_ready = ray.wait(ids, num_returns=1)
         ids = not_ready
 
         # Distribute the remaining tasks
         if nb_job_left > 0:
-            idx = nScans - nb_job_left
-            ids.extend([pdsf.remote(cellPathImages[idx], cellPathRS[idx], pathSave)])
+            idx = n_scans - nb_job_left
+            ids.extend([pdsf.remote(cell_path_images[idx], cell_path_rs[idx], path_save)])
             nb_job_left -= 1
 
     print('DONE')

@@ -5,7 +5,7 @@
 import numpy as np
 
 
-def computeBoundingBox(mask) -> np.ndarray:
+def compute_bounding_box(mask) -> np.ndarray:
     """Computes the indexes of the ROI (Region of interest) enclosing box 
     in all dimensions.
 
@@ -18,13 +18,13 @@ def computeBoundingBox(mask) -> np.ndarray:
     """
 
     indices = np.where(np.reshape(mask, np.size(mask), order='F') == 1)
-    iV, jV, kV = np.unravel_index(indices, np.shape(mask), order='F')
-    boxBound = np.zeros((3, 2))
-    boxBound[0, 0] = np.min(iV)
-    boxBound[0, 1] = np.max(iV)
-    boxBound[1, 0] = np.min(jV)
-    boxBound[1, 1] = np.max(jV)
-    boxBound[2, 0] = np.min(kV)
-    boxBound[2, 1] = np.max(kV)
+    iv, jv, kv = np.unravel_index(indices, np.shape(mask), order='F')
+    box_bound = np.zeros((3, 2))
+    box_bound[0, 0] = np.min(iv)
+    box_bound[0, 1] = np.max(iv)
+    box_bound[1, 0] = np.min(jv)
+    box_bound[1, 1] = np.max(jv)
+    box_bound[2, 0] = np.min(kv)
+    box_bound[2, 1] = np.max(kv)
 
-    return boxBound.astype(int)
+    return box_bound.astype(int)

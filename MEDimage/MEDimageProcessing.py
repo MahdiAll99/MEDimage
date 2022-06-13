@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 
 
 class MEDimageProcessing(MEDimage):
-    """Organizes all processing parameters (patientID, imaging data, scan type...). 
+    """Organizes all processing parameters (patient_id, imaging data, scan type...). 
 
     Args:
         MEDimg (MEDimage, optional): A MEDimage instance.
@@ -51,7 +51,7 @@ class MEDimageProcessing(MEDimage):
     def init_Params(self, imParamScan, imParamFilter, **kwargs):
 
         try:
-            boxString = 'box10'
+            box_string = 'box10'
             # 10 voxels in all three dimensions are added to the smallest
             # bounding box. This setting is used to speed up interpolation
             # processes (mostly) prior to the computation of radiomics
@@ -74,7 +74,7 @@ class MEDimageProcessing(MEDimage):
             algo = imParamScan['image']['discretisation']['texture']['type']
             grayLevels = imParamScan['image']['discretisation']['texture']['val']
             if self.type == 'PTscan':
-                _computeSUVmap = imParamScan['image']['computeSUVmap']
+                _computeSUVmap = imParamScan['image']['compute_suv_map']
             else :
                 _computeSUVmap = False
             im_type = imParamScan['image']['type'] # TODO: Discover the usage of this variable!
@@ -93,8 +93,8 @@ class MEDimageProcessing(MEDimage):
                 computeDiagFeatures = False
 
             if computeDiagFeatures:  # If computeDiagFeatures is true.
-                boxString = 'full'  # This is required for proper comparison.
-                self.Params['boxString'] = boxString
+                box_string = 'full'  # This is required for proper comparison.
+                self.Params['box_string'] = box_string
             
             self.Params['radiomics'] = radiomics
             self.Params['filter'] = imParamFilter
@@ -115,7 +115,7 @@ class MEDimageProcessing(MEDimage):
             self.Params['intensity'] = intensity
             self.Params['computeDiagFeatures'] = computeDiagFeatures
             self.Params['distCorrection'] = distCorrection
-            self.Params['boxString'] = boxString
+            self.Params['box_string'] = box_string
             self.Params['scaleName'] = ''
             self.Params['IHname'] = ''
             self.Params['IVHname'] = ''
@@ -126,9 +126,9 @@ class MEDimageProcessing(MEDimage):
                 except:
                     pass
 
-            if self.Params['boxString'] is None:
-                # boxString argument is optional. If not present, we use the full box.
-                self.Params['boxString'] = 'full'
+            if self.Params['box_string'] is None:
+                # box_string argument is optional. If not present, we use the full box.
+                self.Params['box_string'] = 'full'
 
             # *******************************
             # ** SETTING UP userSetMinVal  **
@@ -153,7 +153,7 @@ class MEDimageProcessing(MEDimage):
 
             if self.type == 'PTscan' and _computeSUVmap:
                 try:
-                    self.scan.volume.data = self.computeSUVmap(self.scan.volume.data,self.dicomH[0])
+                    self.scan.volume.data = self.compute_suv_map(self.scan.volume.data,self.dicom_h[0])
                 
                 except Exception as e :
                     message = "\n ERROR COMPUTING SUV MAP - SOME FEATURES " \
@@ -169,20 +169,20 @@ class MEDimageProcessing(MEDimage):
             _logger.error(message)
             self.Continue = True
 
-    def applyFilter(self, filterType, volObj):
+    def applyFilter(self, filterType, vol_obj):
         """Applies filter (depending on the filter name) on the given volume object
         and returns new filtred image.
         
         Args:
             filterType (str): Name of the filter to use (Mean, Laws, Wavelet...).
-            volObj (imref3d): Volume object containing the data that will be filterd.
+            vol_obj (imref3d): Volume object containing the data that will be filterd.
 
         Returns:
-            ndarray: volObj: 3D array of filtered imaging data.
+            ndarray: vol_obj: 3D array of filtered imaging data.
         """
         
         VOLEX_LENGTH = self.Params['scaleNonText'][0]
-        input = np.expand_dims(volObj.data.astype(np.float64), axis=0)   # Convert to shape : (B, W, H, D)
+        input = np.expand_dims(vol_obj.data.astype(np.float64), axis=0)   # Convert to shape : (B, W, H, D)
         params = self.Params['filter']
 
         if filterType.lower() == "mean":
@@ -246,6 +246,6 @@ class MEDimageProcessing(MEDimage):
             raise ValueError(
                     r'Filter name should either be: "mean", "log", "laws", "gabor" or "wavelet".')
 
-        volObj.data = np.squeeze(result)
+        vol_obj.data = np.squeeze(result)
 
-        return volObj
+        return vol_obj

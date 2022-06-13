@@ -6,19 +6,19 @@ from typing import Dict
 
 import numpy as np
 
-from .computeBoundingBox import computeBoundingBox
+from .compute_bounding_box import compute_bounding_box
 
 
-def getDiagFeatures(volObj, roiObj_Int, roiObj_Morph, im_type) -> Dict:
+def get_diag_features(vol_obj, roi_obj_int, roi_obj_morph, im_type) -> Dict:
     """Computes diagnostic features 
     
     The diagnostic features help identify issues with 
     the implementation of the image processing sequence.
 
     Args:
-        volObj (ImageVolumeObj): Imaging data.
-        roiObj_Int (ImageVolumeObj): Intensity mask data.
-        roiObj_Morph (ImageVolumeObj): Morphological mask data.
+        vol_obj (image_volume_obj): Imaging data.
+        roi_obj_int (image_volume_obj): Intensity mask data.
+        roi_obj_morph (image_volume_obj): Morphological mask data.
         im_type (str): Image processing step.
             
             - 'reSeg': Computes Diagnostic features right after the
@@ -38,93 +38,93 @@ def getDiagFeatures(volObj, roiObj_Int, roiObj_Morph, im_type) -> Dict:
     if im_type != 'reSeg':
         # Image dimension x
         diag.update({'image_' + im_type + '_dimX':
-                     volObj.spatialRef.ImageSize[0]})
+                     vol_obj.spatial_ref.ImageSize[0]})
 
         # Image dimension y
         diag.update({'image_' + im_type + '_dimY':
-                     volObj.spatialRef.ImageSize[1]})
+                     vol_obj.spatial_ref.ImageSize[1]})
 
         # Image dimension z
         diag.update({'image_' + im_type + '_dimz':
-                     volObj.spatialRef.ImageSize[2]})
+                     vol_obj.spatial_ref.ImageSize[2]})
 
         # Voxel dimension x
         diag.update({'image_' + im_type + '_voxDimX':
-                     volObj.spatialRef.PixelExtentInWorldX})
+                     vol_obj.spatial_ref.PixelExtentInWorldX})
 
         # Voxel dimension y
         diag.update({'image_' + im_type + '_voxDimY':
-                     volObj.spatialRef.PixelExtentInWorldY})
+                     vol_obj.spatial_ref.PixelExtentInWorldY})
 
         # Voxel dimension z
         diag.update({'image_' + im_type + '_voxDimZ':
-                     volObj.spatialRef.PixelExtentInWorldZ})
+                     vol_obj.spatial_ref.PixelExtentInWorldZ})
 
         # Mean intensity
-        diag.update({'image_' + im_type + '_meanInt': np.mean(volObj.data)})
+        diag.update({'image_' + im_type + '_meanInt': np.mean(vol_obj.data)})
 
         # Minimum intensity
-        diag.update({'image_' + im_type + '_minInt': np.min(volObj.data)})
+        diag.update({'image_' + im_type + '_minInt': np.min(vol_obj.data)})
 
         # Maximum intensity
-        diag.update({'image_' + im_type + '_maxInt': np.max(volObj.data)})
+        diag.update({'image_' + im_type + '_maxInt': np.max(vol_obj.data)})
 
     # FOR THE ROI
-    boxBound_Int = computeBoundingBox(roiObj_Int.data)
-    boxBound_Morph = computeBoundingBox(roiObj_Morph.data)
+    box_bound_int = compute_bounding_box(roi_obj_int.data)
+    box_bound_morph = compute_bounding_box(roi_obj_morph.data)
 
-    Xgl_Int = volObj.data[roiObj_Int.data == 1]
-    Xgl_Morph = volObj.data[roiObj_Morph.data == 1]
+    x_gl_int = vol_obj.data[roi_obj_int.data == 1]
+    x_gl_morph = vol_obj.data[roi_obj_morph.data == 1]
 
     # Map dimension x
     diag.update({'roi_' + im_type + '_Int_dimX':
-                 roiObj_Int.spatialRef.ImageSize[0]})
+                 roi_obj_int.spatial_ref.ImageSize[0]})
 
     # Map dimension y
     diag.update({'roi_' + im_type + '_Int_dimY':
-                 roiObj_Int.spatialRef.ImageSize[1]})
+                 roi_obj_int.spatial_ref.ImageSize[1]})
 
     # Map dimension z
     diag.update({'roi_' + im_type + '_Int_dimZ':
-                 roiObj_Int.spatialRef.ImageSize[2]})
+                 roi_obj_int.spatial_ref.ImageSize[2]})
 
     # Bounding box dimension x
     diag.update({'roi_' + im_type + '_Int_boxBoundDimX':
-                 boxBound_Int[0, 1] - boxBound_Int[0, 0] + 1})
+                 box_bound_int[0, 1] - box_bound_int[0, 0] + 1})
 
     # Bounding box dimension y
     diag.update({'roi_' + im_type + '_Int_boxBoundDimY':
-                 boxBound_Int[1, 1] - boxBound_Int[1, 0] + 1})
+                 box_bound_int[1, 1] - box_bound_int[1, 0] + 1})
 
     # Bounding box dimension z
     diag.update({'roi_' + im_type + '_Int_boxBoundDimZ':
-                 boxBound_Int[2, 1] - boxBound_Int[2, 0] + 1})
+                 box_bound_int[2, 1] - box_bound_int[2, 0] + 1})
 
     # Bounding box dimension x
     diag.update({'roi_' + im_type + '_Morph_boxBoundDimX':
-                 boxBound_Morph[0, 1] - boxBound_Morph[0, 0] + 1})
+                 box_bound_morph[0, 1] - box_bound_morph[0, 0] + 1})
 
     # Bounding box dimension y
     diag.update({'roi_' + im_type + '_Morph_boxBoundDimY':
-                 boxBound_Morph[1, 1] - boxBound_Morph[1, 0] + 1})
+                 box_bound_morph[1, 1] - box_bound_morph[1, 0] + 1})
 
     # Bounding box dimension z
     diag.update({'roi_' + im_type + '_Morph_boxBoundDimZ':
-                 boxBound_Morph[2, 1] - boxBound_Morph[2, 0] + 1})
+                 box_bound_morph[2, 1] - box_bound_morph[2, 0] + 1})
 
     # Voxel number
-    diag.update({'roi_' + im_type + '_Int_voxNumb': np.size(Xgl_Int)})
+    diag.update({'roi_' + im_type + '_Int_voxNumb': np.size(x_gl_int)})
 
     # Voxel number
-    diag.update({'roi_' + im_type + '_Morph_voxNumb': np.size(Xgl_Morph)})
+    diag.update({'roi_' + im_type + '_Morph_voxNumb': np.size(x_gl_morph)})
 
     # Mean intensity
-    diag.update({'roi_' + im_type + '_meanInt': np.mean(Xgl_Int)})
+    diag.update({'roi_' + im_type + '_meanInt': np.mean(x_gl_int)})
 
     # Minimum intensity
-    diag.update({'roi_' + im_type + '_minInt': np.min(Xgl_Int)})
+    diag.update({'roi_' + im_type + '_minInt': np.min(x_gl_int)})
 
     # Maximum intensity
-    diag.update({'roi_' + im_type + '_maxInt': np.max(Xgl_Int)})
+    diag.update({'roi_' + im_type + '_maxInt': np.max(x_gl_int)})
 
     return diag

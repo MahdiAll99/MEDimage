@@ -6,15 +6,15 @@ from deprecated import deprecated
 
 
 @deprecated(reason="Use scipy.distance.pdist() instaed")
-def getMax3Ddiam(faces, vertices) -> float:
+def get_max_3d_diam(faces, vertices) -> float:
     """Compute Maximum 3D diameter.
     
     Args:
-        faces (ndarray): [nPoints X 3] matrix of three column vectors, defining the
+        faces (ndarray): [n_points X 3] matrix of three column vectors, defining the
             [X,Y,Z] positions of the faces of the isosurface or convex hull
             of the mask (output from "isosurface.m" or "convhull.m" functions of MATLAB).
             --> These are more precisely indexes to "vertices"
-        vertices (ndarray): [nPoints X 3] matrix of three column vectors, defining the
+        vertices (ndarray): [n_points X 3] matrix of three column vectors, defining the
             [X,Y,Z] positions of the vertices of the isosurface of the
             mask (in mm)(output from "isosurface.m" function of MATLAB).
     
@@ -27,10 +27,10 @@ def getMax3Ddiam(faces, vertices) -> float:
     maxi = 0
     faces = faces.copy()
     vertices = vertices.copy()
-    nPoints = np.shape(faces)[0]
+    n_points = np.shape(faces)[0]
 
-    for i in range(1, nPoints+1):
-        for j in range(i+1, nPoints+1):
+    for i in range(1, n_points+1):
+        for j in range(i+1, n_points+1):
             dist = (vertices[faces[i-1, 0], 0] - vertices[faces[j-1, 0], 0])**2 + (
                     vertices[faces[i-1, 1], 1] - vertices[faces[j-1, 1], 1])**2 + (
                     vertices[faces[i-1, 2], 2] - vertices[faces[j-1, 2], 2])**2
@@ -38,6 +38,6 @@ def getMax3Ddiam(faces, vertices) -> float:
             if dist > maxi:
                 maxi = dist
 
-    sizeROI = np.sqrt(maxi)
+    size_roi = np.sqrt(maxi)
 
-    return sizeROI
+    return size_roi

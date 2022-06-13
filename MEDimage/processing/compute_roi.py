@@ -6,11 +6,11 @@ import numpy as np
 from ..utils.imref import imref3d
 from ..utils.interp3 import interp3
 
-from ..processing.findSpacing import findSpacing
-from ..processing.getPolygonMask import getPolygonMask
+from ..processing.find_spacing import find_spacing
+from ..processing.get_polygon_mask import get_polygon_mask
 
 
-def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp=False) -> np.ndarray:
+def compute_roi(roi_xyz, spatial_ref, orientation, scan_type, interp=False) -> np.ndarray:
     """
     Computes the ROI (Region of interest) mask using the XYZ coordinates.
 
@@ -26,16 +26,16 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp=False) -> np.n
         --> IN THE IDEAL AND RECOMMENDED CASE, A SPECIFIC RTstruct WAS CREATED AND
             SAVED FOR EACH IMAGING VOLUME (SAFE PRACTICE)
         --> The 'interp' should be used only if tested and verified. False
-                is currently the default in getROI.py
+                is currently the default in get_roi.py
 
     Args:
-        ROI_XYZ (ndarray): array of (x,y,z) triplets defining a contour in the Patient-Based 
+        roi_xyz (ndarray): array of (x,y,z) triplets defining a contour in the Patient-Based 
             Coordinate System extracted from DICOM RTstruct.
-        spatialRef (imref3d): imref3d object (same functionality of MATLAB imref3d class).
+        spatial_ref (imref3d): imref3d object (same functionality of MATLAB imref3d class).
         orientation (str): Imaging data orientation (axial, sagittal or coronal).
-        scanType (str): Imaging modality (MRscan, CTscan...).
+        scan_type (str): Imaging modality (MRscan, CTscan...).
         interp (bool): Specifies if we need to use an interpolation 
-            process prior to "getPolygonMask()" in the slice axis direction.
+            process prior to "get_polygon_mask()" in the slice axis direction.
             - True: Interpolation is performed in the slice axis dimensions. 
                 To be further tested, thus please use with caution (True is safer).
             - Fale (default): No interpolation. This can definitely be safe 
@@ -53,26 +53,26 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp=False) -> np.n
     while interp:
         # Initialization
         if orientation == "Axial":
-            dimIJK = 2
-            dimXYZ = 2
+            dim_ijk = 2
+            dim_xyz = 2
             direction = "Z"
             # Only the resolution in 'Z' will be changed
-            resXYZ = np.array([spatialRef.PixelExtentInWorldX,
-                               spatialRef.PixelExtentInWorldY, 0.0])
+            res_xyz = np.array([spatial_ref.PixelExtentInWorldX,
+                               spatial_ref.PixelExtentInWorldY, 0.0])
         elif orientation == "Sagittal":
-            dimIJK = 0
-            dimXYZ = 1
+            dim_ijk = 0
+            dim_xyz = 1
             direction = "Y"
             # Only the resolution in 'Y' will be changed
-            resXYZ = np.array([spatialRef.PixelExtentInWorldX, 0.0,
-                               spatialRef.PixelExtentInWorldZ])
+            res_xyz = np.array([spatial_ref.PixelExtentInWorldX, 0.0,
+                               spatial_ref.PixelExtentInWorldZ])
         elif orientation == "Coronal":
-            dimIJK = 1
-            dimXYZ = 0
+            dim_ijk = 1
+            dim_xyz = 0
             direction = "X"
             # Only the resolution in 'X' will be changed
-            resXYZ = np.array([0.0, spatialRef.PixelExtentInWorldY,
-                               spatialRef.PixelExtentInWorldZ])
+            res_xyz = np.array([0.0, spatial_ref.PixelExtentInWorldY,
+                               spatial_ref.PixelExtentInWorldZ])
         else:
             raise ValueError(
                 "Provided orientation is not one of \"Axial\", \"Sagittal\", \"Coronal\".")
@@ -81,67 +81,67 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp=False) -> np.n
         # similar to original volume
         # where RTstruct was created)
         # Slice spacing in mm
-        sliceSpacing = findSpacing(
-            ROI_XYZ[:, dimIJK], scanType).astype(np.float32)
+        slice_spacing = find_spacing(
+            roi_xyz[:, dim_ijk], scan_type).astype(np.float32)
 
-        # Only one slice found in the function "findSpacing" on the above line.
-        # We thus must set "sliceSpacing" to the slice spacing of the queried
+        # Only one slice found in the function "find_spacing" on the above line.
+        # We thus must set "slice_spacing" to the slice spacing of the queried
         # volume, and no interpolation will be performed.
-        if sliceSpacing is None:
-            sliceSpacing = spatialRef.PixelExtendInWorld(axis=direction)
+        if slice_spacing is None:
+            slice_spacing = spatial_ref.PixelExtendInWorld(axis=direction)
 
-        newSize = round(spatialRef.ImageExtentInWorld(
-            axis=direction) / sliceSpacing)
-        resXYZ[dimXYZ] = sliceSpacing
-        sz = spatialRef.ImageSize.copy()
-        sz[dimIJK] = newSize
+        new_size = round(spatial_ref.ImageExtentInWorld(
+            axis=direction) / slice_spacing)
+        res_xyz[dim_xyz] = slice_spacing
+        sz = spatial_ref.ImageSize.copy()
+        sz[dim_ijk] = new_size
 
-        xWorldLimits = spatialRef.XWorldLimits.copy()
-        yWorldLimits = spatialRef.YWorldLimits.copy()
-        zWorldLimits = spatialRef.ZWorldLimits.copy()
+        xWorldLimits = spatial_ref.XWorldLimits.copy()
+        yWorldLimits = spatial_ref.YWorldLimits.copy()
+        zWorldLimits = spatial_ref.ZWorldLimits.copy()
 
-        newSpatialRef = imref3d(imageSize=sz, 
-                                pixelExtentInWorldX=resXYZ[0],
-                                pixelExtentInWorldY=resXYZ[1],
-                                pixelExtentInWorldZ=resXYZ[2],
+        new_spatial_ref = imref3d(imageSize=sz, 
+                                pixelExtentInWorldX=res_xyz[0],
+                                pixelExtentInWorldY=res_xyz[1],
+                                pixelExtentInWorldZ=res_xyz[2],
                                 xWorldLimits=xWorldLimits,
                                 yWorldLimits=yWorldLimits,
                                 zWorldLimits=zWorldLimits)
 
-        diff = (newSpatialRef.ImageExtentInWorld(axis=direction) -
-                spatialRef.ImageExtentInWorld(axis=direction))
+        diff = (new_spatial_ref.ImageExtentInWorld(axis=direction) -
+                spatial_ref.ImageExtentInWorld(axis=direction))
 
         if np.abs(diff) >= 0.01:
             # Sampled and queried volume are considered "different".
-            newLimit = spatialRef.WorldLimits(axis=direction)[0] - diff / 2.0
+            newLimit = spatial_ref.WorldLimits(axis=direction)[0] - diff / 2.0
 
             # Sampled volume is now centered on queried volume.
-            newSpatialRef.WorldLimits(axis=direction, newValue=(newSpatialRef.WorldLimits(axis=direction) -
-                                                                (newSpatialRef.WorldLimits(axis=direction)[0] - newLimit)))
+            new_spatial_ref.WorldLimits(axis=direction, newValue=(new_spatial_ref.WorldLimits(axis=direction) -
+                                                                (new_spatial_ref.WorldLimits(axis=direction)[0] - newLimit)))
         else:
             # Less than a 0.01 mm, sampled and queried volume are considered
             # to be the same. At this point,
-            # spatialRef and newSpatialRef may have differed due to data
+            # spatial_ref and new_spatial_ref may have differed due to data
             # manipulation, so we simply compute
-            # the ROI mask with spatialRef (i.e. simply using "poly2mask.m"),
+            # the ROI mask with spatial_ref (i.e. simply using "poly2mask.m"),
             # without performing interpolation.
             interp = False
             break  # Getting out of the "while" statement
 
-        V = getPolygonMask(ROI_XYZ, newSpatialRef, orientation)
+        V = get_polygon_mask(roi_xyz, new_spatial_ref, orientation)
 
-        # Getting query points (Xq,Yq,Zq) of output ROImask
-        szQ = spatialRef.ImageSize
-        Xqi = np.arange(szQ[0])
-        Yqi = np.arange(szQ[1])
-        Zqi = np.arange(szQ[2])
-        Xqi, Yqi, Zqi = np.meshgrid(Xqi, Yqi, Zqi, indexing='ij')
+        # Getting query points (x_q,y_q,z_q) of output roi_mask
+        sz_q = spatial_ref.ImageSize
+        x_qi = np.arange(sz_q[0])
+        y_qi = np.arange(sz_q[1])
+        z_qi = np.arange(sz_q[2])
+        x_qi, y_qi, z_qi = np.meshgrid(x_qi, y_qi, z_qi, indexing='ij')
 
         # Getting queried mask
-        Vq = interp3(V=V, Xq=Xqi, Yq=Yqi, Zq=Zqi, method="cubic")
-        ROImask = Vq
-        ROImask[Vq < 0.5] = 0
-        ROImask[Vq >= 0.5] = 1
+        v_q = interp3(V=V, x_q=x_qi, y_q=y_qi, z_q=z_qi, method="cubic")
+        roi_mask = v_q
+        roi_mask[v_q < 0.5] = 0
+        roi_mask[v_q >= 0.5] = 1
 
         # Getting out of the "while" statement
         interp = False
@@ -150,6 +150,6 @@ def computeROI(ROI_XYZ, spatialRef, orientation, scanType, interp=False) -> np.n
     # apparently more accurate.
     if not interp:
         # Using the inpolygon.m function. To be further tested.
-        ROImask = getPolygonMask(ROI_XYZ, spatialRef, orientation)
+        roi_mask = get_polygon_mask(roi_xyz, spatial_ref, orientation)
 
-    return ROImask
+    return roi_mask

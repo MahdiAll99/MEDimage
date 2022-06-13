@@ -5,7 +5,7 @@
 import numpy as np
 
 
-def getGLCMmatrix(ROIonly, levels, distCorrection=True) -> np.ndarray:
+def getGLCMmatrix(roi_only, levels, distCorrection=True) -> np.ndarray:
     """Computes GLCM matrix.
 
     This function computes the Gray-Level Co-occurence Matrix (GLCM) of the
@@ -20,7 +20,7 @@ def getGLCMmatrix(ROIonly, levels, distCorrection=True) -> np.ndarray:
     around a center voxel increment the GLCM by a value of 1.
 
     Args:
-        ROIonly (ndarray): Smallest box containing the ROI, with the imaging data 
+        roi_only (ndarray): Smallest box containing the ROI, with the imaging data 
             ready for texture analysis computations. Voxels outside the ROI are
             set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels in the tumor region
@@ -31,7 +31,7 @@ def getGLCMmatrix(ROIonly, levels, distCorrection=True) -> np.ndarray:
             Set this variable to false to replicate IBSI results.
 
     Returns:
-        ndarray: Gray-Level Co-occurence Matrix of `ROIOnly`.
+        ndarray: Gray-Level Co-occurence Matrix of `roi_only`.
 
     REFERENCE:
         [1] Haralick, R. M., Shanmugam, K., & Dinstein, I. (1973). Textural
@@ -46,16 +46,16 @@ def getGLCMmatrix(ROIonly, levels, distCorrection=True) -> np.ndarray:
         distCorrection = True
 
     # PRELIMINARY
-    ROIonly = ROIonly.copy()
-    levelTemp = np.max(levels)+1
-    ROIonly[np.isnan(ROIonly)] = levelTemp
-    #levels = np.append(levels, levelTemp)
-    dim = np.shape(ROIonly)
+    roi_only = roi_only.copy()
+    level_temp = np.max(levels)+1
+    roi_only[np.isnan(roi_only)] = level_temp
+    #levels = np.append(levels, level_temp)
+    dim = np.shape(roi_only)
 
-    if np.ndim(ROIonly) == 2:
+    if np.ndim(roi_only) == 2:
         dim[2] = 1
 
-    q2 = np.reshape(ROIonly, (1, np.prod(dim)))
+    q2 = np.reshape(roi_only, (1, np.prod(dim)))
 
     # QUANTIZATION EFFECTS CORRECTION (M. Vallieres)
     # In case (for example) we initially wanted to have 64 levels, but due to
@@ -64,7 +64,7 @@ def getGLCMmatrix(ROIonly, levels, distCorrection=True) -> np.ndarray:
     # q2 = round(q2*adjust)/adjust;
 
     #qs = levels
-    qs = levels.tolist() + [levelTemp]
+    qs = levels.tolist() + [level_temp]
     lqs = np.size(qs)
 
     q3 = q2*0

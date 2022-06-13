@@ -6,7 +6,7 @@ from typing import Tuple
 import numpy as np
 
 
-def getNGTDMmatrix(ROIOnly, levels, distCorrection=False) -> Tuple[np.ndarray, np.ndarray]:
+def getNGTDMmatrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray, np.ndarray]:
     """Computes NGTDM matrix.
 
     This function computes the Neighborhood Gray-Tone Difference Matrix
@@ -27,7 +27,7 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False) -> Tuple[np.ndarray, n
         19(5), 1264–1274.
     
     Args:
-        ROIonly (ndarray): Smallest box containing the ROI, with the imaging data ready
+        roi_only (ndarray): Smallest box containing the ROI, with the imaging data ready
             for texture analysis computations. Voxels outside the ROI are set to NaNs.
         levels (ndarray): Vector containing the quantized gray-levels in the tumor region
             (or reconstruction levels of quantization).
@@ -38,8 +38,8 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False) -> Tuple[np.ndarray, n
 
     Returns:
         Tuple[np.ndarray, np.ndarray]: 
-            - NGTDM: Neighborhood Gray-Tone Difference Matrix of 'ROIOnly'.
-            - countValid: Array of number of valid voxels used in the NGTDM computation.
+            - NGTDM: Neighborhood Gray-Tone Difference Matrix of 'roi_only'.
+            - count_valid: Array of number of valid voxels used in the NGTDM computation.
 
     """
 
@@ -50,32 +50,32 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False) -> Tuple[np.ndarray, n
         distCorrection = True  # By default
 
     # PRELIMINARY
-    if np.size(np.shape(ROIOnly)) == 2:  # generalization to 2D inputs
-        twoD = 1
+    if np.size(np.shape(roi_only)) == 2:  # generalization to 2D inputs
+        two_d = 1
     else:
-        twoD = 0
+        two_d = 0
 
-    ROIOnly = np.pad(ROIOnly, [1, 1], 'constant', constant_values=np.NaN)
+    roi_only = np.pad(roi_only, [1, 1], 'constant', constant_values=np.NaN)
 
     # # QUANTIZATION EFFECTS CORRECTION
     # # In case (for example) we initially wanted to have 64 levels, but due to
     # # quantization, only 60 resulted.
-    uniqueVol = levels.astype('int')
+    unique_vol = levels.astype('int')
     NL = np.size(levels)
-    temp = ROIOnly.copy().astype('int')
+    temp = roi_only.copy().astype('int')
     for i in range(1, NL+1):
-        ROIOnly[temp == uniqueVol[i-1]] = i
+        roi_only[temp == unique_vol[i-1]] = i
 
     # INTIALIZATION
     NGTDM = np.zeros(NL)
-    countValid = np.zeros(NL)
+    count_valid = np.zeros(NL)
 
     # COMPUTATION OF NGTDM
-    if twoD:
+    if two_d:
         indices = np.where(~np.isnan(np.reshape(
-            ROIOnly, np.size(ROIOnly), order='F')))[0]
-        posValid = np.unravel_index(indices, np.shape(ROIOnly), order='F')
-        nValid_temp = np.size(posValid[0])
+            roi_only, np.size(roi_only), order='F')))[0]
+        pos_valid = np.unravel_index(indices, np.shape(roi_only), order='F')
+        n_valid_temp = np.size(pos_valid[0])
         w4 = 1
         if distCorrection:
             # Weights given to different neighbors to correct
@@ -86,10 +86,10 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False) -> Tuple[np.ndarray, n
 
         weights = np.array([w8, w4, w8, w4, w4, w4, w8, w4, w8])
 
-        for n in range(1, nValid_temp+1):
+        for n in range(1, n_valid_temp+1):
 
-            neighbours = ROIOnly[(posValid[0][n-1]-1):(posValid[0][n-1]+2),
-                                 (posValid[1][n-1]-1):(posValid[1][n-1]+2)].copy()
+            neighbours = roi_only[(pos_valid[0][n-1]-1):(pos_valid[0][n-1]+2),
+                                 (pos_valid[1][n-1]-1):(pos_valid[1][n-1]+2)].copy()
             neighbours = np.reshape(neighbours, 9, order='F')
             neighbours = neighbours*weights
             value = neighbours[4].astype('int')
@@ -100,13 +100,13 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False) -> Tuple[np.ndarray, n
             if np.size(neighbours[~np.isnan(neighbours)]) > 0:
                 NGTDM[value-1] = NGTDM[value-1] + np.abs(
                     value-np.sum(neighbours[~np.isnan(neighbours)]))
-                countValid[value-1] = countValid[value-1] + 1
+                count_valid[value-1] = count_valid[value-1] + 1
     else:
 
         indices = np.where(~np.isnan(np.reshape(
-            ROIOnly, np.size(ROIOnly), order='F')))[0]
-        posValid = np.unravel_index(indices, np.shape(ROIOnly), order='F')
-        nValid_temp = np.size(posValid[0])
+            roi_only, np.size(roi_only), order='F')))[0]
+        pos_valid = np.unravel_index(indices, np.shape(roi_only), order='F')
+        n_valid_temp = np.size(pos_valid[0])
         w6 = 1
         if distCorrection:
             # Weights given to different neighbors to correct
@@ -121,10 +121,10 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False) -> Tuple[np.ndarray, n
                             w6, w18, w6, w6, w6, w18, w6, w18, w26, w18,
                             w26, w18, w6, w18, w26, w18, w26])
 
-        for n in range(1, nValid_temp+1):
-            neighbours = ROIOnly[(posValid[0][n-1]-1) : (posValid[0][n-1]+2),
-                                 (posValid[1][n-1]-1) : (posValid[1][n-1]+2),
-                                 (posValid[2][n-1]-1) : (posValid[2][n-1]+2)].copy()
+        for n in range(1, n_valid_temp+1):
+            neighbours = roi_only[(pos_valid[0][n-1]-1) : (pos_valid[0][n-1]+2),
+                                 (pos_valid[1][n-1]-1) : (pos_valid[1][n-1]+2),
+                                 (pos_valid[2][n-1]-1) : (pos_valid[2][n-1]+2)].copy()
             neighbours = np.reshape(neighbours, 27, order='F')
             neighbours = neighbours * weights
             value = neighbours[13].astype('int')
@@ -134,6 +134,6 @@ def getNGTDMmatrix(ROIOnly, levels, distCorrection=False) -> Tuple[np.ndarray, n
             # Thus only excluding voxels with NaNs only as neighbors.
             if np.size(neighbours[~np.isnan(neighbours)]) > 0:
                 NGTDM[value-1] = NGTDM[value-1] + np.abs(value - np.sum(neighbours[~np.isnan(neighbours)]))
-                countValid[value-1] = countValid[value-1] + 1
+                count_valid[value-1] = count_valid[value-1] + 1
 
-    return NGTDM, countValid
+    return NGTDM, count_valid

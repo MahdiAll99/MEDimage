@@ -36,7 +36,7 @@ def parse_contour_string(contour_string) -> Union[
 
     """
 
-    if is_instance(contour_string, (int, float)):
+    if isinstance(contour_string, (int, float)):
         return contour_string, []
 
     ind_plus = strfind(string=contour_string, pattern='\+')

@@ -43,7 +43,7 @@ class MEDimageComputeRadiomics(MEDimageProcessing):
 
         return im_filter, IHfilter, IVHfilter, algoFilter, grayLevelsFilter, intensityFilter, filtersType
 
-    def init_NTF_Calculation(self, volObj):
+    def init_NTF_Calculation(self, vol_obj):
         """
         -------------------------------------------------------------------------
         DESCRIPTION:
@@ -54,15 +54,15 @@ class MEDimageComputeRadiomics(MEDimageProcessing):
         try:
             Params = self.Params
             if sum(Params['scaleNonText']) == 0:  # In case the user chose to not interpolate
-                        Params['scaleNonText'] = [volObj.spatialRef.PixelExtentInWorldX,
-                                        volObj.spatialRef.PixelExtentInWorldY,
-                                        volObj.spatialRef.PixelExtentInWorldZ]
+                        Params['scaleNonText'] = [vol_obj.spatial_ref.PixelExtentInWorldX,
+                                        vol_obj.spatial_ref.PixelExtentInWorldY,
+                                        vol_obj.spatial_ref.PixelExtentInWorldZ]
             else:
                 if len(Params['scaleNonText']) == 2:
                     # In case not interpolation is performed in
                     # the slice direction (e.g. 2D case)
                     Params['scaleNonText'] = Params['scaleNonText'] + \
-                        [volObj.spatialRef.PixelExtentInWorldZ]
+                        [vol_obj.spatial_ref.PixelExtentInWorldZ]
 
             # Scale name
             # Always isotropic resampling, so the first entry is ok.
@@ -225,20 +225,20 @@ class MEDimageComputeRadiomics(MEDimageProcessing):
         """
         Saves extracted radiomics features in a JSON file.
         """
-        self.Params['radiomics']['imParam']['roiType'] = type_of_roi
-        self.Params['radiomics']['imParam']['patientID'] = self.patientID
-        self.Params['radiomics']['imParam']['voxDim'] = list([self.scan.volume.spatialRef.PixelExtentInWorldX, 
-                                                            self.scan.volume.spatialRef.PixelExtentInWorldY,
-                                                            self.scan.volume.spatialRef.PixelExtentInWorldZ])
+        self.Params['radiomics']['imParam']['roi_type'] = type_of_roi
+        self.Params['radiomics']['imParam']['patient_id'] = self.patient_id
+        self.Params['radiomics']['imParam']['vox_dim'] = list([self.scan.volume.spatial_ref.PixelExtentInWorldX, 
+                                                            self.scan.volume.spatial_ref.PixelExtentInWorldY,
+                                                            self.scan.volume.spatial_ref.PixelExtentInWorldZ])
 
         indDot = scan_file_name[patient_num].find('.')
         ext = scan_file_name[patient_num].find('.npy')
-        nameSave = scan_file_name[patient_num][:indDot] + \
+        name_save = scan_file_name[patient_num][:indDot] + \
             '(' + label_of_roi_type + ')' + scan_file_name[patient_num][indDot:ext]
 
         os.chdir(path_save)
 
         # IMPORTANT: HERE, WE COULD ADD SOME CODE TO APPEND A NEW "radiomics"
-        # STRUCTURE TO AN EXISTING ONE WITH THE SAME NAME IN "pathSave"
-        with open(f"{nameSave}.json", "w") as fp:   
+        # STRUCTURE TO AN EXISTING ONE WITH THE SAME NAME IN "path_save"
+        with open(f"{name_save}.json", "w") as fp:   
             dump(self.Params['radiomics'], fp, indent=4, cls=NumpyEncoder)

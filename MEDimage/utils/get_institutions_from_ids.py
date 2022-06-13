@@ -13,7 +13,7 @@ def get_institutions_from_ids(patient_ids):
     # -------------------------------------------------------------------------
     # OUTPUTS: 
     # 1. institution_catVector: Categorical vector, specifying the institution
-    #                           of each patientID entry in "patient_ids".
+    #                           of each patient_id entry in "patient_ids".
     #                           --> Ex: {UCSF;CEM}
     # -------------------------------------------------------------------------
     # AUTHOR(S):                                                              

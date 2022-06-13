@@ -6,7 +6,7 @@ from copy import deepcopy
 from numpy import ndarray
 
 
-def rangeReSeg(vol, roi, im_range=None) -> ndarray:
+def range_re_seg(vol, roi, im_range=None) -> ndarray:
     """Removs voxels from the intensity mask that fall outside
     the given range (intensities outside the range are set to 0).
 

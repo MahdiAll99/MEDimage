@@ -13,7 +13,7 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   is_list_all_none)
 
 
-def getGLRLMfeatures(vol, distCorrection=None, glrlm_merge_method="vol_merge", method="new") -> Dict:
+def extract_all(vol, distCorrection=None, glrlm_merge_method="vol_merge", method="new") -> Dict:
     """Computes GLRLM features.
 
     Note:
@@ -21,7 +21,7 @@ def getGLRLMfeatures(vol, distCorrection=None, glrlm_merge_method="vol_merge", m
 
     Args:
         vol (ndarray): 3D volume, isotropically resampled, quantized
-            (e.g. Ng = 32, levels = [1, ..., Ng]), with NaNs outside the region
+            (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
             of interest.
         distCorrection (Union[bool, str], optional): Set this variable to true in order to use
             discretization length difference corrections as used here:
@@ -53,10 +53,10 @@ def getGLRLMfeatures(vol, distCorrection=None, glrlm_merge_method="vol_merge", m
 
     """
     if method == "old":
-        glrlm = get_rlm_features_deprecated(vol=vol, distCorrection=distCorrection)
+        extract_all = get_rlm_features_deprecated(vol=vol, distCorrection=distCorrection)
 
     elif method == "new":
-        glrlm = get_rlm_features(
+        extract_all = get_rlm_features(
                                 vol=vol, 
                                 intensity_range=[np.nan, np.nan],
                                 glrlm_merge_method=glrlm_merge_method, 
@@ -67,7 +67,7 @@ def getGLRLMfeatures(vol, distCorrection=None, glrlm_merge_method="vol_merge", m
         raise ValueError(
             "GLRLM should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
 
-    return glrlm
+    return extract_all
 
 
 def get_rlm_features(vol, 
@@ -689,7 +689,7 @@ def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
 
     """
 
-    glrlm = {'Frlm_sre': [],
+    extract_all = {'Frlm_sre': [],
              'Frlm_lre': [],
              'Frlm_lgre': [],
              'Frlm_hgre': [],
@@ -716,13 +716,13 @@ def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
     else:
         GLRLM = (getGLRLMmatrix(vol, levels, distCorrection))
 
-    Ns = np.sum(GLRLM)
-    GLRLM = GLRLM/Ns  # Normalization of GLRLM
+    n_s = np.sum(GLRLM)
+    GLRLM = GLRLM/n_s  # Normalization of GLRLM
     sz = np.shape(GLRLM)  # Size of GLRLM
-    cVect = range(1, sz[1]+1)  # Row vectors
-    rVect = range(1, sz[0]+1)  # Column vectors
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    r_vect = range(1, sz[0]+1)  # Column vectors
     # Column and row indicators for each entry of the GLRLM
-    cMat, rMat = np.meshgrid(cVect, rVect)
+    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
     pg = np.transpose(np.sum(GLRLM, 1))  # Gray-Level Run-Number Vector
     pr = np.sum(GLRLM, 0)  # Run-Length Run-Number Vector
 
@@ -730,61 +730,61 @@ def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
     ######          GLRLM features          ######
     ##############################################
     # Short runs emphasis
-    glrlm['Frlm_sre'] = (np.matmul(pr, np.transpose(np.power(1.0/np.array(cVect), 2))))
+    extract_all['Frlm_sre'] = (np.matmul(pr, np.transpose(np.power(1.0/np.array(c_vect), 2))))
 
     # Long runs emphasis
-    glrlm['Frlm_lre'] = np.matmul(pr, np.transpose(np.power(np.array(cVect), 2)))
+    extract_all['Frlm_lre'] = np.matmul(pr, np.transpose(np.power(np.array(c_vect), 2)))
 
     # Low grey level run emphasis
-    glrlm['Frlm_lgre'] = np.matmul(pg, np.transpose(np.power(1.0/np.array(rVect), 2)))
+    extract_all['Frlm_lgre'] = np.matmul(pg, np.transpose(np.power(1.0/np.array(r_vect), 2)))
 
     # High grey level run emphasis
-    glrlm['Frlm_hgre'] = np.matmul(pg, np.transpose(np.power(np.array(rVect), 2)))
+    extract_all['Frlm_hgre'] = np.matmul(pg, np.transpose(np.power(np.array(r_vect), 2)))
 
     # Short run low grey level emphasis
-    glrlm['Frlm_srlge'] = np.sum(np.sum(GLRLM*(np.power(1.0/rMat, 2))*(np.power(1.0/cMat, 2))))
+    extract_all['Frlm_srlge'] = np.sum(np.sum(GLRLM*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Short run high grey level emphasis
-    glrlm['Frlm_srhge'] = np.sum(np.sum(GLRLM*(np.power(rMat, 2))*(np.power(1.0/cMat, 2))))
+    extract_all['Frlm_srhge'] = np.sum(np.sum(GLRLM*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Long run low grey levels emphasis
-    glrlm['Frlm_lrlge'] = np.sum(np.sum(GLRLM*(np.power(1.0/rMat, 2))*(np.power(cMat, 2))))
+    extract_all['Frlm_lrlge'] = np.sum(np.sum(GLRLM*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
     # Long run high grey level emphasis
-    glrlm['Frlm_lrhge'] = np.sum(np.sum(GLRLM*(np.power(rMat, 2))*(np.power(cMat, 2))))
+    extract_all['Frlm_lrhge'] = np.sum(np.sum(GLRLM*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
 
     # Gray level non-uniformity
     temp = np.sum(np.power(pg, 2))
-    glrlm['Frlm_glnu'] = temp * Ns
+    extract_all['Frlm_glnu'] = temp * n_s
 
     # Gray level non-uniformity normalised
-    glrlm['Frlm_glnu_norm'] = temp
+    extract_all['Frlm_glnu_norm'] = temp
 
     # Run length non-uniformity
     temp = np.sum(np.power(pr, 2))
-    glrlm['Frlm_rlnu'] = temp * Ns
+    extract_all['Frlm_rlnu'] = temp * n_s
 
     # Run length non-uniformity normalised
-    glrlm['Frlm_rlnu_norm'] = temp
+    extract_all['Frlm_rlnu_norm'] = temp
 
     # Run percentage
-    glrlm['Frlm_r_perc'] = np.sum(pg)/(np.matmul(pr, np.transpose(cVect)))
+    extract_all['Frlm_r_perc'] = np.sum(pg)/(np.matmul(pr, np.transpose(c_vect)))
 
     # Grey level variance
-    temp = rMat * GLRLM
+    temp = r_mat * GLRLM
     u = np.sum(temp)
-    temp = (np.power(rMat - u, 2)) * GLRLM
-    glrlm['Frlm_gl_var'] = np.sum(temp)
+    temp = (np.power(r_mat - u, 2)) * GLRLM
+    extract_all['Frlm_gl_var'] = np.sum(temp)
 
     # Run length variance
-    temp = cMat * GLRLM
+    temp = c_mat * GLRLM
     u = np.sum(temp)
-    temp = (np.power(cMat - u, 2)) * GLRLM
-    glrlm['Frlm_rl_var'] = np.sum(temp)
+    temp = (np.power(c_mat - u, 2)) * GLRLM
+    extract_all['Frlm_rl_var'] = np.sum(temp)
 
     # Run entropy
-    valPos = GLRLM[np.nonzero(GLRLM)]
-    temp = valPos * np.log2(valPos)
-    glrlm['Frlm_rl_entr'] = -np.sum(temp)
+    val_pos = GLRLM[np.nonzero(GLRLM)]
+    temp = val_pos * np.log2(val_pos)
+    extract_all['Frlm_rl_entr'] = -np.sum(temp)
 
-    return glrlm
+    return extract_all

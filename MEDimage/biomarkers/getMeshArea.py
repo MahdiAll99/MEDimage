@@ -4,14 +4,14 @@
 import numpy as np
 
 
-def getMeshArea(faces, vertices):
+def get_mesh_area(faces, vertices):
     """Compute MeshArea.
     -------------------------------------------------------------------------
-    - faces: [nPoints X 3] matrix of three column vectors, defining the [X,Y,Z]
+    - faces: [n_points X 3] matrix of three column vectors, defining the [X,Y,Z]
             positions of the faces of the isosurface or convex hull of the mask
             (output from "isosurface.m" or "convhull.m" functions of MATLAB).
               --> These are more precisely indexes to "vertices"
-    - vertices: [nPoints X 3] matrix of three column vectors,
+    - vertices: [n_points X 3] matrix of three column vectors,
             defining the [X,Y,Z]
             positions of the vertices of the isosurface of the mask (output
             from "isosurface.m" function of MATLAB).

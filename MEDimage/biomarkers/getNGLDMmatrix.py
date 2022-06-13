@@ -4,31 +4,31 @@
 import numpy as np
 
 
-def getNGLDMmatrix(ROIonly, levels) -> np.ndarray:
+def getNGLDMmatrix(roi_only, levels) -> np.ndarray:
     """Compute NGLDMmatrix.
 
     Args:
-        ROIOnlyInt (ndarray): Smallest box containing the ROI, with the imaging data ready
+        roi_only_int (ndarray): Smallest box containing the ROI, with the imaging data ready
             for texture analysis computations. Voxels outside the ROI are
             set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels 
             in the tumor region (or reconstruction levels of quantization).
 
     Returns:
-        ndarray: Array of neighbouring grey level dependence matri of 'ROIOnly'.
+        ndarray: Array of neighbouring grey level dependence matri of 'roi_only'.
 
     """
-    ROIonly = ROIonly.copy()
+    roi_only = roi_only.copy()
 
     # PRELIMINARY
-    levelTemp = np.max(levels)+1
-    ROIonly[np.isnan(ROIonly)] = levelTemp
-    levels = np.append(levels, levelTemp)
-    dim = np.shape(ROIonly)
+    level_temp = np.max(levels)+1
+    roi_only[np.isnan(roi_only)] = level_temp
+    levels = np.append(levels, level_temp)
+    dim = np.shape(roi_only)
     if np.size(dim) == 2:
         np.append(dim, 1)
 
-    q2 = np.reshape(ROIonly, np.prod(dim), order='F').astype("int")
+    q2 = np.reshape(roi_only, np.prod(dim), order='F').astype("int")
 
     # QUANTIZATION EFFECTS CORRECTION (M. Vallieres)
     # In case (for example) we initially wanted to have 64 levels, but due to

@@ -39,7 +39,7 @@
       },
       "distCorrection" : false
     },
-    "glrlm" : {
+    "extract_all" : {
       "distCorrection" : false},
     "gldzm" : {
       "distanceNorm" : {
@@ -113,7 +113,7 @@
       "level" : 1,
       "rot_invariance" : true,
       "padding" : "symmetric",
-      "nameSave" : "Wavelet_db3_LLH"
+      "name_save" : "Wavelet_db3_LLH"
     },
     "Wavelet_db3_HHH" : {
       "ndims" : 3,
@@ -122,7 +122,7 @@
       "level" : 2,
       "rot_invariance" : true,
       "padding" : "symmetric",
-      "nameSave" : "Wavelet_db3_HHH"
+      "name_save" : "Wavelet_db3_HHH"
     }
   },
   "computeWavelet" : false,

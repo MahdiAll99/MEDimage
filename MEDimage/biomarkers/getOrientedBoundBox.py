@@ -17,11 +17,11 @@ def minOrientedBoundBox(pos_mat):
     # Internal functions
     ##########################
 
-    def calcRotAABBSurface(theta, hull_mat):
+    def calc_rot_aabb_surface(theta, hull_mat):
         # Function to calculate surface of the axis-aligned bounding box of a rotated 2D contour
 
         # Create rotation matrix and rotate over theta
-        rot_mat = rotMatrix(theta=theta, dim=2)
+        rot_mat = rot_matrix(theta=theta, dim=2)
         rot_hull = np.dot(rot_mat, hull_mat)
 
         # Calculate bounding box surface of the rotated contour
@@ -30,7 +30,7 @@ def minOrientedBoundBox(pos_mat):
 
         return rot_aabb_area
 
-    def approxMinTheta(hull_mat, theta_sel, res, max_rep=5):
+    def approx_min_theta(hull_mat, theta_sel, res, max_rep=5):
         # Iterative approximator for finding angle theta that minimises surface area
         for i in np.arange(0, max_rep):
 
@@ -40,7 +40,7 @@ def minOrientedBoundBox(pos_mat):
 
             # Calculate projection areas for current angles theta
             rot_area = np.array(
-                list(map(lambda x: calcRotAABBSurface(theta=x, hull_mat=hull_mat), theta)))
+                list(map(lambda x: calc_rot_aabb_surface(theta=x, hull_mat=hull_mat), theta)))
 
             # Find global minimum and corresponding angle theta_sel
             theta_sel = theta[np.argmin(rot_area)]
@@ -50,7 +50,7 @@ def minOrientedBoundBox(pos_mat):
 
         return theta_sel
 
-    def rotateMinimalProjection(input_pos, rot_axis, n_minima=3, res_init=5.0):
+    def rotate_minimal_projection(input_pos, rot_axis, n_minima=3, res_init=5.0):
         # Function to that rotates input_pos to find the rotation that
         # minimises the projection of input_pos on the
         # plane normal to the rot_axis
@@ -85,10 +85,10 @@ def minOrientedBoundBox(pos_mat):
         theta_init = np.arange(start=0.0, stop=90.0 +
                                res_init, step=res_init) * np.pi / 180.0
         rot_area = np.array(
-            list(map(lambda x: calcRotAABBSurface(theta=x, hull_mat=hull_mat), theta_init)))
+            list(map(lambda x: calc_rot_aabb_surface(theta=x, hull_mat=hull_mat), theta_init)))
 
         # Find local minima
-        df_min = sigProcFindPeaks(x=rot_area, ddir="neg")
+        df_min = sig_proc_find_peaks(x=rot_area, ddir="neg")
 
         # Check if any minimum was generated
         if len(df_min) > 0:
@@ -109,13 +109,13 @@ def minOrientedBoundBox(pos_mat):
                 theta_curr = theta_init[sel_ind]
 
                 # Zoom in to improve the approximation of theta
-                theta_min[k] = approxMinTheta(
+                theta_min[k] = approx_min_theta(
                     hull_mat=hull_mat, theta_sel=theta_curr, res=res_init*np.pi/180.0)
 
             # Calculate surface areas corresponding to theta_min and theta that
             # minimises the surface
             rot_area = np.array(
-                list(map(lambda x: calcRotAABBSurface(theta=x, hull_mat=hull_mat), theta_min)))
+                list(map(lambda x: calc_rot_aabb_surface(theta=x, hull_mat=hull_mat), theta_min)))
             theta_sel = theta_min[np.argmin(rot_area)]
 
         else:
@@ -123,7 +123,7 @@ def minOrientedBoundBox(pos_mat):
 
         # Rotate original point along the angle that minimises the projected AABB area
         output_pos = np.transpose(output_pos)
-        rot_mat = rotMatrix(theta=theta_sel, dim=3, rot_axis=rot_axis)
+        rot_mat = rot_matrix(theta=theta_sel, dim=3, rot_axis=rot_axis)
         output_pos = np.dot(rot_mat, output_pos)
 
         # Rotate output_pos back to (npoints, ndim)
@@ -149,11 +149,11 @@ def minOrientedBoundBox(pos_mat):
         work_pos = copy.deepcopy(pos_mat)
 
         # Rotate over sequence of rotation axes
-        work_pos = rotateMinimalProjection(
+        work_pos = rotate_minimal_projection(
             input_pos=work_pos, rot_axis=rot_df.rot_axis_0[i])
-        work_pos = rotateMinimalProjection(
+        work_pos = rotate_minimal_projection(
             input_pos=work_pos, rot_axis=rot_df.rot_axis_1[i])
-        work_pos = rotateMinimalProjection(
+        work_pos = rotate_minimal_projection(
             input_pos=work_pos, rot_axis=rot_df.rot_axis_2[i])
 
         # Determine resultant minimum bounding box
@@ -173,7 +173,7 @@ def minOrientedBoundBox(pos_mat):
     return ombb_dims
 
 
-def rotMatrix(theta, dim=2, rot_axis=-1):
+def rot_matrix(theta, dim=2, rot_axis=-1):
     # Creates a 2d or 3d rotation matrix
     if dim == 2:
         rot_mat = np.array([[np.cos(theta), -np.sin(theta)],
@@ -200,7 +200,7 @@ def rotMatrix(theta, dim=2, rot_axis=-1):
     return rot_mat
 
 
-def sigProcSegmentise(x):
+def sig_proc_segmentise(x):
     # Produces a list of segments from input x with values (0,1)
 
     # Create a difference vector
@@ -263,7 +263,7 @@ def sigProcSegmentise(x):
     return df_segm
 
 
-def sigProcFindPeaks(x, ddir="pos"):
+def sig_proc_find_peaks(x, ddir="pos"):
     # Determines peak positions in array of values
 
     # Invert when looking for local minima
@@ -272,7 +272,7 @@ def sigProcFindPeaks(x, ddir="pos"):
 
     # Generate segments where slope is negative
 
-    df_segm = sigProcSegmentise(x=(np.diff(x) < 0.0)*1)
+    df_segm = sig_proc_segmentise(x=(np.diff(x) < 0.0)*1)
 
     # Start of slope coincides with position of peak (due to index shift induced by np.diff)
     ind_peak = df_segm.loc[df_segm.val == 1, "i"].values

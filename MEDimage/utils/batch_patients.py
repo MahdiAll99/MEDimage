@@ -4,42 +4,42 @@
 import numpy as np
 
 
-def batchPatients(nPatient, nBatch) -> np.ndarray:
+def batch_patients(n_patient, n_batch) -> np.ndarray:
     """Replaces volume intensities outside the ROI with NaN.
 
     Args:
-        nPatient (int): Number of patient.
-        nBatch (int): Number of batch, usually less or equal
+        n_patient (int): Number of patient.
+        n_batch (int): Number of batch, usually less or equal
             to the cores number on your machine.
 
     Returns:
-        ndarray: List of indexes with size nBatch and max value nPatient.
+        ndarray: List of indexes with size n_batch and max value n_patient.
     """
 
     # FIND THE NUMBER OF PATIENTS IN EACH BATCH
-    patients = [0] * nBatch  # np.zeros(nBatch, dtype=int)
-    patientVect = np.random.permutation(nPatient)  # To randomize stuff a bit.
-    if nBatch:
-        nP = nPatient / nBatch
-        nSup = np.ceil(nP).astype(int)
-        nInf = np.floor(nP).astype(int)
-        if nSup != nInf:
-            nSubInf = nBatch - 1
-            nSubSup = 1
-            total = nSubInf*nInf + nSubSup*nSup
-            while total != nPatient:
-                nSubInf = nSubInf - 1
-                nSubSup = nSubSup + 1
-                total = nSubInf*nInf + nSubSup*nSup
+    patients = [0] * n_batch  # np.zeros(n_batch, dtype=int)
+    patient_vect = np.random.permutation(n_patient)  # To randomize stuff a bit.
+    if n_batch:
+        n_p = n_patient / n_batch
+        n_sup = np.ceil(n_p).astype(int)
+        n_inf = np.floor(n_p).astype(int)
+        if n_sup != n_inf:
+            n_sub_inf = n_batch - 1
+            n_sub_sup = 1
+            total = n_sub_inf*n_inf + n_sub_sup*n_sup
+            while total != n_patient:
+                n_sub_inf = n_sub_inf - 1
+                n_sub_sup = n_sub_sup + 1
+                total = n_sub_inf*n_inf + n_sub_sup*n_sup
 
-            nP = np.hstack((np.tile(nInf, (1, nSubInf))[
-                           0], np.tile(nSup, (1, nSubSup))[0]))
+            n_p = np.hstack((np.tile(n_inf, (1, n_sub_inf))[
+                           0], np.tile(n_sup, (1, n_sub_sup))[0]))
         else:  # The number of patients in all batches will be the same
-            nP = np.tile(nSup, (1, nBatch))[0]
+            n_p = np.tile(n_sup, (1, n_batch))[0]
 
         start = 0
-        for i in range(0, nBatch):
-            patients[i] = patientVect[start:(start+nP[i])].tolist()
-            start += nP[i]
+        for i in range(0, n_batch):
+            patients[i] = patient_vect[start:(start+n_p[i])].tolist()
+            start += n_p[i]
 
     return patients

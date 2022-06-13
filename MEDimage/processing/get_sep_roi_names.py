@@ -9,7 +9,7 @@ import numpy as np
 from ..utils.strfind import strfind
 
 
-def getSepROInames(nameROIin, delimiters) -> Tuple[List[int], np.ndarray]:
+def get_sep_roi_names(nameROIin, delimiters) -> Tuple[List[int], np.ndarray]:
     """Seperated ROI names present in the given ROI name. An ROI name can
     have multiple ROI names seperated with curly brackets and delimeters.
 
@@ -27,9 +27,9 @@ def getSepROInames(nameROIin, delimiters) -> Tuple[List[int], np.ndarray]:
             included and/or excluded in/from the imaging data.
 
     Examples:
-        >>> getSepROInames('{ED}+{ET}', ['+', '-'])
+        >>> get_sep_roi_names('{ED}+{ET}', ['+', '-'])
         ['ED', 'ET'], [1]
-        >>> getSepROInames('{ED}-{ET}', ['+', '-'])
+        >>> get_sep_roi_names('{ED}-{ET}', ['+', '-'])
         ['ED', 'ET'], [-1]
     
     """
@@ -38,41 +38,41 @@ def getSepROInames(nameROIin, delimiters) -> Tuple[List[int], np.ndarray]:
     #delimiters = ['\\+','\\-']
 
     # FINDING "+" and "-"
-    indPlus = strfind(string=nameROIin, pattern=delimiters[0])
-    vectPlus = np.ones(len(indPlus))
-    indMinus = strfind(string=nameROIin, pattern=delimiters[1])
-    vectMinus = np.ones(len(indMinus)) * -1
-    ind = np.argsort(np.hstack((indPlus, indMinus)))
-    vectPlusMinus = np.hstack((vectPlus, vectMinus))[ind]
-    ind = np.hstack((indPlus, indMinus))[ind].astype(int)
-    nDelim = np.size(vectPlusMinus)
+    ind_plus = strfind(string=nameROIin, pattern=delimiters[0])
+    vect_plus = np.ones(len(ind_plus))
+    ind_minus = strfind(string=nameROIin, pattern=delimiters[1])
+    vect_minus = np.ones(len(ind_minus)) * -1
+    ind = np.argsort(np.hstack((ind_plus, ind_minus)))
+    vect_plus_minus = np.hstack((vect_plus, vect_minus))[ind]
+    ind = np.hstack((ind_plus, ind_minus))[ind].astype(int)
+    n_delim = np.size(vect_plus_minus)
 
     # MAKING SURE "+" and "-" ARE NOT INSIDE A ROIname
-    indStart = strfind(string=nameROIin, pattern="{")
-    nROI = len(indStart)
-    indStop = strfind(string=nameROIin, pattern="}")
-    indKeep = np.ones(nDelim, dtype=np.bool)
-    for d in np.arange(nDelim):
-        for r in np.arange(nROI):
+    ind_start = strfind(string=nameROIin, pattern="{")
+    n_roi = len(ind_start)
+    ind_stop = strfind(string=nameROIin, pattern="}")
+    ind_keep = np.ones(n_delim, dtype=np.bool)
+    for d in np.arange(n_delim):
+        for r in np.arange(n_roi):
              # Thus not indise a ROI name
-            if (indStop[r] - ind[d]) > 0 and (ind[d] - indStart[r]) > 0:
-                indKeep[d] = False
+            if (ind_stop[r] - ind[d]) > 0 and (ind[d] - ind_start[r]) > 0:
+                ind_keep[d] = False
                 break
 
-    ind = ind[indKeep]
-    vectPlusMinus = vectPlusMinus[indKeep]
+    ind = ind[ind_keep]
+    vect_plus_minus = vect_plus_minus[ind_keep]
 
     # PARSING ROI NAMES
     if ind.size == 0:
         # Excluding the "{" and "}" at the start and end of the ROIname
-        nameROIout = [nameROIin[1:-1]]
+        name_roi_out = [nameROIin[1:-1]]
     else:
         nInd = len(ind)
         # Excluding the "{" and "}" at the start and end of the ROIname
-        nameROIout = [nameROIin[1:(ind[0]-1)]]
+        name_roi_out = [nameROIin[1:(ind[0]-1)]]
         for i in np.arange(start=1, stop=nInd):
             # Excluding the "{" and "}" at the start and end of the ROIname
-            nameROIout += [nameROIin[(ind[i-1]+2):(ind[i]-1)]]
-        nameROIout += [nameROIin[(ind[-1]+2):-1]]
+            name_roi_out += [nameROIin[(ind[i-1]+2):(ind[i]-1)]]
+        name_roi_out += [nameROIin[(ind[-1]+2):-1]]
 
-    return nameROIout, vectPlusMinus
+    return name_roi_out, vect_plus_minus

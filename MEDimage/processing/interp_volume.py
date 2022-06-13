@@ -6,28 +6,28 @@ from copy import deepcopy
 import logging
 
 import numpy as np
-from ..utils.ImageVolumeObj import ImageVolumeObj
+from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
 from ..utils.interp3 import interp3
 
-from ..processing.computeBox import computeBox
+from ..processing.compute_box import compute_box
 
 _logger = logging.getLogger(__name__)
 
 
-def interpVolume(MEDimage, 
+def interp_volume(MEDimage, 
                 volObjS, 
                 voxDim=None, 
                 interpMet=None, 
                 roundVal=None,
                 image_type=None, 
                 roiObjS=None, 
-                boxString=None) -> ImageVolumeObj:
+                box_string=None) -> image_volume_obj:
     """3D voxel interpolation on the input volume.
 
     Args:
         MEDimage (object): The MEDimage class object.
-        volObjS (ImageVolumeObj): Imaging  that will be interpolated.
+        volObjS (image_volume_obj): Imaging  that will be interpolated.
         voxDim (array): Array of the voxel dimension. The following format is used 
             [Xin,Yin,Zslice], where Xin and Yin are the X (left to right) and 
             Y (bottom to top) IN-PLANE resolutions, and Zslice is the slice spacing,
@@ -37,9 +37,9 @@ def interpVolume(MEDimage,
             and to a power of 10 for Image interpolation.
         image_type (str): 'image' for imaging data interpolation and 'roi' for ROI mask
             data interpolation.
-        roiObjS (ImageVolumeObj): Mask data, will be used to compute a new specific box 
+        roiObjS (image_volume_obj): Mask data, will be used to compute a new specific box 
             and the new imref3d object for the imaging data.
-        boxString (str): Specifies the size if the box containing the ROI
+        box_string (str): Specifies the size if the box containing the ROI
             - 'full': Full imaging data as output.
             - 'box' computes the smallest bounding box.
             - Ex: 'box10': 10 voxels in all three dimensions are added to
@@ -60,9 +60,9 @@ def interpVolume(MEDimage,
         if np.sum(voxDim) == 0:
             return deepcopy(volObjS)
         if len(voxDim) == 2:
-            twoD = True
+            two_d = True
         else:
-            twoD = False
+            two_d = False
 
         if interpMet is None:
             raise ValueError("Interpolation method should be provided.")
@@ -91,7 +91,7 @@ def interpVolume(MEDimage,
             else:
                 raise ValueError("\"roundVal\" must be provided for \"roi\".")
 
-        if roiObjS is None or boxString is None:
+        if roiObjS is None or box_string is None:
             useBox = False
         else:
             useBox = True
@@ -102,130 +102,130 @@ def interpVolume(MEDimage,
         #     not MATLAB IJK, so beware!
 
         # INITIALIZATION
-        resQ = voxDim
-        if twoD:
+        res_q = voxDim
+        if two_d:
             # If 2D, the resolution of the slice dimension of he queried volume is
             # set to the same as the sampled volume.
-            resQ = np.concatenate((resQ, volObjS.spatialRef.PixelExtentInWorldZ))
+            res_q = np.concatenate((res_q, volObjS.spatial_ref.PixelExtentInWorldZ))
 
-        resS = np.array([volObjS.spatialRef.PixelExtentInWorldX,
-                        volObjS.spatialRef.PixelExtentInWorldY,
-                        volObjS.spatialRef.PixelExtentInWorldZ])
+        res_s = np.array([volObjS.spatial_ref.PixelExtentInWorldX,
+                        volObjS.spatial_ref.PixelExtentInWorldY,
+                        volObjS.spatial_ref.PixelExtentInWorldZ])
 
-        if np.array_equal(resS, resQ):
+        if np.array_equal(res_s, res_q):
             return deepcopy(volObjS)
 
-        spatialRefS = volObjS.spatialRef
-        extentS = np.array([spatialRefS.ImageExtentInWorldX,
-                            spatialRefS.ImageExtentInWorldY,
-                            spatialRefS.ImageExtentInWorldZ])
-        lowLimitsS = np.array([spatialRefS.XWorldLimits[0],
-                            spatialRefS.YWorldLimits[0],
-                            spatialRefS.ZWorldLimits[0]])
+        spatial_ref_s = volObjS.spatial_ref
+        extent_s = np.array([spatial_ref_s.ImageExtentInWorldX,
+                            spatial_ref_s.ImageExtentInWorldY,
+                            spatial_ref_s.ImageExtentInWorldZ])
+        low_limits_s = np.array([spatial_ref_s.XWorldLimits[0],
+                            spatial_ref_s.YWorldLimits[0],
+                            spatial_ref_s.ZWorldLimits[0]])
 
         # CREATING QUERIED "imref3d" OBJECT CENTERED ON SAMPLED VOLUME
 
         # Switching to IJK (matlab) reference frame for "imref3d" computation.
         # Putting a "ceil", according to IBSI standards. This is safer than "round".
-        sizeQ = np.ceil(np.around(np.divide(extentS, resQ),
+        size_q = np.ceil(np.around(np.divide(extent_s, res_q),
                                 decimals=3)).astype(int).tolist()
 
-        if twoD:
+        if two_d:
             # If 2D, forcing the size of the queried volume in the slice dimension
             # to be the same as the sample volume.
-            sizeQ[2] = volObjS.spatialRef.ImageSize[2]
+            size_q[2] = volObjS.spatial_ref.ImageSize[2]
 
-        spatialRefQ = imref3d(imageSize=sizeQ, 
-                            pixelExtentInWorldX=resQ[0],
-                            pixelExtentInWorldY=resQ[1],
-                            pixelExtentInWorldZ=resQ[2])
+        spatial_ref_q = imref3d(imageSize=size_q, 
+                            pixelExtentInWorldX=res_q[0],
+                            pixelExtentInWorldY=res_q[1],
+                            pixelExtentInWorldZ=res_q[2])
 
-        extentQ = np.array([spatialRefQ.ImageExtentInWorldX,
-                            spatialRefQ.ImageExtentInWorldY,
-                            spatialRefQ.ImageExtentInWorldZ])
-        lowLimitsQ = np.array([spatialRefQ.XWorldLimits[0],
-                            spatialRefQ.YWorldLimits[0],
-                            spatialRefQ.ZWorldLimits[0]])
-        diff = extentQ - extentS
-        newLowLimitsQ = lowLimitsS - diff/2
-        spatialRefQ.XWorldLimits = spatialRefQ.XWorldLimits - \
-            (lowLimitsQ[0] - newLowLimitsQ[0])
-        spatialRefQ.YWorldLimits = spatialRefQ.YWorldLimits - \
-            (lowLimitsQ[1] - newLowLimitsQ[1])
-        spatialRefQ.ZWorldLimits = spatialRefQ.ZWorldLimits - \
-            (lowLimitsQ[2] - newLowLimitsQ[2])
+        extent_q = np.array([spatial_ref_q.ImageExtentInWorldX,
+                            spatial_ref_q.ImageExtentInWorldY,
+                            spatial_ref_q.ImageExtentInWorldZ])
+        low_limits_q = np.array([spatial_ref_q.XWorldLimits[0],
+                            spatial_ref_q.YWorldLimits[0],
+                            spatial_ref_q.ZWorldLimits[0]])
+        diff = extent_q - extent_s
+        new_low_limits_q = low_limits_s - diff/2
+        spatial_ref_q.XWorldLimits = spatial_ref_q.XWorldLimits - \
+            (low_limits_q[0] - new_low_limits_q[0])
+        spatial_ref_q.YWorldLimits = spatial_ref_q.YWorldLimits - \
+            (low_limits_q[1] - new_low_limits_q[1])
+        spatial_ref_q.ZWorldLimits = spatial_ref_q.ZWorldLimits - \
+            (low_limits_q[2] - new_low_limits_q[2])
 
         # REDUCE THE SIZE OF THE VOLUME PRIOR TO INTERPOLATION
-        # TODO check that computeBox vol and roi are intended to be the same!
+        # TODO check that compute_box vol and roi are intended to be the same!
         if useBox:
-            _, _, tempSpatialRef = computeBox(
-                vol=roiObjS.data, roi=roiObjS.data, spatialRef=volObjS.spatialRef,
-                boxString=boxString)
+            _, _, tempSpatialRef = compute_box(
+                vol=roiObjS.data, roi=roiObjS.data, spatial_ref=volObjS.spatial_ref,
+                box_string=box_string)
 
-            sizeTemp = tempSpatialRef.ImageSize
+            size_temp = tempSpatialRef.ImageSize
 
             # Getting world boundaries (center of voxels) of the new box
-            Xbound, Ybound, Zbound = intrinsicToWorld(R=tempSpatialRef,
+            x_bound, y_bound, z_bound = intrinsicToWorld(R=tempSpatialRef,
                                                     xIntrinsic=np.array(
-                                                        [0.0, sizeTemp[0]-1.0]),
+                                                        [0.0, size_temp[0]-1.0]),
                                                     yIntrinsic=np.array(
-                                                        [0.0, sizeTemp[1]-1.0]),
-                                                    zIntrinsic=np.array([0.0, sizeTemp[2]-1.0]))
+                                                        [0.0, size_temp[1]-1.0]),
+                                                    zIntrinsic=np.array([0.0, size_temp[2]-1.0]))
 
             # Getting the image positions of the boundaries of the new box, IN THE
             # FULL QUERIED FRAME OF REFERENCE (centered on the sampled frame of
             # reference).
-            Xbound, Ybound, Zbound = worldToIntrinsic(
-                R=spatialRefQ, xWorld=Xbound, yWorld=Ybound, zWorld=Zbound)
+            x_bound, y_bound, z_bound = worldToIntrinsic(
+                R=spatial_ref_q, xWorld=x_bound, yWorld=y_bound, zWorld=z_bound)
 
             # Rounding to the nearest image position integer
-            Xbound = np.round(Xbound).astype(int)
-            Ybound = np.round(Ybound).astype(int)
-            Zbound = np.round(Zbound).astype(int)
+            x_bound = np.round(x_bound).astype(int)
+            y_bound = np.round(y_bound).astype(int)
+            z_bound = np.round(z_bound).astype(int)
 
-            sizeQ = np.array([Xbound[1] - Xbound[0] + 1, Ybound[1] -
-                            Ybound[0] + 1, Zbound[1] - Zbound[0] + 1])
+            size_q = np.array([x_bound[1] - x_bound[0] + 1, y_bound[1] -
+                            y_bound[0] + 1, z_bound[1] - z_bound[0] + 1])
 
             # Converting back to world positions ion order to correctly define
             # edges of the new box and thus center it onto the full queried
             # reference frame
-            Xbound, Ybound, Zbound = intrinsicToWorld(R=spatialRefQ,
-                                                    xIntrinsic=Xbound,
-                                                    yIntrinsic=Ybound,
-                                                    zIntrinsic=Zbound)
+            x_bound, y_bound, z_bound = intrinsicToWorld(R=spatial_ref_q,
+                                                    xIntrinsic=x_bound,
+                                                    yIntrinsic=y_bound,
+                                                    zIntrinsic=z_bound)
 
-            newLowLimitsQ[0] = Xbound[0] - resQ[0]/2
-            newLowLimitsQ[1] = Ybound[0] - resQ[1]/2
-            newLowLimitsQ[2] = Zbound[0] - resQ[2]/2
+            new_low_limits_q[0] = x_bound[0] - res_q[0]/2
+            new_low_limits_q[1] = y_bound[0] - res_q[1]/2
+            new_low_limits_q[2] = z_bound[0] - res_q[2]/2
 
-            spatialRefQ = imref3d(imageSize=sizeQ, 
-                                pixelExtentInWorldX=resQ[0],
-                                pixelExtentInWorldY=resQ[1],
-                                pixelExtentInWorldZ=resQ[2])
+            spatial_ref_q = imref3d(imageSize=size_q, 
+                                pixelExtentInWorldX=res_q[0],
+                                pixelExtentInWorldY=res_q[1],
+                                pixelExtentInWorldZ=res_q[2])
 
-            spatialRefQ.XWorldLimits -= spatialRefQ.XWorldLimits[0] - \
-                newLowLimitsQ[0]
-            spatialRefQ.YWorldLimits -= spatialRefQ.YWorldLimits[0] - \
-                newLowLimitsQ[1]
-            spatialRefQ.ZWorldLimits -= spatialRefQ.ZWorldLimits[0] - \
-                newLowLimitsQ[2]
+            spatial_ref_q.XWorldLimits -= spatial_ref_q.XWorldLimits[0] - \
+                new_low_limits_q[0]
+            spatial_ref_q.YWorldLimits -= spatial_ref_q.YWorldLimits[0] - \
+                new_low_limits_q[1]
+            spatial_ref_q.ZWorldLimits -= spatial_ref_q.ZWorldLimits[0] - \
+                new_low_limits_q[2]
 
         # CREATING QUERIED XYZ POINTS
-        Xq = np.arange(sizeQ[0])
-        Yq = np.arange(sizeQ[1])
-        Zq = np.arange(sizeQ[2])
-        Xq, Yq, Zq = np.meshgrid(Xq, Yq, Zq, indexing='ij')
-        Xq, Yq, Zq = intrinsicToWorld(
-            R=spatialRefQ, xIntrinsic=Xq, yIntrinsic=Yq, zIntrinsic=Zq)
+        x_q = np.arange(size_q[0])
+        y_q = np.arange(size_q[1])
+        z_q = np.arange(size_q[2])
+        x_q, y_q, z_q = np.meshgrid(x_q, y_q, z_q, indexing='ij')
+        x_q, y_q, z_q = intrinsicToWorld(
+            R=spatial_ref_q, xIntrinsic=x_q, yIntrinsic=y_q, zIntrinsic=z_q)
 
         # CONVERTING QUERIED XZY POINTS TO INTRINSIC COORDINATES IN THE SAMPLED
         # REFERENCE FRAME
-        Xq, Yq, Zq = worldToIntrinsic(
-            R=spatialRefS, xWorld=Xq, yWorld=Yq, zWorld=Zq)
+        x_q, y_q, z_q = worldToIntrinsic(
+            R=spatial_ref_s, xWorld=x_q, yWorld=y_q, zWorld=z_q)
 
         # INTERPOLATING VOLUME
-        data = interp3(V=volObjS.data, Xq=Xq, Yq=Yq, Zq=Zq, method=interpMet)
-        volObjQ = ImageVolumeObj(data=data, spatialRef=spatialRefQ)
+        data = interp3(V=volObjS.data, x_q=x_q, y_q=y_q, z_q=z_q, method=interpMet)
+        vol_obj_q = image_volume_obj(data=data, spatial_ref=spatial_ref_q)
 
         # ROUNDING
         if image_type == "image":
@@ -234,10 +234,10 @@ def interpVolume(MEDimage,
                 # DELETE NEXT LINE WHEN THE RADIOMICS PARAMETER OPTIONS OF
                 # interp.glRound ARE FIXED
                 roundVal = (-np.log10(roundVal)).astype(int)
-                volObjQ.data = np.around(volObjQ.data, decimals=roundVal)
+                vol_obj_q.data = np.around(vol_obj_q.data, decimals=roundVal)
         else:
-            volObjQ.data[volObjQ.data >= roundVal] = 1.0
-            volObjQ.data[volObjQ.data < roundVal] = 0.0
+            vol_obj_q.data[vol_obj_q.data >= roundVal] = 1.0
+            vol_obj_q.data[vol_obj_q.data < roundVal] = 0.0
 
     except Exception as e:
         if MEDimage.__dict__['scaleName'] != '':
@@ -254,4 +254,4 @@ def interpVolume(MEDimage,
             MEDimage.Params['radiomics']['image'].update(
                 {('scale'+(str(MEDimage.Params['scaleNonText'][0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
 
-    return volObjQ
+    return vol_obj_q

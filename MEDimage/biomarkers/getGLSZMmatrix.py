@@ -7,7 +7,7 @@ import numpy as np
 import skimage.measure as skim
 
 
-def getGLSZMmatrix(ROIOnly, levels) -> Dict:
+def getGLSZMmatrix(roi_only, levels) -> Dict:
     """Compute GLSZMmatrix.
 
     This function computes the Gray-Level Size Zone Matrix (GLSZM) of the
@@ -19,14 +19,14 @@ def getGLSZMmatrix(ROIOnly, levels) -> Dict:
         This function is compatible with 2D analysis (language not adapted in the text).
 
     Args:
-        ROIOnlyInt (ndarray): Smallest box containing the ROI, with the imaging data ready
+        roi_only_int (ndarray): Smallest box containing the ROI, with the imaging data ready
             for texture analysis computations. Voxels outside the ROI are
             set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels 
             in the tumor region (or reconstruction levels of quantization).
 
     Returns:
-        ndarray: Array of Gray-Level Size Zone Matrix of 'ROIOnly'.
+        ndarray: Array of Gray-Level Size Zone Matrix of 'roi_only'.
 
     REFERENCES:
         [1] Thibault, G., Fertil, B., Navarro, C., Pereira, S., Cau, P., Levy,
@@ -37,30 +37,30 @@ def getGLSZMmatrix(ROIOnly, levels) -> Dict:
     """
 
     # PRELIMINARY
-    ROIOnly = ROIOnly.copy()
-    nMax = np.sum(~np.isnan(ROIOnly))
-    levelTemp = np.max(levels) + 1
-    ROIOnly[np.isnan(ROIOnly)] = levelTemp
-    levels = np.append(levels, levelTemp)
+    roi_only = roi_only.copy()
+    n_max = np.sum(~np.isnan(roi_only))
+    level_temp = np.max(levels) + 1
+    roi_only[np.isnan(roi_only)] = level_temp
+    levels = np.append(levels, level_temp)
 
     # QUANTIZATION EFFECTS CORRECTION
     # In case (for example) we initially wanted to have 64 levels, but due to
     # quantization, only 60 resulted.
-    uniqueVect = levels
+    unique_vect = levels
     NL = np.size(levels) - 1
 
     # INITIALIZATION
     # THIS NEEDS TO BE CHANGED. THE ARRAY INITIALIZED COULD BE TOO BIG!
-    GLSZM = np.zeros((NL, nMax))
+    GLSZM = np.zeros((NL, n_max))
 
     # COMPUTATION OF GLSZM
-    temp = ROIOnly.copy().astype('int')
+    temp = roi_only.copy().astype('int')
     for i in range(1, NL+1):
-        temp[ROIOnly != uniqueVect[i-1]] = 0
-        temp[ROIOnly == uniqueVect[i-1]] = 1
-        connObjects, nZone = skim.label(temp, return_num=True)
-        for j in range(1, nZone+1):
-            col = np.sum(connObjects == j)
+        temp[roi_only != unique_vect[i-1]] = 0
+        temp[roi_only == unique_vect[i-1]] = 1
+        conn_objects, n_zone = skim.label(temp, return_num=True)
+        for j in range(1, n_zone+1):
+            col = np.sum(conn_objects == j)
             GLSZM[i-1, col-1] = GLSZM[i-1, col-1] + 1
 
     # REMOVE UNECESSARY COLUMNS

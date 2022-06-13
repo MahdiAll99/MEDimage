@@ -5,18 +5,18 @@
 import numpy as np
 
 
-def computeSUVmap(rawPET, dicomH) -> np.ndarray:
-    """Computes the SUVmap of a raw input PET volume. It is assumed that 
+def compute_suv_map(raw_pet, dicom_h) -> np.ndarray:
+    """Computes the suv_map of a raw input PET volume. It is assumed that 
     the calibration factor was applied beforehand to the PET volume 
-    (e.g., rawPET = rawPET*RescaleSlope + RescaleIntercept).
+    (e.g., raw_pet = raw_pet*RescaleSlope + RescaleIntercept).
 
     Args:
-        rawPET (ndarray):3D array representing the PET volume in raw format.
-        dicomH (pydicom.dataset.FileDataset): DICOM header of one of the 
-            corresponding slice of 'rawPET'.
+        raw_pet (ndarray):3D array representing the PET volume in raw format.
+        dicom_h (pydicom.dataset.FileDataset): DICOM header of one of the 
+            corresponding slice of 'raw_pet'.
         
     Returns:
-        ndarray: 'rawPET' converted to SUVs (standard uptake values).
+        ndarray: 'raw_pet' converted to SUVs (standard uptake values).
 
     """
     def dcm_hhmmss(dateStr):
@@ -26,8 +26,8 @@ def computeSUVmap(rawPET, dicomH) -> np.ndarray:
         hh = float(dateStr[0:2])
         mm = float(dateStr[2:4])
         ss = float(dateStr[4:6])
-        totSec = hh*60.0*60.0 + mm*60.0 + ss
-        return totSec
+        tot_sec = hh*60.0*60.0 + mm*60.0 + ss
+        return tot_sec
 
 
     def pydicom_has_tag(dcm_seq, tag):
@@ -76,8 +76,8 @@ def computeSUVmap(rawPET, dicomH) -> np.ndarray:
         return tag_value
 
     # Get patient weight
-    if pydicom_has_tag(dcm_seq=dicomH, tag=(0x0010, 0x1030)):
-        weight = get_pydicom_meta_tag(dcm_seq=dicomH, tag=(0x0010, 0x1030),
+    if pydicom_has_tag(dcm_seq=dicom_h, tag=(0x0010, 0x1030)):
+        weight = get_pydicom_meta_tag(dcm_seq=dicom_h, tag=(0x0010, 0x1030),
                                       tag_type="float") * 1000.0  # in grams
     else:
         weight = None
@@ -86,18 +86,18 @@ def computeSUVmap(rawPET, dicomH) -> np.ndarray:
     try:
         # Get Scan time
         scantime = dcm_hhmmss(dateStr=get_pydicom_meta_tag(
-            dcm_seq=dicomH, tag=(0x0008, 0x0032), tag_type="str"))
+            dcm_seq=dicom_h, tag=(0x0008, 0x0032), tag_type="str"))
         # Start Time for the Radiopharmaceutical Injection
         injection_time = dcm_hhmmss(dateStr=get_pydicom_meta_tag(
-            dcm_seq=dicomH[0x0054, 0x0016][0],
+            dcm_seq=dicom_h[0x0054, 0x0016][0],
             tag=(0x0018, 0x1072), tag_type="str"))
         # Half Life for Radionuclide
         half_life = get_pydicom_meta_tag(
-            dcm_seq=dicomH[0x0054, 0x0016][0],
+            dcm_seq=dicom_h[0x0054, 0x0016][0],
             tag=(0x0018, 0x1075), tag_type="float")
         # Total dose injected for Radionuclide
         injected_dose = get_pydicom_meta_tag(
-            dcm_seq=dicomH[0x0054, 0x0016][0],
+            dcm_seq=dicom_h[0x0054, 0x0016][0],
             tag=(0x0018, 0x1074), tag_type="float")
         # Calculate decay
         decay = np.exp(-np.log(2)*(scantime-injection_time)/half_life)
@@ -109,6 +109,6 @@ def computeSUVmap(rawPET, dicomH) -> np.ndarray:
         injected_dose_decay = 420000000 * decay  # 420 MBq
 
     # Calculate SUV
-    SUVmap = rawPET * weight / injected_dose_decay
+    suv_map = raw_pet * weight / injected_dose_decay
 
-    return SUVmap
+    return suv_map

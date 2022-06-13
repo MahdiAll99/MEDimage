@@ -4,7 +4,7 @@
 import numpy as np
 
 
-def getMoranI(vol, res) -> float:
+def get_moran_i(vol, res) -> float:
     """Compute Moran's Index.
 
     Args:
@@ -22,14 +22,14 @@ def getMoranI(vol, res) -> float:
 
     # Find the location(s) of all non NaNs voxels
     I, J, K = np.nonzero(~np.isnan(vol))
-    nVox = np.size(I)
+    n_vox = np.size(I)
 
     # Get the mean
     u = np.mean(vol[~np.isnan(vol[:])])
-    volMmean = vol.copy() - u  # (Xgl,i - u)
-    volMmeanS = np.power((vol.copy() - u), 2)  # (Xgl,i - u).^2
-    # Sum of (Xgl,i - u).^2 over all i
-    sumS = np.sum(volMmeanS[~np.isnan(volMmeanS[:])])
+    vol_mean = vol.copy() - u  # (x_gl,i - u)
+    vol_m_mean_s = np.power((vol.copy() - u), 2)  # (x_gl,i - u).^2
+    # Sum of (x_gl,i - u).^2 over all i
+    sum_s = np.sum(vol_m_mean_s[~np.isnan(vol_m_mean_s[:])])
 
     # Get a meshgrid first
     x = res[0]*((np.arange(1, np.shape(vol)[0]+1))-0.5)
@@ -38,33 +38,33 @@ def getMoranI(vol, res) -> float:
     X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
 
     temp = 0
-    sumW = 0
-    for i in range(1, nVox+1):
+    sum_w = 0
+    for i in range(1, n_vox+1):
         # Distance mesh
-        tempX = X - X[I[i-1], J[i-1], K[i-1]]
-        tempY = Y - Y[I[i-1], J[i-1], K[i-1]]
-        tempZ = Z - Z[I[i-1], J[i-1], K[i-1]]
+        temp_x = X - X[I[i-1], J[i-1], K[i-1]]
+        temp_y = Y - Y[I[i-1], J[i-1], K[i-1]]
+        temp_z = Z - Z[I[i-1], J[i-1], K[i-1]]
 
         # meshgrid of weigths
-        tempDistMesh = 1 / np.sqrt(tempX**2 + tempY**2 + tempZ**2)
+        temp_dist_mesh = 1 / np.sqrt(temp_x**2 + temp_y**2 + temp_z**2)
 
         # Removing NaNs
-        tempDistMesh[np.isnan(vol)] = np.NaN
-        tempDistMesh[I[i-1], J[i-1], K[i-1]] = np.NaN
+        temp_dist_mesh[np.isnan(vol)] = np.NaN
+        temp_dist_mesh[I[i-1], J[i-1], K[i-1]] = np.NaN
         # Running sum of weights
-        wsum = np.sum(tempDistMesh[~np.isnan(tempDistMesh[:])])
-        sumW = sumW + wsum
+        w_sum = np.sum(temp_dist_mesh[~np.isnan(temp_dist_mesh[:])])
+        sum_w = sum_w + w_sum
 
         # Inside sum calculation
         # Removing NaNs
-        tempVol = volMmean.copy()
-        tempVol[I[i-1], J[i-1], K[i-1]] = np.NaN
-        tempVol = tempDistMesh * tempVol  # (wij .* (Xgl,j - u))
-        # Summing (wij .* (Xgl,j - u)) over all j
-        sumVal = np.sum(tempVol[~np.isnan(tempVol[:])])
-        # Running sum of (Xgl,i - u)*(wij .* (Xgl,j - u)) over all i
-        temp = temp + volMmean[I[i-1], J[i-1], K[i-1]] * sumVal
+        temp_vol = vol_mean.copy()
+        temp_vol[I[i-1], J[i-1], K[i-1]] = np.NaN
+        temp_vol = temp_dist_mesh * temp_vol  # (wij .* (x_gl,j - u))
+        # Summing (wij .* (x_gl,j - u)) over all j
+        sum_val = np.sum(temp_vol[~np.isnan(temp_vol[:])])
+        # Running sum of (x_gl,i - u)*(wij .* (x_gl,j - u)) over all i
+        temp = temp + vol_mean[I[i-1], J[i-1], K[i-1]] * sum_val
 
-    moranI = temp*nVox/sumS/sumW
+    moran_i = temp*n_vox/sum_s/sum_w
 
-    return moranI
+    return moran_i

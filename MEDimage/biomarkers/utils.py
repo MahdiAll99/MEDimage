@@ -8,12 +8,12 @@ import numpy as np
 from skimage.measure import marching_cubes
 
 
-def findIX(levels, fractVol, x) -> np.ndarray:
+def find_i_x(levels, fract_vol, x) -> np.ndarray:
     """Computes intensity at volume fraction.
 
     Args:
         levels (ndarray): COMPLETE INTEGER grey-levels.
-        fractVol (ndarray): Fractional volume.
+        fract_vol (ndarray): Fractional volume.
         x (float): Fraction percentage, between 0 and 100.
 
     Returns:
@@ -21,30 +21,30 @@ def findIX(levels, fractVol, x) -> np.ndarray:
             in at most `x`% of the volume.
     
     """
-    ind = np.where(fractVol <= x/100)[0][0]
+    ind = np.where(fract_vol <= x/100)[0][0]
     Ix = levels[ind]
 
     return Ix
     
-def findVX(fractInt, fractVol, x) -> np.ndarray:
+def find_v_x(fract_int, fract_vol, x) -> np.ndarray:
     """Computes volume at intensity fraction.
 
     Args:
-        fractInt (ndarray): Intensity fraction.
-        fractVol (ndarray): Fractional volume.
+        fract_int (ndarray): Intensity fraction.
+        fract_vol (ndarray): Fractional volume.
         x (float): Fraction percentage, between 0 and 100.
 
     Returns:
-        ndarray: Array of largest volume fraction `fractVol` that has an 
-            intensity fraction `fractInt` of at least `x`%.
+        ndarray: Array of largest volume fraction `fract_vol` that has an 
+            intensity fraction `fract_int` of at least `x`%.
 
     """
-    ind = np.where(fractInt >= x/100)[0][0]
-    Vx = fractVol[ind]
+    ind = np.where(fract_int >= x/100)[0][0]
+    Vx = fract_vol[ind]
 
     return Vx
 
-def getAreaDensApprox(a, b, c, n) -> float:
+def get_area_dens_approx(a, b, c, n) -> float:
     """Computes area density - minimum volume enclosing ellipsoid
     
     Args:
@@ -61,18 +61,18 @@ def getAreaDensApprox(a, b, c, n) -> float:
     beta = np.sqrt(1 - c**2/a**2)
     AB = alpha * beta
     point = (alpha**2+beta**2) / (2*AB)
-    Aell = 0
+    a_ell = 0
 
     for v in range(0, n+1):
         coef = [0]*v + [1]
         legen = np.polynomial.legendre.legval(x=point, c=coef)
-        Aell = Aell + AB**v / (1-4*v**2) * legen
+        a_ell = a_ell + AB**v / (1-4*v**2) * legen
 
-    Aell = Aell * 4 * np.pi * a * b
+    a_ell = a_ell * 4 * np.pi * a * b
 
-    return Aell
+    return a_ell
 
-def getAxisLengths(XYZ) -> Tuple[float, float, float]:
+def get_axis_lengths(XYZ) -> Tuple[float, float, float]:
     """Computes AxisLengths.
     
     Args:
@@ -95,15 +95,15 @@ def getAxisLengths(XYZ) -> Tuple[float, float, float]:
     XYZ[:, 2] = XYZ[:, 2] - com_geom[2]
 
     # Getting the covariance matrix
-    covMat = np.cov(XYZ, rowvar=False)
+    cov_mat = np.cov(XYZ, rowvar=False)
 
     # Getting the eigenvalues
-    eigVal, _ = np.linalg.eig(covMat)
-    eigVal = np.sort(eigVal)
+    eig_val, _ = np.linalg.eig(cov_mat)
+    eig_val = np.sort(eig_val)
 
-    major = eigVal[2]
-    minor = eigVal[1]
-    least = eigVal[0]
+    major = eig_val[2]
+    minor = eig_val[1]
+    least = eig_val[0]
 
     return major, minor, least
 
@@ -120,20 +120,20 @@ def getGLCMCrossDiagProb(p_ij) -> np.ndarray:
         ndarray: Array of the cross diagonal probability.
      
     """
-    Ng = np.size(p_ij, 0)
-    valK = np.arange(2, 2*Ng + 100*np.finfo(float).eps)
-    nK = np.size(valK)
-    p_iplusj = np.zeros(nK)
+    n_g = np.size(p_ij, 0)
+    val_k = np.arange(2, 2*n_g + 100*np.finfo(float).eps)
+    n_k = np.size(val_k)
+    p_iplusj = np.zeros(n_k)
 
-    for iterationK in range(0, nK):
-        k = valK[iterationK]
+    for iteration_k in range(0, n_k):
+        k = val_k[iteration_k]
         p = 0
-        for i in range(0, Ng):
-            for j in range(0, Ng):
+        for i in range(0, n_g):
+            for j in range(0, n_g):
                 if (k - (i+j+2)) == 0:
                     p += p_ij[i, j]
 
-        p_iplusj[iterationK] = p
+        p_iplusj[iteration_k] = p
 
     return p_iplusj
 
@@ -151,38 +151,38 @@ def getGLCMDiagProb(p_ij) -> np.ndarray:
     
     """
 
-    Ng = np.size(p_ij, 0)
-    valK = np.arange(0, Ng)
-    nK = np.size(valK)
-    p_iminusj = np.zeros(nK)
+    n_g = np.size(p_ij, 0)
+    val_k = np.arange(0, n_g)
+    n_k = np.size(val_k)
+    p_iminusj = np.zeros(n_k)
 
-    for iterationK in range(0, nK):
-        k = valK[iterationK]
+    for iteration_k in range(0, n_k):
+        k = val_k[iteration_k]
         p = 0
-        for i in range(0, Ng):
-            for j in range(0, Ng):
+        for i in range(0, n_g):
+            for j in range(0, n_g):
                 if (k - abs(i-j)) == 0:
                     p += p_ij[i, j]
 
-        p_iminusj[iterationK] = p
+        p_iminusj[iteration_k] = p
 
     return p_iminusj
 
-def getCOM(Xgl_int, Xgl_morph, XYZ_int, XYZ_morph) -> Union[float, np.ndarray]:
+def getCOM(xgl_int, Xgl_morph, xyz_int, xyz_morph) -> Union[float, np.ndarray]:
     """Calculates center of mass shift (in mm, since resolution is in mm).
 
     Note: 
-        Row positions of "Xgl" and "XYZ" must correspond for each point.
+        Row positions of "x_gl" and "XYZ" must correspond for each point.
     
     Args:
-        Xgl_int (ndarray): Vector of intensity values in the volume to analyze 
+        xgl_int (ndarray): Vector of intensity values in the volume to analyze 
             (only values in the intensity mask).
         Xgl_morph (ndarray): Vector of intensity values in the volume to analyze 
             (only values in the morphological mask).
-        XYZ_int (ndarray): [nPoints X 3] matrix of three column vectors, defining the [X,Y,Z]
+        xyz_int (ndarray): [n_points X 3] matrix of three column vectors, defining the [X,Y,Z]
             positions of the points in the ROI (1's) of the mask volume (In mm).
             (Mesh-based volume calculated from the ROI intensity mesh)
-        XYZ_morph (ndarray): [nPoints X 3] matrix of three column vectors, defining the [X,Y,Z]
+        xyz_morph (ndarray): [n_points X 3] matrix of three column vectors, defining the [X,Y,Z]
             positions of the points in the ROI (1's) of the mask volume (In mm).
             (Mesh-based volume calculated from the ROI morphological mesh)
 
@@ -192,31 +192,31 @@ def getCOM(Xgl_int, Xgl_morph, XYZ_int, XYZ_morph) -> Union[float, np.ndarray]:
     """
 
     # Getting the geometric centre of mass
-    Nv = np.size(Xgl_morph)
+    n_v = np.size(Xgl_morph)
 
-    com_geom = np.sum(XYZ_morph, 0)/Nv  # [1 X 3] vector
+    com_geom = np.sum(xyz_morph, 0)/n_v  # [1 X 3] vector
 
     # Getting the density centre of mass
-    XYZ_int[:, 0] = Xgl_int*XYZ_int[:, 0]
-    XYZ_int[:, 1] = Xgl_int*XYZ_int[:, 1]
-    XYZ_int[:, 2] = Xgl_int*XYZ_int[:, 2]
-    com_gl = np.sum(XYZ_int, 0)/np.sum(Xgl_int, 0)  # [1 X 3] vector
+    xyz_int[:, 0] = xgl_int*xyz_int[:, 0]
+    xyz_int[:, 1] = xgl_int*xyz_int[:, 1]
+    xyz_int[:, 2] = xgl_int*xyz_int[:, 2]
+    com_gl = np.sum(xyz_int, 0)/np.sum(xgl_int, 0)  # [1 X 3] vector
 
     # Calculating the shift
     com = np.linalg.norm(com_geom - com_gl)
 
     return com
 
-def getLocPeak(imgObj, roiObj, res) -> float:
+def getLocPeak(img_obj, roi_obj, res) -> float:
     """Computes Local intensity peak.
 
     Note:
         This works only in 3D for now.
 
     Args:
-        imgObj (ndarray): Continuos image intensity distribution, with no NaNs
+        img_obj (ndarray): Continuos image intensity distribution, with no NaNs
             outside the ROI.
-        roiObj (ndarray): Array of the mask defining the ROI.
+        roi_obj (ndarray): Array of the mask defining the ROI.
         res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.
             XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
@@ -226,50 +226,50 @@ def getLocPeak(imgObj, roiObj, res) -> float:
     """
     # INITIALIZATION
     # About 6.2 mm, as defined in document
-    distThresh = (3/(4*math.pi))**(1/3)*10
+    dist_thresh = (3/(4*math.pi))**(1/3)*10
 
     # Insert -inf outside ROI
-    temp = imgObj.copy()
-    imgObj = imgObj.copy()
-    imgObj[roiObj == 0] = -np.inf
+    temp = img_obj.copy()
+    img_obj = img_obj.copy()
+    img_obj[roi_obj == 0] = -np.inf
 
     # Find the location(s) of the maximal voxel
-    maxVal = np.max(imgObj)
-    I, J, K = np.nonzero(imgObj == maxVal)
-    nMax = np.size(I)
+    max_val = np.max(img_obj)
+    I, J, K = np.nonzero(img_obj == max_val)
+    n_max = np.size(I)
 
     # Reconverting to full object without -Inf
-    imgObj = temp
+    img_obj = temp
 
     # Get a meshgrid first
-    x = res[0]*(np.arange(imgObj.shape[1])+0.5)
-    y = res[1]*(np.arange(imgObj.shape[0])+0.5)
-    z = res[2]*(np.arange(imgObj.shape[2])+0.5)
+    x = res[0]*(np.arange(img_obj.shape[1])+0.5)
+    y = res[1]*(np.arange(img_obj.shape[0])+0.5)
+    z = res[2]*(np.arange(img_obj.shape[2])+0.5)
     X, Y, Z = np.meshgrid(x, y, z)  # In mm
 
     # Calculate the local peak
-    maxVal = -np.inf
+    max_val = -np.inf
 
-    for n in range(nMax):
-        tempX = X - X[I[n], J[n], K[n]]
-        tempY = Y - Y[I[n], J[n], K[n]]
-        tempZ = Z - Z[I[n], J[n], K[n]]
-        tempDistMesh = (np.sqrt(np.power(tempX, 2) + 
-                                np.power(tempY, 2) +
-                                np.power(tempZ, 2)))
-        val = imgObj[tempDistMesh <= distThresh]
+    for n in range(n_max):
+        temp_x = X - X[I[n], J[n], K[n]]
+        temp_y = Y - Y[I[n], J[n], K[n]]
+        temp_z = Z - Z[I[n], J[n], K[n]]
+        temp_dist_mesh = (np.sqrt(np.power(temp_x, 2) + 
+                                np.power(temp_y, 2) +
+                                np.power(temp_z, 2)))
+        val = img_obj[temp_dist_mesh <= dist_thresh]
         val[np.isnan(val)] = []
 
         if np.size(val) == 0:
-            tempLocalPeak = imgObj[I[n], J[n], K[n]]
+            temp_local_peak = img_obj[I[n], J[n], K[n]]
         else:
-            tempLocalPeak = np.mean(val)
-        if tempLocalPeak > maxVal:
-            maxVal = tempLocalPeak
+            temp_local_peak = np.mean(val)
+        if temp_local_peak > max_val:
+            max_val = temp_local_peak
 
-    localPeak = maxVal
+    local_peak = max_val
 
-    return localPeak
+    return local_peak
 
 def getMesh(mask, res) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Compute Mesh.
@@ -314,16 +314,16 @@ def getMesh(mask, res) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
     return XYZ, faces, vertices
 
-def getGlobPeak(imgObj, roiObj, res) -> float:
+def getGlobPeak(img_obj, roi_obj, res) -> float:
     """Computes Global intensity peak.
 
     Note:
         This works only in 3D for now.
 
     Args:
-        imgObj (ndarray): Continuos image intensity distribution, with no NaNs
+        img_obj (ndarray): Continuos image intensity distribution, with no NaNs
             outside the ROI.
-        roiObj (ndarray): Array of the mask defining the ROI.
+        roi_obj (ndarray): Array of the mask defining the ROI.
         res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.
             XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
@@ -333,40 +333,40 @@ def getGlobPeak(imgObj, roiObj, res) -> float:
     """
     # INITIALIZATION
     # About 6.2 mm, as defined in document
-    distThresh = (3/(4*math.pi))**(1/3)*10
+    dist_thresh = (3/(4*math.pi))**(1/3)*10
 
     # Find the location(s) of all voxels within the ROI
-    indices = np.nonzero(np.reshape(roiObj, np.size(roiObj), order='F') == 1)[0]
-    I, J, K = np.unravel_index(indices, np.shape(imgObj), order='F')
-    nMax = np.size(I)
+    indices = np.nonzero(np.reshape(roi_obj, np.size(roi_obj), order='F') == 1)[0]
+    I, J, K = np.unravel_index(indices, np.shape(img_obj), order='F')
+    n_max = np.size(I)
 
     # Get a meshgrid first
-    x = res[0]*(np.arange(imgObj.shape[1])+0.5)
-    y = res[1]*(np.arange(imgObj.shape[0])+0.5)
-    z = res[2]*(np.arange(imgObj.shape[2])+0.5)
+    x = res[0]*(np.arange(img_obj.shape[1])+0.5)
+    y = res[1]*(np.arange(img_obj.shape[0])+0.5)
+    z = res[2]*(np.arange(img_obj.shape[2])+0.5)
     X, Y, Z = np.meshgrid(x, y, z)  # In mm
 
     # Calculate the local peak
-    maxVal = -np.inf
+    max_val = -np.inf
 
-    for n in range(nMax):
-        tempX = X - X[I[n], J[n], K[n]]
-        tempY = Y - Y[I[n], J[n], K[n]]
-        tempZ = Z - Z[I[n], J[n], K[n]]
-        tempDistMesh = (np.sqrt(np.power(tempX, 2) + 
-                                np.power(tempY, 2) +
-                                np.power(tempZ, 2)))
-        val = imgObj[tempDistMesh <= distThresh]
+    for n in range(n_max):
+        temp_x = X - X[I[n], J[n], K[n]]
+        temp_y = Y - Y[I[n], J[n], K[n]]
+        temp_z = Z - Z[I[n], J[n], K[n]]
+        temp_dist_mesh = (np.sqrt(np.power(temp_x, 2) + 
+                                np.power(temp_y, 2) +
+                                np.power(temp_z, 2)))
+        val = img_obj[temp_dist_mesh <= dist_thresh]
         val[np.isnan(val)] = []
 
         if np.size(val) == 0:
-            tempLocalPeak = imgObj[I[n], J[n], K[n]]
+            temp_local_peak = img_obj[I[n], J[n], K[n]]
         else:
-            tempLocalPeak = np.mean(val)
-        if tempLocalPeak > maxVal:
-            maxVal = tempLocalPeak
+            temp_local_peak = np.mean(val)
+        if temp_local_peak > max_val:
+            max_val = temp_local_peak
 
-    globalPeak = maxVal
+    global_peak = max_val
 
-    return globalPeak
+    return global_peak
     

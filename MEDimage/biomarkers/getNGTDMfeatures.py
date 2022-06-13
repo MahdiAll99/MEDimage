@@ -15,7 +15,7 @@ def getNGTDMfeatures(vol, distCorrection=None) -> Dict:
     Args:
 
         vol (ndarray): 3D volume, isotropically resampled, quantized
-            (e.g. Ng = 32, levels = [1, ..., Ng]), with NaNs outside the region
+            (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
             of interest.
         distCorrection (Union[bool, str], optional): Set this variable to true in order to use
             discretization length difference corrections as used here:
@@ -39,57 +39,57 @@ def getNGTDMfeatures(vol, distCorrection=None) -> Dict:
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
 
     if distCorrection is None:
-        NGTDM, countValid = getNGTDMmatrix(vol, levels)
+        NGTDM, count_valid = getNGTDMmatrix(vol, levels)
     else:
-        NGTDM, countValid = getNGTDMmatrix(vol, levels, distCorrection)
+        NGTDM, count_valid = getNGTDMmatrix(vol, levels, distCorrection)
 
-    nTot = np.sum(countValid)
+    nTot = np.sum(count_valid)
     # Now representing the probability of gray-level occurences
-    countValid = countValid/nTot
+    count_valid = count_valid/nTot
     NL = np.size(NGTDM)
-    Ng = np.sum(countValid != 0)
-    pValid = np.where(np.reshape(countValid, np.size(
-        countValid), order='F') > 0)[0]+1
-    nValid = np.size(pValid)
+    n_g = np.sum(count_valid != 0)
+    p_valid = np.where(np.reshape(count_valid, np.size(
+        count_valid), order='F') > 0)[0]+1
+    n_valid = np.size(p_valid)
 
     # COMPUTING TEXTURES
 
     # Coarseness
-    coarseness = 1 / np.matmul(np.transpose(countValid), NGTDM)
+    coarseness = 1 / np.matmul(np.transpose(count_valid), NGTDM)
     coarseness = min(coarseness, 10**6)
     ngtdm['Fngt_coarseness'] = coarseness
 
     # Contrast
-    if Ng == 1:
+    if n_g == 1:
         ngtdm['Fngt_contrast'] = 0
     else:
         val = 0
         for i in range(1, NL+1):
             for j in range(1, NL+1):
-                val = val + countValid[i-1] * countValid[j-1] * ((i-j)**2)
-        ngtdm['Fngt_contrast'] = val * np.sum(NGTDM) / (Ng*(Ng-1)*nTot)
+                val = val + count_valid[i-1] * count_valid[j-1] * ((i-j)**2)
+        ngtdm['Fngt_contrast'] = val * np.sum(NGTDM) / (n_g*(n_g-1)*nTot)
 
     # Busyness
-    if Ng == 1:
+    if n_g == 1:
         ngtdm['Fngt_busyness'] = 0
     else:
         denom = 0
-        for i in range(1, nValid+1):
-            for j in range(1, nValid+1):
-                denom = denom + np.abs(pValid[i-1]*countValid[pValid[i-1]-1] -
-                                       pValid[j-1]*countValid[pValid[j-1]-1])
-        ngtdm['Fngt_busyness'] = np.matmul(np.transpose(countValid), NGTDM) / denom
+        for i in range(1, n_valid+1):
+            for j in range(1, n_valid+1):
+                denom = denom + np.abs(p_valid[i-1]*count_valid[p_valid[i-1]-1] -
+                                       p_valid[j-1]*count_valid[p_valid[j-1]-1])
+        ngtdm['Fngt_busyness'] = np.matmul(np.transpose(count_valid), NGTDM) / denom
 
     # Complexity
     val = 0
-    for i in range(1, nValid+1):
-        for j in range(1, nValid+1):
+    for i in range(1, n_valid+1):
+        for j in range(1, n_valid+1):
             val = val + (np.abs(
-                pValid[i-1]-pValid[j-1]) / (nTot*(
-                countValid[pValid[i-1]-1] +
-                countValid[pValid[j-1]-1])))*(
-                countValid[pValid[i-1]-1]*NGTDM[pValid[i-1]-1] +
-                countValid[pValid[j-1]-1]*NGTDM[pValid[j-1]-1])
+                p_valid[i-1]-p_valid[j-1]) / (nTot*(
+                count_valid[p_valid[i-1]-1] +
+                count_valid[p_valid[j-1]-1])))*(
+                count_valid[p_valid[i-1]-1]*NGTDM[p_valid[i-1]-1] +
+                count_valid[p_valid[j-1]-1]*NGTDM[p_valid[j-1]-1])
 
     ngtdm['Fngt_complexity'] = val
 
@@ -98,10 +98,10 @@ def getNGTDMfeatures(vol, distCorrection=None) -> Dict:
         ngtdm['Fngt_strength'] = 0
     else:
         val = 0
-        for i in range(1, nValid+1):
-            for j in range(1, nValid+1):
-                val = val + (countValid[pValid[i-1]-1] + countValid[pValid[j-1]-1])*(
-                    pValid[i-1]-pValid[j-1])**2
+        for i in range(1, n_valid+1):
+            for j in range(1, n_valid+1):
+                val = val + (count_valid[p_valid[i-1]-1] + count_valid[p_valid[j-1]-1])*(
+                    p_valid[i-1]-p_valid[j-1])**2
 
         ngtdm['Fngt_strength'] = val/np.sum(NGTDM)
 

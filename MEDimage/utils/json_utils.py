@@ -35,7 +35,7 @@ def posix_to_string(dictionnary) -> None:
         if type(value) is dict:
             posix_to_string(value)
         else:
-            dictionnary[key] = str(value) if is_instance(value, pathlib.PosixPath) else value
+            dictionnary[key] = str(value) if isinstance(value, pathlib.PosixPath) else value
 
 
 def load_json(file_path) -> json.__dict__:

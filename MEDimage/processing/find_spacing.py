@@ -6,7 +6,7 @@ import numpy as np
 from ..utils.mode import mode
 
 
-def findSpacing(points, scanType) -> float:
+def find_spacing(points, scan_type) -> float:
     """
     Finds the slice spacing in mm.
 
@@ -17,29 +17,29 @@ def findSpacing(points, scanType) -> float:
     Args:
         points (ndarray): Array of (x,y,z) triplets defining a contour in the 
             Patient-Based Coordinate System extracted from DICOM RTstruct.
-        scanType (str): Imaging modality (MRscan, CTscan...) 
+        scan_type (str): Imaging modality (MRscan, CTscan...) 
 
     Returns:
         float: Slice spacing in mm.
 
     """
-    decimKeep = 4  # We keep at most 4 decimals to find the slice spacing.
+    decim_keep = 4  # We keep at most 4 decimals to find the slice spacing.
 
     # Rounding to the nearest 0.1 mm, MRI is more problematic due to arbitrary
     # orientations allowed for imaging volumes.
-    if scanType == "MRscan":
+    if scan_type == "MRscan":
         slices = np.unique(np.around(points, 1))
     else:
         slices = np.unique(np.around(points, 2))
 
-    nSlices = len(slices)
-    if nSlices == 1:
+    n_slices = len(slices)
+    if n_slices == 1:
         return None
 
     diff = np.abs(np.diff(slices))
-    diff = np.round(diff, decimKeep)
-    sliceSpacing, nOcc = mode(x=diff, return_counts=True)
+    diff = np.round(diff, decim_keep)
+    slice_spacing, nOcc = mode(x=diff, return_counts=True)
     if np.max(nOcc) == 1:
-        sliceSpacing = np.mean(diff)
+        slice_spacing = np.mean(diff)
 
-    return sliceSpacing
+    return slice_spacing

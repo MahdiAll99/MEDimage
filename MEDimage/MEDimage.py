@@ -11,31 +11,31 @@ from numpyencoder import NumpyEncoder
 from PIL import Image
 from pydicom.dataset import FileDataset
 
-from MEDimage.processing.computeSUVmap import computeSUVmap
+from MEDimage.processing.compute_suv_map import compute_suv_map
 
 from .utils.imref import imref3d
 
 
 class MEDimage(object):
-    """Organizes all scan data (patientID, imaging data, scan type...). 
+    """Organizes all scan data (patient_id, imaging data, scan type...). 
 
     Args:
         MEDimg (MEDimage, optional): A MEDimage instance.
 
     Attributes:
-        patientID (str): Patient ID.
+        patient_id (str): Patient ID.
         type (str): Scan type (MRscan, CTscan...).
         format (str): Scan file format. Either 'npy' or 'nifti'.
-        dicomH (pydicom.dataset.FileDataset): DICOM header.
+        dicom_h (pydicom.dataset.FileDataset): DICOM header.
         scan (MEDimage.scan): Instance of MEDimage.scan inner class.
 
     """
 
     def __init__(self, MEDimg=None, logger=None) -> None:
         try:
-            self.patientID = MEDimg.patientID
+            self.patient_id = MEDimg.patient_id
         except:
-            self.patientID = ""
+            self.patient_id = ""
         try:
             self.type = MEDimg.type
         except:
@@ -45,9 +45,9 @@ class MEDimage(object):
         except:
             self.format = ""
         try:
-            self.dicomH = MEDimg.dicomH
+            self.dicom_h = MEDimg.dicom_h
         except:
-            self.dicomH = []
+            self.dicom_h = []
         try:
             self.scan = MEDimg.scan
         except:
@@ -73,7 +73,7 @@ class MEDimage(object):
     def init_Params(self, imParamScan, imParamFilter, **kwargs):
 
         try:
-            boxString = 'box10'
+            box_string = 'box10'
             # 10 voxels in all three dimensions are added to the smallest
             # bounding box. This setting is used to speed up interpolation
             # processes (mostly) prior to the computation of radiomics
@@ -95,7 +95,7 @@ class MEDimage(object):
             algo = imParamScan['image']['discretisation']['texture']['type']
             grayLevels = imParamScan['image']['discretisation']['texture']['val']
             if self.type == 'PTscan':
-                _compute_SUV_map = imParamScan['image']['computeSUVmap']
+                _compute_SUV_map = imParamScan['image']['compute_suv_map']
             else :
                 _compute_SUV_map = False
             im_type = imParamScan['image']['type'] # TODO: Discover the usage of this variable!
@@ -114,8 +114,8 @@ class MEDimage(object):
                 computeDiagFeatures = False
 
             if computeDiagFeatures:  # If computeDiagFeatures is true.
-                boxString = 'full'  # This is required for proper comparison.
-                self.params['boxString'] = boxString
+                box_string = 'full'  # This is required for proper comparison.
+                self.params['box_string'] = box_string
             
             self.params['radiomics'] = radiomics
             self.params['filter'] = imParamFilter
@@ -136,7 +136,7 @@ class MEDimage(object):
             self.params['intensity'] = intensity
             self.params['computeDiagFeatures'] = computeDiagFeatures
             self.params['distCorrection'] = distCorrection
-            self.params['boxString'] = boxString
+            self.params['box_string'] = box_string
             self.params['scaleName'] = ''
             self.params['IHname'] = ''
             self.params['IVHname'] = ''
@@ -147,9 +147,9 @@ class MEDimage(object):
                 except:
                     pass
 
-            if self.params['boxString'] is None:
-                # boxString argument is optional. If not present, we use the full box.
-                self.params['boxString'] = 'full'
+            if self.params['box_string'] is None:
+                # box_string argument is optional. If not present, we use the full box.
+                self.params['box_string'] = 'full'
 
             # SETTING UP userSetMinVal
             if self.params['im_range'] is not None and type(self.params['im_range']) is list and self.params['im_range']:
@@ -169,7 +169,7 @@ class MEDimage(object):
             self.nExp = self.nScale * self.nAlgo * self.nGl
             if self.type == 'PTscan' and _compute_SUV_map:
                 try:
-                    self.scan.volume.data = computeSUVmap(self.scan.volume.data, self.dicomH[0])
+                    self.scan.volume.data = compute_suv_map(self.scan.volume.data, self.dicom_h[0])
                 except Exception as e :
                     message = f"\n ERROR COMPUTING SUV MAP - SOME FEATURES WILL BE INVALID: \n {e}"
                     logging.error(message)
@@ -182,7 +182,7 @@ class MEDimage(object):
             print(message)
             self.skip = True
 
-    def init_ntf_calculation(self, volObj):
+    def init_ntf_calculation(self, vol_obj):
         """
         Initializes all the computation parameters for NON-TEXTURE FEATURES 
         as well as the results dict.
@@ -191,15 +191,15 @@ class MEDimage(object):
         try:
             if sum(self.params['scaleNonText']) == 0:  # In case the user chose to not interpolate
                 self.params['scaleNonText'] = [
-                                        volObj.spatialRef.PixelExtentInWorldX,
-                                        volObj.spatialRef.PixelExtentInWorldY,
-                                        volObj.spatialRef.PixelExtentInWorldZ]
+                                        vol_obj.spatial_ref.PixelExtentInWorldX,
+                                        vol_obj.spatial_ref.PixelExtentInWorldY,
+                                        vol_obj.spatial_ref.PixelExtentInWorldZ]
             else:
                 if len(self.params['scaleNonText']) == 2:
                     # In case not interpolation is performed in
                     # the slice direction (e.g. 2D case)
                     self.params['scaleNonText'] = self.params['scaleNonText'] + \
-                        [volObj.spatialRef.PixelExtentInWorldZ]
+                        [vol_obj.spatial_ref.PixelExtentInWorldZ]
 
             # Scale name
             # Always isotropic resampling, so the first entry is ok.
@@ -353,7 +353,7 @@ class MEDimage(object):
             None.
         
         """
-        self.patientID = os.path.basename(NiftiImagePath).split("_")[0]
+        self.patient_id = os.path.basename(NiftiImagePath).split("_")[0]
         self.type = os.path.basename(NiftiImagePath).split(".")[-3]
         self.format = "nifti"
         self.scan.set_orientation(orientation="Axial")
@@ -404,22 +404,22 @@ class MEDimage(object):
         """
         path_save = Path(path_save)
 
-        self.params['radiomics']['imParam']['roiType'] = type_of_roi
-        self.params['radiomics']['imParam']['patientID'] = self.patientID
-        self.params['radiomics']['imParam']['voxDim'] = list([
-                                                            self.scan.volume.spatialRef.PixelExtentInWorldX, 
-                                                            self.scan.volume.spatialRef.PixelExtentInWorldY,
-                                                            self.scan.volume.spatialRef.PixelExtentInWorldZ
+        self.params['radiomics']['imParam']['roi_type'] = type_of_roi
+        self.params['radiomics']['imParam']['patient_id'] = self.patient_id
+        self.params['radiomics']['imParam']['vox_dim'] = list([
+                                                            self.scan.volume.spatial_ref.PixelExtentInWorldX, 
+                                                            self.scan.volume.spatial_ref.PixelExtentInWorldY,
+                                                            self.scan.volume.spatial_ref.PixelExtentInWorldZ
                                                             ])
 
         indDot = scan_file_name[patient_num].find('.')
         ext = scan_file_name[patient_num].find('.npy')
-        nameSave = scan_file_name[patient_num][:indDot] + \
+        name_save = scan_file_name[patient_num][:indDot] + \
             '(' + label_of_roi_type + ')' + scan_file_name[patient_num][indDot:ext]
 
         # IMPORTANT: HERE, WE COULD ADD SOME CODE TO APPEND A NEW "radiomics"
-        # STRUCTURE TO AN EXISTING ONE WITH THE SAME NAME IN "pathSave"
-        with open(path_save / f"{nameSave}.json", "w") as fp:   
+        # STRUCTURE TO AN EXISTING ONE WITH THE SAME NAME IN "path_save"
+        with open(path_save / f"{name_save}.json", "w") as fp:   
             dump(self.params['radiomics'], fp, indent=4, cls=NumpyEncoder)
 
     class scan:
@@ -566,38 +566,38 @@ class MEDimage(object):
             """Organizes all volume data and information. 
 
             Args:
-                spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
+                spatial_ref (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                 scanRot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
                 data (ndarray, optional): n-dimensional of the imaging data.
                 filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
                         imaging data.
 
             Attributes:
-                spatialRef (imref3d): Imaging data orientation (axial, sagittal or coronal).
+                spatial_ref (imref3d): Imaging data orientation (axial, sagittal or coronal).
                 scanRot (ndarray): Array of the rotation applied to the XYZ points of the ROI.
                 data (ndarray): n-dimensional of the imaging data.
                 filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
                     imaging data.
 
             """
-            def __init__(self, spatialRef=None, scanRot=None, data=None, filtered_data={}):
+            def __init__(self, spatial_ref=None, scanRot=None, data=None, filtered_data={}):
                 """Organizes all volume data and information. 
 
                 Args:
-                    spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
+                    spatial_ref (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                     scanRot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
                     data (ndarray, optional): n-dimensional of the imaging data.
                     filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
                         imaging data.
 
                 """
-                self.spatialRef = spatialRef
+                self.spatial_ref = spatial_ref
                 self.scanRot = scanRot
                 self.data = data
                 self.filtered_data = filtered_data
 
-            def update_spatialRef(self, spatialRef_value):
-                self.spatialRef = spatialRef_value
+            def update_spatial_ref(self, spatial_ref_value):
+                self.spatial_ref = spatial_ref_value
             
             def update_scanRot(self, scanRot_value):
                 self.scanRot = scanRot_value
@@ -648,9 +648,9 @@ class MEDimage(object):
                 # to LPS
                 self.data = self.data.swapaxes(0, 1) #TODO
             
-            def spatialRef_from_NIFTI(self, nifti_image_path):
-                """Computes the imref3d spatialRef using a NIFTI file and
-                updates the spatialRef attribute.
+            def spatial_ref_from_NIFTI(self, nifti_image_path):
+                """Computes the imref3d spatial_ref using a NIFTI file and
+                updates the spatial_ref attribute.
 
                 Args:
                     NiftiImagePath (str): String of the NIFTI file path.
@@ -663,40 +663,40 @@ class MEDimage(object):
                 nifti = nib.load(nifti_image_path)
                 nifti_data = self.data
 
-                # spatialRef Creation
-                pixelX = nifti.affine[0, 0]
-                pixelY = nifti.affine[1, 1]
-                sliceS = nifti.affine[2, 2]
+                # spatial_ref Creation
+                pixel_x = nifti.affine[0, 0]
+                pixel_y = nifti.affine[1, 1]
+                slice_s = nifti.affine[2, 2]
                 min_grid = nifti.affine[:3, 3]
-                min_Xgrid = min_grid[0]
-                min_Ygrid = min_grid[1]
-                min_Zgrid = min_grid[2]
+                min_x_grid = min_grid[0]
+                min_y_grid = min_grid[1]
+                min_z_grid = min_grid[2]
                 size_image = np.shape(nifti_data)
-                spatialRef = imref3d(size_image, abs(pixelX), abs(pixelY), abs(sliceS))
-                spatialRef.XWorldLimits = (np.array(spatialRef.XWorldLimits) -
-                                        (spatialRef.XWorldLimits[0] -
-                                            (min_Xgrid-pixelX/2))
+                spatial_ref = imref3d(size_image, abs(pixel_x), abs(pixel_y), abs(slice_s))
+                spatial_ref.XWorldLimits = (np.array(spatial_ref.XWorldLimits) -
+                                        (spatial_ref.XWorldLimits[0] -
+                                            (min_x_grid-pixel_x/2))
                                         ).tolist()
-                spatialRef.YWorldLimits = (np.array(spatialRef.YWorldLimits) -
-                                        (spatialRef.YWorldLimits[0] -
-                                            (min_Ygrid-pixelY/2))
+                spatial_ref.YWorldLimits = (np.array(spatial_ref.YWorldLimits) -
+                                        (spatial_ref.YWorldLimits[0] -
+                                            (min_y_grid-pixel_y/2))
                                         ).tolist()
-                spatialRef.ZWorldLimits = (np.array(spatialRef.ZWorldLimits) -
-                                        (spatialRef.ZWorldLimits[0] -
-                                            (min_Zgrid-sliceS/2))
+                spatial_ref.ZWorldLimits = (np.array(spatial_ref.ZWorldLimits) -
+                                        (spatial_ref.ZWorldLimits[0] -
+                                            (min_z_grid-slice_s/2))
                                         ).tolist()
 
                 # Converting the results into lists
-                spatialRef.ImageSize = spatialRef.ImageSize.tolist()
-                spatialRef.XIntrinsicLimits = spatialRef.XIntrinsicLimits.tolist()
-                spatialRef.YIntrinsicLimits = spatialRef.YIntrinsicLimits.tolist()
-                spatialRef.ZIntrinsicLimits = spatialRef.ZIntrinsicLimits.tolist()
+                spatial_ref.ImageSize = spatial_ref.ImageSize.tolist()
+                spatial_ref.XIntrinsicLimits = spatial_ref.XIntrinsicLimits.tolist()
+                spatial_ref.YIntrinsicLimits = spatial_ref.YIntrinsicLimits.tolist()
+                spatial_ref.ZIntrinsicLimits = spatial_ref.ZIntrinsicLimits.tolist()
 
-                # update spatialRef
-                self.update_spatialRef(spatialRef)
+                # update spatial_ref
+                self.update_spatial_ref(spatial_ref)
 
-            def convert_spatialRef(self):
-                """converts the MEDimage spatialRef from RAS to LPS coordinates system.
+            def convert_spatial_ref(self):
+                """converts the MEDimage spatial_ref from RAS to LPS coordinates system.
                 <https://www.slicer.org/wiki/Coordinate_systems>.
 
                 Args:
@@ -707,21 +707,21 @@ class MEDimage(object):
 
                 """
                 # swap x and y data
-                temp = self.spatialRef.ImageExtentInWorldX
-                self.spatialRef.ImageExtentInWorldX = self.spatialRef.ImageExtentInWorldY
-                self.spatialRef.ImageExtentInWorldY = temp
+                temp = self.spatial_ref.ImageExtentInWorldX
+                self.spatial_ref.ImageExtentInWorldX = self.spatial_ref.ImageExtentInWorldY
+                self.spatial_ref.ImageExtentInWorldY = temp
 
-                temp = self.spatialRef.PixelExtentInWorldX
-                self.spatialRef.PixelExtentInWorldX = self.spatialRef.PixelExtentInWorldY
-                self.spatialRef.PixelExtentInWorldY = temp
+                temp = self.spatial_ref.PixelExtentInWorldX
+                self.spatial_ref.PixelExtentInWorldX = self.spatial_ref.PixelExtentInWorldY
+                self.spatial_ref.PixelExtentInWorldY = temp
 
-                temp = self.spatialRef.XIntrinsicLimits
-                self.spatialRef.XIntrinsicLimits = self.spatialRef.YIntrinsicLimits
-                self.spatialRef.YIntrinsicLimits = temp
+                temp = self.spatial_ref.XIntrinsicLimits
+                self.spatial_ref.XIntrinsicLimits = self.spatial_ref.YIntrinsicLimits
+                self.spatial_ref.YIntrinsicLimits = temp
 
-                temp = self.spatialRef.XWorldLimits
-                self.spatialRef.XWorldLimits = self.spatialRef.YWorldLimits
-                self.spatialRef.YWorldLimits = temp
+                temp = self.spatial_ref.XWorldLimits
+                self.spatial_ref.XWorldLimits = self.spatial_ref.YWorldLimits
+                self.spatial_ref.YWorldLimits = temp
                 del temp
 
         class ROI:
@@ -734,17 +734,17 @@ class MEDimage(object):
             Attributes:
                 indexes (Dict): Dict of the ROI indexes for each ROI name.
                 roi_names (Dict): Dict of the ROI names.
-                nameSet (Dict): Dict of the User-defined name for Structure Set for each ROI name.
-                nameSetInfo (Dict): Dict of the names of the structure sets that define the areas of 
-                    significance. Either 'StructureSetName', 'StructureSetDescription', 'SeriesDescription' 
+                name_set (Dict): Dict of the User-defined name for Structure Set for each ROI name.
+                name_set_info (Dict): Dict of the names of the structure sets that define the areas of 
+                    significance. Either 'StructureSetName', 'StructureSetDescription', 'series_description' 
                     or 'SeriesInstanceUID'.
 
             """
             def __init__(self, indexes=None, roi_names=None) -> None:
                 self.indexes = indexes if indexes else {}
                 self.roi_names = roi_names if roi_names else {}
-                self.nameSet = roi_names if roi_names else {}
-                self.nameSetInfo = roi_names if roi_names else {}
+                self.name_set = roi_names if roi_names else {}
+                self.name_set_info = roi_names if roi_names else {}
 
             def get_indexes(self, key):
                 if not self.indexes or key is None:
@@ -759,16 +759,16 @@ class MEDimage(object):
                     return self.roi_names[str(key)]
 
             def get_nameSet(self, key):
-                if not self.nameSet or key is None:
+                if not self.name_set or key is None:
                     return {}
                 else:
-                    return self.nameSet[str(key)]
+                    return self.name_set[str(key)]
 
             def get_nameSetInfo(self, key):
-                if not self.nameSetInfo or key is None:
+                if not self.name_set_info or key is None:
                     return {}
                 else:
-                    return self.nameSetInfo[str(key)]
+                    return self.name_set_info[str(key)]
 
             def update_indexes(self, key, indexes):
                 try: 
@@ -782,15 +782,15 @@ class MEDimage(object):
                 except:
                     Warning.warn("Wrong key given in update_ROIname()")
 
-            def update_nameSet(self, key, nameSet):
+            def update_nameSet(self, key, name_set):
                 try:
-                    self.nameSet[str(key)] = nameSet
+                    self.name_set[str(key)] = name_set
                 except:
                     Warning.warn("Wrong key given in update_nameSet()")
 
-            def update_nameSetInfo(self, key, nameSetInfo):
+            def update_nameSetInfo(self, key, name_set_info):
                 try:
-                    self.nameSetInfo[str(key)] = nameSetInfo
+                    self.name_set_info[str(key)] = name_set_info
                 except:
                     Warning.warn("Wrong key given in update_nameSetInfo()")
             
@@ -836,8 +836,8 @@ class MEDimage(object):
                 """
                 self.indexes = {}
                 self.roi_names = {}
-                self.nameSet = {}
-                self.nameSetInfo = {}
+                self.name_set = {}
+                self.name_set_info = {}
                 roi_index = 0
                 ListOfPatients = os.listdir(ROI_path)
 
@@ -847,8 +847,8 @@ class MEDimage(object):
                         roi = nib.load(ROI_path + "/" + file)
                         roi_data = self.convert_to_LPS(data=roi.get_fdata())
                         roi_name = file[file.find("(")+1:file.find(")")]
-                        nameSet = file[file.find("_")+2:file.find("(")]
+                        name_set = file[file.find("_")+2:file.find("(")]
                         self.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
-                        self.update_nameSet(key=roi_index, nameSet=nameSet)
+                        self.update_nameSet(key=roi_index, name_set=name_set)
                         self.update_ROIname(key=roi_index, ROIname=roi_name)
                         roi_index += 1
