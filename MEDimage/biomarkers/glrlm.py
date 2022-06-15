@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from deprecated import deprecated
 
-from ..biomarkers.getGLRLMmatrix import getGLRLMmatrix
+from ..biomarkers.get_glrlm_matrix import get_glrlm_matrix
 from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   is_list_all_none)
 
@@ -712,9 +712,9 @@ def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
 
     if distCorrection is None:
-        GLRLM = getGLRLMmatrix(vol, levels)
+        GLRLM = get_glrlm_matrix(vol, levels)
     else:
-        GLRLM = (getGLRLMmatrix(vol, levels, distCorrection))
+        GLRLM = (get_glrlm_matrix(vol, levels, distCorrection))
 
     n_s = np.sum(GLRLM)
     GLRLM = GLRLM/n_s  # Normalization of GLRLM

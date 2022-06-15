@@ -6,10 +6,10 @@ from typing import Dict
 
 import numpy as np
 
-from ..biomarkers.getNGTDMmatrix import getNGTDMmatrix
+from ..biomarkers.get_ngtdm_matrix import get_ngtdm_matrix
 
 
-def getNGTDMfeatures(vol, distCorrection=None) -> Dict:
+def extract_all(vol, distCorrection=None) -> Dict:
     """Compute NGTDM features.
 
     Args:
@@ -39,9 +39,9 @@ def getNGTDMfeatures(vol, distCorrection=None) -> Dict:
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
 
     if distCorrection is None:
-        NGTDM, count_valid = getNGTDMmatrix(vol, levels)
+        NGTDM, count_valid = get_ngtdm_matrix(vol, levels)
     else:
-        NGTDM, count_valid = getNGTDMmatrix(vol, levels, distCorrection)
+        NGTDM, count_valid = get_ngtdm_matrix(vol, levels, distCorrection)
 
     nTot = np.sum(count_valid)
     # Now representing the probability of gray-level occurences

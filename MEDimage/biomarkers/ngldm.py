@@ -5,12 +5,12 @@
 import numpy as np
 import pandas as pd
 
-from ..biomarkers.getNGLDMmatrix import getNGLDMmatrix
+from ..biomarkers.get_ngldm_matrix import get_ngldm_matrix
 from copy import deepcopy
 from ..utils.textureTools import get_neighbour_direction, is_list_all_none, coord2index, get_value
 
 
-def getNGLDMfeatures(vol, method="new"):
+def extract_all(vol, method="new"):
     """Compute NGLDMfeatures.
     -------------------------------------------------------------------------
      - vol: 3D volume, isotropically resampled, quantized,
@@ -513,7 +513,7 @@ def get_ngldm_features_deprecated(vol):
     # GET THE NGLDM MATRIX
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
-    NGLDM = getNGLDMmatrix(vol, levels)
+    NGLDM = get_ngldm_matrix(vol, levels)
     n_s = np.sum(NGLDM)
     # Normalization of NGLDM
     NGLDM = NGLDM/n_s

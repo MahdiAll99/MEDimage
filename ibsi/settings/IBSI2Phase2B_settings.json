@@ -1,12 +1,12 @@
 {
   "image" : {
     "interp" : {
-      "scaleNonText" : [1, 1, 1],
-      "scaleText" : [[1, 1, 1]],
-      "volInterp" : "cubic",
-      "glRound" : 1,
-      "roiInterp" : "linear",
-      "roiPV" : 0.5
+      "scale_non_text" : [1, 1, 1],
+      "scale_text" : [[1, 1, 1]],
+      "vol_interp" : "cubic",
+      "gl_round" : 1,
+      "roi_interp" : "linear",
+      "roi_pv" : 0.5
     },
     "reSeg" : {
       "range" : [-1000, 400],

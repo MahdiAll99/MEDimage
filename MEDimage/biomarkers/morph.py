@@ -10,7 +10,7 @@ from ..biomarkers.get_geary_c import get_geary_c
 from ..biomarkers.get_mesh_area import get_mesh_area
 from ..biomarkers.get_mesh_volume import get_mesh_volume
 from ..biomarkers.get_moran_i import get_moran_i
-from ..biomarkers.getOrientedBoundBox import minOrientedBoundBox
+from ..biomarkers.getOrientedBoundBox import min_oriented_bound_box
 from ..biomarkers.min_vol_ellipse import min_vol_ellipse as minv
 from ..biomarkers.utils import (get_area_dens_approx, get_axis_lengths, getCOM,
                                 getMesh)
@@ -220,7 +220,7 @@ def extract_all(vol,
         # Determination of the minimum bounding box of an
         # arbitrary solid: an iterative approach.
         # Comp Struc 79 (2001) 1433-1449
-        bound_box_dims = minOrientedBoundBox(vertices)
+        bound_box_dims = min_oriented_bound_box(vertices)
         vol_bb = np.prod(bound_box_dims)
         morph['Fmorph_v_dens_ombb'] = volume / vol_bb
 

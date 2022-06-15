@@ -7,7 +7,7 @@ import numpy as np
 import skimage.measure as skim
 
 
-def getGLSZMmatrix(roi_only, levels) -> Dict:
+def get_glszm_matrix(roi_only, levels) -> Dict:
     """Compute GLSZMmatrix.
 
     This function computes the Gray-Level Size Zone Matrix (GLSZM) of the

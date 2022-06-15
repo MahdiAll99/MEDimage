@@ -23,8 +23,8 @@ from ..utils.save_MEDimage import save_MEDimage
 
 @ray.remote
 def process_dicom_scan_files(
-                            pathImages: Path, 
-                            pathRS: Path = None,
+                            path_images: Path, 
+                            path_rs: Path = None,
                             path_save: Path = None
                             ) -> MEDimage:
     """
@@ -35,50 +35,23 @@ def process_dicom_scan_files(
         path_save (Path): String specifying the full path to the directory where to
             save all the MEDimage class created by the current
             function.
-        pathImages (Path): Cell of strings, where each string specifies the full path
+        path_images (Path): Cell of strings, where each string specifies the full path
             to a DICOM image of single volume.
-        pathRS: (Path, optional). Cell of strings, where each string specifies the
+        path_rs: (Path, optional). Cell of strings, where each string specifies the
             full path to a DICOM RTstruct of a single volume.
                 --> Options:- cell_path_rs{1} from readAllDICOM.m
                             - Empty array or cell ([],{})
                             - No argument
-        pathREG: (Path, optional). Cell of strings, where each string specifies the
-            full path to a DICOM REG of a single volume.
-                --> Options:- cellPathREG{1} from readAllDICOM.m
-                            - Empty array or cell ([],{})
-                            - No argument if 'pathRD', 'pathRP' and
-                                'name_save' are also not provided
-        pathRD: (Path, optional). Cell of strings, where each string specifies the
-            full path to a DICOM RTdose of a single volume.
-                --> Options:- cellPathRD{1} from readAllDICOM.m
-                            - Empty array or cell ([],{})
-                            - No argument if 'pathRP' and 'name_save' are also
-                                not provided
-        pathRP: (Path, optional). Cell of strings, where each string specifies the
-            full path to a DICOM RTplan of a single volume.
-                --> Options:- cellPathRP{1} from readAllDICOM.m
-                            - Empty array or cell ([],{})
-                            - No argument if 'name_save' is also not provided
-        name_save: (str, optional). String specifying with what name the pickle object 
-            file will be saved. If defined as 'modality', the Modality field
-            of the DICOM headers of the imaging volume will also be used
-            for 'name_save'. The saving format is the following:
-            '(patient_id)_(name_save).(modality)scan.mat'
-                --> Options:- User-defined. Ex: 'myScanName'
-                            - No argument (default: 'series_description'
-                                field of DICOM headers of imaging volume)
-                            - 'modality'
-
     Returns:
         MEDimg (MEDimage): Instance of a MEDimage class.
     """
 
     # Since we created a worker, we need to add code path to the system
-    import MEDimage.utils.combineSlices as cs
+    import MEDimage.utils.combine_slices as cs
     import MEDimage.utils.imref as ref
 
     # PARTIAL PARSING OF ARGUMENTS
-    if pathImages is None:
+    if path_images is None:
         raise ValueError('At least two arguments must be provided')
 
     # INITIALIZATION
@@ -86,9 +59,9 @@ def process_dicom_scan_files(
 
     # IMAGING DATA AND ROI DEFINITION (if applicable)
     # Reading DICOM images and headers
-    n_slices = len(pathImages)
+    n_slices = len(path_images)
     dicom_hi = [pydicom.dcmread(str(dicom_file), force=True)
-               for dicom_file in pathImages]
+               for dicom_file in path_images]
 
     # Determination of the scan orientation
     try:
@@ -114,7 +87,7 @@ def process_dicom_scan_files(
         # missing slices and oblique restrictions apply see the reference:
         # https://dicom-numpy.readthedocs.io/en/latest/index.html#dicom_numpy.combine_slices
         try:
-            voxel_ndarray, ijk_to_xyz, rotation_m, scaling_m = cs.combineSlices(dicom_hi)
+            voxel_ndarray, ijk_to_xyz, rotation_m, scaling_m = cs.combine_slices(dicom_hi)
         except ValueError:
             # invalid DICOM data
             raise ValueError('Invalid DICOM data for dicom_numpy.combine_slices')
@@ -160,7 +133,7 @@ def process_dicom_scan_files(
             pydicom.dcmread(str(dicom_file),
                             stop_before_pixels=True,
                             force=True)
-            for dicom_file in pathImages]
+            for dicom_file in path_images]
 
         for i in range(0, len(dicom_h)):
             dicom_h[i].remove_private_tags()
@@ -168,12 +141,12 @@ def process_dicom_scan_files(
         MEDimg.dicom_h = dicom_h
 
         # DICOM RTstruct (if applicable)
-        if pathRS is not None and len(pathRS) > 0:
+        if path_rs is not None and len(path_rs) > 0:
             dicom_rs_full = [
                 pydicom.dcmread(str(dicom_file),
                                 stop_before_pixels=True,
                                 force=True)
-                for dicom_file in pathRS
+                for dicom_file in path_rs
             ]
 
             for i in range(0, len(dicom_rs_full)):

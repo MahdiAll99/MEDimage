@@ -131,21 +131,21 @@ class MEDimageProcessing(MEDimage):
                 self.Params['box_string'] = 'full'
 
             # *******************************
-            # ** SETTING UP userSetMinVal  **
+            # ** SETTING UP user_set_min_val  **
             # *******************************
 
             if self.Params['im_range'] is not None and type(self.Params['im_range']) is list and self.Params['im_range']:
-                userSetMinVal = self.Params['im_range'][0]
-                if userSetMinVal == -np.inf:
+                user_set_min_val = self.Params['im_range'][0]
+                if user_set_min_val == -np.inf:
                     # In case no re-seg im_range is defined for the FBS algorithm,
                     # the minimum value of ROI will be used (not recommended).
-                    userSetMinVal = []
+                    user_set_min_val = []
             else:
                 # In case no re-seg im_range is defined for the FBS algorithm,
                 # the minimum value of ROI will be used (not recommended).
-                userSetMinVal = [] 
+                user_set_min_val = [] 
 
-            self.Params['userSetMinVal'] = userSetMinVal
+            self.Params['user_set_min_val'] = user_set_min_val
             self.nScale = len(self.Params['scaleText'])
             self.nAlgo = len(self.Params['algo'])
             self.nGl = len(self.Params['grayLevels'][0])

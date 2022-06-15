@@ -8,7 +8,7 @@ import pandas as pd
 from scipy.spatial import ConvexHull
 
 
-def minOrientedBoundBox(pos_mat):
+def min_oriented_bound_box(pos_mat):
     # Implementation of Chan and Tan's algorithm (C.K. Chan, S.T. Tan.
     # Determination of the minimum bounding box of an
     # arbitrary solid: an iterative approach. Comp Struc 79 (2001) 1433-1449

@@ -10,7 +10,7 @@ from ..biomarkers.Wei_Toolbox.rle_0 import  rle_0 as rle
 from ..biomarkers.Wei_Toolbox.rle_45 import  rle_45 as rle45
 from ..biomarkers.Wei_Toolbox.zigzag import  zigzag as zig
 
-def getGLRLMmatrix(roi_only, levels, distCorrection=None) -> np.ndarray:
+def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
     """Compute GLRLM matrix.
 
     This function computes the Gray-Level Run-Length Matrix (GLRLM) of the

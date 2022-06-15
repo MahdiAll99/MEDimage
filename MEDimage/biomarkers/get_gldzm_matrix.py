@@ -10,7 +10,7 @@ import scipy.ndimage as sc
 import skimage.measure as skim
 
 
-def getGLDZMmatrix(roi_only_int, mask, levels) -> np.ndarray:
+def get_gldzm_matrix(roi_only_int, mask, levels) -> np.ndarray:
     """Computes GLDZM matrix.
 
     Args:

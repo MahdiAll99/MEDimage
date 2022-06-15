@@ -5,7 +5,7 @@
 import numpy as np
 
 
-def getGLCMmatrix(roi_only, levels, distCorrection=True) -> np.ndarray:
+def get_glcm_matrix(roi_only, levels, distCorrection=True) -> np.ndarray:
     """Computes GLCM matrix.
 
     This function computes the Gray-Level Co-occurence Matrix (GLCM) of the

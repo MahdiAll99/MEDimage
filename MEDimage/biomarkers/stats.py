@@ -19,7 +19,7 @@ def mean(vol):
     return np.mean(X)
 
 def extract_all(vol, intensity=None):
-    """Compute StatsFeatures.
+    """Compute stats.
 
     - vol: 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
         --> vol: continuos imaging intensity distribution

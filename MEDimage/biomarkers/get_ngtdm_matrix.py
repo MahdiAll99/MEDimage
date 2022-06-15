@@ -6,7 +6,7 @@ from typing import Tuple
 import numpy as np
 
 
-def getNGTDMmatrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray, np.ndarray]:
+def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray, np.ndarray]:
     """Computes NGTDM matrix.
 
     This function computes the Neighborhood Gray-Tone Difference Matrix

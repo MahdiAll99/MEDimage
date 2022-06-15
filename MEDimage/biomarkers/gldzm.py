@@ -6,7 +6,7 @@ from typing import Dict
 
 import numpy as np
 
-from ..biomarkers.getGLDZMmatrix import getGLDZMmatrix
+from ..biomarkers.get_gldzm_matrix import get_gldzm_matrix
 
 
 def get_matrix(volInt, mask_morph):
@@ -17,7 +17,7 @@ def get_matrix(volInt, mask_morph):
     levels = np.arange(1, np.max(volInt[~np.isnan(volInt[:])])+1)
 
     # GET THE GLDZM MATRIX
-    GLDZM = getGLDZMmatrix(volInt, mask_morph, levels)
+    GLDZM = get_gldzm_matrix(volInt, mask_morph, levels)
 
     return GLDZM
     
@@ -67,7 +67,7 @@ def extract_all(volInt, mask_morph) -> Dict:
     levels = np.arange(1, np.max(volInt[~np.isnan(volInt[:])])+1)
 
     # GET THE GLDZM MATRIX
-    GLDZM = getGLDZMmatrix(volInt, mask_morph, levels)
+    GLDZM = get_gldzm_matrix(volInt, mask_morph, levels)
     n_s = np.sum(GLDZM)
     GLDZM = GLDZM/np.sum(GLDZM)  # Normalization of GLDZM
     sz = np.shape(GLDZM)  # Size of GLDZM

@@ -14,7 +14,7 @@ def equalization(vol_re) -> np.ndarray:
 
     Note:
         THIS IS A PURE "WHAT IS CONTAINED WITHIN THE ROI" EQUALIZATION. THIS IS
-        NOT INFLUENCED BY THE "userSetMinVal" USED FOR FBS DISCRESTISATION.
+        NOT INFLUENCED BY THE "user_set_min_val" USED FOR FBS DISCRESTISATION.
 
     Args:
         vol_re (ndarray): 3D array of the image volume that will be studied with 

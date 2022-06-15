@@ -14,7 +14,7 @@ def discretisation(
     vol_re, 
     discr_type, 
     nQ=None, 
-    userSetMinVal=None, 
+    user_set_min_val=None, 
     ivh=False
     ) -> Tuple[np.ndarray, float]:
     """
@@ -30,7 +30,7 @@ def discretisation(
         discr_type (str): Discretisaion approach/type MUST BE: "FBS", "FBN", "FBSequal"
             or "FBNequal".
         nQ (float): Number of bins for FBS algorithm and bin width for FBN algorithm.
-        userSetMinVal (float): Minimum of range re-segmentation for FBS discretisation,
+        user_set_min_val (float): Minimum of range re-segmentation for FBS discretisation,
             for FBN discretisation, this value has no importance as an argument
             and will not be used.
         ivh (bool): MUST BE SET TO True FOR IVH (Intensity-Volume histogram) FEATURES.
@@ -60,8 +60,8 @@ def discretisation(
 
     # DISCRETISATION
     if discr_type in ["FBS", "FBSequal"]:
-        if userSetMinVal is not None:
-            min_val = deepcopy(userSetMinVal)
+        if user_set_min_val is not None:
+            min_val = deepcopy(user_set_min_val)
         else:
             min_val = np.nanmin(vol_quant_re)
     else:

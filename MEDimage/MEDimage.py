@@ -61,7 +61,7 @@ class MEDimage(object):
         self.nGl = 0
         self.nExp = 0
         self.skip = False
-        self.scale_name = ''
+        self.scaleName = ''
         self.processing_name = ''
         self.name_text_types = []
         if logger == None:
@@ -151,18 +151,18 @@ class MEDimage(object):
                 # box_string argument is optional. If not present, we use the full box.
                 self.params['box_string'] = 'full'
 
-            # SETTING UP userSetMinVal
+            # SETTING UP user_set_min_val
             if self.params['im_range'] is not None and type(self.params['im_range']) is list and self.params['im_range']:
-                userSetMinVal = self.params['im_range'][0]
-                if userSetMinVal == -np.inf:
+                user_set_min_val = self.params['im_range'][0]
+                if user_set_min_val == -np.inf:
                     # In case no re-seg im_range is defined for the FBS algorithm,
                     # the minimum value of ROI will be used (not recommended).
-                    userSetMinVal = []
+                    user_set_min_val = []
             else:
                 # In case no re-seg im_range is defined for the FBS algorithm,
                 # the minimum value of ROI will be used (not recommended).
-                userSetMinVal = [] 
-            self.params['userSetMinVal'] = userSetMinVal
+                user_set_min_val = [] 
+            self.params['user_set_min_val'] = user_set_min_val
             self.nScale = len(self.params['scaleText'])
             self.nAlgo = len(self.params['algo'])
             self.nGl = len(self.params['grayLevels'][0])
@@ -206,62 +206,62 @@ class MEDimage(object):
             self.params['scaleName'] = 'scale' + (str(self.params['scaleNonText'][0])).replace('.', 'dot')
 
             # IH name
-            IHvalName = 'bin' + (str(self.params['IH']['val'])).replace('.', 'dot')
+            ih_val_name = 'bin' + (str(self.params['IH']['val'])).replace('.', 'dot')
 
             # The minimum value defines the computation.
             if self.params['IH']['type'].find('FBS')>=0:
-                if type(self.params['userSetMinVal']) is list and self.params['userSetMinVal']:
-                    minValName = '_min' + \
-                        ((str(self.params['userSetMinVal'])).replace('.', 'dot')).replace('-', 'M')
+                if type(self.params['user_set_min_val']) is list and self.params['user_set_min_val']:
+                    min_val_name = '_min' + \
+                        ((str(self.params['user_set_min_val'])).replace('.', 'dot')).replace('-', 'M')
                 else:
                     # Otherwise, minimum value of ROI will be used (not recommended),
                     # so no need to report it.
-                    minValName = ''
+                    min_val_name = ''
             else:
-                minValName = ''
+                min_val_name = ''
 
-            self.params['IHname'] = self.params['scaleName'] + '_algo' + self.params['IH']['type'] + '_' + IHvalName + minValName
+            self.params['IHname'] = self.params['scaleName'] + '_algo' + self.params['IH']['type'] + '_' + ih_val_name + min_val_name
 
             # IVH name
             if not self.params['IVH']:  # CT case
-                IVHAlgoName = 'algoNone'
-                IVHvalName = 'bin1'
+                ivh_algo_name = 'algoNone'
+                ivh_val_name = 'bin1'
                 if self.params['im_range']:  # The im_range defines the computation.
-                    minValName = ((str(self.params['im_range'][0])).replace(
+                    min_val_name = ((str(self.params['im_range'][0])).replace(
                         '.', 'dot')).replace('-', 'M')
-                    maxValName = ((str(self.params['im_range'][1])).replace(
+                    max_val_name = ((str(self.params['im_range'][1])).replace(
                         '.', 'dot')).replace('-', 'M')
-                    rangeName = '_min' + minValName + '_max' + maxValName
+                    range_name = '_min' + min_val_name + '_max' + max_val_name
                 else:
-                    rangeName = ''
+                    range_name = ''
             else:
-                IVHAlgoName = 'algo' + self.params['IVH']['type']
-                IVHvalName = 'bin' + (str(self.params['IVH']['val'])).replace('.', 'dot')
+                ivh_algo_name = 'algo' + self.params['IVH']['type']
+                ivh_val_name = 'bin' + (str(self.params['IVH']['val'])).replace('.', 'dot')
                 # The im_range defines the computation.
                 if 'type' in self.params['IVH'] and self.params['IVH']['type'].find('FBS') >=0:
                     if self.params['im_range']:
-                        minValName = ((str(self.params['im_range'][0])).replace(
+                        min_val_name = ((str(self.params['im_range'][0])).replace(
                             '.', 'dot')).replace('-', 'M')
-                        maxValName = ((str(self.params['im_range'][1])).replace(
+                        max_val_name = ((str(self.params['im_range'][1])).replace(
                             '.', 'dot')).replace('-', 'M')
-                        if maxValName == 'inf':
+                        if max_val_name == 'inf':
                             # In this case, the maximum value of the ROI is used,
                             # so no need to report it.
-                            rangeName = '_min' + minValName
-                        elif minValName == '-inf':
+                            range_name = '_min' + min_val_name
+                        elif min_val_name == '-inf':
                             # In this case, the minimum value of the ROI is used,
                             # so no need to report it.
-                            rangeName = '_max' + maxValName
+                            range_name = '_max' + max_val_name
                         else:
-                            rangeName = '_min' + minValName + '_max' + maxValName
+                            range_name = '_min' + min_val_name + '_max' + max_val_name
 
                     else:  # min-max of ROI will be used, no need to report it.
-                        rangeName = ''
+                        range_name = ''
 
                 else:  # min-max of ROI will be used, no need to report it.
-                    rangeName = ''
+                    range_name = ''
 
-            self.params['IVHname'] = self.params['scaleName'] + '_' + IVHAlgoName + '_' + IVHvalName + rangeName
+            self.params['IVHname'] = self.params['scaleName'] + '_' + ivh_algo_name + '_' + ivh_val_name + range_name
 
             # Now initialize the attribute that will hold the computation results
             self.results = { 
@@ -273,7 +273,7 @@ class MEDimage(object):
                             }
 
         except Exception as e:
-            message = f"\n PROBLEM WITH PRE-PROCESSING OF FEATURES IN init_NTF_Calculation(): \n {e}"
+            message = f"\n PROBLEM WITH PRE-PROCESSING OF FEATURES IN init_nft_calculation(): \n {e}"
             logging.error(message)
             print(message)
 
@@ -289,48 +289,48 @@ class MEDimage(object):
         if not hasattr(self, "params"):
             self.params = params
 
-        self.nameTextTypes = ['glcm_3Dmrg', 'glrlm_3Dmrg', 'glszm_3D', 'gldzm_3D', 'ngtdm_3D', 'ngldm_3D']
-        nTextTypes = len(self.nameTextTypes)
+        self.name_text_types = ['glcm_3Dmrg', 'glrlm_3Dmrg', 'glszm_3D', 'gldzm_3D', 'ngtdm_3D', 'ngldm_3D']
+        n_text_types = len(self.name_text_types)
 
         if not ('texture' in self.params['radiomics']['image']):
             self.params['radiomics']['image'].update({'texture': {}})
-            for t in range(nTextTypes):
-                self.params['radiomics']['image']['texture'].update({self.nameTextTypes[t]: {}})
+            for t in range(n_text_types):
+                self.params['radiomics']['image']['texture'].update({self.name_text_types[t]: {}})
 
         # Scale name
         # Always isotropic resampling, so the first entry is ok.
         scaleName = 'scale' + (str(self.params['scaleText'][Scale][0])).replace('.', 'dot')
 
         # Discretisation name
-        grayLevelsName = (str(self.params['grayLevels'][Algo][Gl])).replace('.', 'dot')
+        gray_levels_name = (str(self.params['grayLevels'][Algo][Gl])).replace('.', 'dot')
 
         if 'FBS' in self.params['algo'][Algo]:  # The minimum value defines the computation.
-            if type(self.params['userSetMinVal']) is list and self.params['userSetMinVal']:
-                minValName = '_min' + ((str(self.params['userSetMinVal'])).replace('.', 'dot')).replace('-', 'M')
+            if type(self.params['user_set_min_val']) is list and self.params['user_set_min_val']:
+                min_val_name = '_min' + ((str(self.params['user_set_min_val'])).replace('.', 'dot')).replace('-', 'M')
             else:
                 # Otherwise, minimum value of ROI will be used (not recommended),
                 # so no need to report it.
-                minValName = ''
+                min_val_name = ''
         else:
-            minValName = ''
+            min_val_name = ''
 
         if 'equal'in self.params['algo'][Algo]:
             # The number of gray-levels used for equalization is currently
             # hard-coded to 64 in equalization.m
-            discretisationName = 'algo' + self.params['algo'][Algo] + '256_bin' + grayLevelsName + minValName
+            discretisation_name = 'algo' + self.params['algo'][Algo] + '256_bin' + gray_levels_name + min_val_name
         else:
-            discretisationName = 'algo' + self.params['algo'][Algo] + '_bin' + grayLevelsName + minValName
+            discretisation_name = 'algo' + self.params['algo'][Algo] + '_bin' + gray_levels_name + min_val_name
 
         # Processing full name
-        processingName = scaleName + '_' + discretisationName
+        processing_name = scaleName + '_' + discretisation_name
         
         self.results.update({
-                            'glcm_3Dmrg': {processingName: {}},
-                            'glrlm_3Dmrg': {processingName: {}},
-                            'glszm_3D': {processingName: {}},
-                            'gldzm_3D': {processingName: {}},
-                            'ngtdm_3D': {processingName: {}},
-                            'ngldm_3D': {processingName: {}}
+                            'glcm_3Dmrg': {processing_name: {}},
+                            'glrlm_3Dmrg': {processing_name: {}},
+                            'glszm_3D': {processing_name: {}},
+                            'gldzm_3D': {processing_name: {}},
+                            'ngtdm_3D': {processing_name: {}},
+                            'ngldm_3D': {processing_name: {}}
                             })
 
         if hasattr("scaleName"):
@@ -338,10 +338,10 @@ class MEDimage(object):
         else:
             self.scaleName = scaleName
 
-        if hasattr("processingName"):
-            setattr(self, 'processingName', processingName)
+        if hasattr("processing_name"):
+            setattr(self, 'processing_name', processing_name)
         else:
-            self.processingName = processingName
+            self.processing_name = processing_name
 
     def init_from_nifti(self, NiftiImagePath) -> None:
         """Initializes the MEDimage class using a NIFTI file.
@@ -373,7 +373,7 @@ class MEDimage(object):
         """
         Updates the results attribute with the extracted features
         """
-        TextureFeatures = ['intVolHist_3D','morph_3D','locInt_3D','stats_3D','intHist_3D']
+        texture_features = ['intVolHist_3D','morph_3D','locInt_3D','stats_3D','intHist_3D']
         #Non-Texture Features
         self.results['intVolHist_3D'][self.params['IVHname']] = int_vol_hist_features
         self.results['morph_3D'][self.params['scaleName']] = morph_features
@@ -382,21 +382,21 @@ class MEDimage(object):
         self.results['intHist_3D'][self.params['IHname']] = int_hist_features
 
         #Done with non-texture features, update params with the new results
-        for feature in TextureFeatures:
+        for feature in texture_features:
             self.params['radiomics']['image'][feature] = self.results[feature]
         
         #Texture Features
-        self.results['glcm_3Dmrg'][self.processingName] = GLCM_features
-        self.results['glrlm_3Dmrg'][self.processingName] = GLRLM_features
-        self.results['glszm_3D'][self.processingName] = GLSZM_features
-        self.results['gldzm_3D'][self.processingName] = GLDZM_features
-        self.results['ngtdm_3D'][self.processingName] = NGTDM_features
-        self.results['ngldm_3D'][self.processingName] = NGLDM_features
+        self.results['glcm_3Dmrg'][self.processing_name] = GLCM_features
+        self.results['glrlm_3Dmrg'][self.processing_name] = GLRLM_features
+        self.results['glszm_3D'][self.processing_name] = GLSZM_features
+        self.results['gldzm_3D'][self.processing_name] = GLDZM_features
+        self.results['ngtdm_3D'][self.processing_name] = NGTDM_features
+        self.results['ngldm_3D'][self.processing_name] = NGLDM_features
 
         #update the radiomics parameters with all the results of the calculated texture features
-        for t in range(len(self.nameTextTypes)):
-            self.params['radiomics']['image']['texture'][self.nameTextTypes[t]].update(
-                self.results[self.nameTextTypes[t]])
+        for t in range(len(self.name_text_types)):
+            self.params['radiomics']['image']['texture'][self.name_text_types[t]].update(
+                self.results[self.name_text_types[t]])
 
     def save_radiomics_structure(self, scan_file_name, path_save, type_of_roi, label_of_roi_type, patient_num):
         """
@@ -412,10 +412,10 @@ class MEDimage(object):
                                                             self.scan.volume.spatial_ref.PixelExtentInWorldZ
                                                             ])
 
-        indDot = scan_file_name[patient_num].find('.')
+        ind_dot = scan_file_name[patient_num].find('.')
         ext = scan_file_name[patient_num].find('.npy')
-        name_save = scan_file_name[patient_num][:indDot] + \
-            '(' + label_of_roi_type + ')' + scan_file_name[patient_num][indDot:ext]
+        name_save = scan_file_name[patient_num][:ind_dot] + \
+            '(' + label_of_roi_type + ')' + scan_file_name[patient_num][ind_dot:ext]
 
         # IMPORTANT: HERE, WE COULD ADD SOME CODE TO APPEND A NEW "radiomics"
         # STRUCTURE TO AN EXISTING ONE WITH THE SAME NAME IN "path_save"

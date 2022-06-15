@@ -5,10 +5,10 @@ from typing import Dict
 
 import numpy as np
 
-from ..biomarkers.getGLSZMmatrix import getGLSZMmatrix
+from ..biomarkers.get_glszm_matrix import get_glszm_matrix
 
 
-def getGLSZMfeatures(vol) -> Dict:
+def extract_all(vol) -> Dict:
     """Computes GLSZM features.
     
     Args:
@@ -42,7 +42,7 @@ def getGLSZMfeatures(vol) -> Dict:
     # Correct definition, without any assumption
     vol = vol.copy()
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
-    GLSZM = getGLSZMmatrix(vol, levels)
+    GLSZM = get_glszm_matrix(vol, levels)
     n_s = np.sum(GLSZM)
     GLSZM = GLSZM/np.sum(GLSZM)  # Normalization of GLSZM
     sz = np.shape(GLSZM)  # Size of GLSZM
