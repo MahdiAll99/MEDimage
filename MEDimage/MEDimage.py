@@ -1,41 +1,41 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 import logging
 import os
-from json import dump
+import warnings
 from pathlib import Path
-from typing import List, Union
+from typing import List
 
 import matplotlib.pyplot as plt
 import nibabel as nib
 import numpy as np
-from numpyencoder import NumpyEncoder
 from PIL import Image
 from pydicom.dataset import FileDataset
 
-from MEDimage.processing.compute_suv_map import compute_suv_map
-
 from .utils.imref import imref3d
 
+_logger = logging.getLogger(__name__)
 
 class MEDimage(object):
-    """Organizes all scan data (patient_id, imaging data, scan type...). 
+    """Organizes all scan data (patientID, imaging data, scan type...). 
 
     Args:
         MEDimg (MEDimage, optional): A MEDimage instance.
 
     Attributes:
-        patient_id (str): Patient ID.
+        patientID (str): Patient ID.
         type (str): Scan type (MRscan, CTscan...).
         format (str): Scan file format. Either 'npy' or 'nifti'.
-        dicom_h (pydicom.dataset.FileDataset): DICOM header.
+        dicomH (pydicom.dataset.FileDataset): DICOM header.
         scan (MEDimage.scan): Instance of MEDimage.scan inner class.
 
     """
 
-    def __init__(self, MEDimg=None, logger=None) -> None:
+    def __init__(self, MEDimg=None) -> None:
         try:
-            self.patient_id = MEDimg.patient_id
+            self.patientID = MEDimg.patientID
         except:
-            self.patient_id = ""
+            self.patientID = ""
         try:
             self.type = MEDimg.type
         except:
@@ -45,303 +45,73 @@ class MEDimage(object):
         except:
             self.format = ""
         try:
-            self.dicom_h = MEDimg.dicom_h
+            self.dicomH = MEDimg.dicomH
         except:
-            self.dicom_h = []
+            self.dicomH = []
         try:
             self.scan = MEDimg.scan
         except:
             self.scan = self.scan()
-        
-        # processing & computation attributes
-        self.params = {}  # TODO: create object params
-        self.results = {} # TODO: create object result
-        self.nScale = 0 
-        self.nAlgo = 0
-        self.nGl = 0
-        self.nExp = 0
-        self.skip = False
-        self.scaleName = ''
-        self.processing_name = ''
-        self.name_text_types = []
-        if logger == None:
-            self._logger = 'MEDimage.log'
-        else:
-            self._logger = logger
-        logging.basicConfig(filename=self._logger, level=logging.DEBUG)
-
-    def init_Params(self, imParamScan, imParamFilter, **kwargs):
-
-        try:
-            box_string = 'box10'
-            # 10 voxels in all three dimensions are added to the smallest
-            # bounding box. This setting is used to speed up interpolation
-            # processes (mostly) prior to the computation of radiomics
-            # features. Optional argument in the function computeRadiomics.
-
-            # get default scan parameters from imParamScan
-            radiomics = {}
-            radiomics.update({'image': {}})
-            scaleNonText = imParamScan['image']['interp']['scaleNonText']
-            volInterp = imParamScan['image']['interp']['volInterp']
-            roiInterp = imParamScan['image']['interp']['roiInterp']
-            glRound = imParamScan['image']['interp']['glRound']
-            roiPV = imParamScan['image']['interp']['roiPV']
-            im_range = imParamScan['image']['reSeg']['range'] if 'range' in imParamScan['image']['reSeg'] else None
-            outliers = imParamScan['image']['reSeg']['outliers']
-            IH = imParamScan['image']['discretisation']['IH']
-            IVH = imParamScan['image']['discretisation']['IVH']
-            scaleText = imParamScan['image']['interp']['scaleText']
-            algo = imParamScan['image']['discretisation']['texture']['type']
-            grayLevels = imParamScan['image']['discretisation']['texture']['val']
-            if self.type == 'PTscan':
-                _compute_SUV_map = imParamScan['image']['compute_suv_map']
-            else :
-                _compute_SUV_map = False
-            im_type = imParamScan['image']['type'] # TODO: Discover the usage of this variable!
-            # Variable used to determine if there is 'arbitrary' (e.g., MRI)
-            # or 'definite' (e.g., CT) intensities.
-            intensity = imParamScan['image']['intensity']
-
-            if 'distCorrection' in imParamScan['image']:
-                distCorrection = imParamScan['image']['distCorrection']
-            else:
-                distCorrection = False
-
-            if 'computeDiagFeatures' in imParamScan['image']:
-                computeDiagFeatures = imParamScan['image']['computeDiagFeatures']
-            else:
-                computeDiagFeatures = False
-
-            if computeDiagFeatures:  # If computeDiagFeatures is true.
-                box_string = 'full'  # This is required for proper comparison.
-                self.params['box_string'] = box_string
-            
-            self.params['radiomics'] = radiomics
-            self.params['filter'] = imParamFilter
-            self.params['radiomics']['imParam'] = imParamScan
-            self.params['scaleNonText'] = scaleNonText
-            self.params['volInterp'] = volInterp
-            self.params['roiInterp'] = roiInterp
-            self.params['glRound'] = glRound
-            self.params['roiPV'] = roiPV
-            self.params['im_range'] = im_range
-            self.params['outliers'] = outliers
-            self.params['IH'] = IH
-            self.params['IVH'] = IVH
-            self.params['scaleText'] = scaleText
-            self.params['algo'] = algo
-            self.params['grayLevels'] = grayLevels
-            self.params['im_type'] = im_type
-            self.params['intensity'] = intensity
-            self.params['computeDiagFeatures'] = computeDiagFeatures
-            self.params['distCorrection'] = distCorrection
-            self.params['box_string'] = box_string
-            self.params['scaleName'] = ''
-            self.params['IHname'] = ''
-            self.params['IVHname'] = ''
-
-            for key, value in kwargs.items():
-                try:
-                    self.params[key] = value
-                except:
-                    pass
-
-            if self.params['box_string'] is None:
-                # box_string argument is optional. If not present, we use the full box.
-                self.params['box_string'] = 'full'
-
-            # SETTING UP user_set_min_val
-            if self.params['im_range'] is not None and type(self.params['im_range']) is list and self.params['im_range']:
-                user_set_min_val = self.params['im_range'][0]
-                if user_set_min_val == -np.inf:
-                    # In case no re-seg im_range is defined for the FBS algorithm,
-                    # the minimum value of ROI will be used (not recommended).
-                    user_set_min_val = []
-            else:
-                # In case no re-seg im_range is defined for the FBS algorithm,
-                # the minimum value of ROI will be used (not recommended).
-                user_set_min_val = [] 
-            self.params['user_set_min_val'] = user_set_min_val
-            self.nScale = len(self.params['scaleText'])
-            self.nAlgo = len(self.params['algo'])
-            self.nGl = len(self.params['grayLevels'][0])
-            self.nExp = self.nScale * self.nAlgo * self.nGl
-            if self.type == 'PTscan' and _compute_SUV_map:
-                try:
-                    self.scan.volume.data = compute_suv_map(self.scan.volume.data, self.dicom_h[0])
-                except Exception as e :
-                    message = f"\n ERROR COMPUTING SUV MAP - SOME FEATURES WILL BE INVALID: \n {e}"
-                    logging.error(message)
-                    print(message)
-                    self.skip = True
-
-        except Exception as e:
-            message = f"\n ERROR IN INITIALIZATION OF RADIOMICS FEATURE COMPUTATION\n {e}"
-            logging.error(message)
-            print(message)
-            self.skip = True
-
-    def init_ntf_calculation(self, vol_obj):
+    
+    @property
+    def patientID(self) -> str:
         """
-        Initializes all the computation parameters for NON-TEXTURE FEATURES 
-        as well as the results dict.
+        Patient ID
+
+        Returns:
+            patientID (str): Patient ID
         """
-
-        try:
-            if sum(self.params['scaleNonText']) == 0:  # In case the user chose to not interpolate
-                self.params['scaleNonText'] = [
-                                        vol_obj.spatial_ref.PixelExtentInWorldX,
-                                        vol_obj.spatial_ref.PixelExtentInWorldY,
-                                        vol_obj.spatial_ref.PixelExtentInWorldZ]
-            else:
-                if len(self.params['scaleNonText']) == 2:
-                    # In case not interpolation is performed in
-                    # the slice direction (e.g. 2D case)
-                    self.params['scaleNonText'] = self.params['scaleNonText'] + \
-                        [vol_obj.spatial_ref.PixelExtentInWorldZ]
-
-            # Scale name
-            # Always isotropic resampling, so the first entry is ok.
-            self.params['scaleName'] = 'scale' + (str(self.params['scaleNonText'][0])).replace('.', 'dot')
-
-            # IH name
-            ih_val_name = 'bin' + (str(self.params['IH']['val'])).replace('.', 'dot')
-
-            # The minimum value defines the computation.
-            if self.params['IH']['type'].find('FBS')>=0:
-                if type(self.params['user_set_min_val']) is list and self.params['user_set_min_val']:
-                    min_val_name = '_min' + \
-                        ((str(self.params['user_set_min_val'])).replace('.', 'dot')).replace('-', 'M')
-                else:
-                    # Otherwise, minimum value of ROI will be used (not recommended),
-                    # so no need to report it.
-                    min_val_name = ''
-            else:
-                min_val_name = ''
-
-            self.params['IHname'] = self.params['scaleName'] + '_algo' + self.params['IH']['type'] + '_' + ih_val_name + min_val_name
-
-            # IVH name
-            if not self.params['IVH']:  # CT case
-                ivh_algo_name = 'algoNone'
-                ivh_val_name = 'bin1'
-                if self.params['im_range']:  # The im_range defines the computation.
-                    min_val_name = ((str(self.params['im_range'][0])).replace(
-                        '.', 'dot')).replace('-', 'M')
-                    max_val_name = ((str(self.params['im_range'][1])).replace(
-                        '.', 'dot')).replace('-', 'M')
-                    range_name = '_min' + min_val_name + '_max' + max_val_name
-                else:
-                    range_name = ''
-            else:
-                ivh_algo_name = 'algo' + self.params['IVH']['type']
-                ivh_val_name = 'bin' + (str(self.params['IVH']['val'])).replace('.', 'dot')
-                # The im_range defines the computation.
-                if 'type' in self.params['IVH'] and self.params['IVH']['type'].find('FBS') >=0:
-                    if self.params['im_range']:
-                        min_val_name = ((str(self.params['im_range'][0])).replace(
-                            '.', 'dot')).replace('-', 'M')
-                        max_val_name = ((str(self.params['im_range'][1])).replace(
-                            '.', 'dot')).replace('-', 'M')
-                        if max_val_name == 'inf':
-                            # In this case, the maximum value of the ROI is used,
-                            # so no need to report it.
-                            range_name = '_min' + min_val_name
-                        elif min_val_name == '-inf':
-                            # In this case, the minimum value of the ROI is used,
-                            # so no need to report it.
-                            range_name = '_max' + max_val_name
-                        else:
-                            range_name = '_min' + min_val_name + '_max' + max_val_name
-
-                    else:  # min-max of ROI will be used, no need to report it.
-                        range_name = ''
-
-                else:  # min-max of ROI will be used, no need to report it.
-                    range_name = ''
-
-            self.params['IVHname'] = self.params['scaleName'] + '_' + ivh_algo_name + '_' + ivh_val_name + range_name
-
-            # Now initialize the attribute that will hold the computation results
-            self.results = { 
-                            'morph_3D': {self.params['scaleName'] : {}},
-                            'locInt_3D': {self.params['scaleName'] : {}},
-                            'stats_3D': {self.params['scaleName'] : {}},
-                            'intHist_3D': {self.params['IHname'] : {}},
-                            'intVolHist_3D': {self.params['IVHname'] : {}} 
-                            }
-
-        except Exception as e:
-            message = f"\n PROBLEM WITH PRE-PROCESSING OF FEATURES IN init_nft_calculation(): \n {e}"
-            logging.error(message)
-            print(message)
-
-            self.params['radiomics']['image'].update(
-                {('scale'+(str(self.params['scaleNonText'][0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
-
-    def init_tf_Calculation(self, Algo:int, Gl:int, Scale:int, params=None):
+        return self._patientID
+    
+    @patientID.setter
+    def patientID(self, patientID: str) -> None:
         """
-        Initializes all the computation parameters for TEXTURE FEATURES 
-        as well as the results dict.
+        Patient ID setter
+
+        Args:
+            patientID (str): Patient ID
         """
+        self._patientID = patientID
+    
+    @property
+    def type(self) -> str:
+        """
+        Imaging scan type
 
-        if not hasattr(self, "params"):
-            self.params = params
+        Returns:
+            type (str): Imaging scan type
+        """
+        return self._type
+    
+    @type.setter
+    def type(self, type: str) -> None:
+        """
+        Imaging scan type
 
-        self.name_text_types = ['glcm_3Dmrg', 'glrlm_3Dmrg', 'glszm_3D', 'gldzm_3D', 'ngtdm_3D', 'ngldm_3D']
-        n_text_types = len(self.name_text_types)
+        Args:
+            type (str): Imaging scan type
+        """
+        self._type = type
+    
+    @property
+    def dicomH(self) -> List[FileDataset]:
+        """
+        DICOM header
 
-        if not ('texture' in self.params['radiomics']['image']):
-            self.params['radiomics']['image'].update({'texture': {}})
-            for t in range(n_text_types):
-                self.params['radiomics']['image']['texture'].update({self.name_text_types[t]: {}})
+        Returns:
+            dicomH (List): DICOM header
+        """
+        return self._dicomH
+    
+    @dicomH.setter
+    def dicomH(self, dicomH: List[FileDataset]) -> None:
+        """
+        DICOM header
 
-        # Scale name
-        # Always isotropic resampling, so the first entry is ok.
-        scaleName = 'scale' + (str(self.params['scaleText'][Scale][0])).replace('.', 'dot')
-
-        # Discretisation name
-        gray_levels_name = (str(self.params['grayLevels'][Algo][Gl])).replace('.', 'dot')
-
-        if 'FBS' in self.params['algo'][Algo]:  # The minimum value defines the computation.
-            if type(self.params['user_set_min_val']) is list and self.params['user_set_min_val']:
-                min_val_name = '_min' + ((str(self.params['user_set_min_val'])).replace('.', 'dot')).replace('-', 'M')
-            else:
-                # Otherwise, minimum value of ROI will be used (not recommended),
-                # so no need to report it.
-                min_val_name = ''
-        else:
-            min_val_name = ''
-
-        if 'equal'in self.params['algo'][Algo]:
-            # The number of gray-levels used for equalization is currently
-            # hard-coded to 64 in equalization.m
-            discretisation_name = 'algo' + self.params['algo'][Algo] + '256_bin' + gray_levels_name + min_val_name
-        else:
-            discretisation_name = 'algo' + self.params['algo'][Algo] + '_bin' + gray_levels_name + min_val_name
-
-        # Processing full name
-        processing_name = scaleName + '_' + discretisation_name
-        
-        self.results.update({
-                            'glcm_3Dmrg': {processing_name: {}},
-                            'glrlm_3Dmrg': {processing_name: {}},
-                            'glszm_3D': {processing_name: {}},
-                            'gldzm_3D': {processing_name: {}},
-                            'ngtdm_3D': {processing_name: {}},
-                            'ngldm_3D': {processing_name: {}}
-                            })
-
-        if hasattr("scaleName"):
-            setattr(self, 'scaleName', scaleName)
-        else:
-            self.scaleName = scaleName
-
-        if hasattr("processing_name"):
-            setattr(self, 'processing_name', processing_name)
-        else:
-            self.processing_name = processing_name
+        Args:
+            dicomH (List): DICOM header
+        """
+        self._dicomH = dicomH
 
     def init_from_nifti(self, NiftiImagePath) -> None:
         """Initializes the MEDimage class using a NIFTI file.
@@ -353,7 +123,7 @@ class MEDimage(object):
             None.
         
         """
-        self.patient_id = os.path.basename(NiftiImagePath).split("_")[0]
+        self.patientID = os.path.basename(NiftiImagePath).split("_")[0]
         self.type = os.path.basename(NiftiImagePath).split(".")[-3]
         self.format = "nifti"
         self.scan.set_orientation(orientation="Axial")
@@ -364,63 +134,7 @@ class MEDimage(object):
         # RAS to LPS
         self.scan.volume.convert_to_LPS()
         self.scan.volume.scanRot = None
-    
-    def update_radiomics(
-                        self, int_vol_hist_features, morph_features, loc_int_features, 
-                        stats_features, int_hist_features,
-                        GLCM_features, GLRLM_features, GLSZM_features, 
-                        GLDZM_features, NGTDM_features, NGLDM_features):
-        """
-        Updates the results attribute with the extracted features
-        """
-        texture_features = ['intVolHist_3D','morph_3D','locInt_3D','stats_3D','intHist_3D']
-        #Non-Texture Features
-        self.results['intVolHist_3D'][self.params['IVHname']] = int_vol_hist_features
-        self.results['morph_3D'][self.params['scaleName']] = morph_features
-        self.results['locInt_3D'][self.params['scaleName']] = loc_int_features
-        self.results['stats_3D'][self.params['scaleName']] = stats_features
-        self.results['intHist_3D'][self.params['IHname']] = int_hist_features
 
-        #Done with non-texture features, update params with the new results
-        for feature in texture_features:
-            self.params['radiomics']['image'][feature] = self.results[feature]
-        
-        #Texture Features
-        self.results['glcm_3Dmrg'][self.processing_name] = GLCM_features
-        self.results['glrlm_3Dmrg'][self.processing_name] = GLRLM_features
-        self.results['glszm_3D'][self.processing_name] = GLSZM_features
-        self.results['gldzm_3D'][self.processing_name] = GLDZM_features
-        self.results['ngtdm_3D'][self.processing_name] = NGTDM_features
-        self.results['ngldm_3D'][self.processing_name] = NGLDM_features
-
-        #update the radiomics parameters with all the results of the calculated texture features
-        for t in range(len(self.name_text_types)):
-            self.params['radiomics']['image']['texture'][self.name_text_types[t]].update(
-                self.results[self.name_text_types[t]])
-
-    def save_radiomics_structure(self, scan_file_name, path_save, type_of_roi, label_of_roi_type, patient_num):
-        """
-        Saves extracted radiomics features in a JSON file.
-        """
-        path_save = Path(path_save)
-
-        self.params['radiomics']['imParam']['roi_type'] = type_of_roi
-        self.params['radiomics']['imParam']['patient_id'] = self.patient_id
-        self.params['radiomics']['imParam']['vox_dim'] = list([
-                                                            self.scan.volume.spatial_ref.PixelExtentInWorldX, 
-                                                            self.scan.volume.spatial_ref.PixelExtentInWorldY,
-                                                            self.scan.volume.spatial_ref.PixelExtentInWorldZ
-                                                            ])
-
-        ind_dot = scan_file_name[patient_num].find('.')
-        ext = scan_file_name[patient_num].find('.npy')
-        name_save = scan_file_name[patient_num][:ind_dot] + \
-            '(' + label_of_roi_type + ')' + scan_file_name[patient_num][ind_dot:ext]
-
-        # IMPORTANT: HERE, WE COULD ADD SOME CODE TO APPEND A NEW "radiomics"
-        # STRUCTURE TO AN EXISTING ONE WITH THE SAME NAME IN "path_save"
-        with open(path_save / f"{name_save}.json", "w") as fp:   
-            dump(self.params['radiomics'], fp, indent=4, cls=NumpyEncoder)
 
     class scan:
         """Organizes all imaging data (volume and ROI). 
@@ -566,38 +280,26 @@ class MEDimage(object):
             """Organizes all volume data and information. 
 
             Args:
-                spatial_ref (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
+                spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                 scanRot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
                 data (ndarray, optional): n-dimensional of the imaging data.
-                filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
-                        imaging data.
 
             Attributes:
-                spatial_ref (imref3d): Imaging data orientation (axial, sagittal or coronal).
+                spatialRef (imref3d): Imaging data orientation (axial, sagittal or coronal).
                 scanRot (ndarray): Array of the rotation applied to the XYZ points of the ROI.
                 data (ndarray): n-dimensional of the imaging data.
-                filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
-                    imaging data.
 
             """
-            def __init__(self, spatial_ref=None, scanRot=None, data=None, filtered_data={}):
-                """Organizes all volume data and information. 
-
-                Args:
-                    spatial_ref (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
-                    scanRot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
-                    data (ndarray, optional): n-dimensional of the imaging data.
-                    filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
-                        imaging data.
-
-                """
-                self.spatial_ref = spatial_ref
+            def __init__(self, spatialRef=None, scanRot=None, data=None):
+                self.spatialRef = spatialRef
                 self.scanRot = scanRot
                 self.data = data
-                self.filtered_data = filtered_data
+            
+            def init_transScanToModel(self, transScanToModel_value):
+                self.transScanToModel = transScanToModel_value
 
-            def update_spatial_ref(self, spatial_ref_value):
-                self.spatial_ref = spatial_ref_value
+            def update_spatialRef(self, spatialRef_value):
+                self.spatialRef = spatialRef_value
             
             def update_scanRot(self, scanRot_value):
                 self.scanRot = scanRot_value
@@ -608,28 +310,6 @@ class MEDimage(object):
             def update_data(self, data_value):
                 self.data = data_value
             
-            def update_filtered_data(self, filter_name, new_data):
-                if not hasattr(self, 'filtered_data'):
-                    self.filtered_data = {}
-                self.filtered_data[filter_name] = new_data
-
-            def save_filtered_data(self, name_save: str, path: Union[Path, str]):
-                path = Path(path)
-                if not name_save.endswith('.npy'):
-                    name_save += '.npy'
-                with open(path / name_save, 'wb') as f:
-                    np.save(f, self.filtered_data)
-
-            def load_filtered_data(self, filter_name, file_name, path, update=True):
-                path = Path(path)
-                if not file_name.endswith('.npy'):
-                    file_name += '.npy'
-                with open(path / file_name, 'rb') as f:
-                    if update:
-                        self.update_filtered_data(filter_name, np.load(f, allow_pickle=True))
-                    else:
-                        return np.load(f, allow_pickle=True)
-
             def convert_to_LPS(self):
                 """Convert Imaging data to LPS (Left-Posterior-Superior) coordinates system.
                 <https://www.slicer.org/wiki/Coordinate_systems>.
@@ -648,9 +328,9 @@ class MEDimage(object):
                 # to LPS
                 self.data = self.data.swapaxes(0, 1) #TODO
             
-            def spatial_ref_from_NIFTI(self, nifti_image_path):
-                """Computes the imref3d spatial_ref using a NIFTI file and
-                updates the spatial_ref attribute.
+            def spatialRef_from_NIFTI(self, NiftiImagePath):
+                """Computes the imref3d spatialRef using a NIFTI file and
+                updates the spatialRef attribute.
 
                 Args:
                     NiftiImagePath (str): String of the NIFTI file path.
@@ -660,43 +340,43 @@ class MEDimage(object):
                 
                 """
                 # Loading the nifti file :
-                nifti = nib.load(nifti_image_path)
+                nifti = nib.load(NiftiImagePath)
                 nifti_data = self.data
 
-                # spatial_ref Creation
-                pixel_x = nifti.affine[0, 0]
-                pixel_y = nifti.affine[1, 1]
-                slice_s = nifti.affine[2, 2]
+                # spatialRef Creation
+                pixelX = nifti.affine[0, 0]
+                pixelY = nifti.affine[1, 1]
+                sliceS = nifti.affine[2, 2]
                 min_grid = nifti.affine[:3, 3]
-                min_x_grid = min_grid[0]
-                min_y_grid = min_grid[1]
-                min_z_grid = min_grid[2]
+                min_Xgrid = min_grid[0]
+                min_Ygrid = min_grid[1]
+                min_Zgrid = min_grid[2]
                 size_image = np.shape(nifti_data)
-                spatial_ref = imref3d(size_image, abs(pixel_x), abs(pixel_y), abs(slice_s))
-                spatial_ref.XWorldLimits = (np.array(spatial_ref.XWorldLimits) -
-                                        (spatial_ref.XWorldLimits[0] -
-                                            (min_x_grid-pixel_x/2))
+                spatialRef = imref3d(size_image, abs(pixelX), abs(pixelY), abs(sliceS))
+                spatialRef.XWorldLimits = (np.array(spatialRef.XWorldLimits) -
+                                        (spatialRef.XWorldLimits[0] -
+                                            (min_Xgrid-pixelX/2))
                                         ).tolist()
-                spatial_ref.YWorldLimits = (np.array(spatial_ref.YWorldLimits) -
-                                        (spatial_ref.YWorldLimits[0] -
-                                            (min_y_grid-pixel_y/2))
+                spatialRef.YWorldLimits = (np.array(spatialRef.YWorldLimits) -
+                                        (spatialRef.YWorldLimits[0] -
+                                            (min_Ygrid-pixelY/2))
                                         ).tolist()
-                spatial_ref.ZWorldLimits = (np.array(spatial_ref.ZWorldLimits) -
-                                        (spatial_ref.ZWorldLimits[0] -
-                                            (min_z_grid-slice_s/2))
+                spatialRef.ZWorldLimits = (np.array(spatialRef.ZWorldLimits) -
+                                        (spatialRef.ZWorldLimits[0] -
+                                            (min_Zgrid-sliceS/2))
                                         ).tolist()
 
                 # Converting the results into lists
-                spatial_ref.ImageSize = spatial_ref.ImageSize.tolist()
-                spatial_ref.XIntrinsicLimits = spatial_ref.XIntrinsicLimits.tolist()
-                spatial_ref.YIntrinsicLimits = spatial_ref.YIntrinsicLimits.tolist()
-                spatial_ref.ZIntrinsicLimits = spatial_ref.ZIntrinsicLimits.tolist()
+                spatialRef.ImageSize = spatialRef.ImageSize.tolist()
+                spatialRef.XIntrinsicLimits = spatialRef.XIntrinsicLimits.tolist()
+                spatialRef.YIntrinsicLimits = spatialRef.YIntrinsicLimits.tolist()
+                spatialRef.ZIntrinsicLimits = spatialRef.ZIntrinsicLimits.tolist()
 
-                # update spatial_ref
-                self.update_spatial_ref(spatial_ref)
+                # update spatialRef
+                self.update_spatialRef(spatialRef)
 
-            def convert_spatial_ref(self):
-                """converts the MEDimage spatial_ref from RAS to LPS coordinates system.
+            def convert_spatialRef(self):
+                """converts the MEDimage spatialRef from RAS to LPS coordinates system.
                 <https://www.slicer.org/wiki/Coordinate_systems>.
 
                 Args:
@@ -707,21 +387,21 @@ class MEDimage(object):
 
                 """
                 # swap x and y data
-                temp = self.spatial_ref.ImageExtentInWorldX
-                self.spatial_ref.ImageExtentInWorldX = self.spatial_ref.ImageExtentInWorldY
-                self.spatial_ref.ImageExtentInWorldY = temp
+                temp = self.spatialRef.ImageExtentInWorldX
+                self.spatialRef.ImageExtentInWorldX = self.spatialRef.ImageExtentInWorldY
+                self.spatialRef.ImageExtentInWorldY = temp
 
-                temp = self.spatial_ref.PixelExtentInWorldX
-                self.spatial_ref.PixelExtentInWorldX = self.spatial_ref.PixelExtentInWorldY
-                self.spatial_ref.PixelExtentInWorldY = temp
+                temp = self.spatialRef.PixelExtentInWorldX
+                self.spatialRef.PixelExtentInWorldX = self.spatialRef.PixelExtentInWorldY
+                self.spatialRef.PixelExtentInWorldY = temp
 
-                temp = self.spatial_ref.XIntrinsicLimits
-                self.spatial_ref.XIntrinsicLimits = self.spatial_ref.YIntrinsicLimits
-                self.spatial_ref.YIntrinsicLimits = temp
+                temp = self.spatialRef.XIntrinsicLimits
+                self.spatialRef.XIntrinsicLimits = self.spatialRef.YIntrinsicLimits
+                self.spatialRef.YIntrinsicLimits = temp
 
-                temp = self.spatial_ref.XWorldLimits
-                self.spatial_ref.XWorldLimits = self.spatial_ref.YWorldLimits
-                self.spatial_ref.YWorldLimits = temp
+                temp = self.spatialRef.XWorldLimits
+                self.spatialRef.XWorldLimits = self.spatialRef.YWorldLimits
+                self.spatialRef.YWorldLimits = temp
                 del temp
 
         class ROI:
@@ -734,17 +414,17 @@ class MEDimage(object):
             Attributes:
                 indexes (Dict): Dict of the ROI indexes for each ROI name.
                 roi_names (Dict): Dict of the ROI names.
-                name_set (Dict): Dict of the User-defined name for Structure Set for each ROI name.
-                name_set_info (Dict): Dict of the names of the structure sets that define the areas of 
-                    significance. Either 'StructureSetName', 'StructureSetDescription', 'series_description' 
+                nameSet (Dict): Dict of the User-defined name for Structure Set for each ROI name.
+                nameSetInfo (Dict): Dict of the names of the structure sets that define the areas of 
+                    significance. Either 'StructureSetName', 'StructureSetDescription', 'SeriesDescription' 
                     or 'SeriesInstanceUID'.
 
             """
             def __init__(self, indexes=None, roi_names=None) -> None:
                 self.indexes = indexes if indexes else {}
                 self.roi_names = roi_names if roi_names else {}
-                self.name_set = roi_names if roi_names else {}
-                self.name_set_info = roi_names if roi_names else {}
+                self.nameSet = roi_names if roi_names else {}
+                self.nameSetInfo = roi_names if roi_names else {}
 
             def get_indexes(self, key):
                 if not self.indexes or key is None:
@@ -759,16 +439,16 @@ class MEDimage(object):
                     return self.roi_names[str(key)]
 
             def get_nameSet(self, key):
-                if not self.name_set or key is None:
+                if not self.nameSet or key is None:
                     return {}
                 else:
-                    return self.name_set[str(key)]
+                    return self.nameSet[str(key)]
 
             def get_nameSetInfo(self, key):
-                if not self.name_set_info or key is None:
+                if not self.nameSetInfo or key is None:
                     return {}
                 else:
-                    return self.name_set_info[str(key)]
+                    return self.nameSetInfo[str(key)]
 
             def update_indexes(self, key, indexes):
                 try: 
@@ -782,15 +462,15 @@ class MEDimage(object):
                 except:
                     Warning.warn("Wrong key given in update_ROIname()")
 
-            def update_nameSet(self, key, name_set):
+            def update_nameSet(self, key, nameSet):
                 try:
-                    self.name_set[str(key)] = name_set
+                    self.nameSet[str(key)] = nameSet
                 except:
                     Warning.warn("Wrong key given in update_nameSet()")
 
-            def update_nameSetInfo(self, key, name_set_info):
+            def update_nameSetInfo(self, key, nameSetInfo):
                 try:
-                    self.name_set_info[str(key)] = name_set_info
+                    self.nameSetInfo[str(key)] = nameSetInfo
                 except:
                     Warning.warn("Wrong key given in update_nameSetInfo()")
             
@@ -836,8 +516,8 @@ class MEDimage(object):
                 """
                 self.indexes = {}
                 self.roi_names = {}
-                self.name_set = {}
-                self.name_set_info = {}
+                self.nameSet = {}
+                self.nameSetInfo = {}
                 roi_index = 0
                 ListOfPatients = os.listdir(ROI_path)
 
@@ -847,8 +527,8 @@ class MEDimage(object):
                         roi = nib.load(ROI_path + "/" + file)
                         roi_data = self.convert_to_LPS(data=roi.get_fdata())
                         roi_name = file[file.find("(")+1:file.find(")")]
-                        name_set = file[file.find("_")+2:file.find("(")]
+                        nameSet = file[file.find("_")+2:file.find("(")]
                         self.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
-                        self.update_nameSet(key=roi_index, name_set=name_set)
+                        self.update_nameSet(key=roi_index, nameSet=nameSet)
                         self.update_ROIname(key=roi_index, ROIname=roi_name)
                         roi_index += 1
