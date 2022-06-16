@@ -28,7 +28,7 @@ def equalization(vol_re) -> np.ndarray:
     # AZ: This was made part of the function call
     # n_g = 64
     # This is the default we will use. It means that when using 'FBS',
-    # nQ should be chosen wisely such
+    # nq should be chosen wisely such
     # that the total number of grey levels does not exceed 64, for all
     # patients (recommended).
     # This choice was amde by considering that the best equalization

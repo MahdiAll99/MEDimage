@@ -14,7 +14,7 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
 
 
 def extract_all(vol, distCorrection=None, glrlm_merge_method="vol_merge", method="new") -> Dict:
-    """Computes GLRLM features.
+    """Computes glrlm features.
 
     Note:
         the intensity range is currently not used.
@@ -35,7 +35,7 @@ def extract_all(vol, distCorrection=None, glrlm_merge_method="vol_merge", method
         method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
 
     Returns:
-        Dict: Dict of the GLRLM features.Compute GLRLMfeatures.
+        Dict: Dict of the glrlm features.Compute GLRLMfeatures.
 
     Raises:
         ValueError: If `method` is not 'old' or 'new'.
@@ -65,7 +65,7 @@ def extract_all(vol, distCorrection=None, glrlm_merge_method="vol_merge", method
 
     else:
         raise ValueError(
-            "GLRLM should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
+            "glrlm should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
 
     return extract_all
 
@@ -454,7 +454,7 @@ class RunLengthMatrix:
             self._set_empty()
             return
 
-        # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLRLM.
+        # Check if the roi contains any masked voxels. If this is not the case, don't construct the glrlm.
         if not np.any(df_img.roi_int_mask):
             self._set_empty()
             return
@@ -584,7 +584,7 @@ class RunLengthMatrix:
         n_v = self.n_v * 1.0  # Number of voxels
 
         ##############################################
-        ######          GLRLM features          ######
+        ######          glrlm features          ######
         ##############################################
         # Short runs emphasis
         df_feat.loc[0, "Frlm_sre"] = np.sum(df_rj.rj / df_rj.j ** 2.0) / n_s
@@ -706,28 +706,28 @@ def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
              'Frlm_rl_var': [],
              'Frlm_rl_entr': []}
 
-    # GET THE GLRLM MATRIX
+    # GET THE glrlm MATRIX
     vol = vol.copy()
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
 
     if distCorrection is None:
-        GLRLM = get_glrlm_matrix(vol, levels)
+        glrlm = get_glrlm_matrix(vol, levels)
     else:
-        GLRLM = (get_glrlm_matrix(vol, levels, distCorrection))
+        glrlm = (get_glrlm_matrix(vol, levels, distCorrection))
 
-    n_s = np.sum(GLRLM)
-    GLRLM = GLRLM/n_s  # Normalization of GLRLM
-    sz = np.shape(GLRLM)  # Size of GLRLM
+    n_s = np.sum(glrlm)
+    glrlm = glrlm/n_s  # Normalization of glrlm
+    sz = np.shape(glrlm)  # Size of glrlm
     c_vect = range(1, sz[1]+1)  # Row vectors
     r_vect = range(1, sz[0]+1)  # Column vectors
-    # Column and row indicators for each entry of the GLRLM
+    # Column and row indicators for each entry of the glrlm
     c_mat, r_mat = np.meshgrid(c_vect, r_vect)
-    pg = np.transpose(np.sum(GLRLM, 1))  # Gray-Level Run-Number Vector
-    pr = np.sum(GLRLM, 0)  # Run-Length Run-Number Vector
+    pg = np.transpose(np.sum(glrlm, 1))  # Gray-Level Run-Number Vector
+    pr = np.sum(glrlm, 0)  # Run-Length Run-Number Vector
 
     ##############################################
-    ######          GLRLM features          ######
+    ######          glrlm features          ######
     ##############################################
     # Short runs emphasis
     extract_all['Frlm_sre'] = (np.matmul(pr, np.transpose(np.power(1.0/np.array(c_vect), 2))))
@@ -742,16 +742,16 @@ def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
     extract_all['Frlm_hgre'] = np.matmul(pg, np.transpose(np.power(np.array(r_vect), 2)))
 
     # Short run low grey level emphasis
-    extract_all['Frlm_srlge'] = np.sum(np.sum(GLRLM*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
+    extract_all['Frlm_srlge'] = np.sum(np.sum(glrlm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Short run high grey level emphasis
-    extract_all['Frlm_srhge'] = np.sum(np.sum(GLRLM*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
+    extract_all['Frlm_srhge'] = np.sum(np.sum(glrlm*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Long run low grey levels emphasis
-    extract_all['Frlm_lrlge'] = np.sum(np.sum(GLRLM*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
+    extract_all['Frlm_lrlge'] = np.sum(np.sum(glrlm*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
     # Long run high grey level emphasis
-    extract_all['Frlm_lrhge'] = np.sum(np.sum(GLRLM*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
+    extract_all['Frlm_lrhge'] = np.sum(np.sum(glrlm*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
 
     # Gray level non-uniformity
     temp = np.sum(np.power(pg, 2))
@@ -771,19 +771,19 @@ def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
     extract_all['Frlm_r_perc'] = np.sum(pg)/(np.matmul(pr, np.transpose(c_vect)))
 
     # Grey level variance
-    temp = r_mat * GLRLM
+    temp = r_mat * glrlm
     u = np.sum(temp)
-    temp = (np.power(r_mat - u, 2)) * GLRLM
+    temp = (np.power(r_mat - u, 2)) * glrlm
     extract_all['Frlm_gl_var'] = np.sum(temp)
 
     # Run length variance
-    temp = c_mat * GLRLM
+    temp = c_mat * glrlm
     u = np.sum(temp)
-    temp = (np.power(c_mat - u, 2)) * GLRLM
+    temp = (np.power(c_mat - u, 2)) * glrlm
     extract_all['Frlm_rl_var'] = np.sum(temp)
 
     # Run entropy
-    val_pos = GLRLM[np.nonzero(GLRLM)]
+    val_pos = glrlm[np.nonzero(glrlm)]
     temp = val_pos * np.log2(val_pos)
     extract_all['Frlm_rl_entr'] = -np.sum(temp)
 

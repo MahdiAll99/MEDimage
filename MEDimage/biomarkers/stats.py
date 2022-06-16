@@ -15,8 +15,8 @@ def mean(vol):
         float: Statistical mean feature
     """
     # INITIALIZATION
-    X = vol[~np.isnan(vol[:])]
-    return np.mean(X)
+    x = vol[~np.isnan(vol[:])]
+    return np.mean(x)
 
 def extract_all(vol, intensity=None):
     """Compute stats.
@@ -45,7 +45,7 @@ def extract_all(vol, intensity=None):
 
     # INITIALIZATION
 
-    X = vol[~np.isnan(vol[:])]
+    x = vol[~np.isnan(vol[:])]
 
     # Initialization of final structure (Dictionary) containing all features.
     stats = {'Fstat_mean': [],
@@ -70,36 +70,36 @@ def extract_all(vol, intensity=None):
     # STARTING COMPUTATION
 
     if definite:
-        stats['Fstat_mean'] = np.mean(X)  # Mean
-        stats['Fstat_var'] = np.var(X)  # Variance
-        stats['Fstat_skew'] = skew(X)  # Skewness
-        stats['Fstat_kurt'] = kurtosis(X)  # Kurtosis
-        stats['Fstat_median'] = np.median(X)  # Median
-        stats['Fstat_min'] = np.min(X)  # Minimum grey level
-        stats['Fstat_P10'] = scoreatpercentile(X, 10)  # 10th percentile
-        stats['Fstat_P90'] = scoreatpercentile(X, 90)  # 90th percentile
-        stats['Fstat_max'] = np.max(X)  # Maximum grey level
-        stats['Fstat_iqr'] = iqr(X)  # Interquantile range
-        stats['Fstat_range'] = np.ptp(X)  # Range max(X) - min(X)
+        stats['Fstat_mean'] = np.mean(x)  # Mean
+        stats['Fstat_var'] = np.var(x)  # Variance
+        stats['Fstat_skew'] = skew(x)  # Skewness
+        stats['Fstat_kurt'] = kurtosis(x)  # Kurtosis
+        stats['Fstat_median'] = np.median(x)  # Median
+        stats['Fstat_min'] = np.min(x)  # Minimum grey level
+        stats['Fstat_P10'] = scoreatpercentile(x, 10)  # 10th percentile
+        stats['Fstat_P90'] = scoreatpercentile(x, 90)  # 90th percentile
+        stats['Fstat_max'] = np.max(x)  # Maximum grey level
+        stats['Fstat_iqr'] = iqr(x)  # Interquantile range
+        stats['Fstat_range'] = np.ptp(x)  # Range max(x) - min(x)
 
         # Mean absolute deviation
-        stats['Fstat_mad'] = np.mean(np.absolute(X - np.mean(X)))
+        stats['Fstat_mad'] = np.mean(np.absolute(x - np.mean(x)))
 
-        X_10_90 = X[np.where((X >= stats['Fstat_P10']) &
-                             (X <= stats['Fstat_P90']), True, False)]
+        x_10_90 = x[np.where((x >= stats['Fstat_P10']) &
+                             (x <= stats['Fstat_P90']), True, False)]
 
         # Robust mean absolute deviation
-        stats['Fstat_rmad'] = np.mean(np.abs(X_10_90 - np.mean(X_10_90)))
+        stats['Fstat_rmad'] = np.mean(np.abs(x_10_90 - np.mean(x_10_90)))
 
         # Median absolute deviation
-        stats['Fstat_medad'] = np.mean(np.absolute(X - np.median(X)))
-        stats['Fstat_cov'] = variation(X)  # Coefficient of variation
+        stats['Fstat_medad'] = np.mean(np.absolute(x - np.median(x)))
+        stats['Fstat_cov'] = variation(x)  # Coefficient of variation
 
-        X_75_25 = scoreatpercentile(X, 75) + scoreatpercentile(X, 25)
+        x_75_25 = scoreatpercentile(x, 75) + scoreatpercentile(x, 25)
         # Quartile coefficient of dispersion
-        stats['Fstat_qcod'] = iqr(X)/X_75_25
-        stats['Fstat_energy'] = np.sum(np.power(X, 2))  # Energy
-        stats['Fstat_rms'] = np.sqrt(np.mean(np.power(X, 2)))  # Root mean square
+        stats['Fstat_qcod'] = iqr(x)/x_75_25
+        stats['Fstat_energy'] = np.sum(np.power(x, 2))  # Energy
+        stats['Fstat_rms'] = np.sqrt(np.mean(np.power(x, 2)))  # Root mean square
 
     return stats
 

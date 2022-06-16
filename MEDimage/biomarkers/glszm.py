@@ -9,7 +9,7 @@ from ..biomarkers.get_glszm_matrix import get_glszm_matrix
 
 
 def extract_all(vol) -> Dict:
-    """Computes GLSZM features.
+    """Computes glszm features.
     
     Args:
         vol (ndarray): 3D volume, isotropically resampled, quantized
@@ -17,7 +17,7 @@ def extract_all(vol) -> Dict:
             with NaNs outside the region of interest.
     
     Returns:
-        Dict: Dict of GLSZM features.
+        Dict: Dict of glszm features.
         
     """
 
@@ -38,21 +38,21 @@ def extract_all(vol) -> Dict:
              'Fszm_zs_var': [],
              'Fszm_zs_entr': []}
 
-    # GET THE GLSZM MATRIX
+    # GET THE glszm MATRIX
     # Correct definition, without any assumption
     vol = vol.copy()
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
-    GLSZM = get_glszm_matrix(vol, levels)
-    n_s = np.sum(GLSZM)
-    GLSZM = GLSZM/np.sum(GLSZM)  # Normalization of GLSZM
-    sz = np.shape(GLSZM)  # Size of GLSZM
+    glszm = get_glszm_matrix(vol, levels)
+    n_s = np.sum(glszm)
+    glszm = glszm/np.sum(glszm)  # Normalization of glszm
+    sz = np.shape(glszm)  # Size of glszm
 
     c_vect = range(1, sz[1]+1)  # Row vectors
     r_vect = range(1, sz[0]+1)  # Column vectors
-    # Column and row indicators for each entry of the GLSZM
+    # Column and row indicators for each entry of the glszm
     c_mat, r_mat = np.meshgrid(c_vect, r_vect)
-    pg = np.transpose(np.sum(GLSZM, 1))  # Gray-Level Vector
-    pz = np.sum(GLSZM, 0)  # Zone Size Vector
+    pg = np.transpose(np.sum(glszm, 1))  # Gray-Level Vector
+    pz = np.sum(glszm, 0)  # Zone Size Vector
 
     # COMPUTING TEXTURES
 
@@ -70,16 +70,16 @@ def extract_all(vol) -> Dict:
     glszm['Fszm_hgze'] = np.matmul(pg, np.transpose(np.power(np.array(r_vect), 2)))
 
     # Small zone low grey level emphasis
-    glszm['Fszm_szlge'] = np.sum(np.sum(GLSZM*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
+    glszm['Fszm_szlge'] = np.sum(np.sum(glszm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Small zone high grey level emphasis
-    glszm['Fszm_szhge'] = np.sum(np.sum(GLSZM*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
+    glszm['Fszm_szhge'] = np.sum(np.sum(glszm*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Large zone low grey levels emphasis
-    glszm['Fszm_lzlge'] = np.sum(np.sum(GLSZM*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
+    glszm['Fszm_lzlge'] = np.sum(np.sum(glszm*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
     # Large zone high grey level emphasis
-    glszm['Fszm_lzhge'] = np.sum(np.sum(GLSZM*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
+    glszm['Fszm_lzhge'] = np.sum(np.sum(glszm*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
 
     # Gray level non-uniformity
     glszm['Fszm_glnu'] = np.sum(np.power(pg, 2)) * n_s
@@ -97,19 +97,19 @@ def extract_all(vol) -> Dict:
     glszm['Fszm_z_perc'] = np.sum(pg)/(np.matmul(pz, np.transpose(c_vect)))
 
     # Grey level variance
-    temp = r_mat * GLSZM
+    temp = r_mat * glszm
     u = np.sum(temp)
-    temp = (np.power(r_mat - u, 2)) * GLSZM
+    temp = (np.power(r_mat - u, 2)) * glszm
     glszm['Fszm_gl_var'] = np.sum(temp)
 
     # Zone size variance
-    temp = c_mat * GLSZM
+    temp = c_mat * glszm
     u = np.sum(temp)
-    temp = (np.power(c_mat - u, 2)) * GLSZM
+    temp = (np.power(c_mat - u, 2)) * glszm
     glszm['Fszm_zs_var'] = np.sum(temp)
 
     # Zone size entropy
-    val_pos = GLSZM[np.nonzero(GLSZM)]
+    val_pos = glszm[np.nonzero(glszm)]
     temp = val_pos * np.log2(val_pos)
     glszm['Fszm_zs_entr'] = -np.sum(temp)
 

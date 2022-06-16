@@ -67,10 +67,10 @@ def get_sep_roi_names(nameROIin, delimiters) -> Tuple[List[int], np.ndarray]:
         # Excluding the "{" and "}" at the start and end of the ROIname
         name_roi_out = [nameROIin[1:-1]]
     else:
-        nInd = len(ind)
+        n_ind = len(ind)
         # Excluding the "{" and "}" at the start and end of the ROIname
         name_roi_out = [nameROIin[1:(ind[0]-1)]]
-        for i in np.arange(start=1, stop=nInd):
+        for i in np.arange(start=1, stop=n_ind):
             # Excluding the "{" and "}" at the start and end of the ROIname
             name_roi_out += [nameROIin[(ind[i-1]+2):(ind[i]-1)]]
         name_roi_out += [nameROIin[(ind[-1]+2):-1]]

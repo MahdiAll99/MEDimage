@@ -10,7 +10,7 @@ import skimage.measure as skim
 def get_glszm_matrix(roi_only, levels) -> Dict:
     """Compute GLSZMmatrix.
 
-    This function computes the Gray-Level Size Zone Matrix (GLSZM) of the
+    This function computes the Gray-Level Size Zone Matrix (glszm) of the
     region of interest (ROI) of an input volume. The input volume is assumed
     to be isotropically resampled. The zones of different sizes are computed
     using 26-voxel connectivity.
@@ -51,9 +51,9 @@ def get_glszm_matrix(roi_only, levels) -> Dict:
 
     # INITIALIZATION
     # THIS NEEDS TO BE CHANGED. THE ARRAY INITIALIZED COULD BE TOO BIG!
-    GLSZM = np.zeros((NL, n_max))
+    glszm = np.zeros((NL, n_max))
 
-    # COMPUTATION OF GLSZM
+    # COMPUTATION OF glszm
     temp = roi_only.copy().astype('int')
     for i in range(1, NL+1):
         temp[roi_only != unique_vect[i-1]] = 0
@@ -61,10 +61,10 @@ def get_glszm_matrix(roi_only, levels) -> Dict:
         conn_objects, n_zone = skim.label(temp, return_num=True)
         for j in range(1, n_zone+1):
             col = np.sum(conn_objects == j)
-            GLSZM[i-1, col-1] = GLSZM[i-1, col-1] + 1
+            glszm[i-1, col-1] = glszm[i-1, col-1] + 1
 
     # REMOVE UNECESSARY COLUMNS
-    stop = np.nonzero(np.sum(GLSZM, 0))[0][-1]
-    GLSZM = np.delete(GLSZM, range(stop+1, np.shape(GLSZM)[1]), 1)
+    stop = np.nonzero(np.sum(glszm, 0))[0][-1]
+    glszm = np.delete(glszm, range(stop+1, np.shape(glszm)[1]), 1)
 
-    return GLSZM
+    return glszm

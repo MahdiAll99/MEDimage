@@ -105,35 +105,35 @@ def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
         fract_int = (levels - np.min(levels))/(np.max(levels) - np.min(levels))
 
         # Volume at intensity fraction 10
-        V10 = find_v_x(fract_int, fract_vol, 10)
-        int_vol_hist['Fivh_V10'] = V10
+        v10 = find_v_x(fract_int, fract_vol, 10)
+        int_vol_hist['Fivh_V10'] = v10
 
         # Volume at intensity fraction 90
-        V90 = find_v_x(fract_int, fract_vol, 90)
-        int_vol_hist['Fivh_V90'] = V90
+        v90 = find_v_x(fract_int, fract_vol, 90)
+        int_vol_hist['Fivh_V90'] = v90
 
         # Intensity at volume fraction 10
         #   For initial arbitrary intensities,
         #   we will always be discretising (1000 bins).
         #   So intensities are definite here.
-        I10 = find_i_x(levels, fract_vol, 10)
-        int_vol_hist['Fivh_I10'] = I10
+        i10 = find_i_x(levels, fract_vol, 10)
+        int_vol_hist['Fivh_I10'] = i10
 
         # Intensity at volume fraction 90
         #   For initial arbitrary intensities,
         #   we will always be discretising (1000 bins).
         #   So intensities are definite here.
-        I90 = find_i_x(levels, fract_vol, 90)
-        int_vol_hist['Fivh_I90'] = I90
+        i90 = find_i_x(levels, fract_vol, 90)
+        int_vol_hist['Fivh_I90'] = i90
 
-        # Volume at intensity fraction difference V10-V90
-        int_vol_hist['Fivh_V10minusV90'] = V10 - V90
+        # Volume at intensity fraction difference v10-v90
+        int_vol_hist['Fivh_V10minusV90'] = v10 - v90
 
-        # Intensity at volume fraction difference I10-I90
+        # Intensity at volume fraction difference i10-i90
         #   For initial arbitrary intensities,
         #   we will always be discretising (1000 bins).
         #   So intensities are definite here.
-        int_vol_hist['Fivh_I10minusI90'] = I10 - I90
+        int_vol_hist['Fivh_I10minusI90'] = i10 - i90
 
         # Area under IVH curve
         int_vol_hist['Fivh_auc'] = np.trapz(fract_vol)/(n_g - 1)

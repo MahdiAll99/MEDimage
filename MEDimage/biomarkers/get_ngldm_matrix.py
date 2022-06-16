@@ -46,7 +46,7 @@ def get_ngldm_matrix(roi_only, levels) -> np.ndarray:
     q3 = np.reshape(q3, dim, order='F')
 
     # Min dependence = 0, Max dependence = 26; So 27 columns
-    NGLDM = np.zeros((lqs, 27))
+    ngldm = np.zeros((lqs, 27))
     for i in range(1, dim[0]+1):
         i_min = max(1, i-1)
         i_max = min(i+1, dim[0])
@@ -68,11 +68,11 @@ def get_ngldm_matrix(roi_only, levels) -> np.ndarray:
                                 if (val_q3 - q3[I2-1, J2-1, K2-1] == 0):
                                     count += 1
 
-                NGLDM[val_q3-1, count] = NGLDM[val_q3-1, count] + 1
+                ngldm[val_q3-1, count] = ngldm[val_q3-1, count] + 1
 
     # Last column was for the NaN voxels, to be removed
-    NGLDM = np.delete(NGLDM, -1, 0)
-    stop = np.nonzero(np.sum(NGLDM, 0))[0][-1]
-    NGLDM = np.delete(NGLDM, range(stop+1, np.shape(NGLDM)[1]+1), 1)
+    ngldm = np.delete(ngldm, -1, 0)
+    stop = np.nonzero(np.sum(ngldm, 0))[0][-1]
+    ngldm = np.delete(ngldm, range(stop+1, np.shape(ngldm)[1]+1), 1)
 
-    return NGLDM
+    return ngldm

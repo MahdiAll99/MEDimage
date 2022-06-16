@@ -113,11 +113,11 @@ def compute_roi(roi_xyz, spatial_ref, orientation, scan_type, interp=False) -> n
 
         if np.abs(diff) >= 0.01:
             # Sampled and queried volume are considered "different".
-            newLimit = spatial_ref.WorldLimits(axis=direction)[0] - diff / 2.0
+            new_limit = spatial_ref.WorldLimits(axis=direction)[0] - diff / 2.0
 
             # Sampled volume is now centered on queried volume.
             new_spatial_ref.WorldLimits(axis=direction, newValue=(new_spatial_ref.WorldLimits(axis=direction) -
-                                                                (new_spatial_ref.WorldLimits(axis=direction)[0] - newLimit)))
+                                                                (new_spatial_ref.WorldLimits(axis=direction)[0] - new_limit)))
         else:
             # Less than a 0.01 mm, sampled and queried volume are considered
             # to be the same. At this point,
