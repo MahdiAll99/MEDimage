@@ -298,7 +298,6 @@ class Gabor(MEDimageFilter):
         Args:
             images: A n-dimensional numpy array that represent the images to filter
             orthogonal_rot: If true, the 3D images will be rotated over coronal, axial and sagittal axis
-
         Returns:
             ndarray: The filtered image as a numpy ndarray
         """
@@ -455,7 +454,6 @@ class Laws(MEDimageFilter):
         Compute the Laws texture energy images as described in (Ref 1).
         Args:
             images: A n-dimensional numpy array that represent the filtered images
-
         Returns:
             ndarray: A numpy multi-dimensional array of the Laws texture energy map.
         """
