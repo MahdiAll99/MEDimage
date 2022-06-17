@@ -100,7 +100,7 @@ def get_roi_from_indexes(MEDimg, name_roi, box_string) -> Tuple[image_volume_obj
                 n_contour = len(contour_number)
 
             # Note: sData is a nested dictionary not an object
-            spatial_ref = MEDimg.scan.volume.spatial_ref
+            spatial_ref = MEDimg.scan.volume.spatialRef
             vol = MEDimg.scan.volume.data.astype(np.float32)
 
             # APPLYING OPERATIONS ON ALL MASKS

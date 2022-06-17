@@ -3,19 +3,20 @@
 
 from typing import Dict
 
-from ..biomarkers.utils import getGlobPeak, getLocPeak
+from ..biomarkers.utils import get_glob_peak, get_loc_peak
 
-def get_local_peak(img_obj, roi_obj, res) -> float:
+
+def local_peak(img_obj, roi_obj, res) -> float:
     """
     Computes local intensity peak
     """
-    return getLocPeak(img_obj, roi_obj, res)
+    return get_loc_peak(img_obj, roi_obj, res)
 
-def get_global_peak(img_obj, roi_obj, res) -> float:
+def global_peak(img_obj, roi_obj, res) -> float:
     """
     Computes global intensity peak
     """
-    return getGlobPeak(img_obj, roi_obj, res)
+    return get_glob_peak(img_obj, roi_obj, res)
 
 def extract_all(img_obj, roi_obj, res, intensity=None) -> Dict:
     """Compute Local Intensity Features.
@@ -55,7 +56,7 @@ def extract_all(img_obj, roi_obj, res, intensity=None) -> Dict:
 
     # Local grey level peak
     if definite:
-        loc_int['Floc_peak_local'] = (getLocPeak(img_obj, roi_obj, res))
+        loc_int['Floc_peak_local'] = (get_loc_peak(img_obj, roi_obj, res))
 
         # NEEDS TO BE VECTORIZED FOR FASTER CALCULATION! OR
         # SIMPLY JUST CONVOLUTE A 3D AVERAGING FILTER!

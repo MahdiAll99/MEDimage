@@ -9,10 +9,10 @@ import numpy as np
 import pandas as pd
 from deprecated import deprecated
 
-from ..biomarkers.glcm import glcm
-from ..biomarkers.utils import getGLCMCrossDiagProb, getGLCMDiagProb
+from ..biomarkers.utils import get_glcm_cross_diag_prob, get_glcm_diag_prob
 from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   get_value, is_list_all_none)
+
 
 def extract_all(vol, distCorrection=None, glcm_merge_method="vol_merge", method="new") -> Dict:
     """Computes GLCM features.
@@ -803,8 +803,8 @@ def get_cm_features_deprecated(vol, distCorrection) -> Dict:
     p_ij = GLCM / np.sum(GLCM[:])  # Normalization of GLCM
     p_i = np.sum(p_ij, axis=1, keepdims=True)
     p_j = np.sum(p_ij, axis=0, keepdims=True)
-    p_iminusj = getGLCMDiagProb(p_ij)
-    p_iplusj = getGLCMCrossDiagProb(p_ij)
+    p_iminusj = get_glcm_diag_prob(p_ij)
+    p_iplusj = get_glcm_cross_diag_prob(p_ij)
     n_g = np.max(np.shape(GLCM))
     vect_ng = np.arange(1, n_g + 100 * np.finfo(float).eps)
     col_grid, row_grid = np.meshgrid(vect_ng, vect_ng)

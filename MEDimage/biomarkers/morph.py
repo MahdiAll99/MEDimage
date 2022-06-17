@@ -12,8 +12,8 @@ from ..biomarkers.get_mesh_volume import get_mesh_volume
 from ..biomarkers.get_moran_i import get_moran_i
 from ..biomarkers.get_oriented_bound_box import min_oriented_bound_box
 from ..biomarkers.min_vol_ellipse import min_vol_ellipse as minv
-from ..biomarkers.utils import (get_area_dens_approx, get_axis_lengths, getCOM,
-                                getMesh)
+from ..biomarkers.utils import (get_area_dens_approx, get_axis_lengths,
+                                get_com, get_mesh)
 
 
 def vol(vol, mask_int, mask_morph, res):
@@ -43,7 +43,7 @@ def vol(vol, mask_int, mask_morph, res):
 
     # GETTING IMPORTANT VARIABLES
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
-    _, faces, vertices = getMesh(mask_morph, res)
+    _, faces, vertices = get_mesh(mask_morph, res)
 
     return get_mesh_volume(faces, vertices)
     
@@ -142,9 +142,9 @@ def extract_all(vol,
     Xgl_morph = np.reshape(vol, np.size(vol), order='F')[np.where(
         np.reshape(mask_morph, np.size(mask_morph), order='F') == 1)[0]].copy()
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
-    xyz_int, _, _ = getMesh(mask_int, res)
+    xyz_int, _, _ = get_mesh(mask_int, res)
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
-    xyz_morph, faces, vertices = getMesh(mask_morph, res)
+    xyz_morph, faces, vertices = get_mesh(mask_morph, res)
     # [X,Y,Z] points of the convex hull.
     # conv_hull Matlab is conv_hull.simplices
     conv_hull = sc.ConvexHull(vertices)
@@ -183,7 +183,7 @@ def extract_all(vol,
         morph['Fmorph_asphericity'] = ((area**3) / (36*np.pi*volume**2))**(1/3) - 1
 
         # Centre of mass shift
-        morph['Fmorph_com'] = getCOM(xgl_int, Xgl_morph, xyz_int, xyz_morph)
+        morph['Fmorph_com'] = get_com(xgl_int, Xgl_morph, xyz_int, xyz_morph)
 
         # Maximum 3D diameter
         morph['Fmorph_diam'] = np.max(sc.distance.pdist(conv_hull.points[conv_hull.vertices]))

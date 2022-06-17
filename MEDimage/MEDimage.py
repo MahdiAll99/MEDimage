@@ -12,10 +12,10 @@ from PIL import Image
 from pydicom.dataset import FileDataset
 from sklearn import datasets
 
-from MEDimage.processing.computeSUVmap import computeSUVmap
+from MEDimage.processing.compute_suv_map import compute_suv_map
 
 from .utils.imref import imref3d
-from .utils.jsonUtils import loadjson
+from .utils.json_utils import load_json
 
 
 class MEDimage(object):
@@ -168,7 +168,7 @@ class MEDimage(object):
             
             if self.type == 'PTscan' and _compute_suv_map:
                 try:
-                    self.scan.volume.data = computeSUVmap(self.scan.volume.data, self.dicomH[0])
+                    self.scan.volume.data = compute_suv_map(self.scan.volume.data, self.dicomH[0])
                 except Exception as e :
                     message = f"\n ERROR COMPUTING SUV MAP - SOME FEATURES WILL BE INVALID: \n {e}"
                     logging.error(message)
@@ -480,7 +480,7 @@ class MEDimage(object):
                 """
                 Updates params attributes from json file
                 """
-                __params = loadjson(path_to_json)
+                __params = load_json(path_to_json)
 
                 self.algo = __params['algo'] if 'algo' in __params else self.algo
                 self.box_string = __params['box_string'] if 'box_string' in __params else self.box_string
