@@ -38,7 +38,7 @@
       },
       "distCorrection" : false
     },
-    "glrlm" : {
+    "extract_all" : {
       "distCorrection" : false},
     "gldzm" : {
       "distanceNorm" : {

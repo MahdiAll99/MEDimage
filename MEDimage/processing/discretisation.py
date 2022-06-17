@@ -11,10 +11,10 @@ from ..processing.equalization import equalization
 
 
 def discretisation(
-    vol_RE, 
+    vol_re, 
     discr_type, 
-    nQ=None, 
-    userSetMinVal=None, 
+    nq=None, 
+    user_set_min_val=None, 
     ivh=False
     ) -> Tuple[np.ndarray, float]:
     """
@@ -25,12 +25,12 @@ def discretisation(
         PROPER RANGE WAS ALREADY PERFORMED.
 
     Args:
-        vol_RE (ndarray): 3D array of the image volume that will be studied with 
+        vol_re (ndarray): 3D array of the image volume that will be studied with 
             NaN value for the excluded voxels (voxels outside the ROI mask).
         discr_type (str): Discretisaion approach/type MUST BE: "FBS", "FBN", "FBSequal"
             or "FBNequal".
-        nQ (float): Number of bins for FBS algorithm and bin width for FBN algorithm.
-        userSetMinVal (float): Minimum of range re-segmentation for FBS discretisation,
+        nq (float): Number of bins for FBS algorithm and bin width for FBN algorithm.
+        user_set_min_val (float): Minimum of range re-segmentation for FBS discretisation,
             for FBN discretisation, this value has no importance as an argument
             and will not be used.
         ivh (bool): MUST BE SET TO True FOR IVH (Intensity-Volume histogram) FEATURES.
@@ -46,13 +46,13 @@ def discretisation(
     # this variable "discr_type"
 
     # PARSING ARGUMENTS
-    volQuant_RE = deepcopy(vol_RE)
+    vol_quant_re = deepcopy(vol_re)
 
-    if nQ is None:
+    if nq is None:
         return None
 
-    if not isinstance(nQ, float):
-        nQ = float(nQ)
+    if not isinstance(nq, float):
+        nq = float(nq)
 
     if discr_type not in ["FBS", "FBN", "FBSequal", "FBNequal"]:
         raise ValueError(
@@ -60,39 +60,39 @@ def discretisation(
 
     # DISCRETISATION
     if discr_type in ["FBS", "FBSequal"]:
-        if userSetMinVal is not None:
-            minVal = deepcopy(userSetMinVal)
+        if user_set_min_val is not None:
+            min_val = deepcopy(user_set_min_val)
         else:
-            minVal = np.nanmin(volQuant_RE)
+            min_val = np.nanmin(vol_quant_re)
     else:
-        minVal = np.nanmin(volQuant_RE)
+        min_val = np.nanmin(vol_quant_re)
 
-    maxVal = np.nanmax(volQuant_RE)
+    max_val = np.nanmax(vol_quant_re)
 
     if discr_type == "FBS":
-        wb = nQ
+        wb = nq
         wd = wb
-        volQuant_RE = np.floor((volQuant_RE - minVal) / wb) + 1.0
+        vol_quant_re = np.floor((vol_quant_re - min_val) / wb) + 1.0
     elif discr_type == "FBN":
-        wb = (maxVal - minVal) / nQ
+        wb = (max_val - min_val) / nq
         wd = 1.0
-        volQuant_RE = np.floor(
-            nQ * ((volQuant_RE - minVal)/(maxVal - minVal))) + 1.0
-        volQuant_RE[volQuant_RE == np.nanmax(volQuant_RE)] = nQ
+        vol_quant_re = np.floor(
+            nq * ((vol_quant_re - min_val)/(max_val - min_val))) + 1.0
+        vol_quant_re[vol_quant_re == np.nanmax(vol_quant_re)] = nq
     elif discr_type == "FBSequal":
-        wb = nQ
+        wb = nq
         wd = wb
-        volQuant_RE = equalization(volQuant_RE)
-        volQuant_RE = np.floor((volQuant_RE - minVal) / wb) + 1.0
+        vol_quant_re = equalization(vol_quant_re)
+        vol_quant_re = np.floor((vol_quant_re - min_val) / wb) + 1.0
     elif discr_type == "FBNequal":
-        wb = (maxVal - minVal) / nQ
+        wb = (max_val - min_val) / nq
         wd = 1.0
-        volQuant_RE = volQuant_RE.astype(np.float32)
-        volQuant_RE = equalization(volQuant_RE)
-        volQuant_RE = np.floor(
-            nQ * ((volQuant_RE - minVal)/(maxVal - minVal))) + 1.0
-        volQuant_RE[volQuant_RE == np.nanmax(volQuant_RE)] = nQ
+        vol_quant_re = vol_quant_re.astype(np.float32)
+        vol_quant_re = equalization(vol_quant_re)
+        vol_quant_re = np.floor(
+            nq * ((vol_quant_re - min_val)/(max_val - min_val))) + 1.0
+        vol_quant_re[vol_quant_re == np.nanmax(vol_quant_re)] = nq
     if ivh and discr_type in ["FBS", "FBSequal"]:
-        volQuant_RE = minVal + (volQuant_RE - 0.5) * wb
+        vol_quant_re = min_val + (vol_quant_re - 0.5) * wb
 
-    return volQuant_RE, wd
+    return vol_quant_re, wd

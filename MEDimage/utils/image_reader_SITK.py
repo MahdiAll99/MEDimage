@@ -6,7 +6,7 @@ import SimpleITK as sitk
 import numpy as np
 
 
-def image_reader_SITK(Path, option=None):
+def image_reader_SITK(path, option=None):
     """
     Return the image in a numpy array or a dictionary with the header
     of the image.
@@ -34,11 +34,11 @@ def image_reader_SITK(Path, option=None):
     """
     if option is None or option == 'image':
         # return the image in a numpy array
-        return np.transpose(sitk.GetArrayFromImage(sitk.ReadImage(Path)))
+        return np.transpose(sitk.GetArrayFromImage(sitk.ReadImage(path)))
     elif option == 'header':
         # Return a dictionary with the header of the image.
         reader = sitk.ImageFileReader()
-        reader.SetFileName(Path)
+        reader.SetFileName(path)
         # reader.LoadPrivateTagsOn()
         reader.ReadImageInformation()
         dic_im_header = {}

@@ -6,44 +6,44 @@ from typing import Dict
 
 import numpy as np
 
-from ..biomarkers.getGLDZMmatrix import getGLDZMmatrix
+from ..biomarkers.get_gldzm_matrix import get_gldzm_matrix
 
 
-def get_matrix(volInt, maskMorph):
+def get_matrix(vol_int, mask_morph):
     """
     Computes gray level distance zone matrix
     """
     # Correct definition, without any assumption
-    levels = np.arange(1, np.max(volInt[~np.isnan(volInt[:])])+1)
+    levels = np.arange(1, np.max(vol_int[~np.isnan(vol_int[:])])+1)
 
-    # GET THE GLDZM MATRIX
-    GLDZM = getGLDZMmatrix(volInt, maskMorph, levels)
+    # GET THE gldzm MATRIX
+    gldzm = get_gldzm_matrix(vol_int, mask_morph, levels)
 
-    return GLDZM
+    return gldzm
     
-def sde(GLDZM):
+def sde(gldzm):
     """
     Computes distance zone matrix small distance emphasis feature
     """
-    GLDZM = GLDZM / np.sum(GLDZM)  # Normalization of GLDZM
-    sz = np.shape(GLDZM)  # Size of GLDZM
-    cVect = range(1, sz[1]+1)  # Row vectors
-    pd = np.sum(GLDZM, 0)  # Distance Zone Vector
+    gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
+    sz = np.shape(gldzm)  # Size of gldzm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    pd = np.sum(gldzm, 0)  # Distance Zone Vector
 
     # Small distance emphasis
-    return (np.matmul(pd, np.transpose(np.power(1.0 / np.array(cVect), 2))))
+    return (np.matmul(pd, np.transpose(np.power(1.0 / np.array(c_vect), 2))))
 
-def extract_all(volInt, maskMorph) -> Dict:
-    """Compute GLDZM features.
+def extract_all(vol_int, mask_morph) -> Dict:
+    """Compute gldzm features.
      
      Args:
-        volInt (ndarray): 3D volume, isotropically resampled, 
-            quantized (e.g. Ng = 32, levels = [1, ..., Ng]), 
+        vol_int (ndarray): 3D volume, isotropically resampled, 
+            quantized (e.g. n_g = 32, levels = [1, ..., n_g]), 
             with NaNs outside the region of interest.
-        maskMorph (ndarray): Morphological ROI mask.
+        mask_morph (ndarray): Morphological ROI mask.
     
     Returns:
-        Dict: Dict of GLDZM features.
+        Dict: Dict of gldzm features.
 
     """
     gldzm = {'Fdzm_sde': [],
@@ -64,85 +64,85 @@ def extract_all(volInt, maskMorph) -> Dict:
              'Fdzm_zd_entr': []}
 
     # Correct definition, without any assumption
-    levels = np.arange(1, np.max(volInt[~np.isnan(volInt[:])])+1)
+    levels = np.arange(1, np.max(vol_int[~np.isnan(vol_int[:])])+1)
 
-    # GET THE GLDZM MATRIX
-    GLDZM = getGLDZMmatrix(volInt, maskMorph, levels)
-    Ns = np.sum(GLDZM)
-    GLDZM = GLDZM/np.sum(GLDZM)  # Normalization of GLDZM
-    sz = np.shape(GLDZM)  # Size of GLDZM
-    cVect = range(1, sz[1]+1)  # Row vectors
-    rVect = range(1, sz[0]+1)  # Column vectors
-    # Column and row indicators for each entry of the GLDZM
-    cMat, rMat = np.meshgrid(cVect, rVect)
-    pg = np.transpose(np.sum(GLDZM, 1))  # Gray-Level Vector
-    pd = np.sum(GLDZM, 0)  # Distance Zone Vector
+    # GET THE gldzm MATRIX
+    gldzm = get_gldzm_matrix(vol_int, mask_morph, levels)
+    n_s = np.sum(gldzm)
+    gldzm = gldzm/np.sum(gldzm)  # Normalization of gldzm
+    sz = np.shape(gldzm)  # Size of gldzm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    # Column and row indicators for each entry of the gldzm
+    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
+    pg = np.transpose(np.sum(gldzm, 1))  # Gray-Level Vector
+    pd = np.sum(gldzm, 0)  # Distance Zone Vector
 
     # COMPUTING TEXTURES
 
     # Small distance emphasis
     gldzm['Fdzm_sde'] = (np.matmul(pd, np.transpose(np.power(
-        1.0/np.array(cVect), 2))))
+        1.0/np.array(c_vect), 2))))
 
     # Large distance emphasis
     gldzm['Fdzm_lde'] = (np.matmul(pd, np.transpose(np.power(
-        np.array(cVect), 2))))
+        np.array(c_vect), 2))))
 
     # Low grey level zone emphasis
     gldzm['Fdzm_lgze'] = np.matmul(pg, np.transpose(np.power(
-        1.0/np.array(rVect), 2)))
+        1.0/np.array(r_vect), 2)))
 
     # High grey level zone emphasis
     gldzm['Fdzm_hgze'] = np.matmul(pg, np.transpose(np.power(
-        np.array(rVect), 2)))
+        np.array(r_vect), 2)))
 
     # Small distance low grey level emphasis
-    gldzm['Fdzm_sdlge'] = np.sum(np.sum(GLDZM*(np.power(
-        1.0/rMat, 2))*(np.power(1.0/cMat, 2))))
+    gldzm['Fdzm_sdlge'] = np.sum(np.sum(gldzm*(np.power(
+        1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Small distance high grey level emphasis
-    gldzm['Fdzm_sdhge'] = np.sum(np.sum(GLDZM*(np.power(
-        rMat, 2))*(np.power(1.0/cMat, 2))))
+    gldzm['Fdzm_sdhge'] = np.sum(np.sum(gldzm*(np.power(
+        r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Large distance low grey levels emphasis
-    gldzm['Fdzm_ldlge'] = np.sum(np.sum(GLDZM*(np.power(
-        1.0/rMat, 2))*(np.power(cMat, 2))))
+    gldzm['Fdzm_ldlge'] = np.sum(np.sum(gldzm*(np.power(
+        1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
     # Large distance high grey level emphasis
-    gldzm['Fdzm_ldhge'] = np.sum(np.sum(GLDZM*(np.power(
-        rMat, 2))*(np.power(cMat, 2))))
+    gldzm['Fdzm_ldhge'] = np.sum(np.sum(gldzm*(np.power(
+        r_mat, 2))*(np.power(c_mat, 2))))
 
     # Gray level non-uniformity
-    gldzm['Fdzm_glnu'] = np.sum(np.power(pg, 2)) * Ns
+    gldzm['Fdzm_glnu'] = np.sum(np.power(pg, 2)) * n_s
 
     # Gray level non-uniformity normalised
     gldzm['Fdzm_glnu_norm'] = np.sum(np.power(pg, 2))
 
     # Zone distance non-uniformity
-    gldzm['Fdzm_zdnu'] = np.sum(np.power(pd, 2)) * Ns
+    gldzm['Fdzm_zdnu'] = np.sum(np.power(pd, 2)) * n_s
 
     # Zone distance non-uniformity normalised
     gldzm['Fdzm_zdnu_norm'] = np.sum(np.power(pd, 2))
 
     # Zone percentage
     # Must change the original definition here.
-    gldzm['Fdzm_z_perc'] = Ns/np.sum(~np.isnan(volInt[:]))
+    gldzm['Fdzm_z_perc'] = n_s/np.sum(~np.isnan(vol_int[:]))
 
     # Grey level variance
-    temp = rMat * GLDZM
+    temp = r_mat * gldzm
     u = np.sum(temp)
-    temp = (np.power(rMat - u, 2)) * GLDZM
+    temp = (np.power(r_mat - u, 2)) * gldzm
     gldzm['Fdzm_gl_var'] = np.sum(temp)
 
     # Zone distance variance
-    temp = cMat * GLDZM
+    temp = c_mat * gldzm
     u = np.sum(temp)
-    temp = (np.power(cMat - u, 2)) * GLDZM
+    temp = (np.power(c_mat - u, 2)) * gldzm
     gldzm['Fdzm_zd_var'] = np.sum(temp)
 
     # Zone distance entropy
-    valPos = GLDZM[np.nonzero(GLDZM)]
-    temp = valPos * np.log2(valPos)
+    val_pos = gldzm[np.nonzero(gldzm)]
+    temp = val_pos * np.log2(val_pos)
     gldzm['Fdzm_zd_entr'] = -np.sum(temp)
 
     return gldzm

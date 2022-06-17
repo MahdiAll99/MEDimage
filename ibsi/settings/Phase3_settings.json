@@ -3,11 +3,11 @@
     "pathDATA" : "",
     "pathCSV" : "",  
     "FEATURESred" : "",
-    "nBatch" : 16,
-    "roiType_labels" : [
+    "n_batch" : 16,
+    "roi_type_labels" : [
       "stsNIFTIGTV"
     ],
-    "roiTypes" : [
+    "roi_types" : [
       "GTVp"
     ],
 
@@ -51,7 +51,7 @@
         },
         "distCorrection" : false
       },
-      "glrlm" : {
+      "extract_all" : {
         "distCorrection" : false},
       "gldzm" : {
         "distanceNorm" : {
@@ -120,7 +120,7 @@
         },
         "distCorrection" : false
       },
-      "glrlm" : {
+      "extract_all" : {
         "distCorrection" : false
       },
       "gldzm" : {
@@ -152,7 +152,7 @@
     },
 
     "imParamPET" : {
-      "computeSUVmap" : false,
+      "compute_suv_map" : false,
       "interp" :  {
         "scaleNonText" : [3, 3, 3],     
         "scaleText" : [[3, 3, 3]],   
@@ -192,7 +192,7 @@
         },
         "distCorrection" : false
       },
-      "glrlm" : {
+      "extract_all" : {
         "distCorrection" : false
       },
       "gldzm" : {
@@ -251,7 +251,7 @@
         },
         "distanceWeightingFunction" : "Inverse"
       },
-      "glrlm" : {
+      "extract_all" : {
         "distanceWeightingFunction" : "Inverse"
       },
       "gldzm" : {
@@ -285,14 +285,14 @@
         "ndims" : 3,
         "size" : 5,
         "padding" : "symmetric",
-        "nameSave" : "mean5"
+        "name_save" : "mean5"
       },
       "LoG" : {
         "ndims" : 3,
         "sigma" : 1.5,
         "orthogonal_rot" : false,
         "padding" : "symmetric",
-        "nameSave" : ""
+        "name_save" : ""
       },
       "Laws" : {
         "config" : ["L5", "E5", "E5"],
@@ -301,7 +301,7 @@
         "orthogonal_rot" : false,
         "energy_image" : true,
         "padding" : "symmetric",
-        "nameSave" : ""
+        "name_save" : ""
       },
       "Gabor" : {
         "sigma" : 5,
@@ -311,7 +311,7 @@
         "rot_invariance" : true,
         "orthogonal_rot" : true,
         "padding" : "symmetric",
-        "nameSave" : ""
+        "name_save" : ""
       },
       "Wavelet" : {
         "ndims" : 3,
@@ -320,7 +320,7 @@
         "level" : 1,
         "rot_invariance" : true,
         "padding" : "symmetric",
-        "nameSave" : ""
+        "name_save" : ""
       }
     },
     
