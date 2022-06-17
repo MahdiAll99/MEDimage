@@ -53,7 +53,7 @@ class MEDimage(object):
         try:
             self.scan = MEDimg.scan
         except:
-            self.scan = self.Scan()
+            self.scan = self.scan()
         try:
             self.params = MEDimg.params
         except:
@@ -722,7 +722,7 @@ class MEDimage(object):
             return radiomics
 
 
-    class Scan:
+    class scan:
         """Organizes all imaging data (volume and ROI). 
 
         Args:
@@ -739,8 +739,8 @@ class MEDimage(object):
 
         """
         def __init__(self, orientation=None, patientPosition=None):
-            self.volume = self.Volume() 
-            self.volume_process = self.VolumeProcess()
+            self.volume = self.volume() 
+            self.volume_process = self.volume_process()
             self.ROI = self.ROI()
             self.orientation = orientation
             self.patientPosition = patientPosition
@@ -939,7 +939,7 @@ class MEDimage(object):
             plt.show()
 
 
-        class Volume:
+        class volume:
             """Organizes all volume data and information. 
 
             Args:
@@ -1078,7 +1078,7 @@ class MEDimage(object):
                 self.spatialRef.YWorldLimits = temp
                 del temp
 
-        class VolumeProcess:
+        class volume_process:
             """Organizes all volume data and information. 
 
             Args:
