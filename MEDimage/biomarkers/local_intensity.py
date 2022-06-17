@@ -5,25 +5,25 @@ from typing import Dict
 
 from ..biomarkers.utils import getGlobPeak, getLocPeak
 
-def get_local_peak(imgObj, roiObj, res) -> float:
+def get_local_peak(img_obj, roi_obj, res) -> float:
     """
     Computes local intensity peak
     """
-    return getLocPeak(imgObj, roiObj, res)
+    return getLocPeak(img_obj, roi_obj, res)
 
-def get_global_peak(imgObj, roiObj, res) -> float:
+def get_global_peak(img_obj, roi_obj, res) -> float:
     """
     Computes global intensity peak
     """
-    return getGlobPeak(imgObj, roiObj, res)
+    return getGlobPeak(img_obj, roi_obj, res)
 
-def extract_all(imgObj, roiObj, res, intensity=None) -> Dict:
+def extract_all(img_obj, roi_obj, res, intensity=None) -> Dict:
     """Compute Local Intensity Features.
 
     Args:
-        imgObj (ndarray): Continuos image intensity distribution, with no NaNs
+        img_obj (ndarray): Continuos image intensity distribution, with no NaNs
             outside the ROI.
-        roiObj (ndarray): Array of the mask defining the ROI.
+        roi_obj (ndarray): Array of the mask defining the ROI.
         res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.
             XYZ resolution (world), or JIK resolution (intrinsic matlab).
         intensity (str, optional): If 'arbitrary', some feature will not be computed.
@@ -51,14 +51,14 @@ def extract_all(imgObj, roiObj, res, intensity=None) -> Dict:
         raise ValueError('Fourth argument must either be "arbitrary" or \
                          "definite" or "filter"')
 
-    locInt = {'Floc_peak_local': [], 'Floc_peak_global': []}
+    loc_int = {'Floc_peak_local': [], 'Floc_peak_global': []}
 
     # Local grey level peak
     if definite:
-        locInt['Floc_peak_local'] = (getLocPeak(imgObj, roiObj, res))
+        loc_int['Floc_peak_local'] = (getLocPeak(img_obj, roi_obj, res))
 
         # NEEDS TO BE VECTORIZED FOR FASTER CALCULATION! OR
         # SIMPLY JUST CONVOLUTE A 3D AVERAGING FILTER!
-        # locInt['Floc_peak_global'] = (getGlobPeak(imgObj,roiObj,res))
+        # loc_int['Floc_peak_global'] = (getGlobPeak(img_obj,roi_obj,res))
 
-    return locInt
+    return loc_int

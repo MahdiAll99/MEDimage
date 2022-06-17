@@ -5,7 +5,7 @@ import numpy as np
 from scipy.ndimage import map_coordinates
 
 
-def interp3(V, Xq, Yq, Zq, method) -> np.ndarray:
+def interp3(v, x_q, y_q, z_q, method) -> np.ndarray:
     """Interpolation for 3-D gridded data in meshgrid format,
     implements similar functionality MATLAB interp3.
 
@@ -33,13 +33,13 @@ def interp3(V, Xq, Yq, Zq, method) -> np.ndarray:
     else:
         raise ValueError("Interpolator not implemented.")
 
-    size = np.size(Xq)
-    coord_X = np.reshape(Xq, size, order='F')
-    coord_Y = np.reshape(Yq, size, order='F')
-    coord_Z = np.reshape(Zq, size, order='F')
+    size = np.size(x_q)
+    coord_X = np.reshape(x_q, size, order='F')
+    coord_Y = np.reshape(y_q, size, order='F')
+    coord_Z = np.reshape(z_q, size, order='F')
     coordinates = np.array([coord_X, coord_Y, coord_Z]).astype(np.float32)
-    Vq = map_coordinates(input=V.astype(
+    v_q = map_coordinates(input=v.astype(
         np.float32), coordinates=coordinates, order=spline_order, mode='nearest')
-    Vq = np.reshape(Vq, np.shape(Xq), order='F')
+    v_q = np.reshape(v_q, np.shape(x_q), order='F')
 
-    return Vq
+    return v_q

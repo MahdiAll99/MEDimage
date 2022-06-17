@@ -6,23 +6,23 @@ from typing import Dict
 import numpy as np
 import scipy.spatial as sc
 
-from ..biomarkers.getGearyC import getGearyC
-from ..biomarkers.getMeshArea import getMeshArea
-from ..biomarkers.getMeshVolume import getMeshVolume
-from ..biomarkers.getMoranI import getMoranI
-from ..biomarkers.getOrientedBoundBox import minOrientedBoundBox
-from ..biomarkers.MinVolEllipse import MinVolEllipse as minv
-from ..biomarkers.utils import (getAreaDensApprox, getAxisLengths, getCOM,
+from ..biomarkers.get_geary_c import get_geary_c
+from ..biomarkers.get_mesh_area import get_mesh_area
+from ..biomarkers.get_mesh_volume import get_mesh_volume
+from ..biomarkers.get_moran_i import get_moran_i
+from ..biomarkers.get_oriented_bound_box import min_oriented_bound_box
+from ..biomarkers.min_vol_ellipse import min_vol_ellipse as minv
+from ..biomarkers.utils import (get_area_dens_approx, get_axis_lengths, getCOM,
                                 getMesh)
 
 
-def vol(vol, maskInt, maskMorph, res):
+def vol(vol, mask_int, mask_morph, res):
     """Computes morphological volume feature
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
-        maskInt (ndarray): Intensity mask.
-        maskMorph (ndarray): Morphological mask.
+        mask_int (ndarray): Intensity mask.
+        mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
             XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
@@ -36,43 +36,43 @@ def vol(vol, maskInt, maskMorph, res):
     vol = np.pad(vol, pad_width=1, mode="constant", constant_values=np.NaN)
     # PADDING THE MASKS WITH A LAYER OF 0's
     # (reduce mesh computation errors of associated mask)
-    maskInt = maskInt.copy()
-    maskInt = np.pad(maskInt, pad_width=1, mode="constant", constant_values=0.0)
-    maskMorph = maskMorph.copy()
-    maskMorph = np.pad(maskMorph, pad_width=1, mode="constant", constant_values=0.0)
+    mask_int = mask_int.copy()
+    mask_int = np.pad(mask_int, pad_width=1, mode="constant", constant_values=0.0)
+    mask_morph = mask_morph.copy()
+    mask_morph = np.pad(mask_morph, pad_width=1, mode="constant", constant_values=0.0)
 
     # GETTING IMPORTANT VARIABLES
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
-    _, faces, vertices = getMesh(maskMorph, res)
+    _, faces, vertices = getMesh(mask_morph, res)
 
-    return getMeshVolume(faces, vertices)
+    return get_mesh_volume(faces, vertices)
     
 
 def extract_all(vol, 
-                    maskInt, 
-                    maskMorph, 
+                    mask_int, 
+                    mask_morph, 
                     res, 
                     intensity=None, 
-                    computeMoranI=False, 
-                    computeGearyC=False) -> Dict:
+                    compute_moran_i=False, 
+                    compute_geary_c=False) -> Dict:
     """Compute Morphological Features.
     
     Note:
         Moran's Index and Geary's C measure takes so much computation time. Please
-        use `computeMoranI` `computeGearyC` carefully.
+        use `compute_moran_i` `compute_geary_c` carefully.
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
-        maskInt (ndarray): Intensity mask.
-        maskMorph (ndarray): Morphological mask.
+        mask_int (ndarray): Intensity mask.
+        mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
             XYZ resolution (world), or JIK resolution (intrinsic matlab).
         intensity (str, optional): If 'arbitrary', some feature will not be computed.
             If 'definite' or None, all feature will be computed. If 'filter', most features
             will not be computed, except some. The 'filter' option encompasses
             'arbitrary', and is even more stringent. Please see below.
-        computeMoranI (bool, optional): True to compute Moran's Index.
-        computeGearyC (bool, optional): True to compute Geary's C measure.
+        compute_moran_i (bool, optional): True to compute Moran's Index.
+        compute_geary_c (bool, optional): True to compute Geary's C measure.
 
     Raises:
         ValueError: `intensity` mus be either "arbitrary", "definite", "filter" or None.
@@ -131,37 +131,37 @@ def extract_all(vol,
     vol = np.pad(vol, pad_width=1, mode="constant", constant_values=np.NaN)
     # PADDING THE MASKS WITH A LAYER OF 0's
     # (reduce mesh computation errors of associated mask)
-    maskInt = maskInt.copy()
-    maskInt = np.pad(maskInt, pad_width=1, mode="constant", constant_values=0.0)
-    maskMorph = maskMorph.copy()
-    maskMorph = np.pad(maskMorph, pad_width=1, mode="constant", constant_values=0.0)
+    mask_int = mask_int.copy()
+    mask_int = np.pad(mask_int, pad_width=1, mode="constant", constant_values=0.0)
+    mask_morph = mask_morph.copy()
+    mask_morph = np.pad(mask_morph, pad_width=1, mode="constant", constant_values=0.0)
 
     # GETTING IMPORTANT VARIABLES
-    Xgl_int = np.reshape(vol, np.size(vol), order='F')[np.where(
-        np.reshape(maskInt, np.size(maskInt), order='F') == 1)[0]].copy()
+    xgl_int = np.reshape(vol, np.size(vol), order='F')[np.where(
+        np.reshape(mask_int, np.size(mask_int), order='F') == 1)[0]].copy()
     Xgl_morph = np.reshape(vol, np.size(vol), order='F')[np.where(
-        np.reshape(maskMorph, np.size(maskMorph), order='F') == 1)[0]].copy()
+        np.reshape(mask_morph, np.size(mask_morph), order='F') == 1)[0]].copy()
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
-    XYZ_int, _, _ = getMesh(maskInt, res)
+    xyz_int, _, _ = getMesh(mask_int, res)
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
-    XYZ_morph, faces, vertices = getMesh(maskMorph, res)
+    xyz_morph, faces, vertices = getMesh(mask_morph, res)
     # [X,Y,Z] points of the convex hull.
-    # convHull Matlab is convHull.simplices
-    convHull = sc.ConvexHull(vertices)
+    # conv_hull Matlab is conv_hull.simplices
+    conv_hull = sc.ConvexHull(vertices)
 
     # STARTING COMPUTATION
 
     if im_filter is not True:
         # In mm^3
-        volume = getMeshVolume(faces, vertices)
+        volume = get_mesh_volume(faces, vertices)
         morph['Fmorph_vol'] = volume  # Volume
 
         # Approximate Volume
-        morph['Fmorph_approx_vol'] = np.sum(maskMorph[:]) * np.prod(res)
+        morph['Fmorph_approx_vol'] = np.sum(mask_morph[:]) * np.prod(res)
 
         # Surface area
         # In mm^2
-        area = getMeshArea(faces, vertices)
+        area = get_mesh_area(faces, vertices)
         morph['Fmorph_area'] = area
 
         # Surface to volume ratio
@@ -183,13 +183,13 @@ def extract_all(vol,
         morph['Fmorph_asphericity'] = ((area**3) / (36*np.pi*volume**2))**(1/3) - 1
 
         # Centre of mass shift
-        morph['Fmorph_com'] = getCOM(Xgl_int, Xgl_morph, XYZ_int, XYZ_morph)
+        morph['Fmorph_com'] = getCOM(xgl_int, Xgl_morph, xyz_int, xyz_morph)
 
         # Maximum 3D diameter
-        morph['Fmorph_diam'] = np.max(sc.distance.pdist(convHull.points[convHull.vertices]))
+        morph['Fmorph_diam'] = np.max(sc.distance.pdist(conv_hull.points[conv_hull.vertices]))
 
         # Major axis length
-        [major, minor, least] = getAxisLengths(XYZ_morph)
+        [major, minor, least] = get_axis_lengths(xyz_morph)
         morph['Fmorph_pca_major'] = 4*np.sqrt(major)
 
         # Minor axis length
@@ -205,41 +205,41 @@ def extract_all(vol,
         morph['Fmorph_pca_flatness'] = np.sqrt(least / major)
 
         # Volume density - axis-aligned bounding box
-        Xc_aabb = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
-        Yc_aabb = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
-        Zc_aabb = np.max(vertices[:, 2]) - np.min(vertices[:, 2])
-        Vaabb = Xc_aabb * Yc_aabb * Zc_aabb
-        morph['Fmorph_v_dens_aabb'] = volume / Vaabb
+        xc_aabb = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
+        yc_aabb = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
+        zc_aabb = np.max(vertices[:, 2]) - np.min(vertices[:, 2])
+        v_aabb = xc_aabb * yc_aabb * zc_aabb
+        morph['Fmorph_v_dens_aabb'] = volume / v_aabb
 
         # Area density - axis-aligned bounding box
-        Aaabb = 2*Xc_aabb*Yc_aabb + 2*Xc_aabb*Zc_aabb + 2*Yc_aabb*Zc_aabb
-        morph['Fmorph_a_dens_aabb'] = area / Aaabb
+        a_aabb = 2*xc_aabb*yc_aabb + 2*xc_aabb*zc_aabb + 2*yc_aabb*zc_aabb
+        morph['Fmorph_a_dens_aabb'] = area / a_aabb
 
         # Volume density - oriented minimum bounding box
         # Implementation of Chan and Tan's algorithm (C.K. Chan, S.T. Tan.
         # Determination of the minimum bounding box of an
         # arbitrary solid: an iterative approach.
         # Comp Struc 79 (2001) 1433-1449
-        boundBoxDims = minOrientedBoundBox(vertices)
-        volBB = np.prod(boundBoxDims)
-        morph['Fmorph_v_dens_ombb'] = volume / volBB
+        bound_box_dims = min_oriented_bound_box(vertices)
+        vol_bb = np.prod(bound_box_dims)
+        morph['Fmorph_v_dens_ombb'] = volume / vol_bb
 
         # Area density - oriented minimum bounding box
-        Aombb = 2 * (boundBoxDims[0]*boundBoxDims[1] +
-                     boundBoxDims[0]*boundBoxDims[2] +
-                     boundBoxDims[1]*boundBoxDims[2])
-        morph['Fmorph_a_dens_ombb'] = area / Aombb
+        a_ombb = 2 * (bound_box_dims[0]*bound_box_dims[1] +
+                     bound_box_dims[0]*bound_box_dims[2] +
+                     bound_box_dims[1]*bound_box_dims[2])
+        morph['Fmorph_a_dens_ombb'] = area / a_ombb
 
         # Volume density - approximate enclosing ellipsoid
         a = 2*np.sqrt(major)
         b = 2*np.sqrt(minor)
         c = 2*np.sqrt(least)
-        Vaee = (4*np.pi*a*b*c)/3
-        morph['Fmorph_v_dens_aee'] = volume / Vaee
+        v_aee = (4*np.pi*a*b*c)/3
+        morph['Fmorph_v_dens_aee'] = volume / v_aee
 
         # Area density - approximate enclosing ellipsoid
-        Aaee = getAreaDensApprox(a, b, c, 20)
-        morph['Fmorph_a_dens_aee'] = area / Aaee
+        a_aee = get_area_dens_approx(a, b, c, 20)
+        morph['Fmorph_a_dens_aee'] = area / a_aee
 
         # Volume density - minimum volume enclosing ellipsoid
         # (Rotate the volume first??)
@@ -252,44 +252,44 @@ def extract_all(vol,
         # Subsequent singular value decomposition of matrix A and
         # taking the inverse of the square root of the diagonal of the
         # sigma matrix will produce respective semi-axis lengths.
-        P = np.stack((convHull.points[convHull.simplices[:, 0], 0],
-                      convHull.points[convHull.simplices[:, 1], 1],
-                      convHull.points[convHull.simplices[:, 2], 2]), axis=1)
-        A, _ = minv.MinVolEllipse(np.transpose(P), 0.01)
+        p = np.stack((conv_hull.points[conv_hull.simplices[:, 0], 0],
+                      conv_hull.points[conv_hull.simplices[:, 1], 1],
+                      conv_hull.points[conv_hull.simplices[:, 2], 2]), axis=1)
+        A, _ = minv.min_vol_ellipse(np.transpose(p), 0.01)
         # New semi-axis lengths
         _, Q, _ = np.linalg.svd(A)
         a = 1/np.sqrt(Q[2])
         b = 1/np.sqrt(Q[1])
         c = 1/np.sqrt(Q[0])
-        Vmvee = (4*np.pi*a*b*c)/3
-        morph['Fmorph_v_dens_mvee'] = volume/Vmvee
+        v_mvee = (4*np.pi*a*b*c)/3
+        morph['Fmorph_v_dens_mvee'] = volume/v_mvee
 
         # Area density - minimum volume enclosing ellipsoid
         # Using a new set of (a,b,c), see Volume density - minimum
         # volume enclosing ellipsoid
-        Amvee = getAreaDensApprox(a, b, c, 20)
-        morph['Fmorph_a_dens_mvee'] = area / Amvee
+        a_mvee = get_area_dens_approx(a, b, c, 20)
+        morph['Fmorph_a_dens_mvee'] = area / a_mvee
 
         # Volume density - convex hull
-        Vconvex = convHull.volume
-        morph['Fmorph_v_dens_conv_hull'] = volume / Vconvex
+        v_convex = conv_hull.volume
+        morph['Fmorph_v_dens_conv_hull'] = volume / v_convex
 
         # Area density - convex hull
-        Aconvex = convHull.area
-        morph['Fmorph_a_dens_conv_hull'] = area / Aconvex
+        a_convex = conv_hull.area
+        morph['Fmorph_a_dens_conv_hull'] = area / a_convex
 
     # Integrated intensity
     if definite:
-        morph['Fmorph_integ_int'] = np.mean(Xgl_int) * volume
+        morph['Fmorph_integ_int'] = np.mean(xgl_int) * volume
 
     # Moran's I index
-    if computeMoranI:
+    if compute_moran_i:
         vol_Mor = vol.copy()
-        vol_Mor[maskInt == 0] = np.NaN
-        morph['Fmorph_moran_i'] = getMoranI(vol_Mor,res)
+        vol_Mor[mask_int == 0] = np.NaN
+        morph['Fmorph_moran_i'] = get_moran_i(vol_Mor,res)
 
     # Geary's C measure
-    if computeGearyC:
-        morph['Fmorph_geary_c'] = getGearyC(vol_Mor,res)
+    if compute_geary_c:
+        morph['Fmorph_geary_c'] = get_geary_c(vol_Mor,res)
 
     return morph

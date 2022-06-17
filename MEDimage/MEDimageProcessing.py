@@ -14,12 +14,10 @@ _logger = logging.getLogger(__name__)
 
 class MEDimageProcessing(MEDimage):
     """Organizes all processing parameters (patientID, imaging data, scan type...). 
-
     Args:
         MEDimg (MEDimage, optional): A MEDimage instance.
         log_file (str, optional): Name of the file that will be used
             for logging. MUST END WITH '.txt'
-
     Attributes:
         Params (Dict): Dict of parameters.
         results (Dict): Dict of results.
@@ -27,7 +25,6 @@ class MEDimageProcessing(MEDimage):
         nAlgo (int): Number of texture discretisation algorithms.
         nGl (int): Number of gray levels.
         nExp (int): Equals to `nScale * nAlgo * nGl`.
-
     """
     __shared_state = {}
     
@@ -176,7 +173,6 @@ class MEDimageProcessing(MEDimage):
         Args:
             filterType (str): Name of the filter to use (Mean, Laws, Wavelet...).
             volObj (imref3d): Volume object containing the data that will be filterd.
-
         Returns:
             ndarray: volObj: 3D array of filtered imaging data.
         """

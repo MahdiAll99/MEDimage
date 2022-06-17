@@ -40,7 +40,7 @@
         },
         "distCorrection" : false
       },
-      "glrlm" : {
+      "extract_all" : {
         "distCorrection" : false},
       "gldzm" : {
         "distanceNorm" : {
@@ -109,7 +109,7 @@
         },
         "distCorrection" : false
       },
-      "glrlm" : {
+      "extract_all" : {
         "distCorrection" : false
       },
       "gldzm" : {
@@ -143,7 +143,7 @@
   },
   "imParamPET" : {
     "image":{
-      "computeSUVmap" : true,
+      "compute_suv_map" : true,
       "interp" :  {
         "scaleNonText" : [4, 4, 4],
         "scaleText" : [[3, 3, 3], [4, 4, 4]],
@@ -183,7 +183,7 @@
         },
         "distCorrection" : false
       },
-      "glrlm" : {
+      "extract_all" : {
         "distCorrection" : false
       },
       "gldzm" : {

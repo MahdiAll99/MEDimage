@@ -6,50 +6,50 @@ import pickle
 from MEDimage.MEDimage import MEDimage
 
 
-def initMEDimage(nameRead, pathRead, roiType, imParams, log_file):
+def initMEDimage(name_read, path_read, roi_type, im_params, log_file):
     """
     Initializes the MEDimage class and the child classes.
 
     Args:
-        nameRead (str): name of the scan that will be used to
+        name_read (str): name of the scan that will be used to
             initialize the MEDimage class and its children.
-        pathRead (Path): Path to the scan file.
-        roiType (str): ROI type.
-        imParams (Dict): Dict of the test parameters.
+        path_read (Path): Path to the scan file.
+        roi_type (str): ROI type.
+        im_params (Dict): Dict of the test parameters.
         log_file (str): Name of the log file that will be used.
 
     Returns: 
         Derived classes (MEDimageProcessing and MEDimageComputeRadiomics).
 
     """ 
-    if nameRead.endswith('.npy'):
+    if name_read.endswith('.npy'):
         # MEDimage instance is now in Workspace
-        with open(pathRead / nameRead, 'rb') as f: MEDimg = pickle.load(f)
+        with open(path_read / name_read, 'rb') as f: MEDimg = pickle.load(f)
 
         MEDimg = MEDimage(MEDimg, log_file)
 
         # Initialize processing & computation parameters
-        MEDimg.init_params(imParamScan=imParams,
-                                    imParamFilter=imParams['imParamFilter'],
-                                    roiType=roiType)
+        MEDimg.init_params(imParamScan=im_params,
+                                    imParamFilter=im_params['imParamFilter'],
+                                    roi_type=roi_type)
 
         return MEDimg
 
     # Set up NIFTI Image path 
-    NiftiImage = pathRead / nameRead
+    nifti_image = path_read / name_read
 
     # MEDimage instance is now in Workspace
     MEDimg = MEDimage()
 
     # Initialization using NIFTI file :
-    MEDimg.init_from_nifti(NiftiImagePath=NiftiImage)
+    MEDimg.init_from_nifti(NiftiImagePath=nifti_image)
 
-    # spatialRef Creation : 
-    MEDimg.scan.volume.spatialRef_from_NIFTI(NiftiImage)
+    # spatial_ref Creation : 
+    MEDimg.scan.volume.spatial_ref_from_NIFTI(nifti_image)
 
     # Initialize processing & computation parameters
-    MEDimg.init_Params(imParamScan=imParams,
-                                imParamFilter=imParams['imParamFilter'],
-                                roiType=roiType)
+    MEDimg.init_Params(imParamScan=im_params,
+                                imParamFilter=im_params['imParamFilter'],
+                                roi_type=roi_type)
 
     return MEDimg

@@ -9,19 +9,19 @@ from scipy.stats import scoreatpercentile, variation
 
 def get_mean(vol):
     # INITIALIZATION
-    X = vol[~np.isnan(vol[:])]
-    Nv = X.size
+    x = vol[~np.isnan(vol[:])]
+    n_v = x.size
 
     # Always defined from 1 to the maximum value of
     # the volume to remove any ambiguity
-    levels = np.arange(1, np.max(X) + 100*np.finfo(float).eps)
-    Ng = levels.size  # Number of gray-levels
-    H = np.zeros(Ng)  # The histogram of X
+    levels = np.arange(1, np.max(x) + 100*np.finfo(float).eps)
+    n_g = levels.size  # Number of gray-levels
+    h = np.zeros(n_g)  # The histogram of x
 
-    for i in range(0, Ng):
-        H[i] = np.sum(X == i+1)
+    for i in range(0, n_g):
+        h[i] = np.sum(x == i+1)
 
-    p = (H/Nv)  # Occurrence probability for each grey level bin i
+    p = (h/n_v)  # Occurrence probability for each grey level bin i
     pt = p.transpose()
 
     # Intensity histogram mean
@@ -42,10 +42,10 @@ def extract_all(vol) -> Dict:
 
     # INITIALIZATION
 
-    X = vol[~np.isnan(vol[:])]
-    Nv = X.size
+    x = vol[~np.isnan(vol[:])]
+    n_v = x.size
 
-    intHist = {'Fih_mean': [],
+    int_hist = {'Fih_mean': [],
                'Fih_var': [],
                'Fih_skew': [],
                'Fih_kurt': [],
@@ -73,27 +73,27 @@ def extract_all(vol) -> Dict:
 
     # Always defined from 1 to the maximum value of
     # the volume to remove any ambiguity
-    levels = np.arange(1, np.max(X)+100*np.finfo(float).eps)
-    Ng = levels.size  # Number of gray-levels
-    H = np.zeros(Ng)  # The histogram of X
+    levels = np.arange(1, np.max(x)+100*np.finfo(float).eps)
+    n_g = levels.size  # Number of gray-levels
+    h = np.zeros(n_g)  # The histogram of x
 
-    for i in range(0, Ng):
-        # == i or == levels(i) is equivalent since levels = 1:max(X),
-        # and Ng = numel(levels)
-        H[i] = np.sum(X == i+1)  # H[i] = sum(X == i+1)
+    for i in range(0, n_g):
+        # == i or == levels(i) is equivalent since levels = 1:max(x),
+        # and n_g = numel(levels)
+        h[i] = np.sum(x == i+1)  # h[i] = sum(x == i+1)
 
-    p = (H/Nv)  # Occurence probability for each grey level bin i
+    p = (h/n_v)  # Occurence probability for each grey level bin i
     pt = p.transpose()
 
     # STARTING COMPUTATION
 
     # Intensity histogram mean
     u = np.matmul(levels, pt)
-    intHist['Fih_mean'] = u
+    int_hist['Fih_mean'] = u
 
     # Intensity histogram variance
     var = np.matmul(np.power(levels - u, 2), pt)
-    intHist['Fih_var'] = var
+    int_hist['Fih_var'] = var
 
     # Intensity histogram skewness and kurtosis
     skew = 0
@@ -103,90 +103,90 @@ def extract_all(vol) -> Dict:
         skew = np.matmul(np.power(levels - u, 3), pt)/np.power(var, 3/2)
         kurt = np.matmul(np.power(levels - u, 4), pt)/np.power(var, 2) - 3
 
-    intHist['Fih_skew'] = skew
-    intHist['Fih_kurt'] = kurt
+    int_hist['Fih_skew'] = skew
+    int_hist['Fih_kurt'] = kurt
 
     # Intensity histogram median
-    intHist['Fih_median'] = np.median(X)
+    int_hist['Fih_median'] = np.median(x)
 
     # Intensity histogram minimum grey level
-    intHist['Fih_min'] = np.min(X)
+    int_hist['Fih_min'] = np.min(x)
 
     # Intensity histogram 10th percentile
-    p10 = scoreatpercentile(X, 10)
-    intHist['Fih_P10'] = p10
+    p10 = scoreatpercentile(x, 10)
+    int_hist['Fih_P10'] = p10
 
     # Intensity histogram 90th percentile
-    p90 = scoreatpercentile(X, 90)
-    intHist['Fih_P90'] = p90
+    p90 = scoreatpercentile(x, 90)
+    int_hist['Fih_P90'] = p90
 
     # Intensity histogram maximum grey level
-    intHist['Fih_max'] = np.max(X)
+    int_hist['Fih_max'] = np.max(x)
 
     # Intensity histogram mode
-    #    levels = 1:max(X), so the index of the ith bin of H is the same as i
-    mH = np.max(H)
-    mode = np.where(H == mH)[0] + 1
+    #    levels = 1:max(x), so the index of the ith bin of h is the same as i
+    mh = np.max(h)
+    mode = np.where(h == mh)[0] + 1
 
     if np.size(mode) > 1:
         dist = np.abs(mode - u)
-        indMin = np.argmin(dist)
-        intHist['Fih_mode'] = mode[indMin]
+        ind_min = np.argmin(dist)
+        int_hist['Fih_mode'] = mode[ind_min]
     else:
-        intHist['Fih_mode'] = mode[0]
+        int_hist['Fih_mode'] = mode[0]
 
     # Intensity histogram interquantile range
-    #    Since X goes from 1:max(X), all with integer values,
+    #    Since x goes from 1:max(x), all with integer values,
     #    the result is an integer
-    intHist['Fih_iqr'] = scoreatpercentile(X, 75) - scoreatpercentile(X, 25)
+    int_hist['Fih_iqr'] = scoreatpercentile(x, 75) - scoreatpercentile(x, 25)
 
     # Intensity histogram range
-    intHist['Fih_range'] = np.max(X) - np.min(X)
+    int_hist['Fih_range'] = np.max(x) - np.min(x)
 
     # Intensity histogram mean absolute deviation
-    intHist['Fih_mad'] = np.mean(abs(X - u))
+    int_hist['Fih_mad'] = np.mean(abs(x - u))
 
     # Intensity histogram robust mean absolute deviation
-    X_10_90 = X[np.where((X >= p10) & (X <= p90), True, False)]
-    intHist['Fih_rmad'] = np.mean(np.abs(X_10_90 - np.mean(X_10_90)))
+    x_10_90 = x[np.where((x >= p10) & (x <= p90), True, False)]
+    int_hist['Fih_rmad'] = np.mean(np.abs(x_10_90 - np.mean(x_10_90)))
 
     # Intensity histogram median absolute deviation
-    intHist['Fih_medad'] = np.mean(np.absolute(X - np.median(X)))
+    int_hist['Fih_medad'] = np.mean(np.absolute(x - np.median(x)))
 
     # Intensity histogram coefficient of variation
-    intHist['Fih_cov'] = variation(X)
+    int_hist['Fih_cov'] = variation(x)
 
     # Intensity histogram quartile coefficient of dispersion
-    X_75_25 = scoreatpercentile(X, 75) + scoreatpercentile(X, 25)
-    intHist['Fih_qcod'] = intHist['Fih_iqr'] / X_75_25
+    x_75_25 = scoreatpercentile(x, 75) + scoreatpercentile(x, 25)
+    int_hist['Fih_qcod'] = int_hist['Fih_iqr'] / x_75_25
 
     # Intensity histogram entropy
     p = p[p > 0]
-    intHist['Fih_entropy'] = -np.sum(p * np.log2(p))
+    int_hist['Fih_entropy'] = -np.sum(p * np.log2(p))
 
     # Intensity histogram uniformity
-    intHist['Fih_uniformity'] = np.sum(np.power(p, 2))
+    int_hist['Fih_uniformity'] = np.sum(np.power(p, 2))
 
     # Calculation of histogram gradient
-    histGrad = np.zeros(Ng)
-    histGrad[0] = H[1] - H[0]
-    histGrad[-1] = H[-1] - H[-2]
+    hist_grad = np.zeros(n_g)
+    hist_grad[0] = h[1] - h[0]
+    hist_grad[-1] = h[-1] - h[-2]
 
-    for i in range(1, Ng-1):
-        histGrad[i] = (H[i+1] - H[i-1])/2
+    for i in range(1, n_g-1):
+        hist_grad[i] = (h[i+1] - h[i-1])/2
 
     # Maximum histogram gradient
-    intHist['Fih_max_grad'] = np.max(histGrad)
+    int_hist['Fih_max_grad'] = np.max(hist_grad)
 
     # Maximum histogram gradient grey level
-    indMax = np.where(histGrad == intHist['Fih_max_grad'])[0][0]
-    intHist['Fih_max_grad_gl'] = levels[indMax]
+    ind_max = np.where(hist_grad == int_hist['Fih_max_grad'])[0][0]
+    int_hist['Fih_max_grad_gl'] = levels[ind_max]
 
     # Minimum histogram gradient
-    intHist['Fih_min_grad'] = np.min(histGrad)
+    int_hist['Fih_min_grad'] = np.min(hist_grad)
 
     # Minimum histogram gradient grey level
-    indMin = np.where(histGrad == intHist['Fih_min_grad'])[0][0]
-    intHist['Fih_min_grad_gl'] = levels[indMin]
+    ind_min = np.where(hist_grad == int_hist['Fih_min_grad'])[0][0]
+    int_hist['Fih_min_grad_gl'] = levels[ind_min]
 
-    return intHist
+    return int_hist

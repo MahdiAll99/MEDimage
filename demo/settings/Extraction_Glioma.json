@@ -2,12 +2,12 @@
   "imParamMR" : {
     "image":{
       "interp" : {
-        "scaleNonText" : [2, 2, 2],
-        "scaleText" : [[2, 2, 2]],
-        "volInterp" : "linear",
-        "glRound" : [],
-        "roiInterp" : "linear",
-        "roiPV" : 0.5
+        "scale_non_text" : [2, 2, 2],
+        "scale_text" : [[2, 2, 2]],
+        "vol_interp" : "linear",
+        "gl_round" : [],
+        "roi_interp" : "linear",
+        "roi_pv" : 0.5
       },
       "reSeg" : {
         "range" : [],
@@ -40,7 +40,7 @@
         },
         "distCorrection" : false
       },
-      "glrlm" : {
+      "extract_all" : {
         "distCorrection" : false},
       "gldzm" : {
         "distanceNorm" : {
@@ -77,19 +77,19 @@
         "orthogonal_rot" : false,
         "energy_image" : false,
         "padding" : "symmetric",
-        "nameSave" : ""
+        "name_save" : ""
       }
     }
   },
   "imParamCT" : {
     "image":{
       "interp" : {
-        "scaleNonText" : [2, 2, 2],
-        "scaleText" : [[2, 2, 2], [3, 3, 3]],
-        "volInterp" : "linear",
-        "glRound" : 1,
-        "roiInterp" : "linear",
-        "roiPV" : 0.5
+        "scale_non_text" : [2, 2, 2],
+        "scale_text" : [[2, 2, 2], [3, 3, 3]],
+        "vol_interp" : "linear",
+        "gl_round" : 1,
+        "roi_interp" : "linear",
+        "roi_pv" : 0.5
       },
       "reSeg" :  {
         "range" : [-700, 300],
@@ -119,7 +119,7 @@
         },
         "distCorrection" : false
       },
-      "glrlm" : {
+      "extract_all" : {
         "distCorrection" : false
       },
       "gldzm" : {
@@ -157,20 +157,20 @@
         "orthogonal_rot" : false,
         "energy_image" : true,
         "padding" : "symmetric",
-        "nameSave" : ""
+        "name_save" : ""
       }
     }
   },
   "imParamPET" : {
     "image":{
-      "computeSUVmap" : true,
+      "compute_suv_map" : true,
       "interp" :  {
-        "scaleNonText" : [4, 4, 4],
-        "scaleText" : [[3, 3, 3], [4, 4, 4]],
-        "volInterp" : "linear",
-        "glRound" : [],
-        "roiInterp" : "linear",
-        "roiPV" : 0.5
+        "scale_non_text" : [4, 4, 4],
+        "scale_text" : [[3, 3, 3], [4, 4, 4]],
+        "vol_interp" : "linear",
+        "gl_round" : [],
+        "roi_interp" : "linear",
+        "roi_pv" : 0.5
       },
       "reSeg" :  {
         "range" : [0, "inf"],
@@ -203,7 +203,7 @@
         },
         "distCorrection" : false
       },
-      "glrlm" : {
+      "extract_all" : {
         "distCorrection" : false
       },
       "gldzm" : {
@@ -241,7 +241,7 @@
         "orthogonal_rot" : false,
         "energy_image" : true,
         "padding" : "symmetric",
-        "nameSave" : ""
+        "name_save" : ""
       }
     }
   },
