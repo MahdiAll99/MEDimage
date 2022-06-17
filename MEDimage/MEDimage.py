@@ -20,14 +20,17 @@ from .utils.jsonUtils import loadjson
 
 class MEDimage(object):
     """Organizes all scan data (patientID, imaging data, scan type...). 
+
     Args:
         MEDimg (MEDimage, optional): A MEDimage instance.
+
     Attributes:
         patientID (str): Patient ID.
         type (str): Scan type (MRscan, CTscan...).
         format (str): Scan file format. Either 'npy' or 'nifti'.
         dicomH (pydicom.dataset.FileDataset): DICOM header.
         scan (MEDimage.scan): Instance of MEDimage.scan inner class.
+
     """
 
     def __init__(self, MEDimg=None, logger=None) -> None:
@@ -329,8 +332,10 @@ class MEDimage(object):
 
     def init_from_nifti(self, nifti_image_path) -> None:
         """Initializes the MEDimage class using a NIfTI file.
+
         Args:
             nifti_image_path (Path): NIfTI file path.
+
         Returns:
             None.
         
@@ -692,9 +697,11 @@ class MEDimage(object):
 
     class Radiomics:
         """Organized all extracted features.
+
         Attributes:
             image (Dict): Dict contating the extracted features.
             params (Dict): Dict of the parameters used in features extraction (roi type, voxels diemension...)
+
         """
         def __init__(self, image: Dict = None, params: Dict = None) -> None:
             self.image = image if image else {}
@@ -717,16 +724,19 @@ class MEDimage(object):
 
     class scan:
         """Organizes all imaging data (volume and ROI). 
+
         Args:
             orientation (str, optional): Imaging data orientation (axial, sagittal or coronal).
             patientPosition (str, optional): Patient position specifies the position of the 
                 patient relative to the imaging equipment space (HFS, HFP...).
+
         Attributes:
             volume (object): Instance of MEDimage.scan.volume inner class.
             ROI (object): Instance of MEDimage.scan.ROI inner class.
             orientation (str): Imaging data orientation (axial, sagittal or coronal).
             patientPosition (str): Patient position specifies the position of the 
                 patient relative to the imaging equipment space (HFS, HFP...).
+
         """
         def __init__(self, orientation=None, patientPosition=None):
             self.volume = self.volume() 
@@ -750,8 +760,10 @@ class MEDimage(object):
         def get_ROI_from_indexes(self, key):
             """
             Extract ROI data using the saved indexes (Indexes of 1's).
+
             Args:
                 ket (int): ROI index (A volume can have multiple ROIs).
+
             Returns:
                 ndarray: n-dimensional array of ROI data.
             
@@ -763,8 +775,10 @@ class MEDimage(object):
         def get_indexes_by_ROIname(self, ROIname : str):
             """
             Extract ROI data using ROI name..
+
             Args:
                 ROIname (str): String of the ROI name (A volume can have multiple ROIs).
+
             Returns:
                 ndarray: n-dimensional array of ROI data.
             
@@ -776,8 +790,10 @@ class MEDimage(object):
 
         def display(self, _slice: int = None) -> None:
             """Displays slices from imaging data with the ROI contour in XY-Plane.
+
             Args:
                 _slice (int, optional): Index of the slice you want to plot.
+
             Returns:
                 None.
             
@@ -849,8 +865,10 @@ class MEDimage(object):
 
         def display_process(self, _slice: int = None) -> None:
             """Displays slices from imaging data with the ROI contour in XY-Plane.
+
             Args:
                 _slice (int, optional): Index of the slice you want to plot.
+
             Returns:
                 None.
             
@@ -923,27 +941,32 @@ class MEDimage(object):
 
         class volume:
             """Organizes all volume data and information. 
+
             Args:
                 spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                 scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
                 data (ndarray, optional): n-dimensional of the imaging data.
                 filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
                         imaging data.
+
             Attributes:
                 spatialRef (imref3d): Imaging data orientation (axial, sagittal or coronal).
                 scan_rot (ndarray): Array of the rotation applied to the XYZ points of the ROI.
                 data (ndarray): n-dimensional of the imaging data.
                 filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
                     imaging data.
+
             """
             def __init__(self, spatialRef=None, scan_rot=None, data=None):
                 """Organizes all volume data and information. 
+
                 Args:
                     spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                     scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
                     data (ndarray, optional): n-dimensional of the imaging data.
                     filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
                         imaging data.
+
                 """
                 self.spatialRef = spatialRef
                 self.scan_rot = scan_rot
@@ -964,10 +987,13 @@ class MEDimage(object):
             def convert_to_LPS(self):
                 """Convert Imaging data to LPS (Left-Posterior-Superior) coordinates system.
                 <https://www.slicer.org/wiki/Coordinate_systems>.
+
                 Args:
                     ket (int): ROI index (A volume can have multiple ROIs).
+
                 Returns:
                     None.
+
                 """
                 # flip x
                 self.data = np.flip(self.data, 0)
@@ -979,8 +1005,10 @@ class MEDimage(object):
             def spatialRef_from_NIFTI(self, nifti_image_path):
                 """Computes the imref3d spatialRef using a NIFTI file and
                 updates the spatialRef attribute.
+
                 Args:
                     nifti_image_path (str): String of the NIFTI file path.
+
                 Returns:
                     None.
                 
@@ -1024,10 +1052,13 @@ class MEDimage(object):
             def convert_spatialRef(self):
                 """converts the MEDimage spatialRef from RAS to LPS coordinates system.
                 <https://www.slicer.org/wiki/Coordinate_systems>.
+
                 Args:
                     None.
+
                 Returns:
                     None.
+
                 """
                 # swap x and y data
                 temp = self.spatialRef.ImageExtentInWorldX
@@ -1049,25 +1080,30 @@ class MEDimage(object):
 
         class volume_process:
             """Organizes all volume data and information. 
+
             Args:
                 spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                 scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
                 data (ndarray, optional): n-dimensional of the imaging data.
+
             Attributes:
                 spatialRef (imref3d): Imaging data orientation (axial, sagittal or coronal).
                 scan_rot (ndarray): Array of the rotation applied to the XYZ points of the ROI.
                 data (ndarray): n-dimensional of the imaging data.
+
             """
             def __init__(self, spatialRef: imref3d = None, 
                         scan_rot: List = None, data: np.ndarray = None,
                         user_string: str = "") -> None:
                 """Organizes all volume data and information. 
+
                 Args:
                     spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                     scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
                     data (ndarray, optional): n-dimensional of the imaging data.
                     filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
                         imaging data.
+
                 """
                 self.data = data
                 self.scan_rot = scan_rot
@@ -1106,9 +1142,11 @@ class MEDimage(object):
 
         class ROI:
             """Organizes all ROI data and information. 
+
             Args:
                 indexes (Dict, optional): Dict of the ROI indexes for each ROI name.
                 roi_names (Dict, optional): Dict of the ROI names.
+
             Attributes:
                 indexes (Dict): Dict of the ROI indexes for each ROI name.
                 roi_names (Dict): Dict of the ROI names.
@@ -1116,6 +1154,7 @@ class MEDimage(object):
                 nameSetInfo (Dict): Dict of the names of the structure sets that define the areas of 
                     significance. Either 'StructureSetName', 'StructureSetDescription', 'SeriesDescription' 
                     or 'SeriesInstanceUID'.
+
             """
             def __init__(self, indexes=None, roi_names=None) -> None:
                 self.indexes = indexes if indexes else {}
