@@ -6,23 +6,23 @@ import math
 import numpy as np
 from scipy.sparse import spdiags
 
-from ..biomarkers.Wei_Toolbox.rle_0 import  rle_0 as rle
-from ..biomarkers.Wei_Toolbox.rle_45 import  rle_45 as rle45
-from ..biomarkers.Wei_Toolbox.zigzag import  zigzag as zig
+from ..biomarkers.wei_toolbox.rle_0 import  rle_0 as rle
+from ..biomarkers.wei_toolbox.rle_45 import  rle_45 as rle45
+from ..biomarkers.wei_toolbox.zigzag import  zigzag as zig
 
 def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
-    """Compute GLRLM matrix.
+    """Compute glrm matrix.
 
-    This function computes the Gray-Level Run-Length Matrix (GLRLM) of the
+    This function computes the Gray-Level Run-Length Matrix (glrm) of the
     region of interest (ROI) of an input volume. The input volume is assumed
-    to be isotropically resampled. Only one GLRLM is computed per scan,
+    to be isotropically resampled. Only one glrm is computed per scan,
     simultaneously adding up all possible run-lengths in the 13 directions of
     the 3D space. To account for discretization length differences, runs
     constructed from voxels separated by a distance of sqrt(3) increment the
-    GLRLM by a value of sqrt(3), runs constructed from voxels separated by a
-    distance of sqrt(2) increment the GLRLM by a value of sqrt(2), and runs
-    constructed from voxels separated by a distance of 1 increment the GLRLM
-    by a value of 1. This function uses other functions from Wei's GLRLM
+    glrm by a value of sqrt(3), runs constructed from voxels separated by a
+    distance of sqrt(2) increment the glrm by a value of sqrt(2), and runs
+    constructed from voxels separated by a distance of 1 increment the glrm
+    by a value of 1. This function uses other functions from Wei's glrm
     toolbox [2].
 
     Note:
@@ -45,7 +45,7 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
     REFERENCES:
         [1] Galloway, M. M. (1975). Texture analysis using gray level run lengths.
             Computer Graphics and Image Processing, 4(2), 172–179.
-        [2] Wei's GLRLM toolbox: Xunkai Wei, Gray Level Run Length Matrix Toolbox
+        [2] Wei's glrm toolbox: Xunkai Wei, Gray Level Run Length Matrix Toolbox
             v1.0, Software,Beijing Aeronautical Technology Research Center, 2007.
             <http://www.mathworks.com/matlabcentral/fileexchange/
             17482-gray-level-run-length-matrix-toolbox>
@@ -57,17 +57,17 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
         distCorrection = True  # By default
 
     if distCorrection:
-        factCorr2 = math.sqrt(2)
-        factCorr3 = math.sqrt(3)
+        fact_corr2 = math.sqrt(2)
+        fact_corr3 = math.sqrt(3)
     else:
-        factCorr2 = 1
-        factCorr3 = 1
+        fact_corr2 = 1
+        fact_corr3 = 1
 
     # PRELIMINARY
 
     roi_only = roi_only.copy()
     level_temp = np.max(levels)+1
-    # Last row needs to be taken out of the GLRLM
+    # Last row needs to be taken out of the glrm
     roi_only[np.isnan(roi_only)] = level_temp
     levels = np.append(levels, level_temp)
 
@@ -80,7 +80,7 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
 
     size_v = np.shape(roi_only)
     num_init = np.ceil(np.max(size_v)).astype('int')  # Max run length
-    GLRLM = np.zeros((NL+1, num_init))
+    glrm = np.zeros((NL+1, num_init))
 
     # START COMPUTATION
     # Directions [1,0,0], [0 1 0], [1 1 0] and [-1 1 0] : 2D directions
@@ -107,14 +107,14 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
         # [1,0,0]
         glrlm_temp = rle.rle_0(image, nl_temp)
         n_run = np.shape(glrlm_temp)[1]
-        # Cumulative addition into the GLRLM
-        GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp], 0:n_run] +
+        # Cumulative addition into the glrm
+        glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp], 0:n_run] +
                                              glrlm_temp[0:nl_temp, 0:n_run])
         # [0 1 0]
         glrlm_temp = rle.rle_0(np.transpose(image), nl_temp)
         n_run = np.shape(glrlm_temp)[1]
-        # Cumulative addition into the GLRLM
-        GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp], 0:n_run] +
+        # Cumulative addition into the glrm
+        glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp], 0:n_run] +
                                              glrlm_temp[0:nl_temp, 0:n_run])
 
         # [1 1 0]
@@ -122,16 +122,16 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
         glrlm_temp = rle45.rle_45(seq, nl_temp)
         n_run = np.shape(glrlm_temp)[1]
         # Discretisation length difference correction
-        GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp], 0:n_run] +
-                                             glrlm_temp[0:nl_temp, 0:n_run]*factCorr2)
+        glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp], 0:n_run] +
+                                             glrlm_temp[0:nl_temp, 0:n_run]*fact_corr2)
 
         # [-1 1 0]
         seq = zig.zigzag(np.fliplr(image))
         glrlm_temp = rle45.rle_45(seq, nl_temp)
         n_run = np.shape(glrlm_temp)[1]
         # Discretisation length difference correction
-        GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp], 0:n_run] +
-                                             glrlm_temp[0:nl_temp, 0:n_run]*factCorr2)
+        glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp], 0:n_run] +
+                                             glrlm_temp[0:nl_temp, 0:n_run]*fact_corr2)
 
     if np.size(size_v) == 3:   # 3D DIRECTIONS
         # Directions [0,0,1], [1 0 1] and [-1 0 1]
@@ -157,8 +157,8 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
             # [0,0,1]
             glrlm_temp = rle.rle_0(np.transpose(image), nl_temp)
             n_run = np.shape(glrlm_temp)[1]
-            # Cumulative addition into the GLRLM
-            GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp],
+            # Cumulative addition into the glrm
+            glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp],
                                                        0:n_run] + glrlm_temp[0:nl_temp, 0:n_run])
 
             # [1 0 1]
@@ -166,16 +166,16 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
             glrlm_temp = rle45.rle_45(seq, nl_temp)
             n_run = np.shape(glrlm_temp)[1]
             # Discretisation length difference correction
-            GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp],
-                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*factCorr2)
+            glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp],
+                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*fact_corr2)
 
             # [-1 0 1]
             seq = zig.zigzag(np.fliplr(image))
             glrlm_temp = rle45.rle_45(seq, nl_temp)
             n_run = np.shape(glrlm_temp)[1]
             # Discretisation length difference correction
-            GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp],
-                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*factCorr2)
+            glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp],
+                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*fact_corr2)
 
         # Directions [0,1,1] and [0 -1 1]
         # (x:right-left, y:top-bottom, z:3rd dimension)
@@ -202,16 +202,16 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
             glrlm_temp = rle45.rle_45(seq, nl_temp)
             n_run = np.shape(glrlm_temp)[1]
             # Discretisation length difference correction
-            GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp],
-                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*factCorr2)
+            glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp],
+                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*fact_corr2)
 
             # [0 -1 1]
             seq = zig.zigzag(np.fliplr(image))
             glrlm_temp = rle45.rle_45(seq, nl_temp)
             n_run = np.shape(glrlm_temp)[1]
             # Discretisation length difference correction
-            GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp],
-                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*factCorr2)
+            glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp],
+                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*fact_corr2)
 
         # Four corners: [1,1,1], [-1,1,1], [-1,1,-1], [1,1,-1]
         # (x:right-left, y:top-bottom, z:3rd dimension)
@@ -287,13 +287,13 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
             glrlm_temp = rle45.rle_45(seq, nl_temp)
             n_run = np.shape(glrlm_temp)[1]
             # Discretisation length difference correction
-            GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp],
-                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*factCorr3)
+            glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp],
+                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*fact_corr3)
             seq = zig.zigzag(np.fliplr(image1))
             glrlm_temp = rle45.rle_45(seq, nl_temp)
             n_run = np.shape(glrlm_temp)[1]
-            GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp],
-                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*factCorr3)
+            glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp],
+                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*fact_corr3)
 
             # 2 last corners
             unique_im = np.unique(image2)
@@ -308,19 +308,19 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
             glrlm_temp = rle45.rle_45(seq, nl_temp)
             n_run = np.shape(glrlm_temp)[1]
             # Discretisation length difference correction
-            GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp],
-                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*factCorr3)
+            glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp],
+                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*fact_corr3)
             seq = zig.zigzag(np.fliplr(image2))
             glrlm_temp = rle45.rle_45(seq, nl_temp)
             n_run = np.shape(glrlm_temp)[1]
             # Discretisation length difference correction
-            GLRLM[index_row[0:nl_temp], 0:n_run] = (GLRLM[index_row[0:nl_temp],
-                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*factCorr3)
+            glrm[index_row[0:nl_temp], 0:n_run] = (glrm[index_row[0:nl_temp],
+                                                       0:n_run] + glrlm_temp[0:nl_temp, 0:n_run]*fact_corr3)
 
     # REMOVE UNECESSARY COLUMNS
 
-    GLRLM = np.delete(GLRLM, -1, 0)
-    stop = np.nonzero(np.sum(GLRLM, 0))[0][-1]
-    GLRLM = np.delete(GLRLM, range(stop+1, np.shape(GLRLM)[1]+1), 1)
+    glrm = np.delete(glrm, -1, 0)
+    stop = np.nonzero(np.sum(glrm, 0))[0][-1]
+    glrm = np.delete(glrm, range(stop+1, np.shape(glrm)[1]+1), 1)
 
-    return GLRLM
+    return glrm

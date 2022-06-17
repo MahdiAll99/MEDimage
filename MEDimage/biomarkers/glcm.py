@@ -14,7 +14,7 @@ from ..biomarkers.utils import getGLCMCrossDiagProb, getGLCMDiagProb
 from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   get_value, is_list_all_none)
 
-def getGLCMfeatures(vol, distCorrection=None, glcm_merge_method="vol_merge", method="new") -> Dict:
+def extract_all(vol, distCorrection=None, glcm_merge_method="vol_merge", method="new") -> Dict:
     """Computes GLCM features.
 
     Args:
@@ -806,8 +806,8 @@ def get_cm_features_deprecated(vol, distCorrection) -> Dict:
     p_iminusj = getGLCMDiagProb(p_ij)
     p_iplusj = getGLCMCrossDiagProb(p_ij)
     n_g = np.max(np.shape(GLCM))
-    vectNg = np.arange(1, n_g + 100 * np.finfo(float).eps)
-    colGrid, rowGrid = np.meshgrid(vectNg, vectNg)
+    vect_ng = np.arange(1, n_g + 100 * np.finfo(float).eps)
+    col_grid, row_grid = np.meshgrid(vect_ng, vect_ng)
 
     ###############################################
     ######           GLCM features           ######
@@ -816,12 +816,12 @@ def get_cm_features_deprecated(vol, distCorrection) -> Dict:
     glcm['Fcm_joint_max'] = np.max(p_ij[:])
 
     # Joint average
-    temp = rowGrid * p_ij
+    temp = row_grid * p_ij
     u = np.sum(temp)
     glcm['Fcm_joint_avg'] = u
 
     # Joint variance
-    temp = np.power(rowGrid - u, 2) * p_ij
+    temp = np.power(row_grid - u, 2) * p_ij
     var = np.sum(temp)
     glcm['Fcm_joint_var'] = var
 
@@ -861,27 +861,27 @@ def get_cm_features_deprecated(vol, distCorrection) -> Dict:
     glcm['Fcm_energy'] = np.sum(temp)
 
     # Contrast
-    temp = np.power(rowGrid - colGrid, 2) * p_ij
+    temp = np.power(row_grid - col_grid, 2) * p_ij
     glcm['Fcm_contrast'] = np.sum(temp)
 
     # Dissimilarity
-    temp = np.abs(rowGrid - colGrid) * p_ij
+    temp = np.abs(row_grid - col_grid) * p_ij
     glcm['Fcm_dissimilarity'] = np.sum(temp)
 
     # Inverse difference
-    temp = p_ij / (1 + np.abs(rowGrid - colGrid))
+    temp = p_ij / (1 + np.abs(row_grid - col_grid))
     glcm['Fcm_inv_diff'] = np.sum(temp)
 
     # Inverse difference normalised
-    temp = p_ij / (1 + np.abs(rowGrid - colGrid) / n_g)
+    temp = p_ij / (1 + np.abs(row_grid - col_grid) / n_g)
     glcm['Fcm_inv_diff_norm'] = np.sum(temp)
 
     # Inverse difference moment
-    temp = p_ij / (1 + np.power(rowGrid - colGrid, 2))
+    temp = p_ij / (1 + np.power(row_grid - col_grid, 2))
     glcm['Fcm_inv_diff_mom'] = np.sum(temp)
 
     # Inverse difference moment normalised
-    temp = p_ij / (1 + (np.power(rowGrid - colGrid, 2) / np.power(n_g, 2)))
+    temp = p_ij / (1 + (np.power(row_grid - col_grid, 2) / np.power(n_g, 2)))
     glcm['Fcm_inv_diff_mom_norm'] = np.sum(temp)
 
     # Inverse variance
@@ -892,50 +892,50 @@ def get_cm_features_deprecated(vol, distCorrection) -> Dict:
     glcm['Fcm_inv_var'] = 2 * p
 
     # Correlation
-    u_i = np.matmul(vectNg, p_i)
-    u_j = np.matmul(vectNg, p_j.transpose())
-    std_i = np.sqrt(np.matmul(np.power(vectNg - u_i, 2), p_i))
-    std_j = np.sqrt(np.matmul(np.power(vectNg - u_j, 2), p_j.transpose()))
-    temp = rowGrid * colGrid * p_ij
+    u_i = np.matmul(vect_ng, p_i)
+    u_j = np.matmul(vect_ng, p_j.transpose())
+    std_i = np.sqrt(np.matmul(np.power(vect_ng - u_i, 2), p_i))
+    std_j = np.sqrt(np.matmul(np.power(vect_ng - u_j, 2), p_j.transpose()))
+    temp = row_grid * col_grid * p_ij
     glcm['Fcm_corr'] = ((1 / (std_i * std_j)) * (-u_i * u_j + np.sum(temp)))[0]
 
     # Autocorrelation
     glcm['Fcm_auto_corr'] = np.sum(temp)
 
     # Cluster tendency
-    temp = np.power((rowGrid + colGrid - u_i - u_j), 2) * p_ij
+    temp = np.power((row_grid + col_grid - u_i - u_j), 2) * p_ij
     glcm['Fcm_clust_tend'] = np.sum(temp)
 
     # Cluster shade
-    temp = np.power((rowGrid + colGrid - u_i - u_j), 3) * p_ij
+    temp = np.power((row_grid + col_grid - u_i - u_j), 3) * p_ij
     glcm['Fcm_clust_shade'] = np.sum(temp)
 
     # Cluster prominence
-    temp = np.power((rowGrid + colGrid - u_i - u_j), 4) * p_ij
+    temp = np.power((row_grid + col_grid - u_i - u_j), 4) * p_ij
     glcm['Fcm_clust_prom'] = np.sum(temp)
 
     # First measure of information correlation
     p_pos = p_ij[p_ij > 0]
     temp = p_pos * np.log2(p_pos)
-    HXY = -np.sum(temp)
+    hxy = -np.sum(temp)
     p_pos = p_i[p_i > 0]
     temp = p_pos * np.log2(p_pos)
-    HX = -np.sum(temp)
+    hx = -np.sum(temp)
     p_i_temp = np.matlib.repmat(p_i, 1, n_g)
     p_j_temp = np.matlib.repmat(p_j, n_g, 1)
     p_temp = p_i_temp * p_j_temp
     p_pos = p_ij[p_temp > 0]
     p_pos_temp = p_temp[p_temp > 0]
     temp = p_pos * np.log2(p_pos_temp)
-    HXY1 = -np.sum(temp)
-    glcm['Fcm_info_corr_1'] = (HXY - HXY1) / HX
+    hxy1 = -np.sum(temp)
+    glcm['Fcm_info_corr_1'] = (hxy - hxy1) / hx
 
     # Second measure of information correlation
     temp = p_pos_temp * np.log2(p_pos_temp)
-    HXY2 = -np.sum(temp)
-    if HXY > HXY2:
+    hxy2 = -np.sum(temp)
+    if hxy > hxy2:
         glcm['Fcm_info_corr_2'] = 0
     else:
-        glcm['Fcm_info_corr_2'] = np.sqrt(1 - np.exp(-2 * (HXY2 - HXY)))
+        glcm['Fcm_info_corr_2'] = np.sqrt(1 - np.exp(-2 * (hxy2 - hxy)))
 
     return glcm

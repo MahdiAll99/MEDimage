@@ -22,9 +22,9 @@ def find_i_x(levels, fract_vol, x) -> np.ndarray:
     
     """
     ind = np.where(fract_vol <= x/100)[0][0]
-    Ix = levels[ind]
+    ix = levels[ind]
 
-    return Ix
+    return ix
     
 def find_v_x(fract_int, fract_vol, x) -> np.ndarray:
     """Computes volume at intensity fraction.
@@ -40,9 +40,9 @@ def find_v_x(fract_int, fract_vol, x) -> np.ndarray:
 
     """
     ind = np.where(fract_int >= x/100)[0][0]
-    Vx = fract_vol[ind]
+    vx = fract_vol[ind]
 
-    return Vx
+    return vx
 
 def get_area_dens_approx(a, b, c, n) -> float:
     """Computes area density - minimum volume enclosing ellipsoid
@@ -59,24 +59,24 @@ def get_area_dens_approx(a, b, c, n) -> float:
     """
     alpha = np.sqrt(1 - b**2/a**2)
     beta = np.sqrt(1 - c**2/a**2)
-    AB = alpha * beta
-    point = (alpha**2+beta**2) / (2*AB)
+    ab = alpha * beta
+    point = (alpha**2+beta**2) / (2*ab)
     a_ell = 0
 
     for v in range(0, n+1):
         coef = [0]*v + [1]
         legen = np.polynomial.legendre.legval(x=point, c=coef)
-        a_ell = a_ell + AB**v / (1-4*v**2) * legen
+        a_ell = a_ell + ab**v / (1-4*v**2) * legen
 
     a_ell = a_ell * 4 * np.pi * a * b
 
     return a_ell
 
-def get_axis_lengths(XYZ) -> Tuple[float, float, float]:
+def get_axis_lengths(xyz) -> Tuple[float, float, float]:
     """Computes AxisLengths.
     
     Args:
-        XYZ (ndarray): Array of three column vectors, defining the [X,Y,Z]
+        xyz (ndarray): Array of three column vectors, defining the [X,Y,Z]
             positions of the points in the ROI (1's) of the mask volume. In mm.
 
     Returns:
@@ -84,18 +84,18 @@ def get_axis_lengths(XYZ) -> Tuple[float, float, float]:
             [Major axis lengths, Minor axis lengths, Least axis lengths].
 
     """
-    XYZ = XYZ.copy()
+    xyz = xyz.copy()
 
     # Getting the geometric centre of mass
-    com_geom = np.sum(XYZ, 0)/np.shape(XYZ)[0]  # [1 X 3] vector
+    com_geom = np.sum(xyz, 0)/np.shape(xyz)[0]  # [1 X 3] vector
 
     # Subtracting the centre of mass
-    XYZ[:, 0] = XYZ[:, 0] - com_geom[0]
-    XYZ[:, 1] = XYZ[:, 1] - com_geom[1]
-    XYZ[:, 2] = XYZ[:, 2] - com_geom[2]
+    xyz[:, 0] = xyz[:, 0] - com_geom[0]
+    xyz[:, 1] = xyz[:, 1] - com_geom[1]
+    xyz[:, 2] = xyz[:, 2] - com_geom[2]
 
     # Getting the covariance matrix
-    cov_mat = np.cov(XYZ, rowvar=False)
+    cov_mat = np.cov(xyz, rowvar=False)
 
     # Getting the eigenvalues
     eig_val, _ = np.linalg.eig(cov_mat)
@@ -107,7 +107,7 @@ def get_axis_lengths(XYZ) -> Tuple[float, float, float]:
 
     return major, minor, least
 
-def getGLCMCrossDiagProb(p_ij) -> np.ndarray:
+def get_glcm_cross_diag_prob(p_ij) -> np.ndarray:
     """Computes cross diagonal probabilities.
 
     Args:
@@ -137,7 +137,7 @@ def getGLCMCrossDiagProb(p_ij) -> np.ndarray:
 
     return p_iplusj
 
-def getGLCMDiagProb(p_ij) -> np.ndarray:
+def get_glcm_diag_prob(p_ij) -> np.ndarray:
     """Computes diagonal probabilities.
 
     Args:
@@ -168,16 +168,16 @@ def getGLCMDiagProb(p_ij) -> np.ndarray:
 
     return p_iminusj
 
-def getCOM(xgl_int, Xgl_morph, xyz_int, xyz_morph) -> Union[float, np.ndarray]:
+def get_com(xgl_int, xgl_morph, xyz_int, xyz_morph) -> Union[float, np.ndarray]:
     """Calculates center of mass shift (in mm, since resolution is in mm).
 
     Note: 
-        Row positions of "x_gl" and "XYZ" must correspond for each point.
+        Row positions of "x_gl" and "xyz" must correspond for each point.
     
     Args:
         xgl_int (ndarray): Vector of intensity values in the volume to analyze 
             (only values in the intensity mask).
-        Xgl_morph (ndarray): Vector of intensity values in the volume to analyze 
+        xgl_morph (ndarray): Vector of intensity values in the volume to analyze 
             (only values in the morphological mask).
         xyz_int (ndarray): [n_points X 3] matrix of three column vectors, defining the [X,Y,Z]
             positions of the points in the ROI (1's) of the mask volume (In mm).
@@ -192,7 +192,7 @@ def getCOM(xgl_int, Xgl_morph, xyz_int, xyz_morph) -> Union[float, np.ndarray]:
     """
 
     # Getting the geometric centre of mass
-    n_v = np.size(Xgl_morph)
+    n_v = np.size(xgl_morph)
 
     com_geom = np.sum(xyz_morph, 0)/n_v  # [1 X 3] vector
 
@@ -207,7 +207,7 @@ def getCOM(xgl_int, Xgl_morph, xyz_int, xyz_morph) -> Union[float, np.ndarray]:
 
     return com
 
-def getLocPeak(img_obj, roi_obj, res) -> float:
+def get_loc_peak(img_obj, roi_obj, res) -> float:
     """Computes Local intensity peak.
 
     Note:
@@ -218,7 +218,7 @@ def getLocPeak(img_obj, roi_obj, res) -> float:
             outside the ROI.
         roi_obj (ndarray): Array of the mask defining the ROI.
         res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+            xyz resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the local intensity peak.
@@ -271,7 +271,7 @@ def getLocPeak(img_obj, roi_obj, res) -> float:
 
     return local_peak
 
-def getMesh(mask, res) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def get_mesh(mask, res) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Compute Mesh.
 
     Note:
@@ -281,7 +281,7 @@ def getMesh(mask, res) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     Args:
         mask (ndarray): Contains only 0's and 1's.
         res (ndarray or List): [a,b,c] vector specifying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+            xyz resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         Tuple[np.ndarray, np.ndarray, np.ndarray]: 
@@ -309,12 +309,12 @@ def getMesh(mask, res) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     Y = np.reshape(Y, (np.size(Y), 1), order='F')
     Z = np.reshape(Z, (np.size(Z), 1), order='F')
 
-    XYZ = np.concatenate((X, Y, Z), axis=1)
-    XYZ = XYZ[np.where(np.reshape(mask, np.size(mask), order='F') == 1)[0], :]
+    xyz = np.concatenate((X, Y, Z), axis=1)
+    xyz = xyz[np.where(np.reshape(mask, np.size(mask), order='F') == 1)[0], :]
 
-    return XYZ, faces, vertices
+    return xyz, faces, vertices
 
-def getGlobPeak(img_obj, roi_obj, res) -> float:
+def get_glob_peak(img_obj, roi_obj, res) -> float:
     """Computes Global intensity peak.
 
     Note:
@@ -325,7 +325,7 @@ def getGlobPeak(img_obj, roi_obj, res) -> float:
             outside the ROI.
         roi_obj (ndarray): Array of the mask defining the ROI.
         res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+            xyz resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the global intensity peak.

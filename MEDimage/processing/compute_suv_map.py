@@ -19,13 +19,13 @@ def compute_suv_map(raw_pet, dicom_h) -> np.ndarray:
         ndarray: 'raw_pet' converted to SUVs (standard uptake values).
 
     """
-    def dcm_hhmmss(dateStr):
+    def dcm_hhmmss(date_str):
         # Converts to seconds
-        if not isinstance(dateStr, str):
-            dateStr = str(dateStr)
-        hh = float(dateStr[0:2])
-        mm = float(dateStr[2:4])
-        ss = float(dateStr[4:6])
+        if not isinstance(date_str, str):
+            date_str = str(date_str)
+        hh = float(date_str[0:2])
+        mm = float(date_str[2:4])
+        ss = float(date_str[4:6])
         tot_sec = hh*60.0*60.0 + mm*60.0 + ss
         return tot_sec
 
@@ -85,10 +85,10 @@ def compute_suv_map(raw_pet, dicom_h) -> np.ndarray:
         weight = 75000.0  # estimation
     try:
         # Get Scan time
-        scantime = dcm_hhmmss(dateStr=get_pydicom_meta_tag(
+        scantime = dcm_hhmmss(date_str=get_pydicom_meta_tag(
             dcm_seq=dicom_h, tag=(0x0008, 0x0032), tag_type="str"))
         # Start Time for the Radiopharmaceutical Injection
-        injection_time = dcm_hhmmss(dateStr=get_pydicom_meta_tag(
+        injection_time = dcm_hhmmss(date_str=get_pydicom_meta_tag(
             dcm_seq=dicom_h[0x0054, 0x0016][0],
             tag=(0x0018, 0x1072), tag_type="str"))
         # Half Life for Radionuclide

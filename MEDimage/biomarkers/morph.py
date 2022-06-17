@@ -10,7 +10,7 @@ from ..biomarkers.get_geary_c import get_geary_c
 from ..biomarkers.get_mesh_area import get_mesh_area
 from ..biomarkers.get_mesh_volume import get_mesh_volume
 from ..biomarkers.get_moran_i import get_moran_i
-from ..biomarkers.getOrientedBoundBox import min_oriented_bound_box
+from ..biomarkers.get_oriented_bound_box import min_oriented_bound_box
 from ..biomarkers.min_vol_ellipse import min_vol_ellipse as minv
 from ..biomarkers.utils import (get_area_dens_approx, get_axis_lengths, getCOM,
                                 getMesh)
@@ -146,8 +146,8 @@ def extract_all(vol,
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
     xyz_morph, faces, vertices = getMesh(mask_morph, res)
     # [X,Y,Z] points of the convex hull.
-    # convHull Matlab is convHull.simplices
-    convHull = sc.ConvexHull(vertices)
+    # conv_hull Matlab is conv_hull.simplices
+    conv_hull = sc.ConvexHull(vertices)
 
     # STARTING COMPUTATION
 
@@ -186,7 +186,7 @@ def extract_all(vol,
         morph['Fmorph_com'] = getCOM(xgl_int, Xgl_morph, xyz_int, xyz_morph)
 
         # Maximum 3D diameter
-        morph['Fmorph_diam'] = np.max(sc.distance.pdist(convHull.points[convHull.vertices]))
+        morph['Fmorph_diam'] = np.max(sc.distance.pdist(conv_hull.points[conv_hull.vertices]))
 
         # Major axis length
         [major, minor, least] = get_axis_lengths(xyz_morph)
@@ -252,10 +252,10 @@ def extract_all(vol,
         # Subsequent singular value decomposition of matrix A and
         # taking the inverse of the square root of the diagonal of the
         # sigma matrix will produce respective semi-axis lengths.
-        P = np.stack((convHull.points[convHull.simplices[:, 0], 0],
-                      convHull.points[convHull.simplices[:, 1], 1],
-                      convHull.points[convHull.simplices[:, 2], 2]), axis=1)
-        A, _ = minv.min_vol_ellipse(np.transpose(P), 0.01)
+        p = np.stack((conv_hull.points[conv_hull.simplices[:, 0], 0],
+                      conv_hull.points[conv_hull.simplices[:, 1], 1],
+                      conv_hull.points[conv_hull.simplices[:, 2], 2]), axis=1)
+        A, _ = minv.min_vol_ellipse(np.transpose(p), 0.01)
         # New semi-axis lengths
         _, Q, _ = np.linalg.svd(A)
         a = 1/np.sqrt(Q[2])
@@ -271,11 +271,11 @@ def extract_all(vol,
         morph['Fmorph_a_dens_mvee'] = area / a_mvee
 
         # Volume density - convex hull
-        v_convex = convHull.volume
+        v_convex = conv_hull.volume
         morph['Fmorph_v_dens_conv_hull'] = volume / v_convex
 
         # Area density - convex hull
-        a_convex = convHull.area
+        a_convex = conv_hull.area
         morph['Fmorph_a_dens_conv_hull'] = area / a_convex
 
     # Integrated intensity

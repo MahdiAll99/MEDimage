@@ -46,7 +46,7 @@ def extract_all(vol, method="new"):
         ngldm = get_ngldm_features(vol=vol, intensity_range=[np.nan, np.nan])
 
     else:
-        raise ValueError("NGLDM should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
+        raise ValueError("ngldm should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
 
     return ngldm
 
@@ -144,7 +144,7 @@ def get_ngldm_features(vol, intensity_range, ngldm_spatial_method="3d", ngldm_di
                     ngldm_list += [GreyLevelDependenceMatrix(distance=np.int(ii_dist), diff_lvl=ii_diff_lvl,
                                                              spatial_method=ii_spatial.lower(), img_slice=None)]
                 else:
-                    raise ValueError("Spatial methods for NGLDM should be \"2d\", \"2.5d\" or \"3d\".")
+                    raise ValueError("Spatial methods for ngldm should be \"2d\", \"2.5d\" or \"3d\".")
 
                 # Calculate ngldm matrices
                 for ngldm in ngldm_list:
@@ -251,9 +251,9 @@ class GreyLevelDependenceMatrix:
         Initialising function for a new neighbouring grey level dependence matrix.
         :param distance: chebyshev distance used to determine the local neighbourhood.
         :param diff_lvl: coarseness parameter which determines which intensities are considered similar.
-        :param spatial_method: spatial method used to calculate the NGLDM: 2d, 2.5d or 3d
-        :param img_slice: corresponding slice index (only if the NGLDM corresponds to a 2d image slice)
-        :param matrix: the actual NGLDM in sparse format (row, column, count)
+        :param spatial_method: spatial method used to calculate the ngldm: 2d, 2.5d or 3d
+        :param img_slice: corresponding slice index (only if the ngldm corresponds to a 2d image slice)
+        :param matrix: the actual ngldm in sparse format (row, column, count)
         :param n_v: the number of voxels in the volume
         """
 
@@ -282,7 +282,7 @@ class GreyLevelDependenceMatrix:
 
     def calculate_ngldm_matrix(self, df_img, img_dims):
         """
-        Function that calculates an NGLDM for the settings provided during initialisation and the input image.
+        Function that calculates an ngldm for the settings provided during initialisation and the input image.
 
         :param df_img: data table containing image intensities, x, y and z coordinates, and mask labels corresponding to voxels in the volume.
         :param img_dims: dimensions of the image volume
@@ -293,7 +293,7 @@ class GreyLevelDependenceMatrix:
             self.set_empty()
             return
 
-        # Check if the roi contains any masked voxels. If this is not the case, don't construct the NGLDM.
+        # Check if the roi contains any masked voxels. If this is not the case, don't construct the ngldm.
         if not np.any(df_img.roi_int_mask):
             self.set_empty()
             return
@@ -401,7 +401,7 @@ class GreyLevelDependenceMatrix:
         n_v = self.n_v  # Number of voxels
 
         ###############################################
-        # NGLDM features
+        # ngldm features
         ###############################################
 
         # Low dependence emphasis
@@ -510,20 +510,20 @@ def get_ngldm_features_deprecated(vol):
 
     vol = vol.copy()
 
-    # GET THE NGLDM MATRIX
+    # GET THE ngldm MATRIX
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
-    NGLDM = get_ngldm_matrix(vol, levels)
-    n_s = np.sum(NGLDM)
-    # Normalization of NGLDM
-    NGLDM = NGLDM/n_s
-    sz = np.shape(NGLDM)  # Size of NGLDM
+    ngldm = get_ngldm_matrix(vol, levels)
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
     c_vect = range(1, sz[1]+1)  # Row vectors
     r_vect = range(1, sz[0]+1)  # Column vectors
-    # Column and row indicators for each entry of the NGLDM
+    # Column and row indicators for each entry of the ngldm
     c_mat, r_mat = np.meshgrid(c_vect, r_vect)
-    pg = np.transpose(np.sum(NGLDM, 1))  # Gray-Level Vector
-    pd = np.sum(NGLDM, 0)  # Dependence Count Vector
+    pg = np.transpose(np.sum(ngldm, 1))  # Gray-Level Vector
+    pd = np.sum(ngldm, 0)  # Dependence Count Vector
 
     # COMPUTING TEXTURES
 
@@ -542,19 +542,19 @@ def get_ngldm_features_deprecated(vol):
     ngldm['Fngl_hgce'] = np.matmul(pg, np.transpose(np.power(
         np.array(r_vect), 2)))
     # Low dependence low grey level emphasis
-    ngldm['Fngl_ldlge'] = np.sum(np.sum(NGLDM*(np.power(
+    ngldm['Fngl_ldlge'] = np.sum(np.sum(ngldm*(np.power(
         1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Low dependence high grey level emphasis
-    ngldm['Fngl_ldhge'] = np.sum(np.sum(NGLDM*(np.power(
+    ngldm['Fngl_ldhge'] = np.sum(np.sum(ngldm*(np.power(
         r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # High dependence low grey levels emphasis
-    ngldm['Fngl_hdlge'] = np.sum(np.sum(NGLDM*(np.power(
+    ngldm['Fngl_hdlge'] = np.sum(np.sum(ngldm*(np.power(
         1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
     # High dependence high grey level emphasis
-    ngldm['Fngl_hdhge'] = np.sum(np.sum(NGLDM*(np.power(
+    ngldm['Fngl_hdhge'] = np.sum(np.sum(ngldm*(np.power(
         r_mat, 2))*(np.power(c_mat, 2))))
 
     # Gray level non-uniformity
@@ -573,24 +573,24 @@ def get_ngldm_features_deprecated(vol):
     # Omitted, always evaluates to 1.
 
     # Grey level variance
-    temp = r_mat * NGLDM
+    temp = r_mat * ngldm
     u = np.sum(temp)
-    temp = (np.power(r_mat - u, 2)) * NGLDM
+    temp = (np.power(r_mat - u, 2)) * ngldm
     ngldm['Fngl_gl_var'] = np.sum(temp)
 
     # Dependence count variance
-    temp = c_mat * NGLDM
+    temp = c_mat * ngldm
     u = np.sum(temp)
-    temp = (np.power(c_mat - u, 2)) * NGLDM
+    temp = (np.power(c_mat - u, 2)) * ngldm
     ngldm['Fngl_dc_var'] = np.sum(temp)
 
     # Dependence count entropy
-    val_pos = NGLDM[np.nonzero(NGLDM)]
+    val_pos = ngldm[np.nonzero(ngldm)]
     temp = val_pos * np.log2(val_pos)
     ngldm['Fngl_dc_entr'] = -np.sum(temp)
 
     # Dependence count energy
-    temp = np.power(NGLDM, 2)
+    temp = np.power(ngldm, 2)
     ngldm['Fngl_dc_energy'] = np.sum(temp)
 
     return ngldm

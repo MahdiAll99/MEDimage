@@ -7,11 +7,11 @@ import numpy as np
 
 
 def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray, np.ndarray]:
-    """Computes NGTDM matrix.
+    """Computes ngtdm matrix.
 
     This function computes the Neighborhood Gray-Tone Difference Matrix
-    (NGTDM) of the region of interest (ROI) of an input volume. The input
-    volume is assumed to be isotropically resampled. The NGTDM is computed
+    (ngtdm) of the region of interest (ROI) of an input volume. The input
+    volume is assumed to be isotropically resampled. The ngtdm is computed
     using 26-voxel connectivity. To account for discretization length
     differences, all averages around a center voxel are performed such that
     the neighbours at a distance of sqrt(3) voxels are given a weight of
@@ -38,8 +38,8 @@ def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray
 
     Returns:
         Tuple[np.ndarray, np.ndarray]: 
-            - NGTDM: Neighborhood Gray-Tone Difference Matrix of 'roi_only'.
-            - count_valid: Array of number of valid voxels used in the NGTDM computation.
+            - ngtdm: Neighborhood Gray-Tone Difference Matrix of 'roi_only'.
+            - count_valid: Array of number of valid voxels used in the ngtdm computation.
 
     """
 
@@ -67,10 +67,10 @@ def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray
         roi_only[temp == unique_vol[i-1]] = i
 
     # INTIALIZATION
-    NGTDM = np.zeros(NL)
+    ngtdm = np.zeros(NL)
     count_valid = np.zeros(NL)
 
-    # COMPUTATION OF NGTDM
+    # COMPUTATION OF ngtdm
     if two_d:
         indices = np.where(~np.isnan(np.reshape(
             roi_only, np.size(roi_only), order='F')))[0]
@@ -98,7 +98,7 @@ def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray
             neighbours = np.delete(neighbours, 4)  # Remove the center voxel
             # Thus only excluding voxels with NaNs only as neighbors.
             if np.size(neighbours[~np.isnan(neighbours)]) > 0:
-                NGTDM[value-1] = NGTDM[value-1] + np.abs(
+                ngtdm[value-1] = ngtdm[value-1] + np.abs(
                     value-np.sum(neighbours[~np.isnan(neighbours)]))
                 count_valid[value-1] = count_valid[value-1] + 1
     else:
@@ -133,7 +133,7 @@ def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray
             neighbours = np.delete(neighbours, 13)  # Remove the center voxel
             # Thus only excluding voxels with NaNs only as neighbors.
             if np.size(neighbours[~np.isnan(neighbours)]) > 0:
-                NGTDM[value-1] = NGTDM[value-1] + np.abs(value - np.sum(neighbours[~np.isnan(neighbours)]))
+                ngtdm[value-1] = ngtdm[value-1] + np.abs(value - np.sum(neighbours[~np.isnan(neighbours)]))
                 count_valid[value-1] = count_valid[value-1] + 1
 
-    return NGTDM, count_valid
+    return ngtdm, count_valid

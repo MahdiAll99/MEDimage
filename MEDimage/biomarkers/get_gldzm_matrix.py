@@ -11,7 +11,7 @@ import skimage.measure as skim
 
 
 def get_gldzm_matrix(roi_only_int, mask, levels) -> np.ndarray:
-    """Computes GLDZM matrix.
+    """Computes gldzm matrix.
 
     Args:
         roi_only_int (ndarray): 3D volume, isotropically resampled, 
@@ -61,9 +61,9 @@ def get_gldzm_matrix(roi_only_int, mask, levels) -> np.ndarray:
     # using the mask as defined from ROI morph does not matter since 
     # we want to find the maximal possible distance.
     dist_init = np.max(dist_map[morph_voxel_grid == 1]) 
-    GLDZM = np.zeros((n_g,dist_init))
+    gldzm = np.zeros((n_g,dist_init))
         
-    # COMPUTATION OF GLDZM
+    # COMPUTATION OF gldzm
     temp = roi_only_int.copy().astype('int')
     for i in range(1,n_g+1):
         temp[roi_only_int!=levels[i-1]] = 0
@@ -71,10 +71,10 @@ def get_gldzm_matrix(roi_only_int, mask, levels) -> np.ndarray:
         conn_objects, n_zone = skim.label(temp,return_num = True)
         for j in range(1,n_zone+1): 
             col = np.min(dist_map[conn_objects==j]).astype("int")
-            GLDZM[i-1,col-1] = GLDZM[i-1,col-1] + 1
+            gldzm[i-1,col-1] = gldzm[i-1,col-1] + 1
               
     # REMOVE UNECESSARY COLUMNS
-    stop = np.nonzero(np.sum(GLDZM,0))[0][-1]
-    GLDZM = np.delete(GLDZM, range(stop+1, np.shape(GLDZM)[1]), 1)
+    stop = np.nonzero(np.sum(gldzm,0))[0][-1]
+    gldzm = np.delete(gldzm, range(stop+1, np.shape(gldzm)[1]), 1)
     
-    return  GLDZM
+    return  gldzm
