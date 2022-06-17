@@ -224,7 +224,7 @@ class MEDimage(object):
                     min_val_name = ''
             else:
                 min_val_name = ''
-            self.params.radiomics.ih_name = self.params.radiomics.ih_name + \
+            self.params.radiomics.ih_name = self.params.radiomics.scale_name + \
                                             '_algo' + self.params.process.ih['type'] + \
                                             '_' + ih_val_name + min_val_name
 
@@ -364,28 +364,30 @@ class MEDimage(object):
         Updates the results attribute with the extracted features
         """
         # check glcm merge method
-        if glcm_merge_method == 'average':
-            glcm_merge_method = '_avg'
-        elif glcm_merge_method == 'vol_merge':
-            glcm_merge_method = '_comb'
-        else:
-            error_msg = f"{glcm_merge_method} Method not supported in glcm computation, \
-                only 'average' or 'vol_merge' are supported. \
-                Radiomics will be saved without any specific merge method."
-            logging.warning(error_msg)
-            print(error_msg)
+        if glcm_merge_method:
+            if glcm_merge_method == 'average':
+                glcm_merge_method = '_avg'
+            elif glcm_merge_method == 'vol_merge':
+                glcm_merge_method = '_comb'
+            else:
+                error_msg = f"{glcm_merge_method} Method not supported in glcm computation, \
+                    only 'average' or 'vol_merge' are supported. \
+                    Radiomics will be saved without any specific merge method."
+                logging.warning(error_msg)
+                print(error_msg)
 
         # check glrlm merge method
-        if glrlm_method == 'average':
-            glrlm_method = '_avg'
-        elif glrlm_method == 'vol_merge':
-            glrlm_method = '_comb'
-        else:
-            error_msg = f"{glcm_merge_method} Method not supported in glrlm computation, \
-                only 'average' or 'vol_merge' are supported. \
-                Radiomics will be saved without any specific merge method"
-            logging.warning(error_msg)
-            print(error_msg)
+        if glrlm_method:
+            if glrlm_method == 'average':
+                glrlm_method = '_avg'
+            elif glrlm_method == 'vol_merge':
+                glrlm_method = '_comb'
+            else:
+                error_msg = f"{glcm_merge_method} Method not supported in glrlm computation, \
+                    only 'average' or 'vol_merge' are supported. \
+                    Radiomics will be saved without any specific merge method"
+                logging.warning(error_msg)
+                print(error_msg)
 
         # Non-texture Features
         if int_vol_hist_features:
@@ -559,7 +561,7 @@ class MEDimage(object):
             class Gabor:
                 def __init__(self, 
                             sigma: float = 0.0, _lambda: float = 0.0,  
-                            gamma: float = 0.0, theta: str = '', rot_invarianve: bool = False,
+                            gamma: float = 0.0, theta: str = '', rot_invariance: bool = False,
                             orthogonal_rot: bool= False, name_save: str = '',
                             padding: str = '') -> None:
                     """
@@ -570,7 +572,7 @@ class MEDimage(object):
                     self.name_save = name_save
                     self.orthogonal_rot = orthogonal_rot
                     self.padding = padding
-                    self.rot_invarianve = rot_invarianve
+                    self.rot_invariance = rot_invariance
                     self.sigma = sigma
                     self.theta = theta
 
@@ -581,7 +583,7 @@ class MEDimage(object):
                     self.name_save = params['name_save']
                     self.orthogonal_rot = params['orthogonal_rot']
                     self.padding = params['padding']
-                    self.rot_invarianve = params['rot_invarianve']
+                    self.rot_invariance = params['rot_invariance']
                     self.sigma = params['sigma']
                     self.theta = params['theta']
 
@@ -589,7 +591,7 @@ class MEDimage(object):
             class Laws:
                 def __init__(self, 
                             config: List = [], energy_distance: int = 0, energy_image: bool = False, 
-                            rot_invarianve: bool = False, orthogonal_rot: bool = False, name_save: str = '',
+                            rot_invariance: bool = False, orthogonal_rot: bool = False, name_save: str = '',
                             padding: str = '') -> None:
                     """
                     Updates params attributes from json file
@@ -600,7 +602,7 @@ class MEDimage(object):
                     self.name_save = name_save
                     self.orthogonal_rot = orthogonal_rot
                     self.padding = padding
-                    self.rot_invarianve = rot_invarianve
+                    self.rot_invariance = rot_invariance
 
                 def init_from_json(self, params: Dict) -> None:
                     """Updates mean filter params from a given dict"""
@@ -610,7 +612,7 @@ class MEDimage(object):
                     self.name_save = params['name_save']
                     self.orthogonal_rot = params['orthogonal_rot']
                     self.padding = params['padding']
-                    self.rot_invarianve = params['rot_invarianve']
+                    self.rot_invariance = params['rot_invariance']
 
 
             class Wavelet:
