@@ -19,4 +19,4 @@ class image_volume_obj:
 
     def __init__(self, data=None, spatial_ref=None) -> None:
         self.data = data
-        self.spatial_ref = spatial_ref
+        self.spatialRef = spatial_ref
