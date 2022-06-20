@@ -7,6 +7,50 @@ import numpy as np
 
 from ..biomarkers.get_glszm_matrix import get_glszm_matrix
 
+def get_matrix(vol: np.ndarray, levels: np.ndarray) -> Dict:
+    """
+    Computes gray level size zone matrix.
+
+    Args:
+        vol_int: 3D volume, isotropically resampled, 
+            quantized (e.g. n_g = 32, levels = [1, ..., n_g]), 
+            with NaNs outside the region of interest.
+        levels: Vector containing the quantized gray-levels 
+            in the tumor region (or reconstruction levels of quantization).
+    
+    Returns:
+        ndarray: Array of Gray-Level Size Zone Matrix of 'vol'.
+
+    """
+    # Correct definition, without any assumption
+    vol = vol.copy()
+    levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
+
+    # GET THE gldzm MATRIX
+    glszm = get_glszm_matrix(vol, levels)
+
+    return glszm
+
+def sze(glszm: np.array) -> np.array:
+    """
+    Computes small zone emphasis feature.
+
+    Args:
+        glszm: array of gldzm features
+    
+    Returns:
+        the small zone emphasis
+
+    """
+    glszm = glszm/np.sum(glszm)  # Normalization of glszm
+    sz = np.shape(glszm)  # Size of glszm
+
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    pz = np.sum(glszm, 0)  # Zone Size Vector
+
+
+    # Small zone emphasis
+    return (np.matmul(pz, np.transpose(np.power(1.0/np.array(c_vect), 2))))
 
 def extract_all(vol) -> Dict:
     """Computes glszm features.
