@@ -14,21 +14,24 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   get_value, is_list_all_none)
 
 
-def joint_max() -> np.ndarray:
+def joint_max(self) -> np.ndarray:
     """Computes joint maximum features
     
     Returns:
         the joint maximum features
 
     """
-
+    
     # Occurrence data frames
+    df_pij = deepcopy(self.matrix)
+    df_pij["pij"] = df_pij.n / sum(df_pij.n)
     df_pi = df_pij.groupby(by="i")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pi"})
     df_pj = df_pij.groupby(by="j")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pj"})
 
     # Merger of df.p_ij, df.p_i and df.p_j
     df_pij = pd.merge(df_pij, df_pi, on="i")
     df_pij = pd.merge(df_pij, df_pj, on="j")
+
 
     return np.max(df_pij.pij)
 
