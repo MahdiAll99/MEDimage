@@ -20,6 +20,8 @@ def get_matrix(vol_int, mask_morph):
     gldzm = get_gldzm_matrix(vol_int, mask_morph, levels)
 
     return gldzm
+
+"""Extraction of a particular features"""
     
 def sde(gldzm):
     """
@@ -32,6 +34,38 @@ def sde(gldzm):
 
     # Small distance emphasis
     return (np.matmul(pd, np.transpose(np.power(1.0 / np.array(c_vect), 2))))
+
+
+def lde(gldzm):
+    """
+    Computes distance zone matrix large distance emphasis feature
+    """
+    gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
+    sz = np.shape(gldzm)  # Size of gldzm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    pd = np.sum(gldzm, 0)  # Distance Zone Vector
+
+    #Large distance emphasis
+    return (np.matmul(pd, np.transpose(np.power(
+        np.array(c_vect), 2))))
+
+
+def lgze(lgze):
+    """
+    Computes distance matrix low grey level zone emphasis feature
+    """
+    gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
+    sz = np.shape(gldzm)  # Size of gldzm
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    pg = np.transpose(np.sum(gldzm, 1))  # Gray-Level Vector
+
+    #Low grey level zone emphasisphasis
+    return np.matmul(pg, np.transpose(np.power(
+        1.0/np.array(r_vect), 2)))
+
+
+
+
 
 def extract_all(vol_int, mask_morph) -> Dict:
     """Compute gldzm features.
