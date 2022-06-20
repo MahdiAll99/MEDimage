@@ -9,9 +9,19 @@ import numpy as np
 from ..biomarkers.get_gldzm_matrix import get_gldzm_matrix
 
 
-def get_matrix(vol_int, mask_morph):
+def get_matrix(vol_int: np.ndarray, mask_morph: np.ndarray) -> Dict:
     """
-    Computes gray level distance zone matrix
+    Computes gray level distance zone matrix.
+
+    Args:
+        vol_int: 3D volume, isotropically resampled, 
+            quantized (e.g. n_g = 32, levels = [1, ..., n_g]), 
+            with NaNs outside the region of interest.
+        mask_morph: Morphological ROI mask.
+    
+    Returns:
+        Dict of gldzm features.
+
     """
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol_int[~np.isnan(vol_int[:])])+1)
@@ -23,9 +33,17 @@ def get_matrix(vol_int, mask_morph):
 
 """Extraction of a particular features"""
     
-def sde(gldzm):
+    
+def sde(gldzm: Dict) -> np.array:
     """
-    Computes small distance emphasis feature
+    Computes small distance emphasis feature.
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the small distance emphasis
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -33,12 +51,19 @@ def sde(gldzm):
     pd = np.sum(gldzm, 0)  # Distance Zone Vector
 
     # Small distance emphasis
-    gldzm_sde = (np.matmul(pd, np.transpose(np.power(1.0 / np.array(c_vect), 2))))
-    print(f"Fdzm_sde, {gldzm_sde}")
+    return (np.matmul(pd, np.transpose(np.power(1.0 / np.array(c_vect), 2))))
 
-def lde(gldzm):
+
+def lde(gldzm: Dict) -> np.array:
     """
     Computes large distance emphasis feature
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the large distance emphasis feature
+        
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -50,9 +75,16 @@ def lde(gldzm):
         np.array(c_vect), 2))))
 
 
-def lgze(gldzm):
+def lgze(gldzm: Dict) -> np.array:
     """
     Computes distance matrix low grey level zone emphasis feature
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the low grey level zone emphasis feature
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -63,9 +95,16 @@ def lgze(gldzm):
     return np.matmul(pg, np.transpose(np.power(
         1.0/np.array(r_vect), 2)))
 
-def hgze(gldzm):
+def hgze(gldzm: Dict) -> np.array:
     """
     Computes distance matrix high grey level zone emphasis feature
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the high grey level zone emphasis feature
+    
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -76,9 +115,17 @@ def hgze(gldzm):
     return np.matmul(pg, np.transpose(np.power(
         np.array(r_vect), 2)))
 
-def sdlge(gldzm):
+
+def sdlge(gldzm: Dict) -> np.array:
     """
     Computes small distance low grey level emphasis feature
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the low grey level emphasis feature
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -91,9 +138,16 @@ def sdlge(gldzm):
         1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
 
-def sdhge(gldzm):
+def sdhge(gldzm: Dict) -> np.array:
     """
     Computes small distance high grey level emphasis feature
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the distance high grey level emphasis feature
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -106,9 +160,16 @@ def sdhge(gldzm):
         r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
 
-def ldlge(gldzm):
+def ldlge(gldzm: Dict) -> np.array:
     """
     Computes large distance low grey level emphasis feature
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the low grey level emphasis feature
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -121,9 +182,16 @@ def ldlge(gldzm):
         1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
 
-def ldhge(gldzm):
+def ldhge(gldzm: Dict) -> np.array:
     """
     Computes large distance high grey level emphasis feature
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the high grey level emphasis feature
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -136,9 +204,16 @@ def ldhge(gldzm):
         r_mat, 2))*(np.power(c_mat, 2))))
 
 
-def glnu(gldzm):
+def glnu(gldzm: Dict) -> np.array:
     """
     Computes distance zone matrix gray level non-uniformity
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the gray level non-uniformity
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     pg = np.transpose(np.sum(gldzm, 1))  # Gray-Level Vector
@@ -148,9 +223,16 @@ def glnu(gldzm):
     return np.sum(np.power(pg, 2)) * ns
 
 
-def glnu_norm(gldzm):
+def glnu_norm(gldzm: Dict) -> np.array:
     """
     Computes distance zone matrix gray level non-uniformity normalised
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the gray level non-uniformity normalised
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     pg = np.transpose(np.sum(gldzm, 1))  # Gray-Level Vector
@@ -159,9 +241,16 @@ def glnu_norm(gldzm):
     return np.sum(np.power(pg, 2))
 
 
-def zdnu(gldzm):
+def zdnu(gldzm: Dict) -> np.array:
     """
     Computes zone distance non-uniformity
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the zone distance non-uniformity
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     pd = np.sum(gldzm, 0)  # Distance Zone Vector
@@ -171,9 +260,16 @@ def zdnu(gldzm):
     return np.sum(np.power(pd, 2)) * ns
 
 
-def zdnu_norm(gldzm):
+def zdnu_norm(gldzm: Dict) -> np.array:
     """
     Computes zone distance non-uniformity normalised
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the zone distance non-uniformity normalised
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     pd = np.sum(gldzm, 0)  # Distance Zone Vector
@@ -185,6 +281,13 @@ def zdnu_norm(gldzm):
 def z_perc(gldzm, vol_int):
     """
     Computes zone percentage
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the zone percentage
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     ns = np.sum(gldzm)
@@ -193,9 +296,16 @@ def z_perc(gldzm, vol_int):
     return ns/np.sum(~np.isnan(vol_int[:]))
 
 
-def gl_var(gldzm):
+def gl_var(gldzm: Dict) -> np.array:
     """
     Computes grey level variance
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the grey level variance
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -209,9 +319,16 @@ def gl_var(gldzm):
     #Grey level variance
     return np.sum(temp)
 
-def zd_var(gldzm):
+def zd_var(gldzm: Dict) -> np.array:
     """
     Computes zone distance variance
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the zone distance variance
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     sz = np.shape(gldzm)  # Size of gldzm
@@ -226,9 +343,16 @@ def zd_var(gldzm):
     return np.sum(temp)
 
 
-def zd_entr(gldzm):
+def zd_entr(gldzm: Dict) -> np.array:
     """
     Computes zone distance entropy
+
+    Args:
+        gldzm: dict of gldzm features
+    
+    Returns:
+        the zone distance entropy
+
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     val_pos = gldzm[np.nonzero(gldzm)]
@@ -238,17 +362,17 @@ def zd_entr(gldzm):
     return -np.sum(temp)
 
 
-def extract_all(vol_int, mask_morph) -> Dict:
+def extract_all(vol_int: np.ndarray, mask_morph: np.ndarray) -> Dict:
     """Compute gldzm features.
      
      Args:
-        vol_int (ndarray): 3D volume, isotropically resampled, 
+        vol_int: 3D volume, isotropically resampled, 
             quantized (e.g. n_g = 32, levels = [1, ..., n_g]), 
             with NaNs outside the region of interest.
-        mask_morph (ndarray): Morphological ROI mask.
+        mask_morph: Morphological ROI mask.
     
     Returns:
-        Dict: Dict of gldzm features.
+        Dict of gldzm features.
 
     """
     gldzm = {'Fdzm_sde': [],
