@@ -14,8 +14,53 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   get_value, is_list_all_none)
 
 
+def joint_max(self) -> np.ndarray:
+    """Computes joint maximum features
+    
+    Returns:
+        the joint maximum features
+
+    """
+    
+    # Occurrence data frames
+    df_pij = deepcopy(self.matrix)
+    df_pij["pij"] = df_pij.n / sum(df_pij.n)
+    df_pi = df_pij.groupby(by="i")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pi"})
+    df_pj = df_pij.groupby(by="j")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pj"})
+
+    # Merger of df.p_ij, df.p_i and df.p_j
+    df_pij = pd.merge(df_pij, df_pi, on="i")
+    df_pij = pd.merge(df_pij, df_pj, on="j")
+
+
+    return np.max(df_pij.pij)
+
+
+def joint_avg(glcm: Dict) -> np.ndarray:
+    """Computes joint maximum average features
+    
+    Args: 
+        glcm: dict of glcm feature
+    
+    Returns:
+        the joint maximum average features
+    
+    """
+
+    # Occurrence data frames
+    df_pi = df_pij.groupby(by="i")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pi"})
+    df_pj = df_pij.groupby(by="j")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pj"})
+
+    # Merger of df.p_ij, df.p_i and df.p_j
+    df_pij = pd.merge(df_pij, df_pi, on="i")
+    df_pij = pd.merge(df_pij, df_pj, on="j")
+
+    return np.max(df_pij.pij)
+
+
+
 def extract_all(vol, distCorrection=None, glcm_merge_method="vol_merge", method="new") -> Dict:
-    """Computes GLCM features.
+    """Computes glcm features.
 
     Args:
         vol (ndarray): 3D volume, isotropically resampled, quantized
@@ -33,7 +78,7 @@ def extract_all(vol, distCorrection=None, glcm_merge_method="vol_merge", method=
         method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
 
     Returns:
-        Dict: Dict of the GLCM features.
+        Dict: Dict of the glcm features.
     
     Raises:
         ValueError: If `method` is not 'old' or 'new'.
@@ -64,7 +109,7 @@ def extract_all(vol, distCorrection=None, glcm_merge_method="vol_merge", method=
 
     else:
         raise ValueError(
-            "GLCM should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
+            "glcm should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
 
     return glcm
 
@@ -99,7 +144,7 @@ def get_cm_features(vol,
             performed if this argument is either "manhattan", "euclidean", "chebyshev" or bool.
     
     Returns: 
-        Dict: Dict of the GLCM features.
+        Dict: Dict of the glcm features.
     
     Raises:
         ValueError: If `glcm_spatial_method` is not "2d", "2.5d" or "3d".
@@ -465,7 +510,7 @@ class CooccurrenceMatrix:
                 If `dist_weight_norm` is not "manhattan", "euclidean" or "chebyshev".
 
         """
-        # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLCM.
+        # Check if the roi contains any masked voxels. If this is not the case, don't construct the glcm.
         if not np.any(df_img.roi_int_mask):
             self.n_v = 0
             self.matrix = None
@@ -596,7 +641,7 @@ class CooccurrenceMatrix:
         n_g = intensity_range_loc[1] - intensity_range_loc[0] + 1.0
 
         ###############################################
-        ######           GLCM features           ######
+        ######           glcm features           ######
         ###############################################
         # Joint maximum
         df_feat.loc[0, "Fcm_joint_max"] = np.max(df_pij.pij)
@@ -760,7 +805,7 @@ def get_cm_features_deprecated(vol, distCorrection) -> Dict:
             only performed if this argument is "manhattan", "euclidean" or "chebyshev".
 
     Returns:
-        Dict: Dict of GLCM features.
+        Dict: Dict of glcm features.
 
     """
     glcm = {'Fcm_joint_max': [],
@@ -789,28 +834,28 @@ def get_cm_features_deprecated(vol, distCorrection) -> Dict:
             'Fcm_info_corr_1': [],
             'Fcm_info_corr_2': []}
 
-    # GET THE GLCM MATRIX
+    # GET THE glcm MATRIX
     #  Correct definition, without any assumption
     vol = vol.copy()
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])]) + 100 * np.finfo(float).eps)
 
     if distCorrection is None:
-        GLCM = glcm(vol, levels)
+        glcm = glcm(vol, levels)
     else:
-        GLCM = glcm(
+        glcm = glcm(
             vol, levels, distCorrection)
 
-    p_ij = GLCM / np.sum(GLCM[:])  # Normalization of GLCM
+    p_ij = glcm / np.sum(glcm[:])  # Normalization of glcm
     p_i = np.sum(p_ij, axis=1, keepdims=True)
     p_j = np.sum(p_ij, axis=0, keepdims=True)
     p_iminusj = get_glcm_diag_prob(p_ij)
     p_iplusj = get_glcm_cross_diag_prob(p_ij)
-    n_g = np.max(np.shape(GLCM))
+    n_g = np.max(np.shape(glcm))
     vect_ng = np.arange(1, n_g + 100 * np.finfo(float).eps)
     col_grid, row_grid = np.meshgrid(vect_ng, vect_ng)
 
     ###############################################
-    ######           GLCM features           ######
+    ######           glcm features           ######
     ###############################################
     # Joint maximum
     glcm['Fcm_joint_max'] = np.max(p_ij[:])
