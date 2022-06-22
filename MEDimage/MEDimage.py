@@ -10,7 +10,7 @@ import numpy as np
 from numpyencoder import NumpyEncoder
 from PIL import Image
 from pydicom.dataset import FileDataset
-from sklearn import datasets
+#from sklearn import datasets
 
 from MEDimage.processing.compute_suv_map import compute_suv_map
 
