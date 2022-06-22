@@ -229,15 +229,18 @@ def rms(vol: np.ndarray) -> float:
     x = vol[~np.isnan(vol[:])]  # Initialization
     return np.sqrt(np.mean(np.power(x, 2)))  # Root mean square
 
-def extract_all(vol, intensity=None):
+def extract_all(vol: np.ndarray, intensity: str = None) -> dict:
     """Compute stats.
 
-    - vol: 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-        --> vol: continuos imaging intensity distribution
-    - intensity (optional): If 'arbitrary', some feature will not be computed.
-        If 'definite', all feature will be computed. If not present as an argument,
-        all features will be computed. Here, 'filter' is the same as
-        'arbitrary'.
+     Args:
+        vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
+            --> vol: continuos imaging intensity distribution
+        intensity(optional str): If 'arbitrary', some feature will not be computed.
+            If 'definite', all feature will be computed. If not present as an argument,
+            all features will be computed. Here, 'filter' is the same as
+            'arbitrary'.
+    Return:
+        dict: Dictionnary containing all stats features.
     """
 
     # PRELIMINARY
@@ -253,8 +256,7 @@ def extract_all(vol, intensity=None):
         raise ValueError('Second argument must either be "arbitrary" or \
                          "definite" or "filter"')
 
-    # INITIALIZATION
-    x = vol[~np.isnan(vol[:])]
+    x = vol[~np.isnan(vol[:])]  # Initialization
 
     # Initialization of final structure (Dictionary) containing all features.
     stats = {'Fstat_mean': [],
@@ -274,7 +276,8 @@ def extract_all(vol, intensity=None):
              'Fstat_cov': [],
              'Fstat_qcod': [],
              'Fstat_energy': [],
-             'Fstat_rms': []}
+             'Fstat_rms': []
+             }
 
     # STARTING COMPUTATION
     if definite:
@@ -289,23 +292,14 @@ def extract_all(vol, intensity=None):
         stats['Fstat_max'] = np.max(x)  # Maximum grey level
         stats['Fstat_iqr'] = iqr(x)  # Interquantile range
         stats['Fstat_range'] = np.ptp(x)  # Range max(x) - min(x)
-
-        # Mean absolute deviation
-        stats['Fstat_mad'] = np.mean(np.absolute(x - np.mean(x)))
-
+        stats['Fstat_mad'] = np.mean(np.absolute(x - np.mean(x)))  # Mean absolute deviation
         x_10_90 = x[np.where((x >= stats['Fstat_P10']) &
                              (x <= stats['Fstat_P90']), True, False)]
-
-        # Robust mean absolute deviation
-        stats['Fstat_rmad'] = np.mean(np.abs(x_10_90 - np.mean(x_10_90)))
-
-        # Median absolute deviation
-        stats['Fstat_medad'] = np.mean(np.absolute(x - np.median(x)))
+        stats['Fstat_rmad'] = np.mean(np.abs(x_10_90 - np.mean(x_10_90)))  # Robust mean absolute deviation
+        stats['Fstat_medad'] = np.mean(np.absolute(x - np.median(x)))  # Median absolute deviation
         stats['Fstat_cov'] = variation(x)  # Coefficient of variation
-
         x_75_25 = scoreatpercentile(x, 75) + scoreatpercentile(x, 25)
-        # Quartile coefficient of dispersion
-        stats['Fstat_qcod'] = iqr(x)/x_75_25
+        stats['Fstat_qcod'] = iqr(x)/x_75_25  # Quartile coefficient of dispersion
         stats['Fstat_energy'] = np.sum(np.power(x, 2))  # Energy
         stats['Fstat_rms'] = np.sqrt(np.mean(np.power(x, 2)))  # Root mean square
 
