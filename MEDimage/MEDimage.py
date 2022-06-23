@@ -131,25 +131,19 @@ class MEDimage(object):
         
     def __init_filter_params(self, filter_params) -> None:
         """Initializes the filtering params from a given Dict."""
-
         # mean filter params
-        print(filter_params['mean'])
         self.params.filter.mean.init_from_json(filter_params['mean'])
 
         # log filter params
-        print(filter_params['log'])
         self.params.filter.log.init_from_json(filter_params['log'])
 
         # laws filter params
-        print(filter_params['laws'])
         self.params.filter.laws.init_from_json(filter_params['laws'])
 
         # gabor filter params
-        print(filter_params['gabor'])
         self.params.filter.gabor.init_from_json(filter_params['gabor'])
 
         # wavelet filter params
-        print(filter_params['wavelet'])
         self.params.filter.wavelet.init_from_json(filter_params['wavelet'])
 
     def init_params(self, im_param_scan):
