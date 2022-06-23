@@ -314,7 +314,7 @@ def gl_var(glszm: np.ndarray) -> float:
     c_vect = range(1, sz[1]+1)  # Row vectors
     r_vect = range(1, sz[0]+1)  # Column vectors
     # Column and row indicators for each entry of the glszm
-    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
+    _, r_mat = np.meshgrid(c_vect, r_vect)
 
     temp = r_mat * glszm
     u = np.sum(temp)
@@ -340,7 +340,7 @@ def zs_var(glszm: np.ndarray) -> float:
     c_vect = range(1, sz[1]+1)  # Row vectors
     r_vect = range(1, sz[0]+1)  # Column vectors
     # Column and row indicators for each entry of the glszm
-    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
+    c_mat, _ = np.meshgrid(c_vect, r_vect)
 
     temp = c_mat * glszm
     u = np.sum(temp)

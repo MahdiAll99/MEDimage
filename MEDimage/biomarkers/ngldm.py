@@ -10,6 +10,367 @@ from copy import deepcopy
 from ..utils.textureTools import get_neighbour_direction, is_list_all_none, coord2index, get_value
 
 
+def get_matrix(vol: np.ndarray)-> np.ndarray:
+    """Compute neighbouring grey level dependence matrix.
+
+    Args:
+        vol(ndarray): 3D volume, isotropically resampled, quantized,
+       (e.g. n_g = 32, levels = [1, ..., n_g]) with NaNs
+       outside the region of interest
+
+        levels (ndarray or List): Vector containing the quantized gray-levels 
+            in the tumor region (or reconstruction levels of quantization).
+
+    Returns:
+        ndarray: Array of neighbouring grey level dependence matrix of 'roi_only'.
+
+    """
+
+    vol = vol.copy()
+
+    # GET THE ngldm MATRIX
+    # Correct definition, without any assumption
+    levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
+    ngldm = get_ngldm_matrix(vol, levels)
+    
+    return ngldm
+
+def lde(ngldm: np.ndarray)-> float:
+    """
+    Computes low dependence emphasis feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: low depence emphasis value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    pd = np.sum(ngldm, 0)  # Dependence Count Vector
+
+    return (np.matmul(pd, np.transpose(np.power(1.0/np.array(c_vect), 2))))
+
+def hde(ngldm: np.ndarray)-> float:
+    """
+    Computes high dependence emphasis feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: high depence emphasis value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    pd = np.sum(ngldm, 0)  # Dependence Count Vector
+
+    return (np.matmul(pd, np.transpose(np.power(np.array(c_vect), 2))))
+
+def lgce(ngldm: np.ndarray)-> float:
+    """
+    Computes low grey level count emphasis feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: low grey level count emphasis value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    pg = np.transpose(np.sum(ngldm, 1))  # Gray-Level Vector
+
+    return np.matmul(pg, np.transpose(np.power(1.0/np.array(r_vect), 2)))
+
+def hgce(ngldm: np.ndarray)-> float:
+    """
+    Computes high grey level count emphasis feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: high grey level count emphasis value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    pg = np.transpose(np.sum(ngldm, 1))  # Gray-Level Vector
+
+    return np.matmul(pg, np.transpose(np.power(np.array(r_vect), 2)))
+
+def ldlge(ngldm: np.ndarray)-> float:
+    """
+    Computes low dependence low grey level emphasis feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: low dependence low grey level emphasis value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    # Column and row indicators for each entry of the ngldm
+    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
+
+    return np.sum(np.sum(ngldm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
+
+def ldhge(ngldm: np.ndarray)-> float:
+    """
+    Computes low dependence high grey level emphasis feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: low dependence high grey level emphasis value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    # Column and row indicators for each entry of the ngldm
+    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
+
+    return np.sum(np.sum(ngldm*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
+
+def hdlge(ngldm: np.ndarray)-> float:
+    """
+    Computes high dependence low grey level emphasis feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: high dependence low grey level emphasis value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    # Column and row indicators for each entry of the ngldm
+    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
+
+    return np.sum(np.sum(ngldm*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
+
+def hdhge(ngldm: np.ndarray)-> float:
+    """
+    Computes high dependence high grey level emphasis feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: high dependence high grey level emphasis value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    # Column and row indicators for each entry of the ngldm
+    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
+
+    return np.sum(np.sum(ngldm*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
+
+def glnu(ngldm: np.ndarray)-> float:
+    """
+    Computes grey level non-uniformity feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: grey level non-uniformity value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    pg = np.transpose(np.sum(ngldm, 1))  # Gray-Level Vector
+
+    return np.sum(np.power(pg, 2)) * n_s
+
+def glnu_norm(ngldm: np.ndarray)-> float:
+    """
+    Computes grey level non-uniformity normalised feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: grey level non-uniformity normalised value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    pg = np.transpose(np.sum(ngldm, 1))  # Gray-Level Vector
+
+    return np.sum(np.power(pg, 2))
+
+def dcnu(ngldm: np.ndarray)-> float:
+    """
+    Computes dependence count non-uniformity feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: dependence count non-uniformity value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    pd = np.sum(ngldm, 0)  # Dependence Count Vector
+
+    return np.sum(np.power(pd, 2)) * n_s
+
+def dcnu_norm(ngldm: np.ndarray)-> float:
+    """
+    Computes dependence count non-uniformity normalised feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: dependence count non-uniformity normalised value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    pd = np.sum(ngldm, 0)  # Dependence Count Vector
+
+    return np.sum(np.power(pd, 2))
+
+def gl_var(ngldm: np.ndarray)-> float:
+    """
+    Computes grey level variance feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: grey level variance value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    # Column and row indicators for each entry of the ngldm
+    _, r_mat = np.meshgrid(c_vect, r_vect)
+    
+    temp = r_mat * ngldm
+    u = np.sum(temp)
+    temp = (np.power(r_mat - u, 2)) * ngldm
+    gl_var = np.sum(temp) 
+
+    return gl_var
+
+def dc_var(ngldm: np.ndarray)-> float:
+    """
+    Computes dependence count variance feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: dependence count variance value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+    sz = np.shape(ngldm)  # Size of ngldm
+    c_vect = range(1, sz[1]+1)  # Row vectors
+    r_vect = range(1, sz[0]+1)  # Column vectors
+    # Column and row indicators for each entry of the ngldm
+    c_mat, _ = np.meshgrid(c_vect, r_vect)
+    
+    temp = c_mat * ngldm
+    u = np.sum(temp)
+    temp = (np.power(c_mat - u, 2)) * ngldm
+    dc_var = np.sum(temp) 
+
+    return dc_var
+
+def dc_entr(ngldm: np.ndarray)-> float:
+    """
+    Computes dependence count entropy feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: dependence count entropy value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+  
+    val_pos = ngldm[np.nonzero(ngldm)]
+    temp = val_pos * np.log2(val_pos)
+    dc_entr = -np.sum(temp)
+
+    return dc_entr
+
+def dc_energy(ngldm: np.ndarray)-> float:
+    """
+    Computes dependence count energy feature.
+
+    Args:
+        ngldm (ndarray): array of neighbouring grey level dependence matrix
+    
+    Returns:
+        float: dependence count energy value
+
+    """
+    n_s = np.sum(ngldm)
+    # Normalization of ngldm
+    ngldm = ngldm/n_s
+  
+    temp = np.power(ngldm, 2)
+    dc_energy = np.sum(temp)
+
+    return dc_energy
+
+
 def extract_all(vol, method="new"):
     """Compute NGLDMfeatures.
     -------------------------------------------------------------------------
@@ -528,34 +889,28 @@ def get_ngldm_features_deprecated(vol):
     # COMPUTING TEXTURES
 
     # Low dependence emphasis
-    ngldm['Fngl_lde'] = (np.matmul(pd, np.transpose(np.power(
-        1.0/np.array(c_vect), 2))))
+    ngldm['Fngl_lde'] = (np.matmul(pd, np.transpose(np.power(1.0/np.array(c_vect), 2))))
 
     # High dependence emphasis
-    ngldm['Fngl_hde'] = (np.matmul(pd, np.transpose(np.power(
-        np.array(c_vect), 2))))
+    ngldm['Fngl_hde'] = (np.matmul(pd, np.transpose(np.power(np.array(c_vect), 2))))
 
     # Low grey level count emphasis
-    ngldm['Fngl_lgce'] = np.matmul(pg, np.transpose(np.power(
-        1.0/np.array(r_vect), 2)))
+    ngldm['Fngl_lgce'] = np.matmul(pg, np.transpose(np.power(1.0/np.array(r_vect), 2)))
+    
     # High grey level count emphasis
-    ngldm['Fngl_hgce'] = np.matmul(pg, np.transpose(np.power(
-        np.array(r_vect), 2)))
+    ngldm['Fngl_hgce'] = np.matmul(pg, np.transpose(np.power(np.array(r_vect), 2)))
+    
     # Low dependence low grey level emphasis
-    ngldm['Fngl_ldlge'] = np.sum(np.sum(ngldm*(np.power(
-        1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
+    ngldm['Fngl_ldlge'] = np.sum(np.sum(ngldm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Low dependence high grey level emphasis
-    ngldm['Fngl_ldhge'] = np.sum(np.sum(ngldm*(np.power(
-        r_mat, 2))*(np.power(1.0/c_mat, 2))))
+    ngldm['Fngl_ldhge'] = np.sum(np.sum(ngldm*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # High dependence low grey levels emphasis
-    ngldm['Fngl_hdlge'] = np.sum(np.sum(ngldm*(np.power(
-        1.0/r_mat, 2))*(np.power(c_mat, 2))))
+    ngldm['Fngl_hdlge'] = np.sum(np.sum(ngldm*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
     # High dependence high grey level emphasis
-    ngldm['Fngl_hdhge'] = np.sum(np.sum(ngldm*(np.power(
-        r_mat, 2))*(np.power(c_mat, 2))))
+    ngldm['Fngl_hdhge'] = np.sum(np.sum(ngldm*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
 
     # Gray level non-uniformity
     ngldm['Fngl_glnu'] = np.sum(np.power(pg, 2)) * n_s
