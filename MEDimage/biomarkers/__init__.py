@@ -24,6 +24,7 @@ along with this package.  If not, see <http://www.gnu.org/licenses/>.
 from .glcm import *
 from .gldzm import *
 from .intensity_histogram import *
+from .int_vol_hist import *
 from .local_intensity import *
 from .morph import *
 from .stats import *
