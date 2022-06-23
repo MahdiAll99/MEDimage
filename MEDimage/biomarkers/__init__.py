@@ -39,6 +39,7 @@ from .glrlm import *
 from .glszm import *
 from .int_vol_hist import *
 from .intensity_histogram import *
+from .int_vol_hist import *
 from .local_intensity import *
 from .morph import *
 from .ngldm import *

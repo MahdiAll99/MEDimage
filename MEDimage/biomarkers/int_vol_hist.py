@@ -6,17 +6,23 @@ from typing import Dict
 
 import numpy as np
 
+from MEDimage.MEDimage import MEDimage
+
 from ..biomarkers.utils import find_i_x, find_v_x
 
 _logger = logging.getLogger(__name__)
 
 
-def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
+def init_ivh(MEDimg: MEDimage, 
+            vol: np.ndarray, 
+            vol_int_re: np.ndarray, 
+            wd: int, 
+            user_set_range: np.ndarray=None) -> tuple:
     """Computes Intensity-volume Histogram Features.
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values ofCT scans) 
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
         - All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
@@ -24,31 +30,30 @@ def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
         MEDimg (MEDimage): MEDimage instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
-        wd (float, optional): Discretisation width.
-        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the 
-            intensity range.
+        wd (int): Discretisation width.
+        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
 
     Returns:
         Dict: Dict of the Intensity Histogram Features.
 
     """
     try:
-        if 'type' in MEDimg.Params['IVH'] and MEDimg.Params['IVH']:
+        if 'type' in MEDimg.params.process.ivh and MEDimg.params.process.ivh:
             # PET example case (definite intensity units -- continuous case)
-            if MEDimg.Params['IVH']['type'] == 'FBS' or MEDimg.Params['IVH']['type'] == 'FBSequal':
+            if MEDimg.params.process.ivh['type'] == 'FBS' or MEDimg.params.process.ivh['type'] == 'FBSequal':
                 range_fbs = [0, 0]
-                if not MEDimg.Params['im_range']:
+                if not MEDimg.params.process.im_range:
                     range_fbs[0] = np.nanmin(vol_int_re)
                     range_fbs[1] = np.nanmax(vol_int_re)
                 else:
-                    if MEDimg.Params['im_range'][0] == -np.inf:
+                    if MEDimg.params.process.im_range[0] == -np.inf:
                         range_fbs[0] = np.nanmin(vol_int_re)
                     else:
-                        range_fbs[0] = MEDimg.Params['im_range'][0]
-                    if MEDimg.Params['im_range'][1] == np.inf:
+                        range_fbs[0] = MEDimg.params.process.im_range[0]
+                    if MEDimg.params.process.im_range[1] == np.inf:
                         range_fbs[1] = np.nanmax(vol_int_re)
                     else:
-                        range_fbs[1] = MEDimg.Params['im_range'][1]
+                        range_fbs[1] = MEDimg.params.process.im_range[1]
                 # In this case, wd = wb (see discretisation.m)
                 range_fbs[0] = range_fbs[0] + 0.5*wd
                 # In this case, wd = wb (see discretisation.m)
@@ -59,7 +64,7 @@ def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
                 user_set_range = None
 
         else:  # CT example case (definite intensity units -- discrete case)
-            user_set_range = MEDimg.Params['im_range']
+            user_set_range = MEDimg.params.process.im_range
 
         # INITIALIZATION
         X = vol[~np.isnan(vol[:])]
@@ -83,9 +88,48 @@ def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
 
         # Vector of grey-levels.
         # Values are generated within the half-open interval [min_val,max_val+wd)
-        levels = np.arange(min_val, max_val+wd, wd)
+        levels = np.arange(min_val, max_val + wd, wd)
         n_g = levels.size
         n_v = X.size
+    
+    except Exception as e:
+        message = f'PROBLEM WITH INITIALIZATION OF INTENSITY-VOLUME HISTOGRAM FEATURES \n {e}'
+        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+            {'error': 'ERROR_INITIALIZATION'})
+        _logger.error(message)
+        print(message)
+
+    return X, levels, n_g, n_v
+
+
+def extract_all(MEDimg: MEDimage, 
+                vol: np.ndarray, 
+                vol_int_re: np.ndarray, 
+                wd: int, 
+                user_set_range: np.ndarray=None) -> Dict:
+    """Computes Intensity-volume Histogram Features.
+
+    Note:
+        For the input volume:
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - All other volumes with continuous intensity distribution should be
+            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+
+    Args:
+        MEDimg (MEDimage): MEDimage instance.
+        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
+        wd (int): Discretisation width.
+        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
+
+    Returns:
+        Dict: Dict of the Intensity Histogram Features.
+
+    """
+
+    try:
+        # Retrieve relevant parameters from init_ivh() method.
+        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
 
         # Initialization of final structure (Dictionary) containing all features.
         int_vol_hist = {'Fivh_V10': [],
@@ -94,7 +138,8 @@ def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
                     'Fivh_I90': [],
                     'Fivh_V10minusV90': [],
                     'Fivh_I10minusI90': [],
-                    'Fivh_auc': []}
+                    'Fivh_auc': []
+                    }
 
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
@@ -146,3 +191,354 @@ def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
         print(message)
 
     return int_vol_hist
+
+
+
+def V10(MEDimg: MEDimage, 
+        vol: np.ndarray, 
+        vol_int_re: np.ndarray, 
+        wd: int, 
+        user_set_range: np.ndarray=None) -> float:
+    """Computes Volume at intensity fraction 10 feature.
+
+    Note:
+        For the input volume:
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - All other volumes with continuous intensity distribution should be
+            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+
+    Args:
+        MEDimg (MEDimage): MEDimage instance.
+        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
+        wd (int): Discretisation width.
+        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
+
+    Returns:
+        float: Volume at intensity fraction 10 feature.
+
+    """
+
+    try:
+        # Retrieve relevant parameters from init_ivh() method.
+        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+
+        # Calculating fractional volume
+        fract_vol = np.zeros(n_g)
+        for i in range(0, n_g):
+            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+
+        # Calculating intensity fraction
+        fract_int = (levels - np.min(levels))/(np.max(levels) - np.min(levels))
+
+        # Volume at intensity fraction 10
+        v10 = find_v_x(fract_int, fract_vol, 10)
+
+    except Exception as e:
+        message = f'PROBLEM WITH COMPUTATION OF V10 FEATURE \n {e}'
+        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+            {'error': 'ERROR_V10'})
+        _logger.error(message)
+        print(message)
+
+    return v10
+
+def V90(MEDimg: MEDimage, 
+        vol: np.ndarray, 
+        vol_int_re: np.ndarray, 
+        wd: int, 
+        user_set_range: np.ndarray=None) -> float:
+    """Computes Volume at intensity fraction 90 feature.
+
+    Note:
+        For the input volume:
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - All other volumes with continuous intensity distribution should be
+            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+
+    Args:
+        MEDimg (MEDimage): MEDimage instance.
+        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
+        wd (int): Discretisation width.
+        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
+
+    Returns:
+        float: Volume at intensity fraction 90 feature.
+
+    """
+
+    try:
+        # Retrieve relevant parameters from init_ivh() method.
+        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+
+        # Calculating fractional volume
+        fract_vol = np.zeros(n_g)
+        for i in range(0, n_g):
+            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+
+        # Calculating intensity fraction
+        fract_int = (levels - np.min(levels))/(np.max(levels) - np.min(levels))
+
+        # Volume at intensity fraction 90
+        v90 = find_v_x(fract_int, fract_vol, 90)
+
+    except Exception as e:
+        message = f'PROBLEM WITH COMPUTATION OF V90 FEATURE \n {e}'
+        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+            {'error': 'ERROR_V90'})
+        _logger.error(message)
+        print(message)
+
+    return v90
+
+def I10(MEDimg: MEDimage, 
+        vol: np.ndarray, 
+        vol_int_re: np.ndarray, 
+        wd: int, 
+        user_set_range: np.ndarray=None) -> float:
+    """Computes Intensity at volume fraction 10 feature.
+
+    Note:
+        For the input volume:
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - All other volumes with continuous intensity distribution should be
+            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+
+    Args:
+        MEDimg (MEDimage): MEDimage instance.
+        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
+        wd (int): Discretisation width.
+        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
+
+    Returns:
+        float: Intensity at volume fraction 10 feature.
+
+    """
+
+    try:
+        # Retrieve relevant parameters from init_ivh() method.
+        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+
+        # Calculating fractional volume
+        fract_vol = np.zeros(n_g)
+        for i in range(0, n_g):
+            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+
+        # Intensity at volume fraction 10
+        #   For initial arbitrary intensities,
+        #   we will always be discretising (1000 bins).
+        #   So intensities are definite here.
+        i10 = find_i_x(levels, fract_vol, 10)
+
+    except Exception as e:
+        message = f'PROBLEM WITH COMPUTATION OF I10 FEATURE \n {e}'
+        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+            {'error': 'ERROR_I10'})
+        _logger.error(message)
+        print(message)
+
+    return i10
+
+def I90(MEDimg: MEDimage, 
+        vol: np.ndarray, 
+        vol_int_re: np.ndarray, 
+        wd: int, 
+        user_set_range: np.ndarray=None) -> float:
+    """Computes Intensity at volume fraction 90 feature.
+
+    Note:
+        For the input volume:
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - All other volumes with continuous intensity distribution should be
+            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+
+    Args:
+        MEDimg (MEDimage): MEDimage instance.
+        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
+        wd (int): Discretisation width.
+        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
+
+    Returns:
+        float: Intensity at volume fraction 90 feature.
+
+    """
+
+    try:
+        # Retrieve relevant parameters from init_ivh() method.
+        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+
+        # Calculating fractional volume
+        fract_vol = np.zeros(n_g)
+        for i in range(0, n_g):
+            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+
+        # Intensity at volume fraction 90
+        #   For initial arbitrary intensities,
+        #   we will always be discretising (1000 bins).
+        #   So intensities are definite here.
+        i90 = find_i_x(levels, fract_vol, 90)
+
+    except Exception as e:
+        message = f'PROBLEM WITH COMPUTATION OF I90 FEATURE \n {e}'
+        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+            {'error': 'ERROR_I90'})
+        _logger.error(message)
+        print(message)
+
+    return i90
+
+def V10minusV90(MEDimg: MEDimage, 
+                vol: np.ndarray, 
+                vol_int_re: np.ndarray, 
+                wd: int, 
+                user_set_range: np.ndarray=None) -> float:
+    """Computes Volume at intensity fraction difference v10-v90
+
+    Note:
+        For the input volume:
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - All other volumes with continuous intensity distribution should be
+            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+
+    Args:
+        MEDimg (MEDimage): MEDimage instance.
+        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
+        wd (int): Discretisation width.
+        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
+
+    Returns:
+        float: Volume at intensity fraction difference v10-v90
+
+    """
+
+    try:
+        # Retrieve relevant parameters from init_ivh() method.
+        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+
+        # Calculating fractional volume
+        fract_vol = np.zeros(n_g)
+        for i in range(0, n_g):
+            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+
+        # Calculating intensity fraction
+        fract_int = (levels - np.min(levels))/(np.max(levels) - np.min(levels))
+
+        # Volume at intensity fraction 10
+        v10 = find_v_x(fract_int, fract_vol, 10)
+
+        # Volume at intensity fraction 90
+        v90 = find_v_x(fract_int, fract_vol, 90)
+
+    except Exception as e:
+        message = f'PROBLEM WITH COMPUTATION OF V10minusV90 FEATURE \n {e}'
+        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+            {'error': 'ERROR_V10minusV90'})
+        _logger.error(message)
+        print(message)
+
+    return v10 - v90
+
+def I10minusI90(MEDimg: MEDimage, 
+                vol: np.ndarray, 
+                vol_int_re: np.ndarray, 
+                wd: int, 
+                user_set_range: np.ndarray=None) -> float:
+    """Computes Intensity at volume fraction difference i10-i90
+
+    Note:
+        For the input volume:
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - All other volumes with continuous intensity distribution should be
+            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+
+    Args:
+        MEDimg (MEDimage): MEDimage instance.
+        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
+        wd (int): Discretisation width.
+        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
+
+    Returns:
+        float: Intensity at volume fraction difference i10-i90
+
+    """
+
+    try:
+        # Retrieve relevant parameters from init_ivh() method.
+        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+
+        # Calculating fractional volume
+        fract_vol = np.zeros(n_g)
+        for i in range(0, n_g):
+            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+
+        # Intensity at volume fraction 10
+        #   For initial arbitrary intensities,
+        #   we will always be discretising (1000 bins).
+        #   So intensities are definite here.
+        i10 = find_i_x(levels, fract_vol, 10)
+
+        # Intensity at volume fraction 90
+        #   For initial arbitrary intensities,
+        #   we will always be discretising (1000 bins).
+        #   So intensities are definite here.
+        i90 = find_i_x(levels, fract_vol, 90)
+
+    except Exception as e:
+        message = f'PROBLEM WITH COMPUTATION OF I10minusI90 FEATURE \n {e}'
+        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+            {'error': 'ERROR_I10minusI90'})
+        _logger.error(message)
+        print(message)
+
+    return i10 - i90
+
+def auc(MEDimg: MEDimage, 
+                vol: np.ndarray, 
+                vol_int_re: np.ndarray, 
+                wd: int, 
+                user_set_range: np.ndarray=None) -> float:
+    """Computes Area under IVH curve
+
+    Note:
+        For the input volume:
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - All other volumes with continuous intensity distribution should be
+            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+
+    Args:
+        MEDimg (MEDimage): MEDimage instance.
+        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
+        wd (int): Discretisation width.
+        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
+
+    Returns:
+        float: Area under IVH curve
+
+    """
+
+    try:
+        # Retrieve relevant parameters from init_ivh() method.
+        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+
+        # Calculating fractional volume
+        fract_vol = np.zeros(n_g)
+        for i in range(0, n_g):
+            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+
+        # Area under IVH curve
+        auc = np.trapz(fract_vol)/(n_g - 1)
+
+    except Exception as e:
+        message = f'PROBLEM WITH COMPUTATION OF AUC FEATURE \n {e}'
+        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+            {'error': 'ERROR_AUC'})
+        _logger.error(message)
+        print(message)
+
+    return auc
