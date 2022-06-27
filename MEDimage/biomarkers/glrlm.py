@@ -13,7 +13,7 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   is_list_all_none)
 
 
-def extract_all(vol, distCorrection=None, glrlm_merge_method="vol_merge", method="new") -> Dict:
+def extract_all(vol, dist_correction=None, glrlm_merge_method="vol_merge", method="new") -> Dict:
     """Computes glrlm features.
 
     Note:
@@ -23,7 +23,7 @@ def extract_all(vol, distCorrection=None, glrlm_merge_method="vol_merge", method
         vol (ndarray): 3D volume, isotropically resampled, quantized
             (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
             of interest.
-        distCorrection (Union[bool, str], optional): Set this variable to true in order to use
+        dist_correction (Union[bool, str], optional): Set this variable to true in order to use
             discretization length difference corrections as used here:
             <https://doi.org/10.1088/0031-9155/60/14/5471>.
             Set this variable to false to replicate IBSI results.
@@ -49,18 +49,18 @@ def extract_all(vol, distCorrection=None, glrlm_merge_method="vol_merge", method
             (average, slice_merge, dir_merge, vol_merge)
         *Provide the range of discretised intensities from a calling
             function and pass to get_rlm_features.
-        *Test if distCorrection works as expected.
+        *Test if dist_correction works as expected.
 
     """
     if method == "old":
-        extract_all = get_rlm_features_deprecated(vol=vol, distCorrection=distCorrection)
+        extract_all = get_rlm_features_deprecated(vol=vol, dist_correction=dist_correction)
 
     elif method == "new":
         extract_all = get_rlm_features(
                                 vol=vol, 
                                 intensity_range=[np.nan, np.nan],
                                 glrlm_merge_method=glrlm_merge_method, 
-                                dist_weight_norm=distCorrection
+                                dist_weight_norm=dist_correction
                                 )
 
     else:
@@ -668,7 +668,7 @@ class RunLengthMatrix:
 
 
 @deprecated(reason="Use the new and the faster method get_rlm_features()")
-def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
+def get_rlm_features_deprecated(vol, dist_correction) -> Dict:
     """Calculates grey level run length matrix features.
 
      Note:
@@ -677,7 +677,7 @@ def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
 
     Args:
         vol (ndarray): 3D input volume.
-        distCorrection (Union[bool, str], optional): Set this variable to true in order to use
+        dist_correction (Union[bool, str], optional): Set this variable to true in order to use
             discretization length difference corrections as used here:
             <https://doi.org/10.1088/0031-9155/60/14/5471>.
             Set this variable to false to replicate IBSI results.
@@ -711,10 +711,10 @@ def get_rlm_features_deprecated(vol, distCorrection) -> Dict:
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
 
-    if distCorrection is None:
+    if dist_correction is None:
         glrlm = get_glrlm_matrix(vol, levels)
     else:
-        glrlm = (get_glrlm_matrix(vol, levels, distCorrection))
+        glrlm = (get_glrlm_matrix(vol, levels, dist_correction))
 
     n_s = np.sum(glrlm)
     glrlm = glrlm/n_s  # Normalization of glrlm

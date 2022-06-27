@@ -10,7 +10,7 @@ from ..biomarkers.wei_toolbox.rle_0 import  rle_0 as rle
 from ..biomarkers.wei_toolbox.rle_45 import  rle_45 as rle45
 from ..biomarkers.wei_toolbox.zigzag import  zigzag as zig
 
-def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
+def get_glrlm_matrix(roi_only, levels, dist_correction=None) -> np.ndarray:
     """Compute glrm matrix.
 
     This function computes the Gray-Level Run-Length Matrix (glrm) of the
@@ -34,7 +34,7 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
             are set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels 
             in the tumor region (or reconstruction levels of quantization).
-        distCorrection: (optional). Set this variable to true in order to use
+        dist_correction: (optional). Set this variable to true in order to use
             discretization length difference corrections as used
             here: <https://doi.org/10.1088/0031-9155/60/14/5471>.
             Set this variable to false to replicate IBSI results.
@@ -52,11 +52,11 @@ def get_glrlm_matrix(roi_only, levels, distCorrection=None) -> np.ndarray:
 
     """
 
-    # PARSING "distCorrection" ARGUMENT
-    if (distCorrection is None) or (type(distCorrection) is not bool):
-        distCorrection = True  # By default
+    # PARSING "dist_correction" ARGUMENT
+    if (dist_correction is None) or (type(dist_correction) is not bool):
+        dist_correction = True  # By default
 
-    if distCorrection:
+    if dist_correction:
         fact_corr2 = math.sqrt(2)
         fact_corr3 = math.sqrt(3)
     else:

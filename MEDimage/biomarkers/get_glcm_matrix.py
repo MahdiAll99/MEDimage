@@ -5,7 +5,7 @@
 import numpy as np
 
 
-def get_glcm_matrix(roi_only, levels, distCorrection=True) -> np.ndarray:
+def get_glcm_matrix(roi_only, levels, dist_correction=True) -> np.ndarray:
     """Computes GLCM matrix.
 
     This function computes the Gray-Level Co-occurence Matrix (GLCM) of the
@@ -25,7 +25,7 @@ def get_glcm_matrix(roi_only, levels, distCorrection=True) -> np.ndarray:
             set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels in the tumor region
             (or reconstruction levels of quantization).
-        distCorrection (bool, optional): Set this variable to true in order to use
+        dist_correction (bool, optional): Set this variable to true in order to use
             discretization length difference corrections as used
             here: https://doi.org/10.1088/0031-9155/60/14/5471.
             Set this variable to false to replicate IBSI results.
@@ -39,11 +39,11 @@ def get_glcm_matrix(roi_only, levels, distCorrection=True) -> np.ndarray:
             Man and Cybernetics, smc 3(6), 610–621.
     
     """
-    # PARSING "distCorrection" ARGUMENT
-    if type(distCorrection) is not bool:
+    # PARSING "dist_correction" ARGUMENT
+    if type(dist_correction) is not bool:
         # The user did not input either "true" or "false",
         # so the default behavior is used.
-        distCorrection = True
+        dist_correction = True
 
     # PRELIMINARY
     roi_only = roi_only.copy()
@@ -91,7 +91,7 @@ def get_glcm_matrix(roi_only, levels, distCorrection=True) -> np.ndarray:
                                 continue
                             else:
                                 val_neighbor = q3[I2-1, J2-1, K2-1]
-                                if distCorrection:
+                                if dist_correction:
                                     # Discretization length correction
                                     GLCM[val_q3, val_neighbor] += \
                                         np.sqrt(abs(I2-i)+abs(J2-j)+abs(K2-k))
