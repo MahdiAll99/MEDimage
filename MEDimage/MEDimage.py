@@ -73,11 +73,20 @@ class MEDimage(object):
 
     def __init_process_params(self, im_params: Dict) -> None:
         """Initializes the processing params from a given Dict."""
-        box_string = 'box10'
+        if self.type == 'CTscan' and 'imParamCT' in im_params:
+            im_params = im_params['imParamCT']
+        elif self.type == 'MRscan' and 'imParamMR' in im_params:
+            im_params = im_params['imParamMR']
+        elif self.type == 'PTscan' and 'imParamPET' in im_params:
+            im_params = im_params['imParamPET']
+        else:
+            raise KeyError(f"Mapping key (imParamCT, imParamMR or imParamPET) not found for {self.type} imaging type.")
+
         # 10 voxels in all three dimensions are added to the smallest
         # bounding box. This setting is used to speed up interpolation
         # processes (mostly) prior to the computation of radiomics
         # features. Optional argument in the function computeRadiomics.
+        box_string = 'box10'
 
         # get default scan parameters from im_param_scan
         self.params.process.scale_non_text = im_params['interp']['scale_non_text']
@@ -131,6 +140,9 @@ class MEDimage(object):
         
     def __init_filter_params(self, filter_params) -> None:
         """Initializes the filtering params from a given Dict."""
+        if 'imParamFilter' in filter_params:
+            print(filter_params)
+            filter_params = filter_params['imParamFilter']
         # mean filter params
         self.params.filter.mean.init_from_json(filter_params['mean'])
 
