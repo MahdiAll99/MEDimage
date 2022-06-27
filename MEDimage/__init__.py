@@ -1,8 +1,8 @@
 import logging
 
-import MEDimage.biomarkers
-import MEDimage.processing
-import MEDimage.utils
+from . import biomarkers 
+from . import processing
+from . import utils
 
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)
