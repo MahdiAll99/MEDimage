@@ -106,16 +106,16 @@ def interp_volume(MEDimage,
         if two_d:
             # If 2D, the resolution of the slice dimension of he queried volume is
             # set to the same as the sampled volume.
-            res_q = np.concatenate((res_q, vol_obj_s.spatial_ref.PixelExtentInWorldZ))
+            res_q = np.concatenate((res_q, vol_obj_s.spatialRef.PixelExtentInWorldZ))
 
-        res_s = np.array([vol_obj_s.spatial_ref.PixelExtentInWorldX,
-                        vol_obj_s.spatial_ref.PixelExtentInWorldY,
-                        vol_obj_s.spatial_ref.PixelExtentInWorldZ])
+        res_s = np.array([vol_obj_s.spatialRef.PixelExtentInWorldX,
+                        vol_obj_s.spatialRef.PixelExtentInWorldY,
+                        vol_obj_s.spatialRef.PixelExtentInWorldZ])
 
         if np.array_equal(res_s, res_q):
             return deepcopy(vol_obj_s)
 
-        spatial_ref_s = vol_obj_s.spatial_ref
+        spatial_ref_s = vol_obj_s.spatialRef
         extent_s = np.array([spatial_ref_s.ImageExtentInWorldX,
                             spatial_ref_s.ImageExtentInWorldY,
                             spatial_ref_s.ImageExtentInWorldZ])
@@ -133,7 +133,7 @@ def interp_volume(MEDimage,
         if two_d:
             # If 2D, forcing the size of the queried volume in the slice dimension
             # to be the same as the sample volume.
-            size_q[2] = vol_obj_s.spatial_ref.ImageSize[2]
+            size_q[2] = vol_obj_s.spatialRef.ImageSize[2]
 
         spatial_ref_q = imref3d(imageSize=size_q, 
                             pixelExtentInWorldX=res_q[0],
@@ -159,7 +159,7 @@ def interp_volume(MEDimage,
         # TODO check that compute_box vol and roi are intended to be the same!
         if use_box:
             _, _, tempSpatialRef = compute_box(
-                vol=roi_obj_s.data, roi=roi_obj_s.data, spatial_ref=vol_obj_s.spatial_ref,
+                vol=roi_obj_s.data, roi=roi_obj_s.data, spatial_ref=vol_obj_s.spatialRef,
                 box_string=box_string)
 
             size_temp = tempSpatialRef.ImageSize
@@ -224,7 +224,7 @@ def interp_volume(MEDimage,
             R=spatial_ref_s, xWorld=x_q, yWorld=y_q, zWorld=z_q)
 
         # INTERPOLATING VOLUME
-        data = interp3(V=vol_obj_s.data, x_q=x_q, y_q=y_q, z_q=z_q, method=interp_met)
+        data = interp3(v=vol_obj_s.data, x_q=x_q, y_q=y_q, z_q=z_q, method=interp_met)
         vol_obj_q = image_volume_obj(data=data, spatial_ref=spatial_ref_q)
 
         # ROUNDING
