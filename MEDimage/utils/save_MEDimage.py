@@ -20,7 +20,7 @@ def save_MEDimage(MEDimg: MEDimage, series_description: str, path_save: Path) ->
     """
 
     series_description = series_description.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
-    name_id = MEDimg.patient_id
+    name_id = MEDimg.patientID
     name_id = name_id.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
     MEDimg.format = "npy"
 
