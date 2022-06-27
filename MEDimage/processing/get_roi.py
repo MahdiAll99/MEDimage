@@ -36,9 +36,9 @@ def get_roi(MEDimage, name_roi, box_string, interp=False) -> Union[image_volume_
 
     Returns:
         image_volume_obj: 3D array of imaging data defining box containing the ROI.
-            vol.data is the 3D array, vol.spatial_ref is its associated imref3d object.
+            vol.data is the 3D array, vol.spatialRef is its associated imref3d object.
         image_volume_obj: 3D array of 1's and 0's defining the ROI.
-            roi.data is the 3D array, roi.spatial_ref is its associated imref3d object.
+            roi.data is the 3D array, roi.spatialRef is its associated imref3d object.
 
     """
     # PARSING OF ARGUMENTS
@@ -106,7 +106,7 @@ def get_roi(MEDimage, name_roi, box_string, interp=False) -> Union[image_volume_
         if MEDimage.type not in ["PTscan", "CTscan", "MRscan", "ADCscan"]:
             raise ValueError("Unknown scan type.")
 
-        spatial_ref = MEDimage.scan.volume.spatial_ref
+        spatial_ref = MEDimage.scan.volume.spatialRef
         vol = MEDimage.scan.volume.data.astype(np.float32)
 
         # COMPUTING ALL MASKS

@@ -7,12 +7,12 @@ class image_volume_obj:
 
     Args:
         data (:obj:`ndarray`, optional): 3D array of imaging data.
-        spatial_ref (:obj:`imref3d`, optional): The corresponding imref3d object 
+        spatialRef (:obj:`imref3d`, optional): The corresponding imref3d object 
             (same functionality of MATLAB imref3d class).
 
     Attributes:
         data (ndarray): 3D array of imaging data.
-        spatial_ref (imref3d): The corresponding imref3d object 
+        spatialRef (imref3d): The corresponding imref3d object 
             (same functionality of MATLAB imref3d class).
 
     """
