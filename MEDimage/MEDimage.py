@@ -1004,8 +1004,6 @@ class MEDimage(object):
                 self.data = np.flip(self.data, 0)
                 # flip y
                 self.data = np.flip(self.data, 1)
-                # to LPS
-                self.data = self.data.swapaxes(0, 1) #TODO
             
             def spatialRef_from_NIFTI(self, nifti_image_path):
                 """Computes the imref3d spatialRef using a NIFTI file and
