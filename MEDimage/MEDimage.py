@@ -79,8 +79,6 @@ class MEDimage(object):
             im_params = im_params['imParamMR']
         elif self.type == 'PTscan' and 'imParamPET' in im_params:
             im_params = im_params['imParamPET']
-        else:
-            raise KeyError(f"Mapping key (imParamCT, imParamMR or imParamPET) not found for {self.type} imaging type.")
 
         # 10 voxels in all three dimensions are added to the smallest
         # bounding box. This setting is used to speed up interpolation
