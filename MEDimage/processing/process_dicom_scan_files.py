@@ -6,6 +6,7 @@ import warnings
 import numpy as np
 import pydicom
 import ray
+from MEDimage.utils.imref import imref3d
 
 warnings.simplefilter("ignore")
 
@@ -45,7 +46,6 @@ def process_dicom_scan_files(
 
     # Since we created a worker, we need to add code path to the system
     import MEDimage.utils.combine_slices as cs
-    import MEDimage.utils.imref as ref
 
     # PARTIAL PARSING OF ARGUMENTS
     if path_images is None:
@@ -102,7 +102,7 @@ def process_dicom_scan_files(
         min_y_grid = min_grid[1]
         min_z_grid = min_grid[2]
         size_image = np.shape(voxel_ndarray)
-        spatial_ref = ref.imref3d(size_image, pixel_x, pixel_y, slice_s)
+        spatial_ref = imref3d(size_image, pixel_x, pixel_y, slice_s)
         spatial_ref.XWorldLimits = (np.array(spatial_ref.XWorldLimits) -
                                    (spatial_ref.XWorldLimits[0] -
                                     (min_x_grid-pixel_x/2))).tolist()
