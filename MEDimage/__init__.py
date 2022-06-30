@@ -3,6 +3,7 @@ import logging
 from . import biomarkers
 from . import processing
 from . import utils
+from . import wrangling
 
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)
