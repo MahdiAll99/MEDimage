@@ -10,10 +10,12 @@ def mean(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Statistical mean feature
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.mean(x)  # Mean
 
 def var(vol: np.ndarray) -> float:
@@ -22,10 +24,12 @@ def var(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Statistical variance feature
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.var(x)  # Variance
 
 def skewness(vol: np.ndarray) -> float:
@@ -34,11 +38,13 @@ def skewness(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: The skewness feature of values along an axis. Returning 0 where all values are
         equal.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return skew(x)  # Skewness
 
 def kurt(vol: np.ndarray) -> float:
@@ -47,11 +53,13 @@ def kurt(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: The kurtosis feature of values along an axis. If all values are equal,
         return -3 for Fisher's definition and 0 for Pearson's definition.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return kurtosis(x)  # Kurtosis
 
 def median(vol: np.ndarray) -> float:
@@ -60,10 +68,12 @@ def median(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: The median feature of the array elements.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.median(x)  # Median
 
 def min(vol: np.ndarray) -> float:
@@ -72,10 +82,12 @@ def min(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: The minimum grey level feature of the array elements.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.min(x)  # Minimum grey level
 
 def max(vol: np.ndarray) -> float:
@@ -84,10 +96,12 @@ def max(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: The maximum grey level feature of the array elements.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.max(x)  # Maximum grey level
 
 def P10(vol: np.ndarray) -> float:
@@ -96,10 +110,12 @@ def P10(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Score at 10th percentil.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return scoreatpercentile(x, 10)  # 10th percentile
 
 def P90(vol: np.ndarray) -> float:
@@ -108,10 +124,12 @@ def P90(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Score at 90th percentil.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return scoreatpercentile(x, 90)  # 90th percentile
 
 def iqrange(vol: np.ndarray) -> float:
@@ -120,10 +138,12 @@ def iqrange(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Interquartile range. If axis != None, the output data-type is the same as that of the input.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return iqr(x)  # Interquartile range
 
 def range(vol: np.ndarray) -> float:
@@ -132,10 +152,12 @@ def range(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: A new array holding the range of values, unless out was specified, in which case a reference to out is returned.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.ptp(x)  # Range max(x) - min(x) 
 
 def mad(vol: np.ndarray) -> float:
@@ -144,10 +166,12 @@ def mad(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float : A new array holding mean absolute deviation feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.mean(np.absolute(x - np.mean(x)))  # Mean absolute deviation
 
 def rmad(vol: np.ndarray) -> float:
@@ -158,6 +182,7 @@ def rmad(vol: np.ndarray) -> float:
              --> vol: continuous imaging intensity distribution
         P10(ndarray): Score at 10th percentil.
         P90(ndarray): Score at 90th percentil.
+    
     Returns:
         float: A new array holding the robust mean absolute deviation.
     """
@@ -166,6 +191,7 @@ def rmad(vol: np.ndarray) -> float:
     P90 = scoreatpercentile(x, 90)  # 90th percentile
     x_10_90 = x[np.where((x >= P10) &
                          (x <= P90), True, False)]  # Holding x for (x >= P10) and (x<= P90)
+                         
     return np.mean(np.abs(x_10_90 - np.mean(x_10_90)))  # Robust mean absolute deviation
 
 def medad(vol: np.ndarray) -> float:
@@ -174,10 +200,12 @@ def medad(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: A new array holding the median absolute deviation feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.mean(np.absolute(x - np.median(x)))  # Median absolute deviation
 
 def cov(vol: np.ndarray) -> float:
@@ -186,10 +214,12 @@ def cov(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+   
     Returns:
         float: A new array holding the coefficient of variation feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return variation(x)  # Coefficient of variation
 
 def qcod(vol: np.ndarray) -> float:
@@ -198,11 +228,13 @@ def qcod(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+  
     Returns:
         float: A new array holding the quartile coefficient of dispersion feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
-    x_75_25 = scoreatpercentile(x, 75) + scoreatpercentile(x, 25)     
+    x_75_25 = scoreatpercentile(x, 75) + scoreatpercentile(x, 25)  
+
     return iqr(x) / x_75_25  # Quartile coefficient of dispersion
 
 def energy(vol: np.ndarray) -> float:
@@ -211,10 +243,12 @@ def energy(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+  
     Returns:
         float: A new array holding the energy feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.sum(np.power(x, 2))  # Energy
 
 def rms(vol: np.ndarray) -> float:
@@ -223,10 +257,12 @@ def rms(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+  
     Returns:
         float: A new array holding the root mean square feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.sqrt(np.mean(np.power(x, 2)))  # Root mean square
 
 def extract_all(vol: np.ndarray, intensity: str = None) -> dict:
@@ -239,18 +275,14 @@ def extract_all(vol: np.ndarray, intensity: str = None) -> dict:
             If 'definite', all feature will be computed. If not present as an argument,
             all features will be computed. Here, 'filter' is the same as
             'arbitrary'.
+ 
     Return:
         dict: Dictionnary containing all stats features.
     """
-
     # PRELIMINARY
-    if intensity is None:
+    if intensity is None or intensity == 'definite':
         definite = True
-    elif intensity == 'arbitrary':
-        definite = False
-    elif intensity == 'definite':
-        definite = True
-    elif intensity == 'filter':
+    elif intensity == 'arbitrary' or intensity == 'filter':
         definite = False
     else:
         raise ValueError('Second argument must either be "arbitrary" or \

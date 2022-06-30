@@ -8,7 +8,7 @@ import numpy as np
 from scipy.stats import scoreatpercentile, variation
 
 
-def init_IH(vol : np.ndarray) -> tuple:
+def init_IH(vol: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.integer, np.ndarray, np.ndarray]:
     """Initialize Intensity Histogram Features.
 
     Args:
@@ -17,7 +17,6 @@ def init_IH(vol : np.ndarray) -> tuple:
 
     Returns:
         Dict: Dict of the Intensity Histogram Features.
-    
     """
     warnings.simplefilter("ignore")
 
@@ -30,21 +29,21 @@ def init_IH(vol : np.ndarray) -> tuple:
 
     # Always defined from 1 to the maximum value of
     # the volume to remove any ambiguity
-    levels = np.arange(1, np.max(x)+100*np.finfo(float).eps)
+    levels = np.arange(1, np.max(x) + 100*np.finfo(float).eps)
     n_g = levels.size  # Number of gray-levels
     h = np.zeros(n_g)  # The histogram of x
 
     for i in np.arange(0, n_g):
         # == i or == levels(i) is equivalent since levels = 1:max(x),
         # and n_g = numel(levels)
-        h[i] = np.sum(x == i+1)  # h[i] = sum(x == i+1)
+        h[i] = np.sum(x == i + 1)  # h[i] = sum(x == i+1)
 
-    p = (h/n_v)  # Occurence probability for each grey level bin i
+    p = (h / n_v)  # Occurence probability for each grey level bin i
     pt = p.transpose()
 
     return x, levels, n_g, h, p, pt
 
-def extract_all(vol : np.ndarray) -> Dict:
+def extract_all(vol: np.ndarray) -> Dict:
     """Computes Intensity Histogram Features.
 
     Args:
@@ -53,7 +52,6 @@ def extract_all(vol : np.ndarray) -> Dict:
 
     Returns:
         Dict: Dict of the Intensity Histogram Features.
-    
     """
     warnings.simplefilter("ignore")
 
@@ -83,10 +81,10 @@ def extract_all(vol : np.ndarray) -> Dict:
                'Fih_max_grad': [],
                'Fih_max_grad_gl': [],
                'Fih_min_grad': [],
-               'Fih_min_grad_gl': []}
+               'Fih_min_grad_gl': []
+               }
 
     # STARTING COMPUTATION
-
     # Intensity histogram mean
     u = np.matmul(levels, pt)
     int_hist['Fih_mean'] = u
@@ -100,8 +98,8 @@ def extract_all(vol : np.ndarray) -> Dict:
     kurt = 0
 
     if var != 0:
-        skew = np.matmul(np.power(levels - u, 3), pt)/np.power(var, 3/2)
-        kurt = np.matmul(np.power(levels - u, 4), pt)/np.power(var, 2) - 3
+        skew = np.matmul(np.power(levels - u, 3), pt) / np.power(var, 3/2)
+        kurt = np.matmul(np.power(levels - u, 4), pt) / np.power(var, 2) - 3
 
     int_hist['Fih_skew'] = skew
     int_hist['Fih_kurt'] = kurt
@@ -197,10 +195,12 @@ def mean(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram mean
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
+    _, levels, _, _, _, pt = init_IH(vol)  # Initialization
+    
     return np.matmul(levels, pt) # Intensity histogram mean
 
 def var(vol: np.ndarray) -> float:
@@ -209,11 +209,13 @@ def var(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram variance
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
+    _, levels, _, _, _, pt = init_IH(vol)  # Initialization
     u = np.matmul(levels, pt) # Intensity histogram mean
+
     return np.matmul(np.power(levels - u, 2), pt)  # Intensity histogram variance
 
 def skewness(vol: np.ndarray) -> float:
@@ -222,14 +224,16 @@ def skewness(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram skewness.
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
+    _, levels, _, _, _, pt = init_IH(vol)  # Initialization
     u = np.matmul(levels, pt) # Intensity histogram mean
     var = np.matmul(np.power(levels - u, 2), pt)  # Intensity histogram variance
     if var != 0:
-        skew = np.matmul(np.power(levels - u, 3), pt)/np.power(var, 3/2)
+        skew = np.matmul(np.power(levels - u, 3), pt) / np.power(var, 3/2)
+
     return skew  # Skewness
 
 def kurt(vol: np.ndarray) -> float:
@@ -238,14 +242,16 @@ def kurt(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: The Intensity histogram kurtosis feature
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
+    _, levels, _, _, _, pt = init_IH(vol)  # Initialization
     u = np.matmul(levels, pt) # Intensity histogram mean
     var = np.matmul(np.power(levels - u, 2), pt)  # Intensity histogram variance
     if var != 0:
-        kurt = np.matmul(np.power(levels - u, 4), pt)/np.power(var, 2) - 3
+        kurt = np.matmul(np.power(levels - u, 4), pt) / np.power(var, 2) - 3
+
     return kurt  # Kurtosis
 
 def median(vol: np.ndarray) -> float:
@@ -254,10 +260,12 @@ def median(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram median feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.median(x)  # Median
 
 def min(vol: np.ndarray) -> float:
@@ -266,10 +274,12 @@ def min(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram minimum grey level feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.min(x)  # Minimum grey level
 
 def max(vol: np.ndarray) -> float:
@@ -278,10 +288,12 @@ def max(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram maximum grey level feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.max(x)  # Maximum grey level
 
 def P10(vol: np.ndarray) -> float:
@@ -290,10 +302,12 @@ def P10(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram 10th percentile feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return scoreatpercentile(x, 10)  # 10th percentile
 
 def P90(vol: np.ndarray) -> float:
@@ -306,6 +320,7 @@ def P90(vol: np.ndarray) -> float:
         float: Intensity histogram 90th percentile feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return scoreatpercentile(x, 90)  # 90th percentile
 
 def mode(vol: np.ndarray) -> np.integer:
@@ -314,11 +329,12 @@ def mode(vol: np.ndarray) -> np.integer:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         integer: Intensity histogram mode. 
         levels = 1:max(x), so the index of the ith bin of h is the same as i
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
+    _, levels, _, h, _, pt = init_IH(vol)  # Initialization
     u = np.matmul(levels, pt)
     mh = np.max(h)
     mode = np.where(h == mh)[0] + 1
@@ -326,8 +342,10 @@ def mode(vol: np.ndarray) -> np.integer:
     if np.size(mode) > 1:
         dist = np.abs(mode - u)
         ind_min = np.argmin(dist)
+
         return mode[ind_min]  # Intensity histogram mode.
     else:
+
         return mode[0]  # Intensity histogram mode.
 
 def iqrange(vol: np.ndarray) -> float:
@@ -336,12 +354,14 @@ def iqrange(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Interquartile range. If axis != None, the output data-type is the same as that of the input.
             Since x goes from 1:max(x), all with integer values,
             the result is an integer.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return scoreatpercentile(x, 75) - scoreatpercentile(x, 25)  # Intensity histogram interquantile range
 
 def range(vol: np.ndarray) -> float:
@@ -350,10 +370,12 @@ def range(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram range.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.max(x) - np.min(x) # Intensity histogram range
 
 def mad(vol: np.ndarray) -> float:
@@ -362,11 +384,13 @@ def mad(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float : Intensity histogram mean absolute deviation feature.
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
+    x, levels, _, _, _, pt = init_IH(vol)  # Initialization
     u = np.matmul(levels, pt)
+
     return np.mean(abs(x - u))  # Intensity histogram mean absolute deviation
 
 def rmad(vol: np.ndarray) -> float:
@@ -377,6 +401,7 @@ def rmad(vol: np.ndarray) -> float:
              --> vol: continuous imaging intensity distribution
         P10(ndarray): Score at 10th percentil.
         P90(ndarray): Score at 90th percentil.
+    
     Returns:
         float: Intensity histogram robust mean absolute deviation
     """
@@ -385,6 +410,7 @@ def rmad(vol: np.ndarray) -> float:
     P90 = scoreatpercentile(x, 90)  # 90th percentile
     x_10_90 = x[np.where((x >= P10) &
                          (x <= P90), True, False)]  # Holding x for (x >= P10) and (x<= P90)
+
     return np.mean(np.abs(x_10_90 - np.mean(x_10_90)))  # Intensity histogram robust mean absolute deviation
 
 def medad(vol: np.ndarray) -> float:
@@ -393,10 +419,12 @@ def medad(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram median absolute deviation feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return np.mean(np.absolute(x - np.median(x)))  # Intensity histogram median absolute deviation
 
 def cov(vol: np.ndarray) -> float:
@@ -405,10 +433,12 @@ def cov(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram coefficient of variation feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
+
     return variation(x)  # Intensity histogram coefficient of variation
 
 def qcod(vol: np.ndarray) -> float:
@@ -417,11 +447,13 @@ def qcod(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         ndarray: A new array holding the quartile coefficient of dispersion feature.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
     x_75_25 = scoreatpercentile(x, 75) + scoreatpercentile(x, 25)     
+
     return iqrange(x) / x_75_25  # Quartile coefficient of dispersion
 
 def entropy(vol: np.ndarray) -> float:
@@ -430,12 +462,13 @@ def entropy(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram entropy feature.
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
-    n_v = x.size
+    x, _, _, _, p, _ = init_IH(vol)  # Initialization
     p = p[p > 0]
+
     return -np.sum(p * np.log2(p))  # Intensity histogram entropy
 
 def uniformity(vol: np.ndarray) -> float:
@@ -444,12 +477,13 @@ def uniformity(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Intensity histogram uniformity feature.
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
-    n_v = x.size
+    x, _, _, _, p, _ = init_IH(vol)  # Initialization
     p = p[p > 0]
+
     return np.sum(np.power(p, 2))  # Intensity histogram uniformity
 
 def hist_grad_calc(vol: np.ndarray) -> np.ndarray:
@@ -458,10 +492,11 @@ def hist_grad_calc(vol: np.ndarray) -> np.ndarray:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         ndarray: Histogram gradient
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
+    _, _, n_g, h, _, _ = init_IH(vol)  # Initialization
     hist_grad = np.zeros(n_g)
     hist_grad[0] = h[1] - h[0]
     hist_grad[-1] = h[-1] - h[-2]
@@ -476,10 +511,12 @@ def max_grad(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Maximum histogram gradient feature.
     """
     hist_grad = hist_grad_calc(vol)  # Initialization
+
     return np.max(hist_grad)  # Maximum histogram gradient
 
 def max_grad_gl(vol: np.ndarray) -> float:
@@ -488,12 +525,14 @@ def max_grad_gl(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Maximum histogram gradient grey level feature.
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
+    _, levels, _, _, _, _ = init_IH(vol)  # Initialization
     hist_grad = hist_grad_calc(vol) 
     ind_max = np.where(hist_grad == np.max(hist_grad))[0][0]  
+
     return levels[ind_max]  # Maximum histogram gradient grey level
 
 def min_grad(vol: np.ndarray) -> float:
@@ -502,10 +541,12 @@ def min_grad(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Minimum histogram gradient feature.
     """
     hist_grad = hist_grad_calc(vol)  # Initialization  
+
     return np.min(hist_grad)  # Minimum histogram gradient
 
 def min_grad_gl(vol: np.ndarray) -> float:
@@ -514,10 +555,12 @@ def min_grad_gl(vol: np.ndarray) -> float:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
              --> vol: continuous imaging intensity distribution
+    
     Returns:
         float: Minimum histogram gradient grey level feature.
     """
-    x, levels, n_g, h, p, pt = init_IH(vol)  # Initialization
+    _, levels, _, _, _, _ = init_IH(vol)  # Initialization
     hist_grad = hist_grad_calc(vol) 
-    ind_min = np.where(hist_grad == np.min(hist_grad))[0][0]    
+    ind_min = np.where(hist_grad == np.min(hist_grad))[0][0] 
+
     return levels[ind_min]  # Minimum histogram gradient grey level

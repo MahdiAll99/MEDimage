@@ -1,15 +1,9 @@
 import logging
 
-<<<<<<< HEAD
 from . import biomarkers 
 from . import processing
+from . import filter
 from . import utils
-=======
-import MEDimage.biomarkers
-import MEDimage.filter
-import MEDimage.processing
-import MEDimage.utils
->>>>>>> 375738491562ce44a3931c582c27a1071ecacb8e
 
 
 stream_handler = logging.StreamHandler()

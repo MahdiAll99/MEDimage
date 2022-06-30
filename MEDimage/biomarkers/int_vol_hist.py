@@ -14,10 +14,10 @@ _logger = logging.getLogger(__name__)
 
 
 def init_ivh(MEDimg: MEDimage, 
-            vol: np.ndarray, 
-            vol_int_re: np.ndarray, 
-            wd: int, 
-            user_set_range: np.ndarray=None) -> tuple:
+             vol: np.ndarray, 
+             vol_int_re: np.ndarray, 
+             wd: int, 
+             user_set_range: np.ndarray=None) -> tuple[np.ndarray, np.ndarray, np.integer, np.integer]:
     """Computes Intensity-volume Histogram Features.
 
     Note:
@@ -35,7 +35,6 @@ def init_ivh(MEDimg: MEDimage,
 
     Returns:
         Dict: Dict of the Intensity Histogram Features.
-
     """
     try:
         if 'type' in MEDimg.params.process.ivh and MEDimg.params.process.ivh:
@@ -101,7 +100,6 @@ def init_ivh(MEDimg: MEDimage,
 
     return X, levels, n_g, n_v
 
-
 def extract_all(MEDimg: MEDimage, 
                 vol: np.ndarray, 
                 vol_int_re: np.ndarray, 
@@ -124,9 +122,7 @@ def extract_all(MEDimg: MEDimage,
 
     Returns:
         Dict: Dict of the Intensity Histogram Features.
-
     """
-
     try:
         # Retrieve relevant parameters from init_ivh() method.
         X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
@@ -147,7 +143,7 @@ def extract_all(MEDimg: MEDimage,
             fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
 
         # Calculating intensity fraction
-        fract_int = (levels - np.min(levels))/(np.max(levels) - np.min(levels))
+        fract_int = (levels - np.min(levels)) / (np.max(levels) - np.min(levels))
 
         # Volume at intensity fraction 10
         v10 = find_v_x(fract_int, fract_vol, 10)
@@ -181,7 +177,7 @@ def extract_all(MEDimg: MEDimage,
         int_vol_hist['Fivh_I10minusI90'] = i10 - i90
 
         # Area under IVH curve
-        int_vol_hist['Fivh_auc'] = np.trapz(fract_vol)/(n_g - 1)
+        int_vol_hist['Fivh_auc'] = np.trapz(fract_vol) / (n_g - 1)
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF INTENSITY-VOLUME HISTOGRAM FEATURES \n {e}'
@@ -216,9 +212,7 @@ def V10(MEDimg: MEDimage,
 
     Returns:
         float: Volume at intensity fraction 10 feature.
-
     """
-
     try:
         # Retrieve relevant parameters from init_ivh() method.
         X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
@@ -226,7 +220,7 @@ def V10(MEDimg: MEDimage,
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
         for i in range(0, n_g):
-            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+            fract_vol[i] = 1 - np.sum(X < levels[i]) / n_v
 
         # Calculating intensity fraction
         fract_int = (levels - np.min(levels))/(np.max(levels) - np.min(levels))
@@ -265,9 +259,7 @@ def V90(MEDimg: MEDimage,
 
     Returns:
         float: Volume at intensity fraction 90 feature.
-
     """
-
     try:
         # Retrieve relevant parameters from init_ivh() method.
         X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
@@ -275,10 +267,10 @@ def V90(MEDimg: MEDimage,
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
         for i in range(0, n_g):
-            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+            fract_vol[i] = 1 - np.sum(X < levels[i]) / n_v
 
         # Calculating intensity fraction
-        fract_int = (levels - np.min(levels))/(np.max(levels) - np.min(levels))
+        fract_int = (levels - np.min(levels)) / (np.max(levels) - np.min(levels))
 
         # Volume at intensity fraction 90
         v90 = find_v_x(fract_int, fract_vol, 90)
@@ -314,9 +306,7 @@ def I10(MEDimg: MEDimage,
 
     Returns:
         float: Intensity at volume fraction 10 feature.
-
     """
-
     try:
         # Retrieve relevant parameters from init_ivh() method.
         X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
@@ -324,7 +314,7 @@ def I10(MEDimg: MEDimage,
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
         for i in range(0, n_g):
-            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+            fract_vol[i] = 1 - np.sum(X < levels[i]) / n_v
 
         # Intensity at volume fraction 10
         #   For initial arbitrary intensities,
@@ -363,9 +353,7 @@ def I90(MEDimg: MEDimage,
 
     Returns:
         float: Intensity at volume fraction 90 feature.
-
     """
-
     try:
         # Retrieve relevant parameters from init_ivh() method.
         X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
@@ -373,7 +361,7 @@ def I90(MEDimg: MEDimage,
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
         for i in range(0, n_g):
-            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+            fract_vol[i] = 1 - np.sum(X < levels[i]) / n_v
 
         # Intensity at volume fraction 90
         #   For initial arbitrary intensities,
@@ -412,9 +400,7 @@ def V10minusV90(MEDimg: MEDimage,
 
     Returns:
         float: Volume at intensity fraction difference v10-v90
-
     """
-
     try:
         # Retrieve relevant parameters from init_ivh() method.
         X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
@@ -422,10 +408,10 @@ def V10minusV90(MEDimg: MEDimage,
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
         for i in range(0, n_g):
-            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+            fract_vol[i] = 1 - np.sum(X < levels[i]) / n_v
 
         # Calculating intensity fraction
-        fract_int = (levels - np.min(levels))/(np.max(levels) - np.min(levels))
+        fract_int = (levels - np.min(levels)) / (np.max(levels) - np.min(levels))
 
         # Volume at intensity fraction 10
         v10 = find_v_x(fract_int, fract_vol, 10)
@@ -464,9 +450,7 @@ def I10minusI90(MEDimg: MEDimage,
 
     Returns:
         float: Intensity at volume fraction difference i10-i90
-
     """
-
     try:
         # Retrieve relevant parameters from init_ivh() method.
         X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
@@ -474,7 +458,7 @@ def I10minusI90(MEDimg: MEDimage,
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
         for i in range(0, n_g):
-            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+            fract_vol[i] = 1 - np.sum(X < levels[i]) / n_v
 
         # Intensity at volume fraction 10
         #   For initial arbitrary intensities,
@@ -519,9 +503,7 @@ def auc(MEDimg: MEDimage,
 
     Returns:
         float: Area under IVH curve
-
     """
-
     try:
         # Retrieve relevant parameters from init_ivh() method.
         X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
@@ -529,10 +511,10 @@ def auc(MEDimg: MEDimage,
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
         for i in range(0, n_g):
-            fract_vol[i] = 1 - np.sum(X < levels[i])/n_v
+            fract_vol[i] = 1 - np.sum(X < levels[i]) / n_v
 
         # Area under IVH curve
-        auc = np.trapz(fract_vol)/(n_g - 1)
+        auc = np.trapz(fract_vol) / (n_g - 1)
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF AUC FEATURE \n {e}'
