@@ -14,8 +14,8 @@ from pathlib import Path
 
 from MEDimage.MEDimage import MEDimage
 
+from ..processing.get_roi import get_roi
 from ..utils.save_MEDimage import save_MEDimage
-from .get_roi import get_roi
 
 
 @ray.remote
@@ -43,9 +43,8 @@ def process_dicom_scan_files(
     Returns:
         MEDimg (MEDimage): Instance of a MEDimage class.
     """
-
     # Since we created a worker, we need to add code path to the system
-    import MEDimage.utils.combine_slices as cs
+    from .combine_slices import combine_slices
 
     # PARTIAL PARSING OF ARGUMENTS
     if path_images is None:
@@ -81,7 +80,7 @@ def process_dicom_scan_files(
         # missing slices and oblique restrictions apply see the reference:
         # https://dicom-numpy.readthedocs.io/en/latest/index.html#dicom_numpy.combine_slices
         try:
-            voxel_ndarray, ijk_to_xyz, rotation_m, scaling_m = cs.combine_slices(dicom_hi)
+            voxel_ndarray, ijk_to_xyz, rotation_m, scaling_m = combine_slices(dicom_hi)
         except ValueError:
             raise ValueError('Invalid DICOM data for dicom_numpy.combine_slices')
 
