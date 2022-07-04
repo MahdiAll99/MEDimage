@@ -212,7 +212,7 @@ def process_dicom_scan_files(
 
         MEDimg.scan.patientPosition = dicom_h[0].PatientPosition
         MEDimg.patientID = str(dicom_h[0].PatientID)
-        MEDimg.format = "npy"
+        MEDimg.format = "dicom"
 
         # save MEDimage class instance as a pickle object
         if save and path_save:
