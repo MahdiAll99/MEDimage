@@ -284,7 +284,7 @@ class MEDimage(object):
             self.radiomics.image.update(
                     {('scale' + (str(self.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
 
-    def init_tf_Calculation(self, algo:int, gl:int, scale:int) -> None:
+    def init_tf_calculation(self, algo:int, gl:int, scale:int) -> None:
         """
         Initializes all the computation parameters for TEXTURE FEATURES 
         as well as the results dict.
