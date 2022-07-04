@@ -100,7 +100,7 @@ class DataManager(object):
         self.instances = []
         self.path_to_objects = []
         self.__warned = False
-        
+
     def __find_uid_cell_index(self, uid, cell) -> List: 
         """
         Finds the cell with the same `uid`. If not is present in `cell`, creates a new position 
@@ -146,14 +146,18 @@ class DataManager(object):
         Returns:
             str: String of the name save.
         """
-        try:
-            series_description = MEDimg.dicomH[0].SeriesDescription.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
-        except:
-            series_description = MEDimg.dicomH[0].Modality.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
+        if MEDimg.format == 'nifti':
+            series_description = MEDimg.type.split('scan')[0]
+        elif MEDimg.format == 'dicom':
+            try:
+                series_description = MEDimg.dicomH[0].SeriesDescription.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
+            except:
+                series_description = MEDimg.dicomH[0].Modality.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
+        else:
+            raise ValueError("Invalid format in the given MEDimage instance, must be 'npy' or 'nifti'")
         name_id = MEDimg.patientID.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
         # final saving name
         name_complete = name_id + '__' + series_description + '.' + MEDimg.type + '.npy'
-
         return name_complete
 
     def __associate_rt_stuct(self) -> None:
@@ -367,9 +371,9 @@ class DataManager(object):
         roi_index = 0
 
         for file in self.nifti.stack_path_roi:
-            id = image_file.name.split("(")[0] # id is PatientID__ImagingScanName
+            _id = image_file.name.split("(")[0] # id is PatientID__ImagingScanName
             # Load the patient's ROI nifti files:
-            if file.name.startswith(id) and 'ROI' in file.name.split("."):
+            if file.name.startswith(_id) and 'ROI' in file.name.split("."):
                 roi = nib.load(file)
                 roi_data = MEDimg.scan.ROI.convert_to_LPS(data=roi.get_fdata())
                 roi_name = file.name[file.name.find("(") + 1 : file.name.find(")")]
@@ -468,6 +472,6 @@ class DataManager(object):
                 save_MEDimage(MEDimg, MEDimg.type.split('scan')[0], self._path_save)
             # Update the path to the created instances
             if self._path_save:
-                self.path_to_objects.extend(str(self._path_save / self.__get_MEDimage_name_save(MEDimage_instance)))
+                self.path_to_objects.append(str(self._path_save / self.__get_MEDimage_name_save(MEDimage_instance)))
         print('DONE')
         return self.instances    
