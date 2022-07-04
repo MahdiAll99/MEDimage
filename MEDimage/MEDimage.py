@@ -9,7 +9,6 @@ import nibabel as nib
 import numpy as np
 from numpyencoder import NumpyEncoder
 from PIL import Image
-from pydicom.dataset import FileDataset
 
 from MEDimage.processing.compute_suv_map import compute_suv_map
 
@@ -1231,8 +1230,6 @@ class MEDimage(object):
                 data = np.flip(data, 0)
                 # flip y
                 data = np.flip(data, 1)
-                # to LPS
-                data = data.swapaxes(0, 1)
 
                 return data
 
