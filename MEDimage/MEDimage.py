@@ -288,13 +288,46 @@ class MEDimage(object):
         Initializes all the computation parameters for TEXTURE FEATURES 
         as well as the results dict.
         """
-        self.params.radiomics.name_text_types = ['glcm_3D', 'glrlm_3D', 'glszm_3D', 'gldzm_3D', 'ngtdm_3D', 'ngldm_3D']
+        # check glcm merge method
+        glcm_merge_method = self.params.radiomics.glcm.merge_method
+        if glcm_merge_method:
+            if glcm_merge_method == 'average':
+                glcm_merge_method = '_avg'
+            elif glcm_merge_method == 'vol_merge':
+                glcm_merge_method = '_comb'
+            else:
+                error_msg = f"{glcm_merge_method} Method not supported in glcm computation, \
+                    only 'average' or 'vol_merge' are supported. \
+                    Radiomics will be saved without any specific merge method."
+                logging.warning(error_msg)
+                print(error_msg)
 
+        # check glrlm merge method
+        glrlm_merge_method = self.params.radiomics.glrlm.merge_method
+        if glrlm_merge_method:
+            if glrlm_merge_method == 'average':
+                glrlm_merge_method = '_avg'
+            elif glrlm_merge_method == 'vol_merge':
+                glrlm_merge_method = '_comb'
+            else:
+                error_msg = f"{glcm_merge_method} Method not supported in glrlm computation, \
+                    only 'average' or 'vol_merge' are supported. \
+                    Radiomics will be saved without any specific merge method"
+                logging.warning(error_msg)
+                print(error_msg)
+        # set texture features names and updates radiomics dict
+        self.params.radiomics.name_text_types = [
+                                'glcm_3D' + glcm_merge_method, 
+                                'glrlm_3D' + glrlm_merge_method, 
+                                'glszm_3D', 
+                                'gldzm_3D', 
+                                'ngtdm_3D', 
+                                'ngldm_3D']
         n_text_types = len(self.params.radiomics.name_text_types)
         if not ('texture' in self.radiomics.image):
             self.radiomics.image.update({'texture': {}})
             for t in range(n_text_types):
-                self.radiomics.image.update({self.params.radiomics.name_text_types[t]: {}})
+                self.radiomics.image['texture'].update({self.params.radiomics.name_text_types[t]: {}})
 
         # scale name
         # Always isotropic resampling, so the first entry is ok.
@@ -370,26 +403,14 @@ class MEDimage(object):
                 glcm_merge_method = '_avg'
             elif glcm_merge_method == 'vol_merge':
                 glcm_merge_method = '_comb'
-            else:
-                error_msg = f"{glcm_merge_method} Method not supported in glcm computation, \
-                    only 'average' or 'vol_merge' are supported. \
-                    Radiomics will be saved without any specific merge method."
-                logging.warning(error_msg)
-                print(error_msg)
 
         # check glrlm merge method
-        glrlm_method = self.params.radiomics.glrlm.merge_method
-        if glrlm_method:
-            if glrlm_method == 'average':
-                glrlm_method = '_avg'
-            elif glrlm_method == 'vol_merge':
-                glrlm_method = '_comb'
-            else:
-                error_msg = f"{glcm_merge_method} Method not supported in glrlm computation, \
-                    only 'average' or 'vol_merge' are supported. \
-                    Radiomics will be saved without any specific merge method"
-                logging.warning(error_msg)
-                print(error_msg)
+        glrlm_merge_method = self.params.radiomics.glrlm.merge_method
+        if glrlm_merge_method:
+            if glrlm_merge_method == 'average':
+                glrlm_merge_method = '_avg'
+            elif glrlm_merge_method == 'vol_merge':
+                glrlm_merge_method = '_comb'
 
         # Non-texture Features
         if int_vol_hist_features:
@@ -405,17 +426,19 @@ class MEDimage(object):
         
         # Texture Features
         if glcm_features:
-            self.radiomics.image['glcm_3D' + glcm_merge_method][self.params.radiomics.processing_name] = glcm_features
+            self.radiomics.image['texture'][
+                'glcm_3D' + glcm_merge_method][self.params.radiomics.processing_name] = glcm_features
         if glrlm_features:
-            self.radiomics.image['glrlm_3D' + glrlm_method][self.params.radiomics.processing_name] = glrlm_features
+            self.radiomics.image['texture'][
+                'glrlm_3D' + glrlm_merge_method][self.params.radiomics.processing_name] = glrlm_features
         if glszm_features:
-            self.radiomics.image['glszm_3D'][self.params.radiomics.processing_name] = glszm_features
+            self.radiomics.image['texture']['glszm_3D'][self.params.radiomics.processing_name] = glszm_features
         if gldzm_features:
-            self.radiomics.image['gldzm_3D'][self.params.radiomics.processing_name] = gldzm_features
+            self.radiomics.image['texture']['gldzm_3D'][self.params.radiomics.processing_name] = gldzm_features
         if ngtdm_features:
-            self.radiomics.image['ngtdm_3D'][self.params.radiomics.processing_name] = ngtdm_features
+            self.radiomics.image['texture']['ngtdm_3D'][self.params.radiomics.processing_name] = ngtdm_features
         if ngldm_features:
-            self.radiomics.image['ngldm_3D'][self.params.radiomics.processing_name] = ngldm_features
+            self.radiomics.image['texture']['ngldm_3D'][self.params.radiomics.processing_name] = ngldm_features
 
     def save_radiomics(
                     self, scan_file_name: List, 
