@@ -427,7 +427,7 @@ class MEDimage(object):
     def save_radiomics(
                     self, scan_file_name: List, 
                     path_save: Path, roi_type: str, 
-                    roi_type_label: str, patient_num: int) -> None:
+                    roi_type_label: str, patient_num: int = None) -> None:
         """
         Saves extracted radiomics features in a JSON file.
         """
@@ -441,13 +441,24 @@ class MEDimage(object):
                                 self.scan.volume.spatialRef.PixelExtentInWorldZ
                                 ])
         self.radiomics.update_params(params)
-        index_dot = scan_file_name[patient_num].find('.')
-        ext = scan_file_name[patient_num].find('.npy')
-        nameSave = scan_file_name[patient_num][:index_dot] + \
-            '(' + roi_type_label + ')' + scan_file_name[patient_num][index_dot:ext]
+        if type(scan_file_name) is str:
+            index_dot = scan_file_name.find('.')
+            ext = scan_file_name.find('.npy')
+            name_save = scan_file_name[:index_dot] + \
+                        '(' + roi_type_label + ')' + \
+                        scan_file_name[index_dot : ext]
+        elif patient_num is not None:
+            index_dot = scan_file_name[patient_num].find('.')
+            ext = scan_file_name[patient_num].find('.npy')
+            name_save = scan_file_name[patient_num][:index_dot] + \
+                        '(' + roi_type_label + ')' + \
+                        scan_file_name[patient_num][index_dot : ext]
+        else:
+            raise ValueError("`patient_num` must be speicifed or `scan_file_name` msut be str")
 
-        with open(path_save / f"{nameSave}.json", "w") as fp:   
+        with open(path_save / f"{name_save}.json", "w") as fp:   
             dump(self.radiomics.to_json(), fp, indent=4, cls=NumpyEncoder)
+
 
     class Params:
         """Organizes all processing, filtering and features extraction"""
@@ -459,6 +470,7 @@ class MEDimage(object):
             self.process = self.Process()
             self.filter = self.Filter()
             self.radiomics = self.Radiomics()
+
 
         class Process:
             def __init__(self, **kwargs) -> None:
