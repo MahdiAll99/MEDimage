@@ -86,6 +86,7 @@ class MEDimage(object):
         box_string = 'box10'
 
         # get default scan parameters from im_param_scan
+        self.params.process.filter = im_params['filter']
         self.params.process.scale_non_text = im_params['interp']['scale_non_text']
         self.params.process.vol_interp  = im_params['interp']['vol_interp']
         self.params.process.roi_interp = im_params['interp']['roi_interp']
@@ -136,10 +137,15 @@ class MEDimage(object):
             self.params.process.box_string = 'full'
         
     def __init_filter_params(self, filter_params) -> None:
-        """Initializes the filtering params from a given Dict."""
+        """
+        Initializes the filtering params from a given Dict.
+        """
         if 'imParamFilter' in filter_params:
-            print(filter_params)
             filter_params = filter_params['imParamFilter']
+        
+        # ser filter type
+        self.params.filter.filter_type = filter_params['filter_type']
+
         # mean filter params
         self.params.filter.mean.init_from_json(filter_params['mean'])
 
@@ -448,7 +454,8 @@ class MEDimage(object):
         """Organizes all processing, filtering and features extraction"""
 
         def __init__(self) -> None:
-            """Organizes all processing, filtering and features extraction
+            """
+            Organizes all processing, filtering and features extraction
             """
             self.process = self.Process()
             self.filter = self.Filter()
@@ -461,6 +468,7 @@ class MEDimage(object):
                 """
                 self.algo = kwargs['algo'] if 'algo' in kwargs else None
                 self.box_string = kwargs['box_string'] if 'box_string' in kwargs else None
+                self.filter = kwargs['filter'] if 'filter' in kwargs else False
                 self.gl_round = kwargs['gl_round'] if 'gl_round' in kwargs else None
                 self.gray_levels = kwargs['gray_levels'] if 'gray_levels' in kwargs else None
                 self.ih = kwargs['ih'] if 'ih' in kwargs else None
@@ -488,6 +496,7 @@ class MEDimage(object):
 
                 self.algo = __params['algo'] if 'algo' in __params else self.algo
                 self.box_string = __params['box_string'] if 'box_string' in __params else self.box_string
+                self.filter = __params['filter'] if 'filter' in __params else self.filter
                 self.gl_round = __params['gl_round'] if 'gl_round' in __params else self.gl_round
                 self.gray_levels = __params['gray_levels'] if 'gray_levels' in __params else self.gray_levels
                 self.ih = __params['ih'] if 'ih' in __params else self.ih
@@ -509,7 +518,8 @@ class MEDimage(object):
 
 
         class Filter:
-            def __init__(self) -> None:
+            def __init__(self, filter_type: str = "") -> None:
+                self.filter_type = filter_type
                 self.mean = self.Mean()
                 self.log = self.Log()
                 self.gabor = self.Gabor()
@@ -672,9 +682,13 @@ class MEDimage(object):
 
 
             class GLRLM:
-                def __init__(self, 
-                            dist_correction: bool = False) -> None:
+                def __init__(
+                        self, 
+                        dist_correction: bool = False,
+                        merge_method: str = "vol_merge"
+                ) -> None:
                     self.dist_correction = dist_correction
+                    self.merge_method = merge_method
 
 
             class GLDZM:
@@ -688,9 +702,13 @@ class MEDimage(object):
 
 
             class NGTDM:
-                def __init__(self, 
-                            distance_norm: Dict = None) -> None:
+                def __init__(
+                        self, 
+                        distance_norm: Dict = None,
+                        dist_correction: str = None
+                ) -> None:
                     self.distance_norm = distance_norm
+                    self.dist_correction = dist_correction
 
 
             class NGLDM:
