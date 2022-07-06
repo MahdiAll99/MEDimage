@@ -441,13 +441,11 @@ class MEDimage(object):
                                 self.scan.volume.spatialRef.PixelExtentInWorldZ
                                 ])
         self.radiomics.update_params(params)
-        indDot = scan_file_name[patient_num].find('.')
+        index_dot = scan_file_name[patient_num].find('.')
         ext = scan_file_name[patient_num].find('.npy')
-        nameSave = scan_file_name[patient_num][:indDot] + \
-            '(' + roi_type_label + ')' + scan_file_name[patient_num][indDot:ext]
+        nameSave = scan_file_name[patient_num][:index_dot] + \
+            '(' + roi_type_label + ')' + scan_file_name[patient_num][index_dot:ext]
 
-        # IMPORTANT: HERE, WE COULD ADD SOME CODE TO APPEND A NEW "radiomics"
-        # STRUCTURE TO AN EXISTING ONE WITH THE SAME NAME IN "pathSave"
         with open(path_save / f"{nameSave}.json", "w") as fp:   
             dump(self.radiomics.to_json(), fp, indent=4, cls=NumpyEncoder)
 
