@@ -2,16 +2,24 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from typing import Dict
+from typing import Dict, List
 
 import numpy as np
+
+from MEDimage.MEDimage import MEDimage
 
 from ..biomarkers.utils import find_i_x, find_v_x
 
 _logger = logging.getLogger(__name__)
 
 
-def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
+def extract_all(
+        MEDimg: MEDimage, 
+        vol: np.ndarray, 
+        vol_int_re: np.ndarray, 
+        wd: float=None, 
+        user_set_range: List=None
+    ) -> Dict:
     """Computes Intensity-volume Histogram Features.
 
     Note:
@@ -25,7 +33,7 @@ def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
         wd (float, optional): Discretisation width.
-        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the 
+        user_set_range (List, optional): 1-D array with shape (1,2) of the 
             intensity range.
 
     Returns:
@@ -33,22 +41,22 @@ def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
 
     """
     try:
-        if 'type' in MEDimg.Params['IVH'] and MEDimg.Params['IVH']:
+        if 'type' in MEDimg.params.process.ivh and MEDimg.params.process.ivh:
             # PET example case (definite intensity units -- continuous case)
-            if MEDimg.Params['IVH']['type'] == 'FBS' or MEDimg.Params['IVH']['type'] == 'FBSequal':
+            if MEDimg.params.process.ivh['type'] == 'FBS' or MEDimg.params.process.ivh['type'] == 'FBSequal':
                 range_fbs = [0, 0]
-                if not MEDimg.Params['im_range']:
+                if not MEDimg.params.process.im_range:
                     range_fbs[0] = np.nanmin(vol_int_re)
                     range_fbs[1] = np.nanmax(vol_int_re)
                 else:
-                    if MEDimg.Params['im_range'][0] == -np.inf:
+                    if MEDimg.params.process.im_range[0] == -np.inf:
                         range_fbs[0] = np.nanmin(vol_int_re)
                     else:
-                        range_fbs[0] = MEDimg.Params['im_range'][0]
-                    if MEDimg.Params['im_range'][1] == np.inf:
+                        range_fbs[0] = MEDimg.params.process.im_range[0]
+                    if MEDimg.params.process.im_range[1] == np.inf:
                         range_fbs[1] = np.nanmax(vol_int_re)
                     else:
-                        range_fbs[1] = MEDimg.Params['im_range'][1]
+                        range_fbs[1] = MEDimg.params.process.im_range[1]
                 # In this case, wd = wb (see discretisation.m)
                 range_fbs[0] = range_fbs[0] + 0.5*wd
                 # In this case, wd = wb (see discretisation.m)
@@ -59,7 +67,7 @@ def extract_all(MEDimg, vol, vol_int_re, wd=None, user_set_range=None) -> Dict:
                 user_set_range = None
 
         else:  # CT example case (definite intensity units -- discrete case)
-            user_set_range = MEDimg.Params['im_range']
+            user_set_range = MEDimg.params.process.im_range
 
         # INITIALIZATION
         X = vol[~np.isnan(vol[:])]
