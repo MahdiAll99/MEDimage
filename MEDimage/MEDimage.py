@@ -361,17 +361,17 @@ class MEDimage(object):
         self.scan.volume.scan_rot = None
     
     def update_radiomics(
-                        self, int_vol_hist_features: Dict = None, 
-                        morph_features: Dict = None, loc_int_features: Dict = None, 
-                        stats_features: Dict = None, int_hist_features: Dict = None,
-                        glcm_features: Dict = None, glcm_merge_method: str = None, 
-                        glrlm_features: Dict = None, glrlm_method: str = None, 
-                        glszm_features: Dict = None, gldzm_features: Dict = None, 
-                        ngtdm_features: Dict = None, ngldm_features: Dict = None) -> None:
+                        self, int_vol_hist_features: Dict = {}, 
+                        morph_features: Dict = {}, loc_int_features: Dict = {}, 
+                        stats_features: Dict = {}, int_hist_features: Dict = {},
+                        glcm_features: Dict = {}, glrlm_features: Dict = {},
+                        glszm_features: Dict = {}, gldzm_features: Dict = {}, 
+                        ngtdm_features: Dict = {}, ngldm_features: Dict = {}) -> None:
         """
         Updates the results attribute with the extracted features
         """
         # check glcm merge method
+        glcm_merge_method = self.params.radiomics.glcm.merge_method
         if glcm_merge_method:
             if glcm_merge_method == 'average':
                 glcm_merge_method = '_avg'
@@ -385,6 +385,7 @@ class MEDimage(object):
                 print(error_msg)
 
         # check glrlm merge method
+        glrlm_method = self.params.radiomics.glrlm.merge_method
         if glrlm_method:
             if glrlm_method == 'average':
                 glrlm_method = '_avg'
@@ -675,10 +676,12 @@ class MEDimage(object):
                 def __init__(self, 
                             symmetry: str = None,
                             distance_norm: Dict = None,
-                            dist_correction: bool = False) -> None:
+                            dist_correction: bool = False,
+                            merge_method: str = "vol_merge") -> None:
                     self.symmetry = symmetry
                     self.distance_norm = distance_norm
                     self.dist_correction = dist_correction
+                    self.merge_method = merge_method
 
 
             class GLRLM:
