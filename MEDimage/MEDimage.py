@@ -31,7 +31,7 @@ class MEDimage(object):
 
     """
 
-    def __init__(self, MEDimg=None, logger=None) -> None:
+    def __init__(self, MEDimg=None) -> None:
         try:
             self.patientID = MEDimg.patientID
         except:
@@ -62,13 +62,6 @@ class MEDimage(object):
             self.radiomics = self.Radiomics()
 
         self.skip = False
-
-        if logger == None:
-            self._logger = 'MEDimage.log'
-        else:
-            self._logger = logger
-
-        logging.basicConfig(filename=self._logger, level=logging.DEBUG)
 
     def __init_process_params(self, im_params: Dict) -> None:
         """Initializes the processing params from a given Dict."""
