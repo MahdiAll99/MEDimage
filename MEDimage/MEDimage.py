@@ -529,9 +529,10 @@ class MEDimage(object):
 
 
             class Mean:
-                def __init__(self, 
-                            ndims: int = 0, name_save: str = '', 
-                            padding: str = '', size: int = 0) -> None:
+                def __init__(
+                        self, ndims: int = 0, name_save: str = '', 
+                        padding: str = '', size: int = 0
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -549,10 +550,11 @@ class MEDimage(object):
 
 
             class Log:
-                def __init__(self, 
-                            ndims: int = 0, sigma: float = 0.0, 
-                            padding: str = '', orthogonal_rot: bool = False, 
-                            name_save: str = '') -> None:
+                def __init__(
+                        self, ndims: int = 0, sigma: float = 0.0, 
+                        padding: str = '', orthogonal_rot: bool = False, 
+                        name_save: str = ''
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -572,11 +574,12 @@ class MEDimage(object):
 
 
             class Gabor:
-                def __init__(self, 
-                            sigma: float = 0.0, _lambda: float = 0.0,  
-                            gamma: float = 0.0, theta: str = '', rot_invariance: bool = False,
-                            orthogonal_rot: bool= False, name_save: str = '',
-                            padding: str = '') -> None:
+                def __init__(
+                        self, sigma: float = 0.0, _lambda: float = 0.0,  
+                        gamma: float = 0.0, theta: str = '', rot_invariance: bool = False,
+                        orthogonal_rot: bool= False, name_save: str = '',
+                        padding: str = ''
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -602,10 +605,11 @@ class MEDimage(object):
 
 
             class Laws:
-                def __init__(self, 
-                            config: List = [], energy_distance: int = 0, energy_image: bool = False, 
-                            rot_invariance: bool = False, orthogonal_rot: bool = False, name_save: str = '',
-                            padding: str = '') -> None:
+                def __init__(
+                        self, config: List = [], energy_distance: int = 0, 
+                        energy_image: bool = False, rot_invariance: bool = False, 
+                        orthogonal_rot: bool = False, name_save: str = '', padding: str = ''
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -629,10 +633,11 @@ class MEDimage(object):
 
 
             class Wavelet:
-                def __init__(self, 
-                            ndims: int = 0, name_save: str = '', 
-                            basis_function: str = '', subband: str = '', level: int = 0, 
-                            rot_invariance: bool = False, padding: str = '') -> None:
+                def __init__(
+                        self, ndims: int = 0, name_save: str = '', 
+                        basis_function: str = '', subband: str = '', level: int = 0, 
+                        rot_invariance: bool = False, padding: str = ''
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -673,11 +678,13 @@ class MEDimage(object):
 
 
             class GLCM:
-                def __init__(self, 
-                            symmetry: str = None,
-                            distance_norm: Dict = None,
-                            dist_correction: bool = False,
-                            merge_method: str = "vol_merge") -> None:
+                def __init__(
+                        self, 
+                        symmetry: str = None,
+                        distance_norm: Dict = None,
+                        dist_correction: bool = False,
+                        merge_method: str = "vol_merge"
+                ) -> None:
                     self.symmetry = symmetry
                     self.distance_norm = distance_norm
                     self.dist_correction = dist_correction
@@ -695,10 +702,12 @@ class MEDimage(object):
 
 
             class GLDZM:
-                def __init__(self, 
-                            symmetry: str = None,
-                            distance_norm: Dict = None,
-                            dist_correction: bool = False) -> None:
+                def __init__(
+                        self, 
+                        symmetry: str = None,
+                        distance_norm: Dict = None,
+                        dist_correction: bool = False
+                ) -> None:
                     self.symmetry = symmetry
                     self.distance_norm = distance_norm
                     self.dist_correction = dist_correction
@@ -715,8 +724,7 @@ class MEDimage(object):
 
 
             class NGLDM:
-                def __init__(self, 
-                            distance_norm: Dict = None) -> None:
+                def __init__(self, distance_norm: Dict = None) -> None:
                     self.distance_norm = distance_norm
 
 
