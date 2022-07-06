@@ -23,7 +23,12 @@ along with this package.  If not, see <http://www.gnu.org/licenses/>.
 """
 from .glcm import *
 from .gldzm import *
+from .glrlm import *
+from .glszm import *
+from .int_vol_hist import *
 from .intensity_histogram import *
 from .local_intensity import *
 from .morph import *
+from .ngldm import *
+from .ngtdm import *
 from .stats import *
