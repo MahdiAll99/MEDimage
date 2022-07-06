@@ -601,7 +601,13 @@ class MEDimage(object):
                     self.padding = params['padding']
                     self.rot_invariance = params['rot_invariance']
                     self.sigma = params['sigma']
-                    self.theta = params['theta']
+                    if type(params["theta"]) is str:
+                        if params["theta"].startswith('pi/'):
+                            self.theta = np.pi / int(params["theta"].split('/')[1])
+                        elif params["theta"].startswith('-pi/'):
+                            self.theta = -np.pi / int(params["theta"].split('/')[1])
+                    else:
+                        self.theta = float(params["theta"])
 
 
             class Laws:
