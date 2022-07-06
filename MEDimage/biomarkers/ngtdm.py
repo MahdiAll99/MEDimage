@@ -28,7 +28,7 @@ def extract_all(vol, distCorrection=None) -> Dict:
         Dict: Dict of Neighbourhood grey tone difference based features.
     """
 
-    ngtdm = {'Fngt_coarseness': [],
+    ngtdm_features = {'Fngt_coarseness': [],
              'Fngt_contrast': [],
              'Fngt_busyness': [],
              'Fngt_complexity': [],
@@ -57,28 +57,28 @@ def extract_all(vol, distCorrection=None) -> Dict:
     # Coarseness
     coarseness = 1 / np.matmul(np.transpose(count_valid), ngtdm)
     coarseness = min(coarseness, 10**6)
-    ngtdm['Fngt_coarseness'] = coarseness
+    ngtdm_features['Fngt_coarseness'] = coarseness
 
     # Contrast
     if n_g == 1:
-        ngtdm['Fngt_contrast'] = 0
+        ngtdm_features['Fngt_contrast'] = 0
     else:
         val = 0
         for i in range(1, NL+1):
             for j in range(1, NL+1):
                 val = val + count_valid[i-1] * count_valid[j-1] * ((i-j)**2)
-        ngtdm['Fngt_contrast'] = val * np.sum(ngtdm) / (n_g*(n_g-1)*nTot)
+        ngtdm_features['Fngt_contrast'] = val * np.sum(ngtdm) / (n_g*(n_g-1)*nTot)
 
     # Busyness
     if n_g == 1:
-        ngtdm['Fngt_busyness'] = 0
+        ngtdm_features['Fngt_busyness'] = 0
     else:
         denom = 0
         for i in range(1, n_valid+1):
             for j in range(1, n_valid+1):
                 denom = denom + np.abs(p_valid[i-1]*count_valid[p_valid[i-1]-1] -
                                        p_valid[j-1]*count_valid[p_valid[j-1]-1])
-        ngtdm['Fngt_busyness'] = np.matmul(np.transpose(count_valid), ngtdm) / denom
+        ngtdm_features['Fngt_busyness'] = np.matmul(np.transpose(count_valid), ngtdm) / denom
 
     # Complexity
     val = 0
@@ -91,11 +91,11 @@ def extract_all(vol, distCorrection=None) -> Dict:
                 count_valid[p_valid[i-1]-1]*ngtdm[p_valid[i-1]-1] +
                 count_valid[p_valid[j-1]-1]*ngtdm[p_valid[j-1]-1])
 
-    ngtdm['Fngt_complexity'] = val
+    ngtdm_features['Fngt_complexity'] = val
 
     # Strength
     if np.sum(ngtdm) == 0:
-        ngtdm['Fngt_strength'] = 0
+        ngtdm_features['Fngt_strength'] = 0
     else:
         val = 0
         for i in range(1, n_valid+1):
@@ -103,6 +103,6 @@ def extract_all(vol, distCorrection=None) -> Dict:
                 val = val + (count_valid[p_valid[i-1]-1] + count_valid[p_valid[j-1]-1])*(
                     p_valid[i-1]-p_valid[j-1])**2
 
-        ngtdm['Fngt_strength'] = val/np.sum(ngtdm)
+        ngtdm_features['Fngt_strength'] = val/np.sum(ngtdm)
 
-    return ngtdm
+    return ngtdm_features

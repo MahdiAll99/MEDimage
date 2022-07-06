@@ -21,7 +21,7 @@ def extract_all(vol) -> Dict:
         
     """
 
-    glszm = {'Fszm_sze': [],
+    glszm_features = {'Fszm_sze': [],
              'Fszm_lze': [],
              'Fszm_lgze': [],
              'Fszm_hgze': [],
@@ -57,60 +57,60 @@ def extract_all(vol) -> Dict:
     # COMPUTING TEXTURES
 
     # Small zone emphasis
-    glszm['Fszm_sze'] = (np.matmul(pz, np.transpose(np.power(1.0/np.array(c_vect), 2))))
+    glszm_features['Fszm_sze'] = (np.matmul(pz, np.transpose(np.power(1.0/np.array(c_vect), 2))))
 
     # Large zone emphasis
-    glszm['Fszm_lze'] = (np.matmul(pz, np.transpose(np.power(np.array(c_vect), 2))))
+    glszm_features['Fszm_lze'] = (np.matmul(pz, np.transpose(np.power(np.array(c_vect), 2))))
 
     # Low grey level zone emphasis
-    glszm['Fszm_lgze'] = np.matmul(pg, np.transpose(np.power(
+    glszm_features['Fszm_lgze'] = np.matmul(pg, np.transpose(np.power(
         1.0/np.array(r_vect), 2)))
 
     # High grey level zone emphasis
-    glszm['Fszm_hgze'] = np.matmul(pg, np.transpose(np.power(np.array(r_vect), 2)))
+    glszm_features['Fszm_hgze'] = np.matmul(pg, np.transpose(np.power(np.array(r_vect), 2)))
 
     # Small zone low grey level emphasis
-    glszm['Fszm_szlge'] = np.sum(np.sum(glszm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
+    glszm_features['Fszm_szlge'] = np.sum(np.sum(glszm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Small zone high grey level emphasis
-    glszm['Fszm_szhge'] = np.sum(np.sum(glszm*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
+    glszm_features['Fszm_szhge'] = np.sum(np.sum(glszm*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
     # Large zone low grey levels emphasis
-    glszm['Fszm_lzlge'] = np.sum(np.sum(glszm*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
+    glszm_features['Fszm_lzlge'] = np.sum(np.sum(glszm*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
     # Large zone high grey level emphasis
-    glszm['Fszm_lzhge'] = np.sum(np.sum(glszm*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
+    glszm_features['Fszm_lzhge'] = np.sum(np.sum(glszm*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
 
     # Gray level non-uniformity
-    glszm['Fszm_glnu'] = np.sum(np.power(pg, 2)) * n_s
+    glszm_features['Fszm_glnu'] = np.sum(np.power(pg, 2)) * n_s
 
     # Gray level non-uniformity normalised
-    glszm['Fszm_glnu_norm'] = np.sum(np.power(pg, 2))
+    glszm_features['Fszm_glnu_norm'] = np.sum(np.power(pg, 2))
 
     # Zone size non-uniformity
-    glszm['Fszm_zsnu'] = np.sum(np.power(pz, 2)) * n_s
+    glszm_features['Fszm_zsnu'] = np.sum(np.power(pz, 2)) * n_s
 
     # Zone size non-uniformity normalised
-    glszm['Fszm_zsnu_norm'] = np.sum(np.power(pz, 2))
+    glszm_features['Fszm_zsnu_norm'] = np.sum(np.power(pz, 2))
 
     # Zone percentage
-    glszm['Fszm_z_perc'] = np.sum(pg)/(np.matmul(pz, np.transpose(c_vect)))
+    glszm_features['Fszm_z_perc'] = np.sum(pg)/(np.matmul(pz, np.transpose(c_vect)))
 
     # Grey level variance
     temp = r_mat * glszm
     u = np.sum(temp)
     temp = (np.power(r_mat - u, 2)) * glszm
-    glszm['Fszm_gl_var'] = np.sum(temp)
+    glszm_features['Fszm_gl_var'] = np.sum(temp)
 
     # Zone size variance
     temp = c_mat * glszm
     u = np.sum(temp)
     temp = (np.power(c_mat - u, 2)) * glszm
-    glszm['Fszm_zs_var'] = np.sum(temp)
+    glszm_features['Fszm_zs_var'] = np.sum(temp)
 
     # Zone size entropy
     val_pos = glszm[np.nonzero(glszm)]
     temp = val_pos * np.log2(val_pos)
-    glszm['Fszm_zs_entr'] = -np.sum(temp)
+    glszm_features['Fszm_zs_entr'] = -np.sum(temp)
 
-    return glszm
+    return glszm_features
