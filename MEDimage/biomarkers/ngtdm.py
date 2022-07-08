@@ -9,14 +9,13 @@ import numpy as np
 from ..biomarkers.get_ngtdm_matrix import get_ngtdm_matrix
 
 
-def get_matrix(vol: np.ndarray, dist_correction)-> Tuple[np.ndarray, np.ndarray]:
+def get_matrix(vol: np.ndarray, dist_correction = None)-> Tuple[np.ndarray, np.ndarray]:
     """Compute neighbourhood grey tone difference matrix.
 
     Args:
 
         vol (ndarray): 3D volume, isotropically resampled, quantized
-            (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
-            of interest.
+            (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region of interest.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
             discretization length difference corrections as used here:
             <https://doi.org/10.1088/0031-9155/60/14/5471>.
@@ -27,13 +26,11 @@ def get_matrix(vol: np.ndarray, dist_correction)-> Tuple[np.ndarray, np.ndarray]
     Returns:
         np.ndarray: array of neighbourhood grey tone difference matrix
     """
-
+    # GET THE NGTDM MATRIX
+    # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
 
-    if dist_correction is None:
-        ngtdm, count_valid = get_ngtdm_matrix(vol, levels)
-    else:
-        ngtdm, count_valid = get_ngtdm_matrix(vol, levels, dist_correction)
+    ngtdm, count_valid = get_ngtdm_matrix(vol, levels, dist_correction)
     
     return ngtdm, count_valid
 
@@ -48,6 +45,8 @@ def coarseness(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
         float: coarseness value
 
     """
+    n_tot = np.sum(count_valid)
+    count_valid = count_valid/n_tot
     coarseness = 1 / np.matmul(np.transpose(count_valid), ngtdm)
     coarseness = min(coarseness, 10**6)
     return coarseness
@@ -188,7 +187,6 @@ def extract_all(vol, dist_correction=None) -> Dict:
     Returns:
         Dict: Dict of Neighbourhood grey tone difference based features.
     """
-
     ngtdm_features = {'Fngt_coarseness': [],
              'Fngt_contrast': [],
              'Fngt_busyness': [],
@@ -198,11 +196,7 @@ def extract_all(vol, dist_correction=None) -> Dict:
     # GET THE NGTDM MATRIX
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
-
-    if dist_correction is None:
-        ngtdm, count_valid = get_ngtdm_matrix(vol, levels)
-    else:
-        ngtdm, count_valid = get_ngtdm_matrix(vol, levels, distCorrection)
+    ngtdm, count_valid = get_ngtdm_matrix(vol, levels, dist_correction)
 
     n_tot = np.sum(count_valid)
     # Now representing the probability of gray-level occurences
@@ -214,7 +208,6 @@ def extract_all(vol, dist_correction=None) -> Dict:
     n_valid = np.size(p_valid)
 
     # COMPUTING TEXTURES
-
     # Coarseness
     coarseness = 1 / np.matmul(np.transpose(count_valid), ngtdm)
     coarseness = min(coarseness, 10**6)

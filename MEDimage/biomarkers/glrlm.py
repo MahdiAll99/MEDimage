@@ -69,7 +69,6 @@ def extract_all(vol, dist_correction=None, glrlm_merge_method="vol_merge", metho
 
     return extract_all
 
-
 def get_rlm_features(vol, 
                     intensity_range, 
                     glrlm_spatial_method="3d", 
@@ -190,7 +189,6 @@ def get_rlm_features(vol,
     df_feat = pd.concat(feat_list, axis=1).to_dict(orient="records")[0]
 
     return df_feat
-
 
 def combine_rlm_matrices(rlm_list, merge_method, spatial_method):
     """Merges run length matrices prior to feature calculation.
@@ -392,7 +390,6 @@ class RunLengthMatrix:
         n_v (int): The number of voxels in the volume.
 
         """
-
     def __init__(self, 
                 direction, 
                 direction_id, 
@@ -420,7 +417,6 @@ class RunLengthMatrix:
 
     def _copy(self):
         """Returns a copy of the RunLengthMatrix object."""
-
         return deepcopy(self)
 
     def _set_empty(self):
@@ -448,7 +444,6 @@ class RunLengthMatrix:
                 If `dist_weight_norm` is not "manhattan", "euclidean" or "chebyshev".
 
         """
-
         # Check if the df_img actually exists
         if df_img is None:
             self._set_empty()
@@ -666,7 +661,6 @@ class RunLengthMatrix:
 
         return parse_str
 
-
 @deprecated(reason="Use the new and the faster method get_rlm_features()")
 def get_rlm_features_deprecated(vol, dist_correction) -> Dict:
     """Calculates grey level run length matrix features.
@@ -688,7 +682,6 @@ def get_rlm_features_deprecated(vol, dist_correction) -> Dict:
         Dict: Dict of GLCM features.
 
     """
-
     extract_all = {'Frlm_sre': [],
              'Frlm_lre': [],
              'Frlm_lgre': [],

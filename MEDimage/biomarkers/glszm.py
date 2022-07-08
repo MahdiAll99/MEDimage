@@ -48,7 +48,6 @@ def sze(glszm: np.ndarray) -> float:
     c_vect = range(1, sz[1]+1)  # Row vectors
     pz = np.sum(glszm, 0)  # Zone Size Vector
 
-
     # Small zone emphasis
     return (np.matmul(pz, np.transpose(np.power(1.0/np.array(c_vect), 2))))
 
@@ -68,7 +67,6 @@ def lze(glszm: np.ndarray) -> float:
 
     c_vect = range(1, sz[1]+1)  # Row vectors
     pz = np.sum(glszm, 0)  # Zone Size Vector
-
 
     # Large zone emphasis
     return (np.matmul(pz, np.transpose(np.power(np.array(c_vect), 2))))
@@ -380,7 +378,6 @@ def extract_all(vol: np.ndarray, glszm: np.ndarray = None) -> Dict:
         Dict: Dict of glszm features.
         
     """
-
     glszm_features = {'Fszm_sze': [],
              'Fszm_lze': [],
              'Fszm_lgze': [],
