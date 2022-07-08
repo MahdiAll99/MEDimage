@@ -19,7 +19,8 @@ def extract_all(vol: np.ndarray,
                 glrlm_merge_method: str="vol_merge", 
                 method: str="new") -> Dict:
     """Computes glrlm features.
-    This features refer to Grey Level Run Length Matrix family in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This features refer to Grey Level Run Length Matrix family in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, isotropically resampled, quantized
@@ -66,7 +67,6 @@ def extract_all(vol: np.ndarray,
             "glrlm should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
 
     return rlm_features
-
 
 def get_rlm_features(vol: np.ndarray, 
                      glrlm_spatial_method: str="3d", 
@@ -444,7 +444,6 @@ def combine_rlm_matrices(rlm_list: list, merge_method: str, spatial_method: str)
     # Return to new rlm list to calling function
     return use_list
 
-
 class RunLengthMatrix:
     """Class that contains a single run length matrix.
 
@@ -813,7 +812,6 @@ class RunLengthMatrix:
 
         return parse_str
 
-
 @deprecated(reason="Use the new and the faster method get_rlm_features()")
 def get_rlm_features_deprecated(vol: np.ndarray, dist_correction: typing.Union[bool, str]) -> Dict:
     """Calculates grey level run length matrix features.
@@ -938,12 +936,13 @@ def get_rlm_features_deprecated(vol: np.ndarray, dist_correction: typing.Union[b
 
 def sre(upd_list: np.ndarray) -> float:
     """Compute Short runs emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_sre" (id = 22OV) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_sre" (id = 22OV) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
-    Returns: 
+ 
+    Returns:
         float: Dict of the Short runs emphasis feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -966,12 +965,13 @@ def sre(upd_list: np.ndarray) -> float:
 
 def lre(upd_list: np.ndarray) -> float:
     """Compute Long runs emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_lre" (id = W4KF) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_lre" (id = W4KF) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
-    Returns: 
+
+    Returns:
         float: Dict of the Long runs emphasis feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -994,12 +994,13 @@ def lre(upd_list: np.ndarray) -> float:
 
 def glnu(upd_list: np.ndarray) -> float:
     """Compute Grey level non-uniformity feature from the run length matrices list.
-    This feature refers to "Frlm_glnu" (id = R5YN) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_glnu" (id = R5YN) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
-    Returns: 
+
+    Returns:
         float: Dict of the Grey level non-uniformity feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -1022,12 +1023,13 @@ def glnu(upd_list: np.ndarray) -> float:
 
 def glnu_norm(upd_list: np.ndarray) -> float:
     """Compute Grey level non-uniformity normalised feature from the run length matrices list.
-    This feature refers to "Frlm_glnu_norm" (id = OVBL) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_glnu_norm" (id = OVBL) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
-    Returns: 
+
+    Returns:
         float: Dict of the Grey level non-uniformity normalised feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -1050,7 +1052,8 @@ def glnu_norm(upd_list: np.ndarray) -> float:
 
 def rlnu(upd_list: np.ndarray) -> float:
     """Compute Run length non-uniformity feature from the run length matrices list.
-    This feature refers to "Frlm_rlnu" (id = W92Y) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_rlnu" (id = W92Y) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1078,11 +1081,12 @@ def rlnu(upd_list: np.ndarray) -> float:
 
 def rlnu_norm(upd_list: np.ndarray) -> float:
     """Compute Run length non-uniformity normalised feature from the run length matrices list.
-    This feature refers to "Frlm_rlnu_norm" (id = IC23) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_rlnu_norm" (id = IC23) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
+
     Returns:
         float: Dict of the Run length non-uniformity normalised feature.
     """
@@ -1106,11 +1110,12 @@ def rlnu_norm(upd_list: np.ndarray) -> float:
 
 def r_perc(upd_list: np.ndarray) -> float:
     """Compute Run percentage feature from the run length matrices list.
-    This feature refers to "Frlm_r_perc" (id = 9ZK5) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_r_perc" (id = 9ZK5) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
+
     Returns:
         float: Dict of the Run percentage feature.
     """
@@ -1134,11 +1139,12 @@ def r_perc(upd_list: np.ndarray) -> float:
 
 def lgre(upd_list: np.ndarray) -> float:
     """Compute Low grey level run emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_lgre" (id = V3SW) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_lgre" (id = V3SW) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
+
     Returns:
         float: Dict of the Low grey level run emphasis feature.
     """
@@ -1162,11 +1168,12 @@ def lgre(upd_list: np.ndarray) -> float:
 
 def hgre(upd_list: np.ndarray) -> float:
     """Compute High grey level run emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_hgre" (id = G3QZ) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_hgre" (id = G3QZ) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
+
     Returns:
         float: Dict of the High grey level run emphasis feature.
     """
@@ -1190,12 +1197,13 @@ def hgre(upd_list: np.ndarray) -> float:
 
 def srlge(upd_list: np.ndarray) -> float:
     """Compute Short run low grey level emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_srlge" (id = HTZT) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_srlge" (id = HTZT) in the IBSI1 reference manual 
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
-    Returns: 
+
+    Returns:
         float: Dict of the Short run low grey level emphasis feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -1218,12 +1226,13 @@ def srlge(upd_list: np.ndarray) -> float:
 
 def srhge(upd_list: np.ndarray) -> float:
     """Compute Short run high grey level emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_srhge" (id = GD3A) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_srhge" (id = GD3A) in the IBSI1 reference manual 
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
-    Returns: 
+
+    Returns:
         float: Dict of the Short run high grey level emphasis feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -1246,11 +1255,12 @@ def srhge(upd_list: np.ndarray) -> float:
 
 def lrlge(upd_list: np.ndarray) -> float:
     """Compute Long run low grey level emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_lrlge" (id = IVPO) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_lrlge" (id = IVPO) in the IBSI1 reference manual 
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
+
     Returns: 
         float: Dict of the Long run low grey level emphasis feature.
     """
@@ -1274,11 +1284,12 @@ def lrlge(upd_list: np.ndarray) -> float:
 
 def lrhge(upd_list: np.ndarray) -> float:
     """Compute Long run high grey level emphasisfeature from the run length matrices list.
-    This feature refers to "Frlm_lrhge" (id = 3KUM) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_lrhge" (id = 3KUM) in the IBSI1 reference manual 
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
+
     Returns:
         float: Dict of the Long run high grey level emphasis feature.
     """
@@ -1302,12 +1313,13 @@ def lrhge(upd_list: np.ndarray) -> float:
 
 def gl_var(upd_list: np.ndarray) -> float:
     """Compute Grey level variance feature from the run length matrices list.
-    This feature refers to "Frlm_gl_var" (id = 8CE5) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_gl_var" (id = 8CE5) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-    
-    Returns: 
+
+    Returns:
         float: Dict of the Grey level variance feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -1330,12 +1342,13 @@ def gl_var(upd_list: np.ndarray) -> float:
 
 def rl_var(upd_list: np.ndarray) -> float:
     """Compute Run length variancefeature from the run length matrices list.
-    This feature refers to "Frlm_rl_var" (id = SXLW) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_rl_var" (id = SXLW) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-       
-    Returns: 
+
+    Returns:
         float: Dict of the Run length variance feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -1358,12 +1371,13 @@ def rl_var(upd_list: np.ndarray) -> float:
 
 def rl_entr(upd_list: np.ndarray) -> float:
     """Compute Zone size entropy feature from the run length matrices list.
-    This feature refers to "Frlm_rl_entr" (id = HJ9O) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_rl_entr" (id = HJ9O) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
-  
-    Returns: 
+
+    Returns:
         float: Dict of the Zone size entropy feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -1389,11 +1403,10 @@ def merge_feature(feat_list: np.ndarray) -> float:
     
     Args:
         feat_list (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
-       
-    Returns: 
+ 
+    Returns:
         float: Dict of the length matrix feature.
     """
     df_feat = pd.concat(feat_list, axis=1).to_dict(orient="records")[0]
 
     return df_feat
-

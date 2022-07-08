@@ -52,7 +52,8 @@ def extract_all(img_obj: ndarray, roi_obj: ndarray, res: ndarray, intensity=None
 
 def peak_local(img_obj: ndarray, roi_obj: ndarray, res: ndarray) -> float:
     """Computes local intensity peak.
-    This feature refers to "Floc_peak_local" (id = VJGA) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Floc_peak_local" (id = VJGA) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         img_obj (ndarray): Continuous image intensity distribution, with no NaNs
@@ -68,7 +69,8 @@ def peak_local(img_obj: ndarray, roi_obj: ndarray, res: ndarray) -> float:
 
 def peak_global(img_obj: ndarray, roi_obj: ndarray, res: ndarray) -> float:
     """Computes global intensity peak.
-    This feature refers to "Floc_peak_global" (id = 0F91) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Floc_peak_global" (id = 0F91) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         img_obj (ndarray): Continuous image intensity distribution, with no NaNs

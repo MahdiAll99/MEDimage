@@ -68,7 +68,7 @@ def get_variables(vol: np.ndarray,
     # GETTING IMPORTANT VARIABLES
     xgl_int = np.reshape(vol, np.size(vol), order='F')[np.where(
         np.reshape(mask_int, np.size(mask_int), order='F') == 1)[0]].copy()
-    Xgl_morph = np.reshape(vol, np.size(vol), order='F')[np.where(
+    xgl_morph = np.reshape(vol, np.size(vol), order='F')[np.where(
         np.reshape(mask_morph, np.size(mask_morph), order='F') == 1)[0]].copy()
     # XYZ refers to [Xc,Yc,Zc] in ref. [1].
     xyz_int, _, _ = get_mesh(mask_int, res)
@@ -78,7 +78,7 @@ def get_variables(vol: np.ndarray,
     # conv_hull Matlab is conv_hull.simplices
     conv_hull = sc.ConvexHull(vertices)
 
-    return xgl_int, Xgl_morph, xyz_int, xyz_morph, faces, vertices, conv_hull
+    return xgl_int, xgl_morph, xyz_int, xyz_morph, faces, vertices, conv_hull
 
 def extract_all(vol: np.ndarray, 
                 mask_int: np.ndarray, 
@@ -87,7 +87,8 @@ def extract_all(vol: np.ndarray,
                 compute_moran_i: bool=False, 
                 compute_geary_c: bool=False) -> Dict:
     """Compute Morphological Features.
-    This features refer to Morphological family in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This features refer to Morphological family in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
     
     Note:
         Moran's Index and Geary's C measure takes so much computation time. Please
@@ -142,7 +143,7 @@ def extract_all(vol: np.ndarray,
 
     #Initialization
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    xgl_int, Xgl_morph, xyz_int, xyz_morph, faces, vertices, conv_hull = get_variables(vol, mask_int, mask_morph, res)
+    xgl_int, xgl_morph, xyz_int, xyz_morph, faces, vertices, conv_hull = get_variables(vol, mask_int, mask_morph, res)
 
     # STARTING COMPUTATION
     # In mm^3
@@ -176,7 +177,7 @@ def extract_all(vol: np.ndarray,
     morph['Fmorph_asphericity'] = ((area**3) / (36*np.pi*volume**2))**(1/3) - 1
 
     # Centre of mass shift
-    morph['Fmorph_com'] = get_com(xgl_int, Xgl_morph, xyz_int, xyz_morph)
+    morph['Fmorph_com'] = get_com(xgl_int, xgl_morph, xyz_int, xyz_morph)
 
     # Maximum 3D diameter
     morph['Fmorph_diam'] = np.max(sc.distance.pdist(conv_hull.points[conv_hull.vertices]))
@@ -276,13 +277,13 @@ def extract_all(vol: np.ndarray,
 
     # Moran's I index
     if compute_moran_i:
-        vol_Mor = vol.copy()
-        vol_Mor[mask_int == 0] = np.NaN
-        morph['Fmorph_moran_i'] = get_moran_i(vol_Mor, res)
+        vol_mor = vol.copy()
+        vol_mor[mask_int == 0] = np.NaN
+        morph['Fmorph_moran_i'] = get_moran_i(vol_mor, res)
 
     # Geary's C measure
     if compute_geary_c:
-        morph['Fmorph_geary_c'] = get_geary_c(vol_Mor, res)
+        morph['Fmorph_geary_c'] = get_geary_c(vol_mor, res)
 
     return morph
 
@@ -291,7 +292,8 @@ def vol(vol: np.ndarray,
         mask_morph: np.ndarray, 
         res: np.ndarray) -> float:
     """Computes morphological volume feature.
-    This feature refers to "Fmorph_vol" (id = RNUO) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_vol" (id = RNUO) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
@@ -314,14 +316,15 @@ def approx_vol(vol: np.ndarray,
                mask_morph: np.ndarray, 
                res: np.ndarray) -> float:
     """Computes morphological approximate volume feature.
-    This feature refers to "Fmorph_approx_vol" (id = YEKZ) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_approx_vol" (id = YEKZ) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the morphological approximate volume feature.
@@ -336,14 +339,15 @@ def area(vol: np.ndarray,
          mask_morph: np.ndarray, 
          res: np.ndarray) -> float:
     """Computes Surface area feature.
-    This feature refers to "Fmorph_area" (id = COJJK) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_area" (id = COJJK) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the surface area feature.
@@ -359,14 +363,15 @@ def av(vol: np.ndarray,
        mask_morph: np.ndarray, 
        res: np.ndarray) -> float:
     """Computes Surface to volume ratio feature.
-    This feature refers to "Fmorph_av" (id = 2PR5) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_av" (id = 2PR5) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Surface to volume ratio feature.
@@ -376,20 +381,21 @@ def av(vol: np.ndarray,
     ratio = area / volume
 
     return ratio  # Surface to volume ratio
-    
+
 def comp_1(vol: np.ndarray, 
            mask_int: np.ndarray, 
            mask_morph: np.ndarray, 
            res: np.ndarray) -> float:
     """Computes Compactness 1 feature.
-    This feature refers to "Fmorph_comp_1" (id = SKGS) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_comp_1" (id = SKGS) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Compactness 1 feature.
@@ -399,20 +405,21 @@ def comp_1(vol: np.ndarray,
     comp_1 = volume / ((np.pi**(1/2))*(area**(3/2)))
 
     return comp_1  # Compactness 1
-    
+
 def comp_2(vol: np.ndarray, 
            mask_int: np.ndarray, 
            mask_morph: np.ndarray, 
            res: np.ndarray) -> float:
     """Computes Compactness 2 feature.
-    This feature refers to "Fmorph_comp_2" (id = BQWJ) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_comp_2" (id = BQWJ) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Compactness 2 feature.
@@ -428,14 +435,15 @@ def sph_dispr(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Spherical disproportion feature.
-    This feature refers to "Fmorph_sph_dispr" (id = KRCK) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_sph_dispr" (id = KRCK) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Spherical disproportion feature.
@@ -451,14 +459,15 @@ def sphericity(vol: np.ndarray,
                mask_morph: np.ndarray, 
                res: np.ndarray) -> float:
     """Computes Sphericity feature.
-    This feature refers to "Fmorph_sphericity" (id = QCFX) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_sphericity" (id = QCFX) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Sphericity feature.
@@ -474,14 +483,15 @@ def asphericity(vol: np.ndarray,
                 mask_morph: np.ndarray, 
                 res: np.ndarray) -> float:
     """Computes Asphericity feature.
-    This feature refers to "Fmorph_asphericity" (id =  25C) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_asphericity" (id =  25C) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Asphericity feature.
@@ -497,21 +507,22 @@ def com(vol: np.ndarray,
         mask_morph: np.ndarray, 
         res: np.ndarray) -> float:
     """Computes Centre of mass shift feature.
-    This feature refers to "Fmorph_com" (id =  KLM) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_com" (id =  KLM) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Centre of mass shift feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    xgl_int, Xgl_morph, xyz_int, xyz_morph, _, _, _ = get_variables(vol, mask_int, mask_morph, res)
-    com = get_com(xgl_int, Xgl_morph, xyz_int, xyz_morph)
+    xgl_int, xgl_morph, xyz_int, xyz_morph, _, _, _ = get_variables(vol, mask_int, mask_morph, res)
+    com = get_com(xgl_int, xgl_morph, xyz_int, xyz_morph)
 
     return com  # Centre of mass shift
 
@@ -520,14 +531,15 @@ def diam(vol: np.ndarray,
          mask_morph: np.ndarray, 
          res: np.ndarray) -> float:
     """Computes Maximum 3D diameter feature.
-    This feature refers to "Fmorph_diam" (id = L0JK) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_diam" (id = L0JK) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Maximum 3D diameter feature.
@@ -543,14 +555,15 @@ def pca_major(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Major axis length feature.
-    This feature refers to "Fmorph_pca_major" (id = TDIC) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_pca_major" (id = TDIC) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                    XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Major axis length feature.
@@ -567,14 +580,15 @@ def pca_minor(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Minor axis length feature.
-    This feature refers to "Fmorph_pca_minor" (id = P9VJ) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_pca_minor" (id = P9VJ) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Minor axis length feature.
@@ -591,14 +605,15 @@ def pca_least(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Least axis length feature.
-    This feature refers to "Fmorph_pca_least" (id = 7J51) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_pca_least" (id = 7J51) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Least axis length feature.
@@ -615,14 +630,15 @@ def pca_elongation(vol: np.ndarray,
                    mask_morph: np.ndarray, 
                    res: np.ndarray) -> float:
     """Computes Elongation feature.
-    This feature refers to "Fmorph_pca_elongation" (id = Q3CK) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_pca_elongation" (id = Q3CK) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Elongation feature.
@@ -639,14 +655,15 @@ def pca_flatness(vol: np.ndarray,
                  mask_morph: np.ndarray, 
                  res: np.ndarray) -> float:
     """Computes Flatness feature.
-    This feature refers to "Fmorph_pca_flatness" (id = N17B) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_pca_flatness" (id = N17B) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Flatness feature.
@@ -663,14 +680,15 @@ def v_dens_aabb(vol: np.ndarray,
                 mask_morph: np.ndarray, 
                 res: np.ndarray) -> float:
     """Computes Volume density - axis-aligned bounding box feature.
-    This feature refers to "Fmorph_v_dens_aabb" (id = PBX1) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_v_dens_aabb" (id = PBX1) in the IBSI1 reference manual 
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Volume density - axis-aligned bounding box feature.
@@ -691,14 +709,15 @@ def a_dens_aabb(vol: np.ndarray,
                 mask_morph: np.ndarray, 
                 res: np.ndarray) -> float:
     """Computes Area density - axis-aligned bounding box feature.
-    This feature refers to "Fmorph_a_dens_aabb" (id = R59B) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_a_dens_aabb" (id = R59B) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Area density - axis-aligned bounding box feature.
@@ -723,14 +742,15 @@ def v_dens_ombb(vol: np.ndarray,
     Determination of the minimum bounding box of an
     arbitrary solid: an iterative approach.
     Comp Struc 79 (2001) 1433-1449
-    This feature refers to "Fmorph_v_dens_ombb" (id = ZH1A) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_v_dens_ombb" (id = ZH1A) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Volume density - oriented minimum bounding box feature.
@@ -753,14 +773,15 @@ def a_dens_ombb(vol: np.ndarray,
     Determination of the minimum bounding box of an
     arbitrary solid: an iterative approach.
     Comp Struc 79 (2001) 1433-1449
-    This feature refers to "Fmorph_a_dens_ombb" (id = IQYR) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_a_dens_ombb" (id = IQYR) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Area density - oriented minimum bounding box feature.
@@ -782,14 +803,15 @@ def v_dens_aee(vol: np.ndarray,
                mask_morph: np.ndarray, 
                res: np.ndarray) -> float:
     """Computes Volume density - approximate enclosing ellipsoid feature.
-    This feature refers to "Fmorph_v_dens_aee" (id = 6BDE) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_v_dens_aee" (id = 6BDE) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args: 
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Volume density - approximate enclosing ellipsoid feature.
@@ -811,14 +833,15 @@ def a_dens_aee(vol: np.ndarray,
                mask_morph: np.ndarray, 
                res: np.ndarray) -> float:
     """Computes Area density - approximate enclosing ellipsoid feature.
-    This feature refers to "Fmorph_a_dens_aee" (id = RDD2) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_a_dens_aee" (id = RDD2) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Area density - approximate enclosing ellipsoid feature.
@@ -849,14 +872,15 @@ def v_dens_mvee(vol: np.ndarray,
     Subsequent singular value decomposition of matrix A and
     taking the inverse of the square root of the diagonal of the
     sigma matrix will produce respective semi-axis lengths.
-    This feature refers to "Fmorph_v_dens_mvee" (id = SWZ1) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_v_dens_mvee" (id = SWZ1) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Volume density - minimum volume enclosing ellipsoid feature.
@@ -892,14 +916,15 @@ def a_dens_mvee(vol: np.ndarray,
     Subsequent singular value decomposition of matrix A and
     taking the inverse of the square root of the diagonal of the
     sigma matrix will produce respective semi-axis lengths.
-    This feature refers to "Fmorph_a_dens_mvee" (id = BRI8) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_a_dens_mvee" (id = BRI8) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Area density - minimum volume enclosing ellipsoid feature.
@@ -926,14 +951,15 @@ def v_dens_conv_hull(vol: np.ndarray,
                      mask_morph: np.ndarray, 
                      res: np.ndarray) -> float:
     """Computes Volume density - convex hull feature.
-    This feature refers to "Fmorph_v_dens_conv_hull" (id = R3ER) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_v_dens_conv_hull" (id = R3ER) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Volume density - convex hull feature.
@@ -951,14 +977,15 @@ def a_dens_conv_hull(vol: np.ndarray,
                      mask_morph: np.ndarray, 
                      res: np.ndarray) -> float:
     """Computes Area density - convex hull feature.
-    This feature refers to "Fmorph_a_dens_conv_hull" (id = 7T7F) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_a_dens_conv_hull" (id = 7T7F) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Area density - convex hull feature.
@@ -976,14 +1003,15 @@ def integ_int(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Integrated intensity feature.
-    This feature refers to "Fmorph_integ_int" (id = 99N0) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_integ_int" (id = 99N0) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
 
     Returns:
         float: Value of the Integrated intensity feature.
@@ -1002,14 +1030,15 @@ def moran_i(vol: np.ndarray,
             res: np.ndarray, 
             compute_moran_i: bool=False) -> float:
     """Computes Moran's I index feature.
-    This feature refers to "Fmorph_moran_i" (id = N365) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_moran_i" (id = N365) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
         compute_moran_i (bool, optional): True to compute Moran's Index.
 
     Returns:
@@ -1019,9 +1048,9 @@ def moran_i(vol: np.ndarray,
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
 
     if compute_moran_i:
-        vol_Mor = vol.copy()
-        vol_Mor[mask_int == 0] = np.NaN
-        moran_i = get_moran_i(vol_Mor, res)
+        vol_mor = vol.copy()
+        vol_mor[mask_int == 0] = np.NaN
+        moran_i = get_moran_i(vol_mor, res)
 
     return moran_i  # Moran's I index
 
@@ -1031,14 +1060,15 @@ def geary_c(vol: np.ndarray,
             res: np.ndarray, 
             compute_geary_c: bool=False) -> float:
     """Computes Geary's C measure feature.
-    This feature refers to "Fmorph_geary_c" (id = NPT7) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fmorph_geary_c" (id = NPT7) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         mask_int (ndarray): Intensity mask.
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
-            XYZ resolution (world), or JIK resolution (intrinsic matlab).
+                       XYZ resolution (world), or JIK resolution (intrinsic matlab).
         compute_geary_c (bool, optional): True to compute Geary's C measure.
 
     Returns:
@@ -1048,8 +1078,8 @@ def geary_c(vol: np.ndarray,
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
 
     if compute_geary_c:
-        vol_Mor = vol.copy()
-        vol_Mor[mask_int == 0] = np.NaN
-        geary_c = get_geary_c(vol_Mor, res)
+        vol_mor = vol.copy()
+        vol_mor[mask_int == 0] = np.NaN
+        geary_c = get_geary_c(vol_mor, res)
 
     return geary_c  # Geary's C measure

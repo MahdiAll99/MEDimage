@@ -106,11 +106,12 @@ def extract_all(MEDimg: MEDimage,
                 wd: int, 
                 user_set_range: np.ndarray=None) -> Dict:
     """Computes Intensity-volume Histogram Features.
-    This features refer to Intensity-volume histogram family in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This features refer to Intensity-volume histogram family in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
         - All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
@@ -195,11 +196,12 @@ def V10(MEDimg: MEDimage,
         wd: int, 
         user_set_range: np.ndarray=None) -> float:
     """Computes Volume at intensity fraction 10 feature.
-    This feature refers to "Fivh_V10" (id = BC2M) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fivh_V10" (id = BC2M) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
         - All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
@@ -243,11 +245,12 @@ def V90(MEDimg: MEDimage,
         wd: int, 
         user_set_range: np.ndarray=None) -> float:
     """Computes Volume at intensity fraction 90 feature.
-    This feature refers to "Fivh_V90" (id = BC2M) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fivh_V90" (id = BC2M) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
         - All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
@@ -291,11 +294,12 @@ def I10(MEDimg: MEDimage,
         wd: int, 
         user_set_range: np.ndarray=None) -> float:
     """Computes Intensity at volume fraction 10 feature.
-    This feature refers to "Fivh_I10" (id = GBPN) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fivh_I10" (id = GBPN) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
         - All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
@@ -339,11 +343,12 @@ def I90(MEDimg: MEDimage,
         wd: int, 
         user_set_range: np.ndarray=None) -> float:
     """Computes Intensity at volume fraction 90 feature.
-    This feature refers to "Fivh_I90" (id = GBPN) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fivh_I90" (id = GBPN) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
         - All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
@@ -387,11 +392,12 @@ def V10minusV90(MEDimg: MEDimage,
                 wd: int, 
                 user_set_range: np.ndarray=None) -> float:
     """Computes Volume at intensity fraction difference v10-v90
-    This feature refers to "Fivh_V10minusV90" (id = DDTU) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fivh_V10minusV90" (id = DDTU) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
         - All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
@@ -438,11 +444,12 @@ def I10minusI90(MEDimg: MEDimage,
                 wd: int, 
                 user_set_range: np.ndarray=None) -> float:
     """Computes Intensity at volume fraction difference i10-i90
-    This feature refers to "Fivh_I10minusI90" (id = CNV2) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fivh_I10minusI90" (id = CNV2) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
         - All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
@@ -492,11 +499,12 @@ def auc(MEDimg: MEDimage,
                 wd: int, 
                 user_set_range: np.ndarray=None) -> float:
     """Computes Area under IVH curve.
-    This feature refers to "Fivh_auc" (id = 9CMM) in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fivh_auc" (id = 9CMM) in the IBSI1 reference manual
+    https://arxiv.org/abs/1612.07003 (PDF)
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
+        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
         - All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
