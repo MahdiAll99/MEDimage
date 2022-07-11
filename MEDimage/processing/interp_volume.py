@@ -246,7 +246,7 @@ def interp_volume(MEDimage,
 
             MEDimage.Params['radiomics']['image'].update(
                 {( MEDimage.__dict__['scaleName'] ): 'ERROR_PROCESSING'})
-            
+
         else:
             message = f"\n PROBLEM WITH PRE-PROCESSING OF TEXTURE FEATURES:\n {e}"
             _logger.error(message)

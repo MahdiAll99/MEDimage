@@ -6,7 +6,7 @@ from typing import Tuple
 import numpy as np
 
 
-def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray, np.ndarray]:
+def get_ngtdm_matrix(roi_only, levels, dist_correction=False) -> Tuple[np.ndarray, np.ndarray]:
     """Computes ngtdm matrix.
 
     This function computes the Neighborhood Gray-Tone Difference Matrix
@@ -31,7 +31,7 @@ def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray
             for texture analysis computations. Voxels outside the ROI are set to NaNs.
         levels (ndarray): Vector containing the quantized gray-levels in the tumor region
             (or reconstruction levels of quantization).
-        distCorrection (str, optional): Set this variable to true in order to use
+        dist_correction (str, optional): Set this variable to true in order to use
             discretization length difference corrections as used 
             here: https://doi.org/10.1088/0031-9155/60/14/5471.
             Set this variable to false to replicate IBSI results.
@@ -43,11 +43,11 @@ def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray
 
     """
 
-    # PARSING "distCorrection" ARGUMENT
-    if type(distCorrection) is not bool:
+    # PARSING "dist_correction" ARGUMENT
+    if type(dist_correction) is not bool:
         # The user did not input either "true" or "false",
         # so the default behavior is used.
-        distCorrection = True  # By default
+        dist_correction = True  # By default
 
     # PRELIMINARY
     if np.size(np.shape(roi_only)) == 2:  # generalization to 2D inputs
@@ -77,7 +77,7 @@ def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray
         pos_valid = np.unravel_index(indices, np.shape(roi_only), order='F')
         n_valid_temp = np.size(pos_valid[0])
         w4 = 1
-        if distCorrection:
+        if dist_correction:
             # Weights given to different neighbors to correct
             # for discretization length differences
             w8 = 1/np.sqrt(2)
@@ -108,7 +108,7 @@ def get_ngtdm_matrix(roi_only, levels, distCorrection=False) -> Tuple[np.ndarray
         pos_valid = np.unravel_index(indices, np.shape(roi_only), order='F')
         n_valid_temp = np.size(pos_valid[0])
         w6 = 1
-        if distCorrection:
+        if dist_correction:
             # Weights given to different neighbors to correct
             # for discretization length differences
             w26 = 1 / np.sqrt(3)
