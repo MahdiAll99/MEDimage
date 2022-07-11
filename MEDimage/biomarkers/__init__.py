@@ -21,18 +21,7 @@ You should have received a copy of the GNU General Public License
 along with this package.  If not, see <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------
 """
-from .get_geary_c import *
-from .get_glcm_matrix import *
-from .get_gldzm_matrix import *
-from .get_glrlm_matrix import *
-from .get_glszm_matrix import *
-from .get_max_3d_diam import *
-from .get_mesh_area import *
-from .get_mesh_volume import *
-from .get_moran_i import *
-from .get_ngldm_matrix import *
-from .get_ngtdm_matrix import *
-from .get_oriented_bound_box import *
+from .BatchExtractor import *
 from .glcm import *
 from .gldzm import *
 from .glrlm import *

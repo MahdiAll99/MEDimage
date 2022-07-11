@@ -5,19 +5,16 @@ import warnings
 
 import numpy as np
 import pydicom
-import pydicom.errors
-import pydicom.misc
-import pydicom.uid
 import ray
+from MEDimage.utils.imref import imref3d
 
 warnings.simplefilter("ignore")
 
 from pathlib import Path
 
 from MEDimage.MEDimage import MEDimage
-from MEDimage.MEDimageProcessing import MEDimageProcessing
-from MEDimage.processing.get_roi import get_roi
 
+from ..processing.get_roi import get_roi
 from ..utils.save_MEDimage import save_MEDimage
 
 
@@ -25,7 +22,8 @@ from ..utils.save_MEDimage import save_MEDimage
 def process_dicom_scan_files(
                             path_images: Path, 
                             path_rs: Path = None,
-                            path_save: Path = None
+                            path_save: Path = None,
+                            save: bool = True
                             ) -> MEDimage:
     """
     Reads DICOM data according to the path info found in the
@@ -45,10 +43,8 @@ def process_dicom_scan_files(
     Returns:
         MEDimg (MEDimage): Instance of a MEDimage class.
     """
-
     # Since we created a worker, we need to add code path to the system
-    import MEDimage.utils.combine_slices as cs
-    import MEDimage.utils.imref as ref
+    from .combine_slices import combine_slices
 
     # PARTIAL PARSING OF ARGUMENTS
     if path_images is None:
@@ -66,12 +62,9 @@ def process_dicom_scan_files(
     # Determination of the scan orientation
     try:
         mid = round(n_slices/2)
-        dist = [abs(dicom_hi[mid+1].ImagePositionPatient[0] -
-                    dicom_hi[mid].ImagePositionPatient[0]),
-                abs(dicom_hi[mid+1].ImagePositionPatient[1] -
-                    dicom_hi[mid].ImagePositionPatient[1]),
-                abs(dicom_hi[mid+1].ImagePositionPatient[2] -
-                    dicom_hi[mid].ImagePositionPatient[2])]
+        dist = [abs(dicom_hi[mid+1].ImagePositionPatient[0] - dicom_hi[mid].ImagePositionPatient[0]),
+                abs(dicom_hi[mid+1].ImagePositionPatient[1] - dicom_hi[mid].ImagePositionPatient[1]),
+                abs(dicom_hi[mid+1].ImagePositionPatient[2] - dicom_hi[mid].ImagePositionPatient[2])]
 
         index = dist.index(max(dist))
         if index == 0:
@@ -87,15 +80,14 @@ def process_dicom_scan_files(
         # missing slices and oblique restrictions apply see the reference:
         # https://dicom-numpy.readthedocs.io/en/latest/index.html#dicom_numpy.combine_slices
         try:
-            voxel_ndarray, ijk_to_xyz, rotation_m, scaling_m = cs.combine_slices(dicom_hi)
+            voxel_ndarray, ijk_to_xyz, rotation_m, scaling_m = combine_slices(dicom_hi)
         except ValueError:
-            # invalid DICOM data
             raise ValueError('Invalid DICOM data for dicom_numpy.combine_slices')
 
         # Alignment of scan coordinates for MR scans
         # (inverse of ImageOrientationPatient rotation matrix)
         if not np.allclose(rotation_m, np.eye(rotation_m.shape[0])):
-            MEDimg.scan.volume.scanRot = rotation_m
+            MEDimg.scan.volume.scan_rot = rotation_m
 
         MEDimg.scan.volume.data = voxel_ndarray
         MEDimg.type = dicom_hi[0].Modality + 'scan'
@@ -109,7 +101,7 @@ def process_dicom_scan_files(
         min_y_grid = min_grid[1]
         min_z_grid = min_grid[2]
         size_image = np.shape(voxel_ndarray)
-        spatial_ref = ref.imref3d(size_image, pixel_x, pixel_y, slice_s)
+        spatial_ref = imref3d(size_image, pixel_x, pixel_y, slice_s)
         spatial_ref.XWorldLimits = (np.array(spatial_ref.XWorldLimits) -
                                    (spatial_ref.XWorldLimits[0] -
                                     (min_x_grid-pixel_x/2))).tolist()
@@ -126,7 +118,7 @@ def process_dicom_scan_files(
         spatial_ref.YIntrinsicLimits = spatial_ref.YIntrinsicLimits.tolist()
         spatial_ref.ZIntrinsicLimits = spatial_ref.ZIntrinsicLimits.tolist()
 
-        MEDimg.scan.volume.spatial_ref = spatial_ref
+        MEDimg.scan.volume.spatialRef = spatial_ref
         
         # DICOM HEADERS OF IMAGING DATA
         dicom_h = [
@@ -138,7 +130,7 @@ def process_dicom_scan_files(
         for i in range(0, len(dicom_h)):
             dicom_h[i].remove_private_tags()
 
-        MEDimg.dicom_h = dicom_h
+        MEDimg.dicomH = dicom_h
 
         # DICOM RTstruct (if applicable)
         if path_rs is not None and len(path_rs) > 0:
@@ -159,7 +151,8 @@ def process_dicom_scan_files(
             n_roi = len(dicom_rs_full[rs].StructureSetROISequence)
             for roi in range(n_roi):
                 if roi!=0:
-                    if dicom_rs_full[rs].StructureSetROISequence[roi].ROIName == dicom_rs_full[rs].StructureSetROISequence[roi-1].ROIName:
+                    if dicom_rs_full[rs].StructureSetROISequence[roi].ROIName == \
+                            dicom_rs_full[rs].StructureSetROISequence[roi-1].ROIName:
                         continue
                 points = []
                 name_set_strings = ['StructureSetName', 'StructureSetDescription',
@@ -175,26 +168,23 @@ def process_dicom_scan_files(
                 MEDimg.scan.ROI.update_indexes(key=contour_num,
                                                 indexes=None)
                 MEDimg.scan.ROI.update_nameSet(key=contour_num,
-                                                name_set=name_set)
+                                                nameSet=name_set)
                 MEDimg.scan.ROI.update_nameSetInfo(key=contour_num,
-                                                name_set_info=name_set_info)
+                                                nameSetInfo=name_set_info)
                 
                 try:
                     n_closed_contour = len(dicom_rs_full[rs].ROIContourSequence[roi].ContourSequence)
                     ind_closed_contour = []
                     for s in range(0, n_closed_contour):
-                        pts_temp = dicom_rs_full[rs].ROIContourSequence[roi].ContourSequence[s].ContourData
                         # points stored in the RTstruct file for a given closed
                         # contour (beware: there can be multiple closed contours
                         # on a given slice).
+                        pts_temp = dicom_rs_full[rs].ROIContourSequence[roi].ContourSequence[s].ContourData
                         n_points = int(len(pts_temp) / 3)
-                        # and isnumeric(pts_temp) SE THIS LINE TO TRANSLATE
                         if len(pts_temp) > 0:
                             ind_closed_contour = ind_closed_contour + np.tile(s, n_points).tolist()
                             if type(points) == list:
-                                points = np.reshape(
-                                    np.transpose(pts_temp),
-                                    (n_points, 3))
+                                points = np.reshape(np.transpose(pts_temp),(n_points, 3))
                             else:
                                 points = np.concatenate(
                                         (points, np.reshape(np.transpose(pts_temp), (n_points, 3))),
@@ -207,11 +197,8 @@ def process_dicom_scan_files(
                                                         np.reshape(ind_closed_contour, (len(ind_closed_contour), 1))),
                                                 axis=1)
                                                 )
-
-                    MEDImageProcess = MEDimageProcessing(MEDimg=MEDimg)
-
                     _, roi_obj = get_roi(
-                                    MEDImageProcess,
+                                    MEDimg,
                                     name_roi='{' + dicom_rs_full[rs].StructureSetROISequence[roi].ROIName + '}',
                                     box_string='full'
                                     )
@@ -219,19 +206,23 @@ def process_dicom_scan_files(
                     MEDimg.scan.ROI.update_indexes(key=contour_num, indexes=np.nonzero(roi_obj.data.flatten()))
 
                 except Exception as e:
-                    print('patient_id: ' + dicom_hi[0].patient_id + ' error: ' + str(e) + ' n_roi: ' + str(roi) + ' n_rs:' + str(rs))
+                    print('patientID: ' + dicom_hi[0].patientID + ' error: ' + str(e) + ' n_roi: ' + str(roi) + ' n_rs:' + str(rs))
                     MEDimg.scan.ROI.update_indexes(key=contour_num, indexes=np.NaN)
                 contour_num += 1
 
-        MEDimg.scan.patientPosition = MEDimg.dicom_h[0].PatientPosition
-        MEDimg.patient_id = dicom_h[0].patient_id
+        MEDimg.scan.patientPosition = dicom_h[0].PatientPosition
+        MEDimg.patientID = str(dicom_h[0].PatientID)
+        MEDimg.format = "dicom"
 
         # save MEDimage class instance as a pickle object
-        if path_save:
-            save_MEDimage(MEDimg, dicom_h[0].series_description, path_save)
+        if save and path_save:
+            try:
+                save_MEDimage(MEDimg, dicom_h[0].SeriesDescription, path_save)
+            except:
+                save_MEDimage(MEDimg, dicom_h[0].Modality, path_save)
 
     except Exception as e:
-        print('patient_id: ' + dicom_hi[0].patient_id + ' error: ' + str(e))
+        print('patientID: ' + dicom_hi[0].patientID + ' error: ' + str(e))
         return MEDimg
     
     return MEDimg

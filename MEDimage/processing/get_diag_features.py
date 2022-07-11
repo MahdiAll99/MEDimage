@@ -38,27 +38,27 @@ def get_diag_features(vol_obj, roi_obj_int, roi_obj_morph, im_type) -> Dict:
     if im_type != 'reSeg':
         # Image dimension x
         diag.update({'image_' + im_type + '_dimX':
-                     vol_obj.spatial_ref.ImageSize[0]})
+                     vol_obj.spatialRef.ImageSize[0]})
 
         # Image dimension y
         diag.update({'image_' + im_type + '_dimY':
-                     vol_obj.spatial_ref.ImageSize[1]})
+                     vol_obj.spatialRef.ImageSize[1]})
 
         # Image dimension z
         diag.update({'image_' + im_type + '_dimz':
-                     vol_obj.spatial_ref.ImageSize[2]})
+                     vol_obj.spatialRef.ImageSize[2]})
 
         # Voxel dimension x
         diag.update({'image_' + im_type + '_voxDimX':
-                     vol_obj.spatial_ref.PixelExtentInWorldX})
+                     vol_obj.spatialRef.PixelExtentInWorldX})
 
         # Voxel dimension y
         diag.update({'image_' + im_type + '_voxDimY':
-                     vol_obj.spatial_ref.PixelExtentInWorldY})
+                     vol_obj.spatialRef.PixelExtentInWorldY})
 
         # Voxel dimension z
         diag.update({'image_' + im_type + '_voxDimZ':
-                     vol_obj.spatial_ref.PixelExtentInWorldZ})
+                     vol_obj.spatialRef.PixelExtentInWorldZ})
 
         # Mean intensity
         diag.update({'image_' + im_type + '_meanInt': np.mean(vol_obj.data)})
@@ -78,15 +78,15 @@ def get_diag_features(vol_obj, roi_obj_int, roi_obj_morph, im_type) -> Dict:
 
     # Map dimension x
     diag.update({'roi_' + im_type + '_Int_dimX':
-                 roi_obj_int.spatial_ref.ImageSize[0]})
+                 roi_obj_int.spatialRef.ImageSize[0]})
 
     # Map dimension y
     diag.update({'roi_' + im_type + '_Int_dimY':
-                 roi_obj_int.spatial_ref.ImageSize[1]})
+                 roi_obj_int.spatialRef.ImageSize[1]})
 
     # Map dimension z
     diag.update({'roi_' + im_type + '_Int_dimZ':
-                 roi_obj_int.spatial_ref.ImageSize[2]})
+                 roi_obj_int.spatialRef.ImageSize[2]})
 
     # Bounding box dimension x
     diag.update({'roi_' + im_type + '_Int_boxBoundDimX':

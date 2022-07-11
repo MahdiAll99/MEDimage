@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from typing import Dict
+from typing import Dict, List
 
 import numpy as np
 
@@ -11,6 +11,7 @@ from MEDimage.MEDimage import MEDimage
 from ..biomarkers.utils import find_i_x, find_v_x
 
 _logger = logging.getLogger(__name__)
+
 
 
 def init_ivh(MEDimg: MEDimage, 

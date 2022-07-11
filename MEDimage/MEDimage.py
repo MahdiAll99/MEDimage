@@ -9,7 +9,6 @@ import nibabel as nib
 import numpy as np
 from numpyencoder import NumpyEncoder
 from PIL import Image
-from pydicom.dataset import FileDataset
 
 from MEDimage.processing.compute_suv_map import compute_suv_map
 
@@ -32,7 +31,7 @@ class MEDimage(object):
 
     """
 
-    def __init__(self, MEDimg=None, logger=None) -> None:
+    def __init__(self, MEDimg=None) -> None:
         try:
             self.patientID = MEDimg.patientID
         except:
@@ -64,22 +63,23 @@ class MEDimage(object):
 
         self.skip = False
 
-        if logger == None:
-            self._logger = 'MEDimage.log'
-        else:
-            self._logger = logger
-
-        logging.basicConfig(filename=self._logger, level=logging.DEBUG)
-
     def __init_process_params(self, im_params: Dict) -> None:
         """Initializes the processing params from a given Dict."""
-        box_string = 'box10'
+        if self.type == 'CTscan' and 'imParamCT' in im_params:
+            im_params = im_params['imParamCT']
+        elif self.type == 'MRscan' and 'imParamMR' in im_params:
+            im_params = im_params['imParamMR']
+        elif self.type == 'PTscan' and 'imParamPET' in im_params:
+            im_params = im_params['imParamPET']
+
         # 10 voxels in all three dimensions are added to the smallest
         # bounding box. This setting is used to speed up interpolation
         # processes (mostly) prior to the computation of radiomics
         # features. Optional argument in the function computeRadiomics.
+        box_string = 'box10'
 
         # get default scan parameters from im_param_scan
+        self.params.process.filter = im_params['filter']
         self.params.process.scale_non_text = im_params['interp']['scale_non_text']
         self.params.process.vol_interp  = im_params['interp']['vol_interp']
         self.params.process.roi_interp = im_params['interp']['roi_interp']
@@ -130,26 +130,28 @@ class MEDimage(object):
             self.params.process.box_string = 'full'
         
     def __init_filter_params(self, filter_params) -> None:
-        """Initializes the filtering params from a given Dict."""
+        """
+        Initializes the filtering params from a given Dict.
+        """
+        if 'imParamFilter' in filter_params:
+            filter_params = filter_params['imParamFilter']
+        
+        # ser filter type
+        self.params.filter.filter_type = filter_params['filter_type']
 
         # mean filter params
-        print(filter_params['mean'])
         self.params.filter.mean.init_from_json(filter_params['mean'])
 
         # log filter params
-        print(filter_params['log'])
         self.params.filter.log.init_from_json(filter_params['log'])
 
         # laws filter params
-        print(filter_params['laws'])
         self.params.filter.laws.init_from_json(filter_params['laws'])
 
         # gabor filter params
-        print(filter_params['gabor'])
         self.params.filter.gabor.init_from_json(filter_params['gabor'])
 
         # wavelet filter params
-        print(filter_params['wavelet'])
         self.params.filter.wavelet.init_from_json(filter_params['wavelet'])
 
     def init_params(self, im_param_scan):
@@ -281,18 +283,51 @@ class MEDimage(object):
             self.radiomics.image.update(
                     {('scale' + (str(self.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
 
-    def init_tf_Calculation(self, algo:int, gl:int, scale:int) -> None:
+    def init_tf_calculation(self, algo:int, gl:int, scale:int) -> None:
         """
         Initializes all the computation parameters for TEXTURE FEATURES 
         as well as the results dict.
         """
-        self.params.radiomics.name_text_types = ['glcm_3D', 'glrlm_3D', 'glszm_3D', 'gldzm_3D', 'ngtdm_3D', 'ngldm_3D']
+        # check glcm merge method
+        glcm_merge_method = self.params.radiomics.glcm.merge_method
+        if glcm_merge_method:
+            if glcm_merge_method == 'average':
+                glcm_merge_method = '_avg'
+            elif glcm_merge_method == 'vol_merge':
+                glcm_merge_method = '_comb'
+            else:
+                error_msg = f"{glcm_merge_method} Method not supported in glcm computation, \
+                    only 'average' or 'vol_merge' are supported. \
+                    Radiomics will be saved without any specific merge method."
+                logging.warning(error_msg)
+                print(error_msg)
 
+        # check glrlm merge method
+        glrlm_merge_method = self.params.radiomics.glrlm.merge_method
+        if glrlm_merge_method:
+            if glrlm_merge_method == 'average':
+                glrlm_merge_method = '_avg'
+            elif glrlm_merge_method == 'vol_merge':
+                glrlm_merge_method = '_comb'
+            else:
+                error_msg = f"{glcm_merge_method} Method not supported in glrlm computation, \
+                    only 'average' or 'vol_merge' are supported. \
+                    Radiomics will be saved without any specific merge method"
+                logging.warning(error_msg)
+                print(error_msg)
+        # set texture features names and updates radiomics dict
+        self.params.radiomics.name_text_types = [
+                                'glcm_3D' + glcm_merge_method, 
+                                'glrlm_3D' + glrlm_merge_method, 
+                                'glszm_3D', 
+                                'gldzm_3D', 
+                                'ngtdm_3D', 
+                                'ngldm_3D']
         n_text_types = len(self.params.radiomics.name_text_types)
         if not ('texture' in self.radiomics.image):
             self.radiomics.image.update({'texture': {}})
             for t in range(n_text_types):
-                self.radiomics.image.update({self.params.radiomics.name_text_types[t]: {}})
+                self.radiomics.image['texture'].update({self.params.radiomics.name_text_types[t]: {}})
 
         # scale name
         # Always isotropic resampling, so the first entry is ok.
@@ -352,41 +387,30 @@ class MEDimage(object):
         self.scan.volume.scan_rot = None
     
     def update_radiomics(
-                        self, int_vol_hist_features: Dict = None, 
-                        morph_features: Dict = None, loc_int_features: Dict = None, 
-                        stats_features: Dict = None, int_hist_features: Dict = None,
-                        glcm_features: Dict = None, glcm_merge_method: str = None, 
-                        glrlm_features: Dict = None, glrlm_method: str = None, 
-                        glszm_features: Dict = None, gldzm_features: Dict = None, 
-                        ngtdm_features: Dict = None, ngldm_features: Dict = None) -> None:
+                        self, int_vol_hist_features: Dict = {}, 
+                        morph_features: Dict = {}, loc_int_features: Dict = {}, 
+                        stats_features: Dict = {}, int_hist_features: Dict = {},
+                        glcm_features: Dict = {}, glrlm_features: Dict = {},
+                        glszm_features: Dict = {}, gldzm_features: Dict = {}, 
+                        ngtdm_features: Dict = {}, ngldm_features: Dict = {}) -> None:
         """
         Updates the results attribute with the extracted features
         """
         # check glcm merge method
+        glcm_merge_method = self.params.radiomics.glcm.merge_method
         if glcm_merge_method:
             if glcm_merge_method == 'average':
                 glcm_merge_method = '_avg'
             elif glcm_merge_method == 'vol_merge':
                 glcm_merge_method = '_comb'
-            else:
-                error_msg = f"{glcm_merge_method} Method not supported in glcm computation, \
-                    only 'average' or 'vol_merge' are supported. \
-                    Radiomics will be saved without any specific merge method."
-                logging.warning(error_msg)
-                print(error_msg)
 
         # check glrlm merge method
-        if glrlm_method:
-            if glrlm_method == 'average':
-                glrlm_method = '_avg'
-            elif glrlm_method == 'vol_merge':
-                glrlm_method = '_comb'
-            else:
-                error_msg = f"{glcm_merge_method} Method not supported in glrlm computation, \
-                    only 'average' or 'vol_merge' are supported. \
-                    Radiomics will be saved without any specific merge method"
-                logging.warning(error_msg)
-                print(error_msg)
+        glrlm_merge_method = self.params.radiomics.glrlm.merge_method
+        if glrlm_merge_method:
+            if glrlm_merge_method == 'average':
+                glrlm_merge_method = '_avg'
+            elif glrlm_merge_method == 'vol_merge':
+                glrlm_merge_method = '_comb'
 
         # Non-texture Features
         if int_vol_hist_features:
@@ -402,22 +426,24 @@ class MEDimage(object):
         
         # Texture Features
         if glcm_features:
-            self.radiomics.image['glcm_3D' + glcm_merge_method][self.params.radiomics.processing_name] = glcm_features
+            self.radiomics.image['texture'][
+                'glcm_3D' + glcm_merge_method][self.params.radiomics.processing_name] = glcm_features
         if glrlm_features:
-            self.radiomics.image['glrlm_3D' + glrlm_method][self.params.radiomics.processing_name] = glrlm_features
+            self.radiomics.image['texture'][
+                'glrlm_3D' + glrlm_merge_method][self.params.radiomics.processing_name] = glrlm_features
         if glszm_features:
-            self.radiomics.image['glszm_3D'][self.params.radiomics.processing_name] = glszm_features
+            self.radiomics.image['texture']['glszm_3D'][self.params.radiomics.processing_name] = glszm_features
         if gldzm_features:
-            self.radiomics.image['gldzm_3D'][self.params.radiomics.processing_name] = gldzm_features
+            self.radiomics.image['texture']['gldzm_3D'][self.params.radiomics.processing_name] = gldzm_features
         if ngtdm_features:
-            self.radiomics.image['ngtdm_3D'][self.params.radiomics.processing_name] = ngtdm_features
+            self.radiomics.image['texture']['ngtdm_3D'][self.params.radiomics.processing_name] = ngtdm_features
         if ngldm_features:
-            self.radiomics.image['ngldm_3D'][self.params.radiomics.processing_name] = ngldm_features
+            self.radiomics.image['texture']['ngldm_3D'][self.params.radiomics.processing_name] = ngldm_features
 
     def save_radiomics(
                     self, scan_file_name: List, 
                     path_save: Path, roi_type: str, 
-                    roi_type_label: str, patient_num: int) -> None:
+                    roi_type_label: str, patient_num: int = None) -> None:
         """
         Saves extracted radiomics features in a JSON file.
         """
@@ -431,25 +457,36 @@ class MEDimage(object):
                                 self.scan.volume.spatialRef.PixelExtentInWorldZ
                                 ])
         self.radiomics.update_params(params)
-        indDot = scan_file_name[patient_num].find('.')
-        ext = scan_file_name[patient_num].find('.npy')
-        nameSave = scan_file_name[patient_num][:indDot] + \
-            '(' + roi_type_label + ')' + scan_file_name[patient_num][indDot:ext]
+        if type(scan_file_name) is str:
+            index_dot = scan_file_name.find('.')
+            ext = scan_file_name.find('.npy')
+            name_save = scan_file_name[:index_dot] + \
+                        '(' + roi_type_label + ')' + \
+                        scan_file_name[index_dot : ext]
+        elif patient_num is not None:
+            index_dot = scan_file_name[patient_num].find('.')
+            ext = scan_file_name[patient_num].find('.npy')
+            name_save = scan_file_name[patient_num][:index_dot] + \
+                        '(' + roi_type_label + ')' + \
+                        scan_file_name[patient_num][index_dot : ext]
+        else:
+            raise ValueError("`patient_num` must be speicifed or `scan_file_name` msut be str")
 
-        # IMPORTANT: HERE, WE COULD ADD SOME CODE TO APPEND A NEW "radiomics"
-        # STRUCTURE TO AN EXISTING ONE WITH THE SAME NAME IN "pathSave"
-        with open(path_save / f"{nameSave}.json", "w") as fp:   
+        with open(path_save / f"{name_save}.json", "w") as fp:   
             dump(self.radiomics.to_json(), fp, indent=4, cls=NumpyEncoder)
+
 
     class Params:
         """Organizes all processing, filtering and features extraction"""
 
         def __init__(self) -> None:
-            """Organizes all processing, filtering and features extraction
+            """
+            Organizes all processing, filtering and features extraction
             """
             self.process = self.Process()
             self.filter = self.Filter()
             self.radiomics = self.Radiomics()
+
 
         class Process:
             def __init__(self, **kwargs) -> None:
@@ -458,6 +495,7 @@ class MEDimage(object):
                 """
                 self.algo = kwargs['algo'] if 'algo' in kwargs else None
                 self.box_string = kwargs['box_string'] if 'box_string' in kwargs else None
+                self.filter = kwargs['filter'] if 'filter' in kwargs else False
                 self.gl_round = kwargs['gl_round'] if 'gl_round' in kwargs else None
                 self.gray_levels = kwargs['gray_levels'] if 'gray_levels' in kwargs else None
                 self.ih = kwargs['ih'] if 'ih' in kwargs else None
@@ -485,6 +523,7 @@ class MEDimage(object):
 
                 self.algo = __params['algo'] if 'algo' in __params else self.algo
                 self.box_string = __params['box_string'] if 'box_string' in __params else self.box_string
+                self.filter = __params['filter'] if 'filter' in __params else self.filter
                 self.gl_round = __params['gl_round'] if 'gl_round' in __params else self.gl_round
                 self.gray_levels = __params['gray_levels'] if 'gray_levels' in __params else self.gray_levels
                 self.ih = __params['ih'] if 'ih' in __params else self.ih
@@ -506,7 +545,8 @@ class MEDimage(object):
 
 
         class Filter:
-            def __init__(self) -> None:
+            def __init__(self, filter_type: str = "") -> None:
+                self.filter_type = filter_type
                 self.mean = self.Mean()
                 self.log = self.Log()
                 self.gabor = self.Gabor()
@@ -515,9 +555,10 @@ class MEDimage(object):
 
 
             class Mean:
-                def __init__(self, 
-                            ndims: int = 0, name_save: str = '', 
-                            padding: str = '', size: int = 0) -> None:
+                def __init__(
+                        self, ndims: int = 0, name_save: str = '', 
+                        padding: str = '', size: int = 0
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -535,10 +576,11 @@ class MEDimage(object):
 
 
             class Log:
-                def __init__(self, 
-                            ndims: int = 0, sigma: float = 0.0, 
-                            padding: str = '', orthogonal_rot: bool = False, 
-                            name_save: str = '') -> None:
+                def __init__(
+                        self, ndims: int = 0, sigma: float = 0.0, 
+                        padding: str = '', orthogonal_rot: bool = False, 
+                        name_save: str = ''
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -558,11 +600,12 @@ class MEDimage(object):
 
 
             class Gabor:
-                def __init__(self, 
-                            sigma: float = 0.0, _lambda: float = 0.0,  
-                            gamma: float = 0.0, theta: str = '', rot_invariance: bool = False,
-                            orthogonal_rot: bool= False, name_save: str = '',
-                            padding: str = '') -> None:
+                def __init__(
+                        self, sigma: float = 0.0, _lambda: float = 0.0,  
+                        gamma: float = 0.0, theta: str = '', rot_invariance: bool = False,
+                        orthogonal_rot: bool= False, name_save: str = '',
+                        padding: str = ''
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -584,14 +627,21 @@ class MEDimage(object):
                     self.padding = params['padding']
                     self.rot_invariance = params['rot_invariance']
                     self.sigma = params['sigma']
-                    self.theta = params['theta']
+                    if type(params["theta"]) is str:
+                        if params["theta"].startswith('pi/'):
+                            self.theta = np.pi / int(params["theta"].split('/')[1])
+                        elif params["theta"].startswith('-pi/'):
+                            self.theta = -np.pi / int(params["theta"].split('/')[1])
+                    else:
+                        self.theta = float(params["theta"])
 
 
             class Laws:
-                def __init__(self, 
-                            config: List = [], energy_distance: int = 0, energy_image: bool = False, 
-                            rot_invariance: bool = False, orthogonal_rot: bool = False, name_save: str = '',
-                            padding: str = '') -> None:
+                def __init__(
+                        self, config: List = [], energy_distance: int = 0, 
+                        energy_image: bool = False, rot_invariance: bool = False, 
+                        orthogonal_rot: bool = False, name_save: str = '', padding: str = ''
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -615,10 +665,11 @@ class MEDimage(object):
 
 
             class Wavelet:
-                def __init__(self, 
-                            ndims: int = 0, name_save: str = '', 
-                            basis_function: str = '', subband: str = '', level: int = 0, 
-                            rot_invariance: bool = False, padding: str = '') -> None:
+                def __init__(
+                        self, ndims: int = 0, name_save: str = '', 
+                        basis_function: str = '', subband: str = '', level: int = 0, 
+                        rot_invariance: bool = False, padding: str = ''
+                ) -> None:
                     """
                     Updates params attributes from json file
                     """
@@ -659,40 +710,53 @@ class MEDimage(object):
 
 
             class GLCM:
-                def __init__(self, 
-                            symmetry: str = None,
-                            distance_norm: Dict = None,
-                            dist_correction: bool = False) -> None:
+                def __init__(
+                        self, 
+                        symmetry: str = None,
+                        distance_norm: Dict = None,
+                        dist_correction: bool = False,
+                        merge_method: str = "vol_merge"
+                ) -> None:
                     self.symmetry = symmetry
                     self.distance_norm = distance_norm
                     self.dist_correction = dist_correction
+                    self.merge_method = merge_method
 
 
             class GLRLM:
-                def __init__(self, 
-                            dist_correction: bool = False) -> None:
+                def __init__(
+                        self, 
+                        dist_correction: bool = False,
+                        merge_method: str = "vol_merge"
+                ) -> None:
                     self.dist_correction = dist_correction
+                    self.merge_method = merge_method
 
 
             class GLDZM:
-                def __init__(self, 
-                            symmetry: str = None,
-                            distance_norm: Dict = None,
-                            dist_correction: bool = False) -> None:
+                def __init__(
+                        self, 
+                        symmetry: str = None,
+                        distance_norm: Dict = None,
+                        dist_correction: bool = False
+                ) -> None:
                     self.symmetry = symmetry
                     self.distance_norm = distance_norm
                     self.dist_correction = dist_correction
 
 
             class NGTDM:
-                def __init__(self, 
-                            distance_norm: Dict = None) -> None:
+                def __init__(
+                        self, 
+                        distance_norm: Dict = None,
+                        dist_correction: str = None
+                ) -> None:
                     self.distance_norm = distance_norm
+                    self.dist_correction = dist_correction
 
 
             class NGLDM:
-                def __init__(self, 
-                            distance_norm: Dict = None) -> None:
+                def __init__(self, distance_norm: Dict = None) -> None:
                     self.distance_norm = distance_norm
 
 
@@ -1000,8 +1064,6 @@ class MEDimage(object):
                 self.data = np.flip(self.data, 0)
                 # flip y
                 self.data = np.flip(self.data, 1)
-                # to LPS
-                self.data = self.data.swapaxes(0, 1) #TODO
             
             def spatialRef_from_NIFTI(self, nifti_image_path):
                 """Computes the imref3d spatialRef using a NIFTI file and
@@ -1229,8 +1291,6 @@ class MEDimage(object):
                 data = np.flip(data, 0)
                 # flip y
                 data = np.flip(data, 1)
-                # to LPS
-                data = data.swapaxes(0, 1)
 
                 return data
 

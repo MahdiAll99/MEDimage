@@ -419,6 +419,7 @@ def extract_all(vol_int: np.ndarray, mask_morph: np.ndarray, gldzm: np.ndarray =
     temp = c_mat * gldzm
     u = np.sum(temp)
     temp = (np.power(c_mat-u, 2)) * gldzm
+    temp = (np.power(c_mat - u, 2)) * gldzm
     gldzm_features['Fdzm_zd_var'] = np.sum(temp)
 
     # Zone distance entropy

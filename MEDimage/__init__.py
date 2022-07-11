@@ -1,9 +1,8 @@
 import logging
 
-from . import biomarkers 
-from . import processing
-from . import filter
-from . import utils
+
+from . import biomarkers, filter, processing, utils, wrangling
+from .MEDimage import *
 
 
 stream_handler = logging.StreamHandler()
@@ -15,4 +14,4 @@ __version__ = "0.2.0"
 __copyright__ = "Copyright (C) MEDomicsLab consortium"
 __license__ = "GNU General Public License 3.0"
 __maintainer__ = "MAHDI AIT LHAJ LOUTFI"
-__email__ = "Mahdi.Ait.Lhaj.Loutfi@USherbrooke.ca"
+__email__ = "medomics.info@gmail.com"
