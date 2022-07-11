@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License
 along with this package.  If not, see <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------
 """
+from .BatchExtractor import *
 from .glcm import *
 from .gldzm import *
 from .glrlm import *
