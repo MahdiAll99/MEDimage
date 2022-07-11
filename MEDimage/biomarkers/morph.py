@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Dict
+from typing import Dict, Tuple
 
 import numpy as np
 import scipy.spatial as sc
@@ -18,7 +18,7 @@ from ..biomarkers.utils import (get_area_dens_approx, get_axis_lengths,
 
 def padding(vol: np.ndarray, 
             mask_int: np.ndarray, 
-            mask_morph: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+            mask_morph: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Padding the volume and masks.
 
     Args:
@@ -46,7 +46,7 @@ def padding(vol: np.ndarray,
 def get_variables(vol: np.ndarray, 
                   mask_int: np.ndarray, 
                   mask_morph: np.ndarray,
-                  res: np.ndarray) -> tuple[np.ndarray, 
+                  res: np.ndarray) -> Tuple[np.ndarray, 
                                             np.ndarray, 
                                             np.ndarray, 
                                             np.ndarray, 

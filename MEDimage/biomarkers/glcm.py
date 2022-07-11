@@ -616,7 +616,7 @@ def combine_matrices(glcm_list, merge_method, spatial_method) -> List:
                 # Create new cooccurrence matrix
                 use_list += [CooccurrenceMatrix(distance=glcm_list[slice_glcm_id[0]].distance,
                                                 direction=None,
-                                                direction_id=None
+                                                direction_id=None,
                                                 spatial_method=spatial_method,
                                                 img_slice=ii_slice,
                                                 merge_method=merge_method,

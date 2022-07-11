@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import numpy as np
-
 from MEDimage.MEDimage import MEDimage
 
 from ..biomarkers.utils import find_i_x, find_v_x
@@ -18,7 +17,7 @@ def init_ivh(MEDimg: MEDimage,
              vol: np.ndarray, 
              vol_int_re: np.ndarray, 
              wd: int, 
-             user_set_range: np.ndarray=None) -> tuple[np.ndarray, np.ndarray, np.integer, np.integer]:
+             user_set_range: np.ndarray=None) -> Tuple[np.ndarray, np.ndarray, np.integer, np.integer]:
     """Computes Intensity-volume Histogram Features.
 
     Note:

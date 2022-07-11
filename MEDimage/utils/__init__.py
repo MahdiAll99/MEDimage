@@ -23,7 +23,6 @@ along with this package.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from .batch_patients import *
-from .combine_slices import *
 from .data_frame_export import *
 from .find_process_names import *
 from .get_file_paths import *

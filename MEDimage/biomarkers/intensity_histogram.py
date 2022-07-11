@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-from typing import Dict
+from typing import Dict, Tuple
 
 import numpy as np
 from scipy.stats import scoreatpercentile, variation
 
 
-def init_IH(vol: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.integer, np.ndarray, np.ndarray]:
+def init_IH(vol: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.integer, np.ndarray, np.ndarray]:
     """Initialize Intensity Histogram Features.
 
     Args:
