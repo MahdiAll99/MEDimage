@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import warnings
 from dataclasses import dataclass
@@ -7,6 +8,7 @@ from typing import List, Union
 
 import nibabel as nib
 import numpy as np
+import pandas as pd
 import pydicom
 import pydicom.errors
 import pydicom.misc
@@ -99,6 +101,7 @@ class DataManager(object):
         )
         self.instances = []
         self.path_to_objects = []
+        self.summary = []
         self.__warned = False
 
     def __find_uid_cell_index(self, uid, cell) -> List: 
@@ -282,7 +285,12 @@ class DataManager(object):
         # Update the path to the created instances
         if self._path_save:
             for instance in ray.get(ids):
-                self.path_to_objects.append(str(self._path_save / self.__get_MEDimage_name_save(instance)))
+                name_save = self.__get_MEDimage_name_save(instance)
+                self.path_to_objects.append(str(self._path_save / name_save))
+                # Update processing summary:
+                roi_names = instance.scan.ROI.roi_names
+                name_save += '+' + '+'.join(roi_names.values())
+                self.summary.append(name_save)
 
         nb_job_left = n_scans - n_batch
 
@@ -310,7 +318,12 @@ class DataManager(object):
         # Update the path to the created instances
         if self._path_save:
             for instance in ray.get(ids):
-                self.path_to_objects.extend(str(self._path_save / self.__get_MEDimage_name_save(instance)))
+                name_save = self.__get_MEDimage_name_save(instance)
+                self.path_to_objects.extend(str(self._path_save / name_save))
+                # Update processing summary:
+                roi_names = instance.scan.ROI.roi_names
+                name_save += '+' + '+'.join(roi_names.values())
+                self.summary.append(name_save)
 
         # Get MEDimage instances
         if len(self.instances)>10 and not self.__warned:
@@ -471,7 +484,137 @@ class DataManager(object):
             if self.save and self._path_save:
                 save_MEDimage(MEDimg, MEDimg.type.split('scan')[0], self._path_save)
             # Update the path to the created instances
+            name_save = self.__get_MEDimage_name_save(MEDimage_instance)
             if self._path_save:
-                self.path_to_objects.append(str(self._path_save / self.__get_MEDimage_name_save(MEDimage_instance)))
+                self.path_to_objects.append(str(self._path_save / name_save))
+            # Update processing summary:
+            roi_names = MEDimage_instance.scan.ROI.roi_names
+            name_save += '+' + '+'.join(roi_names.values())
+            self.summary.append(name_save)
         print('DONE')
-        return self.instances    
+        return self.instances
+
+    def summarize(self):
+        """
+        Creates and shows a summary of processed scans by study, institution, scan type and roi type
+
+        Args:
+            None
+        Returns:
+            None
+        """
+        summary = pd.DataFrame(columns=['study', 'institution', 'scan_type', 'roi_type', 'count'])
+        # Process each scan in summary
+        for scan in self.summary:
+            if '-' not in scan.split('_')[0]:
+                logging.warning(f"The patient ID of the following file: {scan} does not respect the MEDimage "\
+                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
+                continue
+            # Initialization
+            study = scan.split('-')[0]
+            institution = scan.split('-')[1]
+            scan_type = scan[scan.find('__')+2 : scan.find('.')]
+            roi_names = scan.split('+')[1:]
+            roi_names = [roi_names] if roi_names is str else roi_names
+            # summarize by study
+            if study in summary['study'].values:
+                summary.loc[(summary['study'].dropna() == study).argmax(), 'count'] += 1
+                # update institutions data
+                if institution in summary['institution'][(summary['study'].dropna() == study)].values:
+                    summary.loc[((summary['study'].dropna() == study) & 
+                                (summary['institution'].dropna() == institution)).argmax(), 'count'] += 1
+                    # update scans type data
+                    if scan_type in summary['scan_type'][(summary['study'].dropna() == study)
+                                                        & (summary['institution'].dropna() == institution)].values:
+                        summary.loc[((summary['study'].dropna() == study) & 
+                                    (summary['institution'].dropna() == institution) &
+                                    (summary['scan_type'].dropna() == scan_type)).argmax(), 'count'] += 1
+                        # update rois type data
+                        for roi_name in roi_names:
+                            if roi_name in summary['roi_type'][(summary['study'].dropna() == study)
+                                                        & (summary['institution'].dropna() == institution)
+                                                        & (summary['roi_type'].dropna() == roi_name)].values:
+                                summary.loc[((summary['study'].dropna() == study) & 
+                                            (summary['institution'].dropna() == institution) &
+                                            (summary['scan_type'].dropna() == scan_type) &
+                                            (summary['roi_type'].dropna() == roi_name)).argmax(), 'count'] += 1
+                            else:
+                                summary = summary.append({
+                                                        'study': study, 
+                                                        'institution': institution, 
+                                                        'scan_type': scan_type, 
+                                                        'roi_type': roi_name, 
+                                                        'count' : 1
+                                                        }, ignore_index=True)
+                    else:
+                        summary = summary.append({
+                                                'study': study, 
+                                                'institution': institution, 
+                                                'scan_type': scan_type,
+                                                'roi_type': "",
+                                                'count' : 1
+                                                }, ignore_index=True)
+                        for roi_name in roi_names:
+                            summary = summary.append({
+                                                    'study': study, 
+                                                    'institution': institution, 
+                                                    'scan_type': scan_type, 
+                                                    'roi_type': roi_name, 
+                                                    'count' : 1
+                                                    }, ignore_index=True)
+                else:
+                    summary = summary.append({
+                                            'study': study, 
+                                            'institution': institution, 
+                                            'scan_type': "", 
+                                            'roi_type': "", 
+                                            'count' : 1
+                                            }, ignore_index=True)
+                    summary = summary.append({
+                                            'study': study, 
+                                            'institution': institution, 
+                                            'scan_type': scan_type, 
+                                            'roi_type': "", 
+                                            'count' : 1
+                                            }, ignore_index=True)
+                    for roi_name in roi_names:
+                        summary = summary.append({
+                                                'study': study, 
+                                                'institution': institution, 
+                                                'scan_type': scan_type, 
+                                                'roi_type': roi_name, 
+                                                'count' : 1
+                                                }, ignore_index=True)
+            # Add new study
+            else:
+                summary = summary.append({
+                                        'study': study, 
+                                        'institution': "", 
+                                        'scan_type': "", 
+                                        'roi_type': "", 
+                                        'count' : 1
+                                        }, ignore_index=True)
+                summary = summary.append({
+                                        'study': study, 
+                                        'institution': institution, 
+                                        'scan_type': "", 
+                                        'roi_type': "", 
+                                        'count' : 1
+                                        }, ignore_index=True)
+                summary = summary.append({
+                                        'study': study, 
+                                        'institution': institution, 
+                                        'scan_type': scan_type, 
+                                        'roi_type': "", 
+                                        'count' : 1
+                                        }, ignore_index=True)
+                for roi_name in roi_names:
+                    summary = summary.append({
+                                            'study': study, 
+                                            'institution': institution, 
+                                            'scan_type': scan_type, 
+                                            'roi_type': roi_name, 
+                                            'count' : 1
+                                            }, ignore_index=True)
+        self.summary = summary
+        print(summary.to_string(index=False))
