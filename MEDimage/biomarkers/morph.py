@@ -249,7 +249,7 @@ def extract_all(vol: np.ndarray,
     p = np.stack((conv_hull.points[conv_hull.simplices[:, 0], 0],
                     conv_hull.points[conv_hull.simplices[:, 1], 1],
                     conv_hull.points[conv_hull.simplices[:, 2], 2]), axis=1)
-    A, _ = minv.min_vol_ellipse(np.transpose(p), 0.01)
+    A, _ = minv(np.transpose(p), 0.01)
     # New semi-axis lengths
     _, Q, _ = np.linalg.svd(A)
     a = 1/np.sqrt(Q[2])
@@ -891,7 +891,7 @@ def v_dens_mvee(vol: np.ndarray,
     p = np.stack((conv_hull.points[conv_hull.simplices[:, 0], 0],
                     conv_hull.points[conv_hull.simplices[:, 1], 1],
                     conv_hull.points[conv_hull.simplices[:, 2], 2]), axis=1)
-    A, _ = minv.min_vol_ellipse(np.transpose(p), 0.01)
+    A, _ = minv(np.transpose(p), 0.01)
     # New semi-axis lengths
     _, Q, _ = np.linalg.svd(A)
     a = 1/np.sqrt(Q[2])
