@@ -7,7 +7,7 @@ from typing import Tuple
 
 import numpy as np
 
-from MEDimage.MEDimage import MEDimage
+from MEDimage import MEDimage
 
 from ..processing.compute_box import compute_box
 from ..utils.image_volume_obj import image_volume_obj
