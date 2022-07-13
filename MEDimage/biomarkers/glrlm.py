@@ -14,9 +14,9 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   is_list_all_none)
 
 
-def extract_all(vol: np.ndarray, 
-                dist_correction: typing.Union[bool, str]=None, 
-                glrlm_merge_method: str="vol_merge", 
+def extract_all(vol: np.ndarray,
+                dist_correction: typing.Union[bool, str]=None,
+                glrlm_merge_method: str="vol_merge",
                 method: str="new") -> Dict:
     """Computes glrlm features.
     This features refer to Grey Level Run Length Matrix family in the IBSI1 reference manual
@@ -69,15 +69,15 @@ def extract_all(vol: np.ndarray,
     return rlm_features
 
 def get_rlm_features(vol: np.ndarray, 
-                     glrlm_spatial_method: str="3d", 
-                     glrlm_merge_method: str="vol_merge", 
+                     glrlm_spatial_method: str="3d",
+                     glrlm_merge_method: str="vol_merge",
                      dist_weight_norm: typing.Union[bool, str]=None) -> Dict:
     """Extract run length matrix-based features from the intensity roi mask.
 
     Note:
         This code was adapted from the in-house radiomics software created at
         OncoRay, Dresden, Germany.
-    
+
     Args:
         vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
         glrlm_spatial_method (str, optional): spatial method which determines the way
@@ -88,8 +88,8 @@ def get_rlm_features(vol: np.ndarray,
             Note that not all combinations of spatial and merge method are valid.
         dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
             performed if this argument is either "manhattan", "euclidean", "chebyshev" or bool.
-    
-    Returns: 
+
+    Returns:
         Dict: Dict of the length matrix features.
     """
     if type(glrlm_spatial_method) is not list:
@@ -127,31 +127,31 @@ def get_rlm_features(vol: np.ndarray,
             for ii_slice in np.arange(0, img_dims[2]):
                 # Get neighbour direction and iterate over neighbours
                 nbrs = get_neighbour_direction(d=1, 
-                                               distance="chebyshev", 
-                                               centre=False, 
-                                               complete=False, 
+                                               distance="chebyshev",
+                                               centre=False,
+                                               complete=False,
                                                dim3=False)
-                
+
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                     # Add rlm matrices to list
-                    rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction], 
-                                                 direction_id=ii_direction, 
-                                                 spatial_method=ii_spatial.lower(), 
+                    rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction],
+                                                 direction_id=ii_direction,
+                                                 spatial_method=ii_spatial.lower(),
                                                  img_slice=ii_slice)]
 
         # Perform 3D analysis
         if ii_spatial.lower() == "3d":
             # Get neighbour direction and iterate over neighbours
-            nbrs = get_neighbour_direction(d=1, 
-                                           distance="chebyshev", 
-                                           centre=False, 
-                                           complete=False, 
+            nbrs = get_neighbour_direction(d=1,
+                                           distance="chebyshev",
+                                           centre=False,
+                                           complete=False,
                                            dim3=True)
 
             for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                 # Add rlm matrices to list
-                rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction], 
-                                             direction_id=ii_direction, 
+                rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction],
+                                             direction_id=ii_direction,
                                              spatial_method=ii_spatial.lower())]
 
         # Calculate run length matrices
@@ -162,8 +162,8 @@ def get_rlm_features(vol: np.ndarray,
 
         # Merge matrices according to the given method
         for merge_method in glrlm_merge_method:
-            upd_list = combine_rlm_matrices(rlm_list=rlm_list, 
-                                            merge_method=merge_method, 
+            upd_list = combine_rlm_matrices(rlm_list=rlm_list,
+                                            merge_method=merge_method,
                                             spatial_method=ii_spatial.lower())
 
             # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -192,7 +192,7 @@ def get_rlm_matrix(vol: np.ndarray,
     Note:
         This code was adapted from the in-house radiomics software created at
         OncoRay, Dresden, Germany.
-    
+
     Args:
         vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
         glrlm_spatial_method (str, optional): spatial method which determines the way
@@ -203,8 +203,8 @@ def get_rlm_matrix(vol: np.ndarray,
             Note that not all combinations of spatial and merge method are valid.
         dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
             performed if this argument is either "manhattan", "euclidean", "chebyshev" or bool.
-    
-    Returns: 
+
+    Returns:
         ndarray: Dict of the length matrix features.
     """
     if type(glrlm_spatial_method) is not list:
@@ -238,45 +238,45 @@ def get_rlm_matrix(vol: np.ndarray,
             # Iterate over slices
             for ii_slice in np.arange(0, img_dims[2]):
                 # Get neighbour direction and iterate over neighbours
-                nbrs = get_neighbour_direction(d=1, 
-                                               distance="chebyshev", 
-                                               centre=False, 
-                                               complete=False, 
+                nbrs = get_neighbour_direction(d=1,
+                                               distance="chebyshev",
+                                               centre=False,
+                                               complete=False,
                                                dim3=False)
-                
+
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                     # Add rlm matrices to list
-                    rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction], 
-                                                 direction_id=ii_direction, 
-                                                 spatial_method=ii_spatial.lower(), 
+                    rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction],
+                                                 direction_id=ii_direction,
+                                                 spatial_method=ii_spatial.lower(),
                                                  img_slice=ii_slice)]
 
         # Perform 3D analysis
         if ii_spatial.lower() == "3d":
             # Get neighbour direction and iterate over neighbours
-            nbrs = get_neighbour_direction(d=1, 
-                                           distance="chebyshev", 
-                                           centre=False, 
-                                           complete=False, 
+            nbrs = get_neighbour_direction(d=1,
+                                           distance="chebyshev",
+                                           centre=False,
+                                           complete=False,
                                            dim3=True)
 
             for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                 # Add rlm matrices to list
-                rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction], 
-                                             direction_id=ii_direction, 
+                rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction],
+                                             direction_id=ii_direction,
                                              spatial_method=ii_spatial.lower())]
 
         # Calculate run length matrices
         for rlm in rlm_list:
-            rlm.calculate_rlm_matrix(df_img=df_img, 
-                                     img_dims=img_dims, 
+            rlm.calculate_rlm_matrix(df_img=df_img,
+                                     img_dims=img_dims,
                                      dist_weight_norm=dist_weight_norm)
 
         # Merge matrices according to the given method
         for merge_method in glrlm_merge_method:
-            upd_list = combine_rlm_matrices(rlm_list=rlm_list, 
-                                            merge_method=merge_method, 
-                                            spatial_method=ii_spatial.lower())     
+            upd_list = combine_rlm_matrices(rlm_list=rlm_list,
+                                            merge_method=merge_method,
+                                            spatial_method=ii_spatial.lower())  
 
     return upd_list
 
@@ -286,17 +286,17 @@ def combine_rlm_matrices(rlm_list: list, merge_method: str, spatial_method: str)
     Note:
         This code was adapted from the in-house radiomics software created at
         OncoRay, Dresden, Germany.
-    
+
     Args:
         rlm_list (List): List of RunLengthMatrix objects.
-        merge_method (str): Merging method which determines how features are calculated. 
+        merge_method (str): Merging method which determines how features are calculated.
             One of "average", "slice_merge", "dir_merge" and "vol_merge". Note that not all
             combinations of spatial and merge method are valid.
-        spatial_method (str): spatial method which determines the way co-occurrence 
+        spatial_method (str): spatial method which determines the way co-occurrence
             matrices are calculated and how features are determined. One of "2d", "2.5d"
             or "3d".
-    
-    Returns: 
+
+    Returns:
         List[CooccurrenceMatrix]: list of one or more merged RunLengthMatrix objects.
     """
     # Initiate empty list
@@ -331,12 +331,12 @@ def combine_rlm_matrices(rlm_list: list, merge_method: str, spatial_method: str)
             # Check if any matrix has been created for the currently selected slice
             if is_list_all_none(sel_matrix_list):
                 # No matrix was created
-                use_list += [RunLengthMatrix(direction=None, 
-                                             direction_id=None, 
-                                             spatial_method=spatial_method, 
+                use_list += [RunLengthMatrix(direction=None,
+                                             direction_id=None,
+                                             spatial_method=spatial_method,
                                              img_slice=ii_slice,
-                                             merge_method=merge_method, 
-                                             matrix=None, 
+                                             merge_method=merge_method,
+                                             matrix=None,
                                              n_v=0.0)]
             else:
                 # Merge matrices within the slice
@@ -349,12 +349,12 @@ def combine_rlm_matrices(rlm_list: list, merge_method: str, spatial_method: str)
                     merge_n_v += rlm_list[rlm_id].n_v
 
                 # Create new run length matrix
-                use_list += [RunLengthMatrix(direction=None, 
-                                             direction_id=None, 
-                                             spatial_method=spatial_method, 
+                use_list += [RunLengthMatrix(direction=None,
+                                             direction_id=None,
+                                             spatial_method=spatial_method,
                                              img_slice=ii_slice,
-                                             merge_method=merge_method, 
-                                             matrix=merge_rlm, 
+                                             merge_method=merge_method,
+                                             matrix=merge_rlm,
                                              n_v=merge_n_v)]
 
     # Merge rlms within each slice
@@ -376,12 +376,12 @@ def combine_rlm_matrices(rlm_list: list, merge_method: str, spatial_method: str)
             # Check if any matrix has been created for the currently selected direction
             if is_list_all_none(sel_matrix_list):
                 # No matrix was created
-                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction, 
-                                             direction_id=ii_dir, 
-                                             spatial_method=spatial_method, 
+                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction,
+                                             direction_id=ii_dir,
+                                             spatial_method=spatial_method,
                                              img_slice=None,
-                                             merge_method=merge_method, 
-                                             matrix=None, 
+                                             merge_method=merge_method,
+                                             matrix=None,
                                              n_v=0.0)]
             else:
                 # Merge matrices with the same direction
@@ -394,12 +394,12 @@ def combine_rlm_matrices(rlm_list: list, merge_method: str, spatial_method: str)
                     merge_n_v += rlm_list[rlm_id].n_v
 
                 # Create new run length matrix
-                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction, 
-                                             direction_id=ii_dir, 
-                                             spatial_method=spatial_method, 
+                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction,
+                                             direction_id=ii_dir,
+                                             spatial_method=spatial_method,
                                              img_slice=None,
-                                             merge_method=merge_method, 
-                                             matrix=merge_rlm, 
+                                             merge_method=merge_method,
+                                             matrix=merge_rlm,
                                              n_v=merge_n_v)]
 
     # Merge all rlms into a single representation
@@ -412,12 +412,12 @@ def combine_rlm_matrices(rlm_list: list, merge_method: str, spatial_method: str)
         # Check if any matrix has been created
         if is_list_all_none(sel_matrix_list):
             # No matrix was created
-            use_list += [RunLengthMatrix(direction=None, 
-                                         direction_id=None, 
-                                         spatial_method=spatial_method, 
+            use_list += [RunLengthMatrix(direction=None,
+                                         direction_id=None,
+                                         spatial_method=spatial_method,
                                          img_slice=None,
-                                         merge_method=merge_method, 
-                                         matrix=None, 
+                                         merge_method=merge_method,
+                                         matrix=None,
                                          n_v=0.0)]
         else:
             # Merge run length matrices
@@ -430,12 +430,12 @@ def combine_rlm_matrices(rlm_list: list, merge_method: str, spatial_method: str)
                 merge_n_v += rlm_list[rlm_id].n_v
 
             # Create new run length matrix
-            use_list += [RunLengthMatrix(direction=None, 
-                                         direction_id=None, 
-                                         spatial_method=spatial_method, 
+            use_list += [RunLengthMatrix(direction=None,
+                                         direction_id=None,
+                                         spatial_method=spatial_method,
                                          img_slice=None,
-                                         merge_method=merge_method, 
-                                         matrix=merge_rlm, 
+                                         merge_method=merge_method,
+                                         matrix=merge_rlm,
                                          n_v=merge_n_v)]
 
     else:
@@ -448,43 +448,43 @@ class RunLengthMatrix:
     """Class that contains a single run length matrix.
 
     Note :
-        Code was adapted from the in-house radiomics software created at 
+        Code was adapted from the in-house radiomics software created at
         OncoRay, Dresden, Germany.
 
     Args:
         direction (ndarray): Direction along which neighbouring voxels are found.
         direction_id (int): Direction index to identify unique direction vectors.
-        spatial_method (str): Spatial method used to calculate the co-occurrence 
+        spatial_method (str): Spatial method used to calculate the co-occurrence
             matrix: "2d", "2.5d" or "3d".
-        img_slice (ndarray, optional): Corresponding slice index (only if the 
+        img_slice (ndarray, optional): Corresponding slice index (only if the
             co-occurrence matrix corresponds to a 2d image slice).
-        merge_method (str, optional): Method for merging the co-occurrence matrix 
+        merge_method (str, optional): Method for merging the co-occurrence matrix
             with other co-occurrence matrices.
-        matrix (pandas.DataFrame, optional): The actual co-occurrence matrix in 
+        matrix (pandas.DataFrame, optional): The actual co-occurrence matrix in
             sparse format (row, column, count).
         n_v (int, optional): The number of voxels in the volume.
 
     Attributes:
         direction (ndarray): Direction along which neighbouring voxels are found.
         direction_id (int): Direction index to identify unique direction vectors.
-        spatial_method (str): Spatial method used to calculate the co-occurrence 
+        spatial_method (str): Spatial method used to calculate the co-occurrence
             matrix: "2d", "2.5d" or "3d".
-        img_slice (ndarray): Corresponding slice index (only if the co-occurrence 
+        img_slice (ndarray): Corresponding slice index (only if the co-occurrence
             matrix corresponds to a 2d image slice).
-        merge_method (str): Method for merging the co-occurrence matrix with other 
+        merge_method (str): Method for merging the co-occurrence matrix with other
             co-occurrence matrices.
-        matrix (pandas.DataFrame): The actual co-occurrence matrix in sparse format 
+        matrix (pandas.DataFrame): The actual co-occurrence matrix in sparse format
             (row, column, count).
         n_v (int): The number of voxels in the volume.
     """
 
-    def __init__(self, 
-                 direction: np.ndarray, 
-                 direction_id: int, 
-                 spatial_method: str, 
-                 img_slice: np.ndarray=None, 
-                 merge_method: str=None, 
-                 matrix: pd.DataFrame=None, 
+    def __init__(self,
+                 direction: np.ndarray,
+                 direction_id: int,
+                 spatial_method: str,
+                 img_slice: np.ndarray=None,
+                 merge_method: str=None,
+                 matrix: pd.DataFrame=None,
                  n_v: int=None) -> None:
         """
         Initialising function for a new run length matrix
@@ -514,25 +514,24 @@ class RunLengthMatrix:
         self.matrix = None
 
     def calculate_rlm_matrix(self, df_img: pd.DataFrame, img_dims: np.ndarray, dist_weight_norm: str) -> None:
-        """Function that calculates a run length matrix for the settings provided 
+        """Function that calculates a run length matrix for the settings provided
         during initialisation and the input image.
 
         Args:
-            df_img (pandas.DataFrame): Data table containing image intensities, x, y and z coordinates, 
+            df_img (pandas.DataFrame): Data table containing image intensities, x, y and z coordinates,
                 and mask labels corresponding to voxels in the volume.
             img_dims (ndarray, List[float]): Dimensions of the image volume.
-            dist_weight_norm (str): Norm for distance weighting. Weighting is only 
+            dist_weight_norm (str): Norm for distance weighting. Weighting is only
                 performed if this parameter is either "manhattan", "euclidean" or "chebyshev".
 
         Returns:
             None. Assigns the created image table (rlm matrix) to the `matrix` attribute.
         
         Raises:
-            ValueError: 
+            ValueError:
                 If `self.spatial_method` is not "2d", "2.5d" or "3d".
                 If `dist_weight_norm` is not "manhattan", "euclidean" or "chebyshev".
         """
-
         # Check if the df_img actually exists
         if df_img is None:
             self._set_empty()
@@ -629,9 +628,24 @@ class RunLengthMatrix:
             pandas.DataFrame: Data frame with values for each feature.
         """
         # Create feature table
-        feat_names = ["Frlm_sre", "Frlm_lre", "Frlm_lgre", "Frlm_hgre", "Frlm_srlge", "Frlm_srhge", "Frlm_lrlge",
-                      "Frlm_lrhge", "Frlm_glnu", "Frlm_glnu_norm", "Frlm_rlnu", "Frlm_rlnu_norm", "Frlm_r_perc",
-                      "Frlm_gl_var", "Frlm_rl_var", "Frlm_rl_entr"]
+        feat_names = [
+            "Frlm_sre",
+            "Frlm_lre",
+            "Frlm_lgre",
+            "Frlm_hgre",
+            "Frlm_srlge",
+            "Frlm_srhge",
+            "Frlm_lrlge",
+            "Frlm_lrhge",
+            "Frlm_glnu",
+            "Frlm_glnu_norm",
+            "Frlm_rlnu",
+            "Frlm_rlnu_norm",
+            "Frlm_r_perc",
+            "Frlm_gl_var",
+            "Frlm_rl_var",
+            "Frlm_rl_entr"
+            ]
         df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
         df_feat.columns = feat_names
 
@@ -747,40 +761,56 @@ class RunLengthMatrix:
         n_v = self.n_v * 1.0  # Number of voxels
 
         # Calculation glrlm feature
+        # Short runs emphasis
         if name == "sre":
-            df_feat.loc["value", "sre"] = np.sum(df_rj.rj / df_rj.j ** 2.0) / n_s  # Short runs emphasis
+            df_feat.loc["value", "sre"] = np.sum(df_rj.rj / df_rj.j ** 2.0) / n_s
+        # Long runs emphasis
         elif name == "lre":
-            df_feat.loc["value", "lre"] = np.sum(df_rj.rj * df_rj.j ** 2.0) / n_s  # Long runs emphasis
+            df_feat.loc["value", "lre"] = np.sum(df_rj.rj * df_rj.j ** 2.0) / n_s
+        # Grey level non-uniformity
         elif name == "glnu":
-            df_feat.loc["value", "glnu"] = np.sum(df_ri.ri ** 2.0) / n_s  # Grey level non-uniformity
+            df_feat.loc["value", "glnu"] = np.sum(df_ri.ri ** 2.0) / n_s
+        # Grey level non-uniformity, normalised
         elif name == "glnu_norm":
-            df_feat.loc["value", "glnu_norm"] = np.sum(df_ri.ri ** 2.0) / n_s ** 2.0  # Grey level non-uniformity, normalised
+            df_feat.loc["value", "glnu_norm"] = np.sum(df_ri.ri ** 2.0) / n_s ** 2.0
+        # Run length non-uniformity
         elif name == "rlnu":
-            df_feat.loc["value", "rlnu"] = np.sum(df_rj.rj ** 2.0) / n_s  # Run length non-uniformity
+            df_feat.loc["value", "rlnu"] = np.sum(df_rj.rj ** 2.0) / n_s
+        # Run length non-uniformity, normalised
         elif name == "rlnu_norm":
-            df_feat.loc["value", "rlnu_norm"] = np.sum(df_rj.rj ** 2.0) / n_s ** 2.0  # Run length non-uniformity, normalised
+            df_feat.loc["value", "rlnu_norm"] = np.sum(df_rj.rj ** 2.0) / n_s ** 2.0
+        # Run percentage
         elif name == "r_perc":
-            df_feat.loc["value", "r_perc"] = n_s / n_v  # Run percentage
+            df_feat.loc["value", "r_perc"] = n_s / n_v
+        # Low grey level run emphasis
         elif name == "lgre":
-            df_feat.loc["value", "lgre"] = np.sum(df_ri.ri / df_ri.i ** 2.0) / n_s  # Low grey level run emphasis
+            df_feat.loc["value", "lgre"] = np.sum(df_ri.ri / df_ri.i ** 2.0) / n_s
+        # High grey level run emphasis
         elif name == "hgre":
-            df_feat.loc["value", "hgre"] = np.sum(df_ri.ri * df_ri.i ** 2.0) / n_s  # High grey level run emphasis
+            df_feat.loc["value", "hgre"] = np.sum(df_ri.ri * df_ri.i ** 2.0) / n_s
+        # Short run low grey level emphasis
         elif name == "srlge":
-            df_feat.loc["value", "srlge"] = np.sum(df_rij.rij / (df_rij.i * df_rij.j) ** 2.0) / n_s  # Short run low grey level emphasis
+            df_feat.loc["value", "srlge"] = np.sum(df_rij.rij / (df_rij.i * df_rij.j) ** 2.0) / n_s
+        # Short run high grey level emphasis
         elif name == "srhge":
-            df_feat.loc["value", "srhge"] = np.sum(df_rij.rij * df_rij.i ** 2.0 / df_rij.j ** 2.0) / n_s  # Short run high grey level emphasis
+            df_feat.loc["value", "srhge"] = np.sum(df_rij.rij * df_rij.i ** 2.0 / df_rij.j ** 2.0) / n_s
+        # Long run low grey level emphasis
         elif name == "lrlge":
-            df_feat.loc["value", "lrlge"] = np.sum(df_rij.rij * df_rij.j ** 2.0 / df_rij.i ** 2.0) / n_s  # Long run low grey level emphasis
+            df_feat.loc["value", "lrlge"] = np.sum(df_rij.rij * df_rij.j ** 2.0 / df_rij.i ** 2.0) / n_s
+        # Long run high grey level emphasis
         elif name == "lrhge":
-            df_feat.loc["value", "lrhge"] = np.sum(df_rij.rij * df_rij.i ** 2.0 * df_rij.j ** 2.0) / n_s  # Long run high grey level emphasis
+            df_feat.loc["value", "lrhge"] = np.sum(df_rij.rij * df_rij.i ** 2.0 * df_rij.j ** 2.0) / n_s
+        # Grey level variance
         elif name == "gl_var":
             mu = np.sum(df_rij.rij * df_rij.i) / n_s
-            df_feat.loc["value", "gl_var"] = np.sum((df_rij.i - mu) ** 2.0 * df_rij.rij) / n_s  # Grey level variance
+            df_feat.loc["value", "gl_var"] = np.sum((df_rij.i - mu) ** 2.0 * df_rij.rij) / n_s 
+        # Run length variance
         elif name == "rl_var":
             mu = np.sum(df_rij.rij * df_rij.j) / n_s
-            df_feat.loc["value", "rl_var"] = np.sum((df_rij.j - mu) ** 2.0 * df_rij.rij) / n_s  # Run length variance
+            df_feat.loc["value", "rl_var"] = np.sum((df_rij.j - mu) ** 2.0 * df_rij.rij) / n_s
+        # Zone size entropy
         elif name == "rl_entr":
-            df_feat.loc["value", "rl_entr"] = - np.sum(df_rij.rij * np.log2(df_rij.rij / n_s)) / n_s  # Zone size entropy
+            df_feat.loc["value", "rl_entr"] = - np.sum(df_rij.rij * np.log2(df_rij.rij / n_s)) / n_s
         else:
             print("ERROR: Wrong arg. Use ones from list : (sre, lre, glnu, glnu_normn, rlnu \
                   rlnu_norm, r_perc, lgre, hgre, srlge, srhge, lrlge, lrhge, gl_var, rl_var, rl_entr)")
@@ -788,8 +818,7 @@ class RunLengthMatrix:
         return df_feat
 
     def _parse_feature_names(self) -> str:
-        """"
-        Adds additional settings-related identifiers to each feature.
+        """"Adds additional settings-related identifiers to each feature.
         Not used currently, as the use of different settings for the
         run length matrix is not supported.
         """
@@ -863,28 +892,28 @@ def get_rlm_features_deprecated(vol: np.ndarray, dist_correction: typing.Union[b
 
     n_s = np.sum(glrlm)
     glrlm = glrlm/n_s  # Normalization of glrlm
-    sz = np.shape(glrlm)  # Size of glrlm
-    c_vect = range(1, sz[1]+1)  # Row vectors
-    r_vect = range(1, sz[0]+1)  # Column vectors
+    s_z = np.shape(glrlm)  # Size of glrlm
+    c_vect = range(1, s_z[1]+1)  # Row vectors
+    r_vect = range(1, s_z[0]+1)  # Column vectors
     # Column and row indicators for each entry of the glrlm
     c_mat, r_mat = np.meshgrid(c_vect, r_vect)
-    pg = np.transpose(np.sum(glrlm, 1))  # Gray-Level Run-Number Vector
-    pr = np.sum(glrlm, 0)  # Run-Length Run-Number Vector
+    p_g = np.transpose(np.sum(glrlm, 1))  # Gray-Level Run-Number Vector
+    p_r = np.sum(glrlm, 0)  # Run-Length Run-Number Vector
 
     ##############################################
     ######          glrlm features          ######
     ##############################################
     # Short runs emphasis
-    extract_all['Frlm_sre'] = (np.matmul(pr, np.transpose(np.power(1.0/np.array(c_vect), 2))))
+    extract_all['Frlm_sre'] = (np.matmul(p_r, np.transpose(np.power(1.0/np.array(c_vect), 2))))
 
     # Long runs emphasis
-    extract_all['Frlm_lre'] = np.matmul(pr, np.transpose(np.power(np.array(c_vect), 2)))
+    extract_all['Frlm_lre'] = np.matmul(p_r, np.transpose(np.power(np.array(c_vect), 2)))
 
     # Low grey level run emphasis
-    extract_all['Frlm_lgre'] = np.matmul(pg, np.transpose(np.power(1.0/np.array(r_vect), 2)))
+    extract_all['Frlm_lgre'] = np.matmul(p_g, np.transpose(np.power(1.0/np.array(r_vect), 2)))
 
     # High grey level run emphasis
-    extract_all['Frlm_hgre'] = np.matmul(pg, np.transpose(np.power(np.array(r_vect), 2)))
+    extract_all['Frlm_hgre'] = np.matmul(p_g, np.transpose(np.power(np.array(r_vect), 2)))
 
     # Short run low grey level emphasis
     extract_all['Frlm_srlge'] = np.sum(np.sum(glrlm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
@@ -899,21 +928,21 @@ def get_rlm_features_deprecated(vol: np.ndarray, dist_correction: typing.Union[b
     extract_all['Frlm_lrhge'] = np.sum(np.sum(glrlm*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
 
     # Gray level non-uniformity
-    temp = np.sum(np.power(pg, 2))
+    temp = np.sum(np.power(p_g, 2))
     extract_all['Frlm_glnu'] = temp * n_s
 
     # Gray level non-uniformity normalised
     extract_all['Frlm_glnu_norm'] = temp
 
     # Run length non-uniformity
-    temp = np.sum(np.power(pr, 2))
+    temp = np.sum(np.power(p_r, 2))
     extract_all['Frlm_rlnu'] = temp * n_s
 
     # Run length non-uniformity normalised
     extract_all['Frlm_rlnu_norm'] = temp
 
     # Run percentage
-    extract_all['Frlm_r_perc'] = np.sum(pg)/(np.matmul(pr, np.transpose(c_vect)))
+    extract_all['Frlm_r_perc'] = np.sum(p_g)/(np.matmul(p_r, np.transpose(c_vect)))
 
     # Grey level variance
     temp = r_mat * glrlm
@@ -941,7 +970,7 @@ def sre(upd_list: np.ndarray) -> float:
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
- 
+
     Returns:
         float: Dict of the Short runs emphasis feature.
     """
@@ -1261,7 +1290,7 @@ def lrlge(upd_list: np.ndarray) -> float:
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
 
-    Returns: 
+    Returns:
         float: Dict of the Long run low grey level emphasis feature.
     """
     # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
@@ -1284,7 +1313,7 @@ def lrlge(upd_list: np.ndarray) -> float:
 
 def lrhge(upd_list: np.ndarray) -> float:
     """Compute Long run high grey level emphasisfeature from the run length matrices list.
-    This feature refers to "Frlm_lrhge" (id = 3KUM) in the IBSI1 reference manual 
+    This feature refers to "Frlm_lrhge" (id = 3KUM) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1400,10 +1429,10 @@ def rl_entr(upd_list: np.ndarray) -> float:
 
 def merge_feature(feat_list: np.ndarray) -> float:
     """Merge feature tables into a single dictionary.
-    
+
     Args:
         feat_list (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
- 
+
     Returns:
         float: Dict of the length matrix feature.
     """
