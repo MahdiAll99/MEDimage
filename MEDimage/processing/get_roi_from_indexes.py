@@ -7,14 +7,19 @@ from typing import Tuple
 
 import numpy as np
 
+from MEDimage.MEDimage import MEDimage
+
 from ..processing.compute_box import compute_box
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.parse_contour_string import parse_contour_string
 from .get_sep_roi_names import get_sep_roi_names
 
-_logger = logging.getLogger(__name__)
 
-def get_roi_from_indexes(MEDimg, name_roi, box_string) -> Tuple[image_volume_obj, image_volume_obj]:
+def get_roi_from_indexes(
+        MEDimg: MEDimage, 
+        name_roi: str, 
+        box_string: str
+    ) -> Tuple[image_volume_obj, image_volume_obj]:
     """Extracts the ROI box (+ smallest box containing the region of interest)
     and associated mask from the indexes saved in 'MEDimage' file.
     
@@ -126,14 +131,11 @@ def get_roi_from_indexes(MEDimg, name_roi, box_string) -> Tuple[image_volume_obj
         roi_obj = image_volume_obj(data=roi, spatial_ref=new_spatial_ref)
 
     except Exception as e:
-        message = "\n PROBLEM WITH PRE-PROCESSING OF FEATURES IN get_roi_from_indexes(): " \
-                "\n {}".format(e)
-        _logger.error(message)
+        message = f"\n PROBLEM WITH PRE-PROCESSING OF FEATURES IN get_roi_from_indexes():\n {e}"
+        logging.error(message)
         print(message)
 
-        MEDimg.Params['radiomics']['image'].update(
-            {('scale'+(str(MEDimg.Params['scaleNonText'][0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
-        
-        MEDimg.Continue=True
+        MEDimg.radiomics.image.update(
+            {('scale'+(str(MEDimg.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
 
     return vol_obj, roi_obj
