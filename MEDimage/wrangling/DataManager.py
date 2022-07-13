@@ -22,16 +22,12 @@ from .process_dicom_scan_files import process_dicom_scan_files as pdsf
 
 
 class DataManager(object):
-    """
-    Manages all the raw data (DICOM, NIfTI) and creates MEDimage class instances from it.
-    """
+    """Reads all the raw data (DICOM, NIfTI) content and organizes it in instances of the MEDimage class."""
 
 
     @dataclass
     class DICOM(object):
-        """
-        DICOM data management class that will organize data during the conversion to MEDimage class process
-        """
+        """DICOM data management class that will organize data during the conversion to MEDimage class process"""
         stack_series_rs: List
         stack_path_rs: List
         stack_frame_rs: List
@@ -44,9 +40,7 @@ class DataManager(object):
 
     @dataclass
     class NIfTI(object):
-        """
-        NIfTI data management class that will organize data during the conversion to MEDimage class process
-        """
+        """NIfTI data management class that will organize data during the conversion to MEDimage class process"""
         stack_path_images: List
         stack_path_roi: List
         stack_path_all: List
@@ -60,8 +54,7 @@ class DataManager(object):
             keep_instances: bool = True,
             n_batch: int = 2
     ) -> None:
-        """
-        Constructor of the class DataManager.
+        """Constructor of the class DataManager.
 
         Args:
             path_to_dicoms (Path, optional): Path specifying the full path to the starting directory
@@ -104,13 +97,12 @@ class DataManager(object):
         self.summary = []
         self.__warned = False
 
-    def __find_uid_cell_index(self, uid, cell) -> List: 
-        """
-        Finds the cell with the same `uid`. If not is present in `cell`, creates a new position 
+    def __find_uid_cell_index(self, uid: Union[str, List[str]], cell: List[str]) -> List: 
+        """Finds the cell with the same `uid`. If not is present in `cell`, creates a new position 
         in the `cell` for the new `uid`.
 
         Args:
-            uid (str):  Unique identifier of the Series to find.
+            uid (Union[str, List[str]]):  Unique identifier of the Series to find.
             cell (List[str]): List of Unique identifiers of the Series.
 
         Returns:
@@ -118,9 +110,8 @@ class DataManager(object):
         """
         return [len(cell)] if uid not in cell else[i for i, e in enumerate(cell) if e == uid]
 
-    def __get_list_of_files(self, dir_name) -> List:
-        """
-        Gets all files in the given directory
+    def __get_list_of_files(self, dir_name: str) -> List:
+        """Gets all files in the given directory
 
         Args:
             dir_name (str): directory name
@@ -140,8 +131,7 @@ class DataManager(object):
         return all_files
 
     def __get_MEDimage_name_save(self, MEDimg: MEDimage) -> str:
-        """
-        Returns the name that will be used to save the MEDimage instance, based on the values of the attributes.
+        """Returns the name that will be used to save the MEDimage instance, based on the values of the attributes.
 
         Args:
             MEDimg(MEDimage): A MEDimage class instance.
@@ -164,8 +154,7 @@ class DataManager(object):
         return name_complete
 
     def __associate_rt_stuct(self) -> None:
-        """
-        Associates the imaging volumes to their mask using UIDs
+        """Associates the imaging volumes to their mask using UIDs
 
         Returns:
             None
@@ -189,8 +178,7 @@ class DataManager(object):
         print('DONE')
 
     def __read_all_dicoms(self) -> None:
-        """
-        Reads all the dicom files in the all the paths of the attribute `_path_to_dicoms`
+        """Reads all the dicom files in the all the paths of the attribute `_path_to_dicoms`
 
         Returns:
             None
@@ -252,8 +240,7 @@ class DataManager(object):
         self.__associate_rt_stuct()
 
     def process_all_dicoms(self) -> List[MEDimage]:
-        """
-        This function reads the DICOM content of all the sub-folder tree of a starting directory defined by 
+        """This function reads the DICOM content of all the sub-folder tree of a starting directory defined by 
         `path_to_dicoms`. It then organizes the data (files throughout the starting directory are associated by
         'SeriesInstanceUID') in the MEDimage class including the region of  interest (ROI) defined by an 
         associated RTstruct. All MEDimage classes hereby created are saved in `path_save` with a name
@@ -337,8 +324,7 @@ class DataManager(object):
         return self.instances
 
     def __read_all_niftis(self) -> None:
-        """
-        Reads all files in the initial path and organizes other path to images and roi
+        """Reads all files in the initial path and organizes other path to images and roi
         in the class attrbiutes.
 
         Note:
@@ -369,8 +355,7 @@ class DataManager(object):
         print('DONE')
 
     def __associate_roi_to_image(self, image_file: Union[Path, str], MEDimg: MEDimage) -> MEDimage:
-        """
-        Extracts all ROI data from the given path for the given patient ID and updates all class attributes with 
+        """Extracts all ROI data from the given path for the given patient ID and updates all class attributes with 
         the new extracted data.
 
         Args:
@@ -398,8 +383,7 @@ class DataManager(object):
         return MEDimg
 
     def __associate_spatialRef(self, nifti_file: Union[Path, str], MEDimg: MEDimage) -> MEDimage:
-        """
-        Computes the imref3d spatialRef using a NIFTI file and updates the spatialRef attribute.
+        """Computes the imref3d spatialRef using a NIFTI file and updates the spatialRef attribute.
 
         Args:
             nifti_file(Union[Path, str]): Path to the nifti data.
@@ -446,9 +430,14 @@ class DataManager(object):
 
         return MEDimg
 
-    def process_all_niftis(self) -> List[MEDimage]:
+    def process_all(self) -> None:
+        """Processes both DICOM & NIfTI content to create MEDimage classes
         """
-        This function reads the NIfTI content of all the sub-folder tree of a starting directory defined by 
+        self.process_all_dicoms()
+        self.process_all_niftis()
+
+    def process_all_niftis(self) -> List[MEDimage]:
+        """This function reads the NIfTI content of all the sub-folder tree of a starting directory defined by
         `path_to_niftis`. It then organizes the data in the MEDimage class including the region of  interest (ROI)
         defined by an associated mask file. All MEDimage classes hereby created are saved in `path_save` with a name
         varying with every scan.
@@ -495,8 +484,7 @@ class DataManager(object):
         return self.instances
 
     def summarize(self):
-        """
-        Creates and shows a summary of processed scans by study, institution, scan type and roi type
+        """Creates and shows a summary of processed scans by study, institution, scan type and roi type
 
         Args:
             None
