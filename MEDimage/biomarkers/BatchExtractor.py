@@ -83,6 +83,18 @@ class BatchExtractor(object):
         ) -> str:
         """
         Computes all radiomics features (Texture & Non-texture) for one patient/scan
+
+        Args:
+            name_patient(str): scan or patient full name. It has to respect the MEDimage naming convention:
+                PatientID__ImagingScanName.ImagingModality.npy
+            roi_name(str): name of the ROI that will  be used in computation.
+            im_params(Dict): Dict of parameters/settings that will be used in the processing and computation.
+            roi_type(str): Type of ROI used in the processing and computation (for identification purposes)
+            roi_type_label(str): Label of the ROI used, to make it identifiable from other ROIs.
+            log_file(Union[Path, str]): Path to the logging file.
+
+        Returns:
+            Union[Path, str]: Path to the updated logging file.
         """
         # Setting up logging settings
         logging.basicConfig(filename=log_file, level=logging.DEBUG)
@@ -384,20 +396,26 @@ class BatchExtractor(object):
                 
                 logging.info(f"TOTAL TIME:{time() - t_start} seconds\n\n")
 
-        return  log_file
+        return log_file
 
     @ray.remote
     def __compute_radiomics_tables(
             self,
             table_tags: List,
             name_save: str,
-            log_file: str
+            log_file: Union[str, Path]
         ) -> None:
         """
-        Creates radiomic tables off the saved dicts of the computed features and save it as CSV files
+        Creates radiomic tables off of the saved dicts with the computed features and save it as CSV files
 
         Args:
-            path_features:
+            table_tags(List): Lists of information about scans, roi type and imaging space (or filter space)
+            name_save(str): Added at the end to the default name of each table to specify the processing 
+            used in extraction.
+            log_file(Union[str, Path]): Path to logging file.
+        
+        Returns:
+            None.
         """
         n_tables = len(table_tags)
 
@@ -537,6 +555,14 @@ class BatchExtractor(object):
 
     def __batch_all_tables(self, name_save: str):
         """
+        Create batches of tables of the extracted features for every imaging scan type (CT, PET...).
+
+        Args: 
+            name_save(str): Added at the end to the default name of each table to specify the processing 
+            used in extraction.
+
+        Returns:
+            None
         """
         # GETTING COMBINATIONS OF scan, roi_type and imageSpaces
         n_roi_types = len(self.roi_type_labels)
@@ -634,8 +660,14 @@ class BatchExtractor(object):
         print('DONE')
 
     def compute_radiomics(self, create_tables: bool = True) -> None:
-        """
-        Compute Radiomics_batchAllPatients.
+        """Compute all radiomic features for all scans in the CSV file (set in initialization) and organize it
+        in JSON and CSV files
+
+        Args:
+            create_tables(bool) : True to create CSV tables for the extracted features and not save it in JSON only.
+        
+        Returns:
+            None.
         """
         # Initialize ray
         ray.init(local_mode=True, include_dashboard=True)
