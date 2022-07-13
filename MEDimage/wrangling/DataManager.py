@@ -95,10 +95,12 @@ class DataManager(object):
         self.instances = []
         self.path_to_objects = []
         self.summary = []
+        self.studies = []
+        self.institutions = []
         self.__warned = False
 
     def __find_uid_cell_index(self, uid: Union[str, List[str]], cell: List[str]) -> List: 
-        """Finds the cell with the same `uid`. If not is present in `cell`, creates a new position 
+        """Finds the cell with the same `uid`. If not is present in `cell`, creates a new position
         in the `cell` for the new `uid`.
 
         Args:
@@ -160,9 +162,9 @@ class DataManager(object):
             None
         """
         print('--> Associating all RT objects to imaging volumes')
-        nRS = len(self.dicom.stack_path_rs)
-        if nRS:
-            for i in trange(0, nRS):
+        n_rs = len(self.dicom.stack_path_rs)
+        if n_rs:
+            for i in trange(0, n_rs):
                 try: # PUT ALL THE DICOM PATHS WITH THE SAME UID IN THE SAME PATH LIST
                     ind_series_id = self.__find_uid_cell_index(
                                                         self.dicom.stack_series_rs[i], 
@@ -200,7 +202,7 @@ class DataManager(object):
             directory_name = str(stack_folder_temp).replace("'", '').replace('[', '').replace(']', '')
             stack_folder = self.__get_list_of_files(directory_name)
 
-        # READ ALL DICOM FILES AND UPDATE ATTRBIUTES FOR FURTHER PROCESSING
+        # READ ALL DICOM FILES AND UPDATE ATTRIBUTES FOR FURTHER PROCESSING
         for file in tqdm(stack_folder):
             if pydicom.misc.is_dicom(file):
                 try:
@@ -236,13 +238,13 @@ class DataManager(object):
                     continue
         print('DONE')
 
-        # ASSIOCIATE ALL VOLUMES TO THEIR MASK
+        # ASSOCIATE ALL VOLUMES TO THEIR MASK
         self.__associate_rt_stuct()
 
     def process_all_dicoms(self) -> List[MEDimage]:
-        """This function reads the DICOM content of all the sub-folder tree of a starting directory defined by 
+        """This function reads the DICOM content of all the sub-folder tree of a starting directory defined by
         `path_to_dicoms`. It then organizes the data (files throughout the starting directory are associated by
-        'SeriesInstanceUID') in the MEDimage class including the region of  interest (ROI) defined by an 
+        'SeriesInstanceUID') in the MEDimage class including the region of  interest (ROI) defined by an
         associated RTstruct. All MEDimage classes hereby created are saved in `path_save` with a name
         varying with every scan.
 
@@ -311,6 +313,12 @@ class DataManager(object):
                 roi_names = instance.scan.ROI.roi_names
                 name_save += '+' + '+'.join(roi_names.values())
                 self.summary.append(name_save)
+                # save new studies
+                if name_save.split('_')[0].count('-') >= 2:
+                    if name_save.split('-')[0] not in self.studies:
+                        self.studies.append(name_save.split('-')[0])  # add new study
+                    if name_save.split('-')[1] not in self.institutions:
+                        self.institutions.append(name_save.split('-')[1])  # add new study
 
         # Get MEDimage instances
         if len(self.instances)>10 and not self.__warned:
@@ -325,7 +333,7 @@ class DataManager(object):
 
     def __read_all_niftis(self) -> None:
         """Reads all files in the initial path and organizes other path to images and roi
-        in the class attrbiutes.
+        in the class attributes.
 
         Note:
             The `nifti_image_path` filename must respect the following naming convention:
@@ -355,7 +363,7 @@ class DataManager(object):
         print('DONE')
 
     def __associate_roi_to_image(self, image_file: Union[Path, str], MEDimg: MEDimage) -> MEDimage:
-        """Extracts all ROI data from the given path for the given patient ID and updates all class attributes with 
+        """Extracts all ROI data from the given path for the given patient ID and updates all class attributes with
         the new extracted data.
 
         Args:
@@ -387,7 +395,7 @@ class DataManager(object):
 
         Args:
             nifti_file(Union[Path, str]): Path to the nifti data.
-            MEDimg (MEDimage): MEDimage class instance that will hold the data. 
+            MEDimg (MEDimage): MEDimage class instance that will hold the data.
 
         Returns:
             MEDimage: Returns a MEDimage instance with updated spatialRef attribute.
@@ -480,6 +488,12 @@ class DataManager(object):
             roi_names = MEDimage_instance.scan.ROI.roi_names
             name_save += '+' + '+'.join(roi_names.values())
             self.summary.append(name_save)
+            # save new studies
+            if name_save.split('_')[0].count('-') >= 2:
+                if name_save.split('-')[0] not in self.studies:
+                    self.studies.append(name_save.split('-')[0])  # add new study
+                if name_save.split('-')[1] not in self.institutions:
+                    self.institutions.append(name_save.split('-')[1])  # add new study
         print('DONE')
         return self.instances
 
