@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 
+from ast import Str
 from copy import deepcopy
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
@@ -15,7 +16,10 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   get_value, is_list_all_none)
 
 
-def extract_all(vol, dist_correction=None, glcm_merge_method="vol_merge", method="new") -> Dict:
+def extract_all(vol: np.ndarray,
+                dist_correction=None,
+                glcm_merge_method="vol_merge",
+                method="new") -> Dict:
     """Computes glcm features.
     This features refer to Glcm family in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -70,8 +74,8 @@ def extract_all(vol, dist_correction=None, glcm_merge_method="vol_merge", method
 
     return glcm
 
-def get_cm_features(vol,
-                    intensity_range,
+def get_cm_features(vol: np.ndarray,
+                    intensity_range: np.ndarray,
                     glcm_spatial_method="3d",
                     glcm_dist=1.0,
                     glcm_merge_method="vol_merge",
@@ -153,26 +157,26 @@ def get_cm_features(vol,
                     for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                         # Add glcm matrices to list
                         glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist),
-                                                        direction=nbrs[:, ii_direction],
-                                                        direction_id=ii_direction,
-                                                        spatial_method=ii_spatial.lower(),
-                                                        img_slice=ii_slice)]
+                                                         direction=nbrs[:, ii_direction],
+                                                         direction_id=ii_direction,
+                                                         spatial_method=ii_spatial.lower(),
+                                                         img_slice=ii_slice)]
 
             # Perform 3D analysis
             elif ii_spatial.lower() == "3d":
                 # Get neighbour direction and iterate over neighbours
                 nbrs = get_neighbour_direction(d=1,
-                                            distance="chebyshev",
-                                            centre=False,
-                                            complete=False,
-                                            dim3=True) * np.int(ii_dist)
+                                               distance="chebyshev",
+                                               centre=False,
+                                               complete=False,
+                                               dim3=True) * np.int(ii_dist)
 
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                     # Add glcm matrices to list
                     glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), 
-                                                    direction=nbrs[:, ii_direction], 
-                                                    direction_id=ii_direction,
-                                                    spatial_method=ii_spatial.lower())]
+                                                     direction=nbrs[:, ii_direction], 
+                                                     direction_id=ii_direction,
+                                                     spatial_method=ii_spatial.lower())]
 
             else:
                 raise ValueError(
@@ -207,7 +211,9 @@ def get_cm_features(vol,
 
     return df_feat
 
-def combine_matrices(glcm_list, merge_method, spatial_method) -> List:
+def combine_matrices(glcm_list: List,
+                     merge_method: Str,
+                     spatial_method: Str) -> List:
     """Merges co-occurrence matrices prior to feature calculation.
 
     Note:
@@ -443,17 +449,23 @@ class CooccurrenceMatrix:
         """
         return deepcopy(self)
 
-    def calculate_cm_matrix(self, df_img, img_dims, dist_weight_norm) -> None:
+    def calculate_cm_matrix(self,
+                            df_img: pd.DataFrame,
+                            img_dims: Union[np.ndarray, List[float]],
+                            dist_weight_norm: Str) -> None:
         """Function that calculates a co-occurrence matrix for the settings provided during
         initialisation and the input image.
+
         Args:
             df_img (pandas.DataFrame): Data table containing image intensities, x, y and z coordinates,
                 and mask labels corresponding to voxels in the volume.
             img_dims (ndarray, List[float]): Dimensions of the image volume.
             dist_weight_norm (str): Norm for distance weighting. Weighting is only
                 performed if this parameter is either "manhattan", "euclidean" or "chebyshev".
+
         Returns:
             None. Assigns the created image table (cm matrix) to the `matrix` attribute.
+
         Raises:
             ValueError:
                 If `self.spatial_method` is not "2d", "2.5d" or "3d".
@@ -525,7 +537,8 @@ class CooccurrenceMatrix:
         # Add matrix and number of voxels to object
         self.matrix = df_cm
 
-    def calculate_cm_features(self, intensity_range) -> pd.DataFrame:
+    def calculate_cm_features(self,
+                              intensity_range: np.ndarray) -> pd.DataFrame:
         """Wrapper to json.dump function.
 
         Args:
@@ -537,14 +550,30 @@ class CooccurrenceMatrix:
             pandas.DataFrame: Data frame with values for each feature.
         """
         # Create feature table
-        feat_names = ["Fcm_joint_max", "Fcm_joint_avg", "Fcm_joint_var", "Fcm_joint_entr",
-                      "Fcm_diff_avg", "Fcm_diff_var", "Fcm_diff_entr",
-                      "Fcm_sum_avg", "Fcm_sum_var", "Fcm_sum_entr",
-                      "Fcm_energy", "Fcm_contrast", "Fcm_dissimilarity",
-                      "Fcm_inv_diff", "Fcm_inv_diff_norm", "Fcm_inv_diff_mom",
-                      "Fcm_inv_diff_mom_norm", "Fcm_inv_var", "Fcm_corr",
-                      "Fcm_auto_corr", "Fcm_clust_tend", "Fcm_clust_shade",
-                      "Fcm_clust_prom", "Fcm_info_corr1", "Fcm_info_corr2"]
+        feat_names = ["Fcm_joint_max",
+                      "Fcm_joint_avg",
+                      "Fcm_joint_var",
+                      "Fcm_joint_entr",
+                      "Fcm_diff_avg",
+                      "Fcm_diff_var",
+                      "Fcm_diff_entr",
+                      "Fcm_sum_avg",
+                      "Fcm_sum_var",
+                      "Fcm_sum_entr",
+                      "Fcm_energy",
+                      "Fcm_contrast",
+                      "Fcm_dissimilarity",
+                      "Fcm_inv_diff",
+                      "Fcm_inv_diff_norm",
+                      "Fcm_inv_diff_mom",
+                      "Fcm_inv_diff_mom_norm",
+                      "Fcm_inv_var", "Fcm_corr",
+                      "Fcm_auto_corr",
+                      "Fcm_clust_tend",
+                      "Fcm_clust_shade",
+                      "Fcm_clust_prom",
+                      "Fcm_info_corr1",
+                      "Fcm_info_corr2"]
 
         df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
         df_feat.columns = feat_names
@@ -737,7 +766,8 @@ class CooccurrenceMatrix:
         return parse_str
 
 @deprecated(reason="Use the new and the faster method get_cm_features()")
-def get_cm_features_deprecated(vol, dist_correction) -> Dict:
+def get_cm_features_deprecated(vol: np.ndarray,
+                               dist_correction: np.ndarray) -> Dict:
     """Calculates co-occurrence matrix features
 
     Note:

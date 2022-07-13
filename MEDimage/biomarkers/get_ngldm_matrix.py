@@ -4,14 +4,14 @@
 import numpy as np
 
 
-def get_ngldm_matrix(roi_only, levels) -> np.ndarray:
+def get_ngldm_matrix(roi_only, levels) -> float:
     """Compute NGLDMmatrix.
 
     Args:
         roi_only_int (ndarray): Smallest box containing the ROI, with the imaging data ready
             for texture analysis computations. Voxels outside the ROI are
             set to NaNs.
-        levels (ndarray or List): Vector containing the quantized gray-levels 
+        levels (ndarray or List): Vector containing the quantized gray-levels
             in the tumor region (or reconstruction levels of quantization).
 
     Returns:
@@ -28,22 +28,22 @@ def get_ngldm_matrix(roi_only, levels) -> np.ndarray:
     if np.size(dim) == 2:
         np.append(dim, 1)
 
-    q2 = np.reshape(roi_only, np.prod(dim), order='F').astype("int")
+    q_2 = np.reshape(roi_only, np.prod(dim), order='F').astype("int")
 
     # QUANTIZATION EFFECTS CORRECTION (M. Vallieres)
     # In case (for example) we initially wanted to have 64 levels, but due to
     # quantization, only 60 resulted.
-    # qs = round(levels*adjust)/adjust;
-    # q2 = round(q2*adjust)/adjust;
-    qs = levels.copy()
+    # q_s = round(levels*adjust)/adjust;
+    # q_2 = round(q_2*adjust)/adjust;
+    q_s = levels.copy()
 
     # EL NAQA CODE
-    q3 = q2*0
-    lqs = np.size(qs)
+    q_3 = q_2*0
+    lqs = np.size(q_s)
     for k in range(1, lqs+1):
-        q3[q2 == qs[k-1]] = k
+        q_3[q_2 == q_s[k-1]] = k
 
-    q3 = np.reshape(q3, dim, order='F')
+    q_3 = np.reshape(q_3, dim, order='F')
 
     # Min dependence = 0, Max dependence = 26; So 27 columns
     ngldm = np.zeros((lqs, 27))
@@ -56,7 +56,7 @@ def get_ngldm_matrix(roi_only, levels) -> np.ndarray:
             for k in range(1, dim[2]+1):
                 k_min = max(1, k-1)
                 k_max = min(k+1, dim[2])
-                val_q3 = q3[i-1, j-1, k-1]
+                val_q3 = q_3[i-1, j-1, k-1]
                 count = 0
                 for I2 in range(i_min, i_max+1):
                     for J2 in range(j_min, j_max+1):
@@ -65,7 +65,7 @@ def get_ngldm_matrix(roi_only, levels) -> np.ndarray:
                                 continue
                             else:
                                 # a = 0
-                                if (val_q3 - q3[I2-1, J2-1, K2-1] == 0):
+                                if (val_q3 - q_3[I2-1, J2-1, K2-1] == 0):
                                     count += 1
 
                 ngldm[val_q3-1, count] = ngldm[val_q3-1, count] + 1

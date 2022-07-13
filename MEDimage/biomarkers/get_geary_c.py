@@ -5,16 +5,16 @@
 import numpy as np
 
 
-def get_geary_c(vol, res) -> float:
+def get_geary_c(vol: np.ndarray,
+                res: np.ndarray) -> float:
     """Computes Geary'C measure (Assesses intensity differences between voxels).
-    
+
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
 
     Returns:
         float: computed value of Geary'C measure.
-
     """
     vol = vol.copy()
     res = res.copy()
@@ -26,7 +26,7 @@ def get_geary_c(vol, res) -> float:
     # Get the mean
     u = np.mean(vol[~np.isnan(vol[:])])
     vol_m_mean_s = np.power((vol.copy() - u), 2)  # (x_gl,i - u).^2
-    
+
     # Sum of (x_gl,i - u).^2 over all i
     sum_s = np.sum(vol_m_mean_s[~np.isnan(vol_m_mean_s[:])])
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from copy import deepcopy
-from typing import Dict
+from typing import Dict, List
 import typing
 
 import numpy as np
@@ -24,17 +24,18 @@ def extract_all(vol: np.ndarray,
 
     Args:
         vol (ndarray): 3D volume, isotropically resampled, quantized
-            (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
-            of interest.
+                       (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
+                       of interest.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-            discretization length difference corrections as used here:
-            <https://doi.org/10.1088/0031-9155/60/14/5471>.
-            Set this variable to false to replicate IBSI results.
-            Or use string and specify the norm for distance weighting. Weighting is 
-            only performed if this argument is "manhattan", "euclidean" or "chebyshev".
+                                                      discretization length difference corrections as used here:
+                                                      <https://doi.org/10.1088/0031-9155/60/14/5471>.
+                                                      Set this variable to false to replicate IBSI results.
+                                                      Or use string and specify the norm for distance weighting.
+                                                      Weighting is only performed if this argument is
+                                                      "manhattan", "euclidean" or "chebyshev".
         glrlm_merge_method (str, optional): merging method which determines how features are
-            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
-            Note that not all combinations of spatial and merge method are valid.
+                                            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+                                            Note that not all combinations of spatial and merge method are valid.
         method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
 
     Returns:
@@ -81,13 +82,14 @@ def get_rlm_features(vol: np.ndarray,
     Args:
         vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
         glrlm_spatial_method (str, optional): spatial method which determines the way
-            co-occurrence matrices are calculated and how features are determined.
-            MUST BE "2d", "2.5d" or "3d".
+                                              co-occurrence matrices are calculated and how features are determined.
+                                              MUST BE "2d", "2.5d" or "3d".
         glrlm_merge_method (str, optional): merging method which determines how features are
-            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
-            Note that not all combinations of spatial and merge method are valid.
+                                            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+                                            Note that not all combinations of spatial and merge method are valid.
         dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
-            performed if this argument is either "manhattan", "euclidean", "chebyshev" or bool.
+                                                       performed if this argument is either "manhattan",
+                                                       "euclidean", "chebyshev" or bool.
 
     Returns:
         Dict: Dict of the length matrix features.
@@ -196,13 +198,14 @@ def get_rlm_matrix(vol: np.ndarray,
     Args:
         vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
         glrlm_spatial_method (str, optional): spatial method which determines the way
-            co-occurrence matrices are calculated and how features are determined.
-            MUST BE "2d", "2.5d" or "3d".
+                                              co-occurrence matrices are calculated and how features are determined.
+                                              MUST BE "2d", "2.5d" or "3d".
         glrlm_merge_method (str, optional): merging method which determines how features are
-            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
-            Note that not all combinations of spatial and merge method are valid.
+                                            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+                                            Note that not all combinations of spatial and merge method are valid.
         dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
-            performed if this argument is either "manhattan", "euclidean", "chebyshev" or bool.
+                                                       performed if this argument is either "manhattan",
+                                                       "euclidean", "chebyshev" or bool.
 
     Returns:
         ndarray: Dict of the length matrix features.
@@ -280,7 +283,9 @@ def get_rlm_matrix(vol: np.ndarray,
 
     return upd_list
 
-def combine_rlm_matrices(rlm_list: list, merge_method: str, spatial_method: str):
+def combine_rlm_matrices(rlm_list: list,
+                         merge_method: str,
+                         spatial_method: str)-> List:
     """Merges run length matrices prior to feature calculation.
 
     Note:
@@ -455,26 +460,26 @@ class RunLengthMatrix:
         direction (ndarray): Direction along which neighbouring voxels are found.
         direction_id (int): Direction index to identify unique direction vectors.
         spatial_method (str): Spatial method used to calculate the co-occurrence
-            matrix: "2d", "2.5d" or "3d".
+                              matrix: "2d", "2.5d" or "3d".
         img_slice (ndarray, optional): Corresponding slice index (only if the
-            co-occurrence matrix corresponds to a 2d image slice).
+                                       co-occurrence matrix corresponds to a 2d image slice).
         merge_method (str, optional): Method for merging the co-occurrence matrix
-            with other co-occurrence matrices.
+                                      with other co-occurrence matrices.
         matrix (pandas.DataFrame, optional): The actual co-occurrence matrix in
-            sparse format (row, column, count).
+                                             sparse format (row, column, count).
         n_v (int, optional): The number of voxels in the volume.
 
     Attributes:
         direction (ndarray): Direction along which neighbouring voxels are found.
         direction_id (int): Direction index to identify unique direction vectors.
         spatial_method (str): Spatial method used to calculate the co-occurrence
-            matrix: "2d", "2.5d" or "3d".
+                              matrix: "2d", "2.5d" or "3d".
         img_slice (ndarray): Corresponding slice index (only if the co-occurrence
-            matrix corresponds to a 2d image slice).
+                             matrix corresponds to a 2d image slice).
         merge_method (str): Method for merging the co-occurrence matrix with other
-            co-occurrence matrices.
+                            co-occurrence matrices.
         matrix (pandas.DataFrame): The actual co-occurrence matrix in sparse format
-            (row, column, count).
+                                   (row, column, count).
         n_v (int): The number of voxels in the volume.
     """
 
@@ -513,16 +518,19 @@ class RunLengthMatrix:
         self.n_v = 0
         self.matrix = None
 
-    def calculate_rlm_matrix(self, df_img: pd.DataFrame, img_dims: np.ndarray, dist_weight_norm: str) -> None:
+    def calculate_rlm_matrix(self,
+                             df_img: pd.DataFrame,
+                             img_dims: np.ndarray,
+                             dist_weight_norm: str) -> None:
         """Function that calculates a run length matrix for the settings provided
         during initialisation and the input image.
 
         Args:
             df_img (pandas.DataFrame): Data table containing image intensities, x, y and z coordinates,
-                and mask labels corresponding to voxels in the volume.
+                                       and mask labels corresponding to voxels in the volume.
             img_dims (ndarray, List[float]): Dimensions of the image volume.
             dist_weight_norm (str): Norm for distance weighting. Weighting is only
-                performed if this parameter is either "manhattan", "euclidean" or "chebyshev".
+                                    performed if this parameter is either "manhattan", "euclidean" or "chebyshev".
 
         Returns:
             None. Assigns the created image table (rlm matrix) to the `matrix` attribute.
@@ -628,24 +636,23 @@ class RunLengthMatrix:
             pandas.DataFrame: Data frame with values for each feature.
         """
         # Create feature table
-        feat_names = [
-            "Frlm_sre",
-            "Frlm_lre",
-            "Frlm_lgre",
-            "Frlm_hgre",
-            "Frlm_srlge",
-            "Frlm_srhge",
-            "Frlm_lrlge",
-            "Frlm_lrhge",
-            "Frlm_glnu",
-            "Frlm_glnu_norm",
-            "Frlm_rlnu",
-            "Frlm_rlnu_norm",
-            "Frlm_r_perc",
-            "Frlm_gl_var",
-            "Frlm_rl_var",
-            "Frlm_rl_entr"
-            ]
+        feat_names = ["Frlm_sre",
+                      "Frlm_lre",
+                      "Frlm_lgre",
+                      "Frlm_hgre",
+                      "Frlm_srlge",
+                      "Frlm_srhge",
+                      "Frlm_lrlge",
+                      "Frlm_lrhge",
+                      "Frlm_glnu",
+                      "Frlm_glnu_norm",
+                      "Frlm_rlnu",
+                      "Frlm_rlnu_norm",
+                      "Frlm_r_perc",
+                      "Frlm_gl_var",
+                      "Frlm_rl_var",
+                      "Frlm_rl_entr"]
+
         df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
         df_feat.columns = feat_names
 
@@ -728,7 +735,8 @@ class RunLengthMatrix:
 
         return df_feat
 
-    def calculate_feature(self, name: str) -> pd.DataFrame:
+    def calculate_feature(self,
+                          name: str) -> pd.DataFrame:
         """Computes run length matrix features for the current run length matrix.
 
             Returns:
@@ -842,7 +850,8 @@ class RunLengthMatrix:
         return parse_str
 
 @deprecated(reason="Use the new and the faster method get_rlm_features()")
-def get_rlm_features_deprecated(vol: np.ndarray, dist_correction: typing.Union[bool, str]) -> Dict:
+def get_rlm_features_deprecated(vol: np.ndarray,
+                                dist_correction: typing.Union[bool, str]) -> Dict:
     """Calculates grey level run length matrix features.
 
      Note:
@@ -852,11 +861,12 @@ def get_rlm_features_deprecated(vol: np.ndarray, dist_correction: typing.Union[b
     Args:
         vol (ndarray): 3D input volume.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-            discretization length difference corrections as used here:
-            <https://doi.org/10.1088/0031-9155/60/14/5471>.
-            Set this variable to false to replicate IBSI results.
-            Or use string and specify the norm for distance weighting. Weighting is 
-            only performed if this argument is "manhattan", "euclidean" or "chebyshev".
+                                                      discretization length difference corrections as used here:
+                                                      <https://doi.org/10.1088/0031-9155/60/14/5471>.
+                                                      Set this variable to false to replicate IBSI results.
+                                                      Or use string and specify the norm for distance weighting.
+                                                      Weighting is only performed if this argument is
+                                                      "manhattan", "euclidean" or "chebyshev".
 
     Returns:
         Dict: Dict of GLCM features.
@@ -877,8 +887,7 @@ def get_rlm_features_deprecated(vol: np.ndarray, dist_correction: typing.Union[b
                     'Frlm_r_perc': [],
                     'Frlm_gl_var': [],
                     'Frlm_rl_var': [],
-                    'Frlm_rl_entr': []
-                    }
+                    'Frlm_rl_entr': []}
 
     # GET THE glrlm MATRIX
     vol = vol.copy()

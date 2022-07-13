@@ -21,24 +21,22 @@ def extract_all(vol_int: np.ndarray, mask_morph: np.ndarray, gldzm: np.ndarray =
     Returns:
         Dict of gldzm features.
     """
-    gldzm_features = {
-             'Fdzm_sde': [],
-             'Fdzm_lde': [],
-             'Fdzm_lgze': [],
-             'Fdzm_hgze': [],
-             'Fdzm_sdlge': [],
-             'Fdzm_sdhge': [],
-             'Fdzm_ldlge': [],
-             'Fdzm_ldhge': [],
-             'Fdzm_glnu': [],
-             'Fdzm_glnu_norm': [],
-             'Fdzm_zdnu': [],
-             'Fdzm_zdnu_norm': [],
-             'Fdzm_z_perc': [],
-             'Fdzm_gl_var': [],
-             'Fdzm_zd_var': [],
-             'Fdzm_zd_entr': []
-             }
+    gldzm_features = {'Fdzm_sde': [],
+                      'Fdzm_lde': [],
+                      'Fdzm_lgze': [],
+                      'Fdzm_hgze': [],
+                      'Fdzm_sdlge': [],
+                      'Fdzm_sdhge': [],
+                      'Fdzm_ldlge': [],
+                      'Fdzm_ldhge': [],
+                      'Fdzm_glnu': [],
+                      'Fdzm_glnu_norm': [],
+                      'Fdzm_zdnu': [],
+                      'Fdzm_zdnu_norm': [],
+                      'Fdzm_z_perc': [],
+                      'Fdzm_gl_var': [],
+                      'Fdzm_zd_var': [],
+                      'Fdzm_zd_entr': []}
 
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol_int[~np.isnan(vol_int[:])])+1)

@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import List, Union
 import numpy as np
 
 
-def get_glcm_matrix(roi_only, levels, dist_correction=True) -> np.ndarray:
+def get_glcm_matrix(roi_only: np.ndarray,
+                    levels: Union[np.ndarray, List],
+                    dist_correction=True) -> np.ndarray:
     """Computes GLCM matrix.
 
     This function computes the Gray-Level Co-occurence Matrix (GLCM) of the
@@ -20,15 +23,15 @@ def get_glcm_matrix(roi_only, levels, dist_correction=True) -> np.ndarray:
     around a center voxel increment the GLCM by a value of 1.
 
     Args:
-        roi_only (ndarray): Smallest box containing the ROI, with the imaging data 
-            ready for texture analysis computations. Voxels outside the ROI are
-            set to NaNs.
+        roi_only (ndarray): Smallest box containing the ROI, with the imaging data
+                            ready for texture analysis computations. Voxels outside the ROI are
+                            set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels in the tumor region
-            (or reconstruction levels of quantization).
+                                  (or reconstruction levels of quantization).
         dist_correction (bool, optional): Set this variable to true in order to use
-            discretization length difference corrections as used
-            here: https://doi.org/10.1088/0031-9155/60/14/5471.
-            Set this variable to false to replicate IBSI results.
+                                          discretization length difference corrections as used
+                                          here: https://doi.org/10.1088/0031-9155/60/14/5471.
+                                          Set this variable to false to replicate IBSI results.
 
     Returns:
         ndarray: Gray-Level Co-occurence Matrix of `roi_only`.
@@ -37,7 +40,6 @@ def get_glcm_matrix(roi_only, levels, dist_correction=True) -> np.ndarray:
         [1] Haralick, R. M., Shanmugam, K., & Dinstein, I. (1973). Textural
             features for image classification. IEEE Transactions on Systems,
             Man and Cybernetics, smc 3(6), 610–621.
-    
     """
     # PARSING "dist_correction" ARGUMENT
     if type(dist_correction) is not bool:

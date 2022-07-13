@@ -4,7 +4,7 @@
 import numpy as np
 
 
-def get_moran_i(vol, res) -> float:
+def get_moran_i(vol: np.ndarray, res) -> float:
     """Compute Moran's Index.
 
     Args:
@@ -16,7 +16,6 @@ def get_moran_i(vol, res) -> float:
         float: Value of Moran's Index.
 
     """
-
     vol = vol.copy()
     res = res.copy()
 

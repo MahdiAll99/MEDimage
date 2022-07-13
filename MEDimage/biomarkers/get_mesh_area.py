@@ -4,39 +4,23 @@
 import numpy as np
 
 
-def get_mesh_area(faces, vertices):
+def get_mesh_area(faces: np.ndarray,
+                  vertices: np.ndarray) -> float:
     """Compute MeshArea.
-    -------------------------------------------------------------------------
-    - faces: [n_points X 3] matrix of three column vectors, defining the [X,Y,Z]
-            positions of the faces of the isosurface or convex hull of the mask
-            (output from "isosurface.m" or "convhull.m" functions of MATLAB).
-              --> These are more precisely indexes to "vertices"
-    - vertices: [n_points X 3] matrix of three column vectors,
-            defining the [X,Y,Z]
-            positions of the vertices of the isosurface of the mask (output
-            from "isosurface.m" function of MATLAB).
-              --> In mm.
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        faces (np.ndarray): matrix of three column vectors, defining the [X,Y,Z]
+                          positions of the faces of the isosurface or convex hull of the mask
+                          (output from "isosurface.m" or "convhull.m" functions of MATLAB).
+                          --> These are more precisely indexes to "vertices"
+        vertices (np.ndarray): matrix of three column vectors,
+                             defining the [X,Y,Z]
+                             positions of the vertices of the isosurface of the mask (output
+                             from "isosurface.m" function of MATLAB).
+                             --> In mm.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        float: Mesh area.
     """
 
     faces = faces.copy()

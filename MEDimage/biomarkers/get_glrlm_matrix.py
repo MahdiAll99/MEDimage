@@ -2,18 +2,21 @@
 # -*- coding: utf-8 -*-
 
 import math
+from ctypes import Union
+from typing import List
 
 import numpy as np
 from scipy.sparse import spdiags
 
-from ..biomarkers.wei_toolbox.rle_0 import  rle_0 as rle
-from ..biomarkers.wei_toolbox.rle_45 import  rle_45 as rle45
-from ..biomarkers.wei_toolbox.zigzag import  zigzag as zig
+from ..biomarkers.wei_toolbox.rle_0 import rle_0 as rle
+from ..biomarkers.wei_toolbox.rle_45 import rle_45 as rle45
+from ..biomarkers.wei_toolbox.zigzag import zigzag as zig
 
-def get_glrlm_matrix(roi_only, levels, dist_correction=None) -> np.ndarray:
-    """Compute glrm matrix.
 
-    This function computes the Gray-Level Run-Length Matrix (glrm) of the
+def get_glrlm_matrix(roi_only: np.ndarray,
+                     levels: Union[np.ndarray, List],
+                     dist_correction=None) -> np.ndarray:
+    """This function computes the Gray-Level Run-Length Matrix (glrm) of the
     region of interest (ROI) of an input volume. The input volume is assumed
     to be isotropically resampled. Only one glrm is computed per scan,
     simultaneously adding up all possible run-lengths in the 13 directions of
@@ -29,10 +32,10 @@ def get_glrlm_matrix(roi_only, levels, dist_correction=None) -> np.ndarray:
         This function is compatible with 2D analysis (language not adapted in the text).
 
     Args:
-        roi_only_int (ndarray): Smallest box containing the ROI, with the imaging 
-            data readyfor texture analysis computations. Voxels outside the ROI 
+        roi_only_int (ndarray): Smallest box containing the ROI, with the imaging
+            data readyfor texture analysis computations. Voxels outside the ROI
             are set to NaNs.
-        levels (ndarray or List): Vector containing the quantized gray-levels 
+        levels (ndarray or List): Vector containing the quantized gray-levels
             in the tumor region (or reconstruction levels of quantization).
         dist_correction: (optional). Set this variable to true in order to use
             discretization length difference corrections as used
@@ -49,7 +52,6 @@ def get_glrlm_matrix(roi_only, levels, dist_correction=None) -> np.ndarray:
             v1.0, Software,Beijing Aeronautical Technology Research Center, 2007.
             <http://www.mathworks.com/matlabcentral/fileexchange/
             17482-gray-level-run-length-matrix-toolbox>
-
     """
 
     # PARSING "dist_correction" ARGUMENT
@@ -74,13 +76,13 @@ def get_glrlm_matrix(roi_only, levels, dist_correction=None) -> np.ndarray:
     # QUANTIZATION EFFECTS CORRECTION
 
     unique_vol = levels  # levels
-    NL = np.size(levels) - 1
+    n_l = np.size(levels) - 1
 
     # INITIALIZATION
 
     size_v = np.shape(roi_only)
     num_init = np.ceil(np.max(size_v)).astype('int')  # Max run length
-    glrm = np.zeros((NL+1, num_init))
+    glrm = np.zeros((n_l+1, num_init))
 
     # START COMPUTATION
     # Directions [1,0,0], [0 1 0], [1 1 0] and [-1 1 0] : 2D directions
