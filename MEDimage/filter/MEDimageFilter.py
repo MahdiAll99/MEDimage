@@ -1,6 +1,7 @@
 import math
 from abc import ABC
 from itertools import combinations, permutations, product
+from typing import List
 
 import numpy as np
 import pywt
@@ -8,28 +9,30 @@ from scipy.signal import fftconvolve
 
 
 class MEDimageFilter(ABC):
-    """
-    Class frame of each filters classes like laplacian of gaussian, wavelet...
-    """
+    """Class frame of each filters classes like laplacian of gaussian, wavelet..."""
 
-    def __init__(self, ndims, padding="mirror"):
-        """
-        Constructor of the abstract class Filter
+    def __init__(self,
+                 ndims: int,
+                 padding="mirror"):
+        """Constructor of the abstract class Filter
         Args:
-            ndims: Number of dimension
-            padding: The padding type that will be used to produce the convolution
+            ndims (int): Number of dimension
+            padding (str): The padding type that will be used to produce the convolution
         """
         super().__init__()
         self.dim = ndims
         self.padding = padding
         self.kernel = None
 
-    def _convolve(self, images, orthogonal_rot=False):
-        """
-        Convolve a given n-dimensional array with the kernel to generate a filtered image.
+    def _convolve(self,
+                  images: np.ndarray,
+                  orthogonal_rot=False) -> np.ndarray:
+        """Convolve a given n-dimensional array with the kernel to generate a filtered image.
+
         Args:
-            images: A n-dimensional numpy array that represent a batch of images to filter
-            orthogonal_rot: If true, the 3D images will be rotated over coronal, axial and sagital axis
+            images (ndarray): A n-dimensional numpy array that represent a batch of images to filter
+            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagital axis
+
         Returns:
             ndarray: The filtered image
         """
@@ -86,13 +89,17 @@ class MEDimageFilter(ABC):
 
         return result
 
-    def _pad_imgs(self, images, padding, axis):
-        """
-        Apply padding on a 3d images using a 2D padding pattern.
+    def _pad_imgs(self,
+                  images: np.ndarray,
+                  padding: List,
+                  axis: List)-> np.ndarray:
+        """Apply padding on a 3d images using a 2D padding pattern.
+
         Args:
-            images: a numpy array that represent the image.
-            padding: The padding length that will apply on each side of each axe.
-            axis: A list of axes on which the padding will be done.
+            images (ndarray): a numpy array that represent the image.
+            padding (List): The padding length that will apply on each side of each axe.
+            axis (List): A list of axes on which the padding will be done.
+
         Returns:
             ndarray: A numpy array that represent the padded image.
         """
@@ -109,17 +116,21 @@ class MEDimageFilter(ABC):
         return np.pad(images, pad_tuple, mode=self.padding)
 
 class Mean(MEDimageFilter):
-    """
-    The mean filter class
-    """
+    """The mean filter class"""
 
-    def __init__(self, ndims, size, padding="symmetric"):
-        """
-        The constructor of the mean filter
+    def __init__(self,
+                 ndims: int,
+                 size: int,
+                 padding="symmetric"):
+        """The constructor of the mean filter
+
         Args:
-            ndims: Number of dimension of the kernel filter
-            size: An integer that represent the length along one dimension of the kernel.
+            ndims (int): Number of dimension of the kernel filter
+            size (int): An integer that represent the length along one dimension of the kernel.
             padding: The padding type that will be used to produce the convolution
+
+        Returns:
+            None
         """
 
         assert isinstance(ndims, int) and ndims > 0, "ndims should be a positive integer"
@@ -131,8 +142,8 @@ class Mean(MEDimageFilter):
         self.create_kernel()
 
     def create_kernel(self):
-        """
-        This method construct the mean kernel using the parameters specified to the constructor
+        """This method construct the mean kernel using the parameters specified to the constructor.
+
         Returns:
             ndarray: The mean kernel as a numpy multidimensionnal array
         """
@@ -143,12 +154,15 @@ class Mean(MEDimageFilter):
 
         self.kernel = np.expand_dims(kernel, axis=(0, 1))
 
-    def convolve(self, images, orthogonal_rot=False):
-        """
-        Filter a given image using the LoG kernel defined during the construction of this instance.
+    def convolve(self,
+                 images: np.ndarray,
+                 orthogonal_rot=False)-> np.ndarray:
+        """Filter a given image using the LoG kernel defined during the construction of this instance.
+    
         Args:
-            images: A n-dimensional numpy array that represent the images to filter
-            orthogonal_rot: If true, the 3D images will be rotated over coronal, axial and sagital axis
+            images (ndarray): A n-dimensional numpy array that represent the images to filter
+            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagital axis
+
         Returns:
             ndarray: The filtered image
         """
@@ -158,18 +172,23 @@ class Mean(MEDimageFilter):
         return np.swapaxes(result, 1, 3)
 
 class LaplacianOfGaussian(MEDimageFilter):
-    """
-    The Laplacian of gaussian filter class.
-    """
+    """The Laplacian of gaussian filter class."""
 
-    def __init__(self, ndims, size, sigma=0.1, padding="symmetric"):
-        """
-        The constructor of the laplacian of gaussian (LoG) filter
+    def __init__(self,
+                 ndims: int,
+                 size: int,
+                 sigma=0.1,
+                 padding="symmetric"):
+        """The constructor of the laplacian of gaussian (LoG) filter
+
         Args:
-            ndims: Number of dimension of the kernel filter
-            size: An integer that represent the length along one dimension of the kernel.
-            sigma: The gaussian standard deviation parameter of the laplacian of gaussian filter
-            padding: The padding type that will be used to produce the convolution
+            ndims (int): Number of dimension of the kernel filter
+            size (int): An integer that represent the length along one dimension of the kernel.
+            sigma (float): The gaussian standard deviation parameter of the laplacian of gaussian filter
+            padding (str): The padding type that will be used to produce the convolution
+
+        Returns:
+            None
         """
 
         assert isinstance(ndims, int) and ndims > 0, "ndims should be a positive integer"
@@ -182,9 +201,9 @@ class LaplacianOfGaussian(MEDimageFilter):
         self.sigma = sigma
         self.create_kernel()
 
-    def create_kernel(self):
-        """
-        This method construct the LoG kernel using the parameters specified to the constructor
+    def create_kernel(self) -> np.ndarray:
+        """This method construct the LoG kernel using the parameters specified to the constructor
+    
         Returns:
             ndarray: The laplacian of gaussian kernel as a numpy multidimensionnal array
         """
@@ -208,12 +227,15 @@ class LaplacianOfGaussian(MEDimageFilter):
         kernel -= np.sum(kernel)/np.prod(kernel.shape)
         self.kernel = np.expand_dims(kernel, axis=(0, 1))
 
-    def convolve(self, images, orthogonal_rot=False):
-        """
-        Filter a given image using the LoG kernel defined during the construction of this instance.
+    def convolve(self,
+                 images: np.ndarray,
+                 orthogonal_rot=False) -> np.ndarray:
+        """Filter a given image using the LoG kernel defined during the construction of this instance.
+
         Args:
-            images: A n-dimensional numpy array that represent the images to filter
-            orthogonal_rot: If true, the 3D images will be rotated over coronal, axial and sagital axis
+            images (ndarray): A n-dimensional numpy array that represent the images to filter
+            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagital axis
+
         Returns:
             ndarray: The filtered image
         """
@@ -227,18 +249,28 @@ class Gabor(MEDimageFilter):
     The Gabor filter class
     """
 
-    def __init__(self, size, sigma, lamb, gamma, theta, rot_invariance=False, padding="symmetric"):
-        """
-        The constructor of the Gabor filter. Highly inspired by Ref 1)
+    def __init__(self,
+                 size: int,
+                 sigma: float,
+                 lamb: float,
+                 gamma: float,
+                 theta: float,
+                 rot_invariance=False,
+                 padding="symmetric"):
+        """ The constructor of the Gabor filter. Highly inspired by Ref 1)
+
         Args:
-            size: An integer that represent the length along one dimension of the kernel.
-            sigma: A positive float that represent the scale of the Gabor filter
-            lamb: A positive float that represent the wavelength in the Gabor filter. (mm or pixel?)
-            gamma: A positive float that represent the spacial aspect ratio
-            theta: Angle parameter used in the rotation matrix
-            rot_invariance: If true, rotation invariance will be done on the kernel and the kernel
-                            will be rotate 2*pi / theta times.
+            size (int): An integer that represent the length along one dimension of the kernel.
+            sigma (float): A positive float that represent the scale of the Gabor filter
+            lamb (float): A positive float that represent the wavelength in the Gabor filter. (mm or pixel?)
+            gamma (float): A positive float that represent the spacial aspect ratio
+            theta (float): Angle parameter used in the rotation matrix
+            rot_invariance (bool): If true, rotation invariance will be done on the kernel and the kernel
+                                   will be rotate 2*pi / theta times.
             padding: The padding type that will be used to produce the convolution
+
+        Returns:
+            None
         """
 
         assert ((size + 1) / 2).is_integer() and size > 0, "size should be a positive odd number."
@@ -255,20 +287,21 @@ class Gabor(MEDimageFilter):
         self.rot = rot_invariance
         self.create_kernel()
 
-    def create_kernel(self):
-        """
-        Create the kernel of the Gabor filter
+    def create_kernel(self) -> List[np.ndarray]:
+        """Create the kernel of the Gabor filter
+    
         Returns: 
-            List[ndarray]: A list of numpy 2D-array that contain the kernel of the real part and the imaginary part respectively.
+            List[ndarray]: A list of numpy 2D-array that contain the kernel of the real part and the
+                           imaginary part respectively.
         """
 
         def compute_weight(position, theta):
-            k2 = position[0]*math.cos(theta) + position[1] * math.sin(theta)
-            k1 = position[1]*math.cos(theta) - position[0] * math.sin(theta)
+            k_2 = position[0]*math.cos(theta) + position[1] * math.sin(theta)
+            k_1 = position[1]*math.cos(theta) - position[0] * math.sin(theta)
 
-            common = math.e**(-(k1**2 + (self.gamma*k2)**2)/(2*self.sigma**2))
-            real = math.cos(2*math.pi*k1/self.lamb)
-            im = math.sin(2*math.pi*k1/self.lamb)
+            common = math.e**(-(k_1**2 + (self.gamma*k_2)**2)/(2*self.sigma**2))
+            real = math.cos(2*math.pi*k_1/self.lamb)
+            im = math.sin(2*math.pi*k_1/self.lamb)
             return common*real, common*im
 
         # Rotation invariance
@@ -292,12 +325,15 @@ class Gabor(MEDimageFilter):
             axis=1
         )
 
-    def convolve(self, images, orthogonal_rot=False):
-        """
-        Filter a given image using the Gabor kernel defined during the construction of this instance.
+    def convolve(self,
+                 images: np.ndarray,
+                 orthogonal_rot=False) -> np.ndarray:
+        """Filter a given image using the Gabor kernel defined during the construction of this instance.
+
         Args:
-            images: A n-dimensional numpy array that represent the images to filter
-            orthogonal_rot: If true, the 3D images will be rotated over coronal, axial and sagittal axis
+            images (ndarray): A n-dimensional numpy array that represent the images to filter
+            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagittal axis
+
         Returns:
             ndarray: The filtered image as a numpy ndarray
         """
@@ -328,16 +364,23 @@ class Laws(MEDimageFilter):
     The Laws filter class
     """
 
-    def __init__(self, config=None, energy_distance=7, rot_invariance=False, padding="symmetric"):
-        """
-        The constructor of the Laws filter
+    def __init__(self,
+                 config=None,
+                 energy_distance=7,
+                 rot_invariance=False,
+                 padding="symmetric"):
+        """The constructor of the Laws filter
+
         Args:
-            config: A string list of every 1D filter used to create the Laws kernel. Since the outer product is
+            config (str): A string list of every 1D filter used to create the Laws kernel. Since the outer product is
                     not commutative, we need to use a list to specify the order of the outer product. It is not
                     recommended to use filter of different size to create the Laws kernel.
-            energy_distance: The distance that will be used to create the energy_kernel.
-            rot_invariance: If true, rotation invariance will be done on the kernel.
-            padding: The padding type that will be used to produce the convolution
+            energy_distance (float): The distance that will be used to create the energy_kernel.
+            rot_invariance (bool): If true, rotation invariance will be done on the kernel.
+            padding (str): The padding type that will be used to produce the convolution
+
+        Returns:
+            None
         """
 
         ndims = len(config)
@@ -352,13 +395,15 @@ class Laws(MEDimageFilter):
         self.__create_energy_kernel()
 
     @staticmethod
-    def __get_filter(name, pad=False):
-        """
-        This method create a 1D filter according to the given filter name.
+    def __get_filter(name,
+                     pad=False) -> np.ndarray:
+        """This method create a 1D filter according to the given filter name.
+
         Args:
-            name: The filter name. (Such as L3, L5, E3, E5, S3, S5, W5 or R5)
-            pad: If true, add zero padding of lenght 1 each side of kernel L3, E3 and S3
-        Returns: 
+            name (float): The filter name. (Such as L3, L5, E3, E5, S3, S5, W5 or R5)
+            pad (bool): If true, add zero padding of lenght 1 each side of kernel L3, E3 and S3
+
+        Returns:
             ndarray: A 1D filter that is needed to construct the Laws kernel.
         """
 
@@ -385,9 +430,9 @@ class Laws(MEDimageFilter):
             raise Exception("{} is not a valid filter name. "
                             "Choose between : L3, L5, E3, E5, S3, S5, W5 or R5".format(name))
 
-    def __verify_padding_need(self):
-        """
-        Check if we need to pad the kernels
+    def __verify_padding_need(self) -> bool:
+        """Check if we need to pad the kernels
+    
         Returns: 
             bool: A boolean that indicate if a kernel is smaller than at least one other.
         """
@@ -396,11 +441,11 @@ class Laws(MEDimageFilter):
 
         return not(ker_length.min == ker_length.max)
 
-    def create_kernel(self):
-        """
-        Create the Laws by computing the outer product of 1d filter specified in the config attribute.
+    def create_kernel(self) -> np.ndarray:
+        """Create the Laws by computing the outer product of 1d filter specified in the config attribute.
         Kernel = config[0] X config[1] X ... X config[n]. Where X is the outer product.
-        Returns: 
+
+        Returns:
             ndarray: A numpy multi-dimensional arrays that represent the Laws kernel.
         """
 
@@ -433,10 +478,10 @@ class Laws(MEDimageFilter):
 
         self.kernel = np.unique(kernel_list, axis=0)
 
-    def __create_energy_kernel(self):
-        """
-        Create the kernel that will be used to generate Laws texture energy images
-        Returns: 
+    def __create_energy_kernel(self) -> np.ndarray:
+        """Create the kernel that will be used to generate Laws texture energy images
+
+        Returns:
             ndarray: A numpy multi-dimensional arrays that represent the Laws energy kernel.
         """
 
@@ -449,11 +494,13 @@ class Laws(MEDimageFilter):
 
         self.energy_kernel = np.expand_dims(kernel/np.prod(kernel.shape), axis=(0, 1))
 
-    def __compute_energy_image(self, images):
-        """
-        Compute the Laws texture energy images as described in (Ref 1).
+    def __compute_energy_image(self,
+                               images: np.ndarray) -> np.ndarray:
+        """Compute the Laws texture energy images as described in (Ref 1).
+
         Args:
-            images: A n-dimensional numpy array that represent the filtered images
+            images (ndarray): A n-dimensional numpy array that represent the filtered images
+
         Returns:
             ndarray: A numpy multi-dimensional array of the Laws texture energy map.
         """
@@ -468,13 +515,17 @@ class Laws(MEDimageFilter):
         else:
             return np.squeeze(result, axis=1)
 
-    def convolve(self, images, orthogonal_rot=False, energy_image=False):
-        """
-        Filter a given image using the Laws kernel defined during the construction of this instance.
+    def convolve(self,
+                 images: np.ndarray,
+                 orthogonal_rot=False,
+                 energy_image=False):
+        """Filter a given image using the Laws kernel defined during the construction of this instance.
+
         Args:
-            images: A n-dimensional numpy array that represent the images to filter
-            orthogonal_rot: If true, the 3D images will be rotated over coronal, axial and sagittal axis
-            energy_image: If true, return also the Laws Texture Energy Images
+            images (ndarray): A n-dimensional numpy array that represent the images to filter
+            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagittal axis
+            energy_image (bool): If true, return also the Laws Texture Energy Images
+
         Returns:
             ndarray: The filtered image
         """
@@ -508,14 +559,21 @@ class Wavelet(MEDimageFilter):
     The wavelet filter class.
     """
 
-    def __init__(self, ndims, wavelet_name="haar", padding="symmetric", rot_invariance=False):
-        """
-        The constructor of the wavelet filter
+    def __init__(self,
+                 ndims: int,
+                 wavelet_name="haar",
+                 padding="symmetric",
+                 rot_invariance=False):
+        """The constructor of the wavelet filter
+
         Args:
-            ndims: The number of dimension of the images that will be filter as int.
-            wavelet_name: The name of the wavelet kernel as string.
-            padding: The padding type that will be used to produce the convolution
-            rot_invariance: If true, rotation invariance will be done on the images.
+            ndims (int): The number of dimension of the images that will be filter as int.
+            wavelet_name (str): The name of the wavelet kernel as string.
+            padding (str): The padding type that will be used to produce the convolution
+            rot_invariance (bool): If true, rotation invariance will be done on the images.
+
+        Returns:
+            None
         """
 
         super().__init__(ndims, padding)
@@ -525,23 +583,30 @@ class Wavelet(MEDimageFilter):
         self.kernel_length = None
         self.create_kernel(wavelet_name)
 
-    def create_kernel(self, wavelet_name):
-        """
-        Get the wavelet object and his kernel length.
+    def create_kernel(self,
+                      wavelet_name: str):
+        """Get the wavelet object and his kernel length.
+
         Args:
-            wavelet_name: A string that represent the wavelet name that will be use to create the kernel
+            wavelet_name (str): A string that represent the wavelet name that will be use to create the kernel
+
+        Returns:
+            None
         """
 
         self.wavelet = pywt.Wavelet(wavelet_name)
         self.kernel_length = max(self.wavelet.rec_len, self.wavelet.dec_len)
 
-    def __unpad(self, images, padding):
-        """
-        Unpad a batch of images
+    def __unpad(self,
+                images: np.ndarray,
+                padding; List) -> np.ndarray:
+        """Unpad a batch of images
+
         Args:
             images: A numpy nd-array or a list that represent the batch of padded images.
                     The shape should be (B, H, W) or (B, H, W, D)
             padding: a list of length 2*self.dim that gives the length of padding on each side of each axis.
+
         Returns: 
             ndarray: A numpy nd-array or a list that represent the batch of unpadded images
         """
@@ -553,13 +618,16 @@ class Wavelet(MEDimageFilter):
         else:
             raise NotImplementedError
 
-    def __get_pad_length(self, image_shape, level):
-        """
-        Compute the padding length needed to have a padded image where the length along each axis is a multiple
-        2^level.
+    def __get_pad_length(self,
+                         image_shape: List,
+                         level: int) -> np.ndarray:
+        """Compute the padding length needed to have a padded image where the length
+        along each axis is a multiple 2^level.
+
         Args:
-            image_shape: a list of integer that describe the length of the image along each axis.
-            level: The level of the wavelet transform
+            image_shape (List): a list of integer that describe the length of the image along each axis.
+            level (int): The level of the wavelet transform
+
         Returns: 
             ndarray: An integer list of length 2*self.dim that gives the length of padding on each side of each axis.
         """
@@ -571,13 +639,17 @@ class Wavelet(MEDimageFilter):
 
         return padding
 
-    def _pad_imgs(self, images, padding, axis):
-        """
-        Apply padding on a 3d images using a 2D padding pattern (special for wavelet).
+    def _pad_imgs(self,
+                  images: np.ndarray,
+                  padding,
+                  axis: List):
+        """Apply padding on a 3d images using a 2D padding pattern (special for wavelet).
+
         Args:
             images: a numpy array that represent the image.
             padding: The padding length that will apply on each side of each axe.
             axis: A list of axes on which the padding will be done.
+
         Returns: 
             ndarray: A numpy array that represent the padded image.
         """
@@ -594,13 +666,17 @@ class Wavelet(MEDimageFilter):
         return np.pad(images, pad_tuple, mode=self.padding)
         
 
-    def convolve(self, images, _filter="LHL", level=1):
-        """
-        Filter a given batch of images using pywavelet.
+    def convolve(self,
+                 images: np.ndarray,
+                 _filter="LHL",
+                 level=1)-> np.ndarray:
+        """Filter a given batch of images using pywavelet.
+
         Args:
-            images: A n-dimensional numpy array that represent the images to filter
-            _filter: The filter to uses.
-            level: The number of decomposition step to perform.
+            images (ndarray): A n-dimensional numpy array that represent the images to filter
+            _filter (str): The filter to uses.
+            level (int): The number of decomposition step to perform.
+
         Returns:
             ndarray: The filtered image as numpy nd-array
         """

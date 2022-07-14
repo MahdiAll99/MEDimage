@@ -10,7 +10,11 @@ from ..processing.find_spacing import find_spacing
 from ..processing.get_polygon_mask import get_polygon_mask
 
 
-def compute_roi(roi_xyz, spatial_ref, orientation, scan_type, interp=False) -> np.ndarray:
+def compute_roi(roi_xyz: np.ndarray,
+                spatial_ref: imref3d,
+                orientation: str,
+                scan_type: str,
+                interp=False) -> np.ndarray:
     """
     Computes the ROI (Region of interest) mask using the XYZ coordinates.
 
@@ -29,27 +33,27 @@ def compute_roi(roi_xyz, spatial_ref, orientation, scan_type, interp=False) -> n
                 is currently the default in get_roi.py
 
     Args:
-        roi_xyz (ndarray): array of (x,y,z) triplets defining a contour in the Patient-Based 
-            Coordinate System extracted from DICOM RTstruct.
+        roi_xyz (ndarray): array of (x,y,z) triplets defining a contour in the Patient-Based
+                           Coordinate System extracted from DICOM RTstruct.
         spatial_ref (imref3d): imref3d object (same functionality of MATLAB imref3d class).
         orientation (str): Imaging data orientation (axial, sagittal or coronal).
         scan_type (str): Imaging modality (MRscan, CTscan...).
-        interp (bool): Specifies if we need to use an interpolation 
-            process prior to "get_polygon_mask()" in the slice axis direction.
-            - True: Interpolation is performed in the slice axis dimensions. 
-                To be further tested, thus please use with caution (True is safer).
-            - Fale (default): No interpolation. This can definitely be safe 
-                when the RTstruct has been saved specifically for the volume of 
-                interest.
+        interp (bool): Specifies if we need to use an interpolation
+                       process prior to "get_polygon_mask()" in the slice axis direction.
+                       - True: Interpolation is performed in the slice axis dimensions.
+                               To be further tested, thus please use with caution (True is safer).
+                       - False (default): No interpolation. This can definitely be safe
+                                          when the RTstruct has been saved specifically for the volume of
+                                          interest.
     Returns:
         ndarray: 3D array of 1's and 0's defining the ROI mask.
 
-    TODO:
+    Todo:
         * USING INTERPOLATION --> THIS PART NEEDS TO BE FURTHER TESTED.
         * Consider changing to if statement. Changing interp variable here
-        will change the interp variable everywhere    
-       
+        will change the interp variable everywhere
     """
+
     while interp:
         # Initialization
         if orientation == "Axial":
@@ -93,14 +97,14 @@ def compute_roi(roi_xyz, spatial_ref, orientation, scan_type, interp=False) -> n
         new_size = round(spatial_ref.ImageExtentInWorld(
             axis=direction) / slice_spacing)
         res_xyz[dim_xyz] = slice_spacing
-        sz = spatial_ref.ImageSize.copy()
-        sz[dim_ijk] = new_size
+        s_z = spatial_ref.ImageSize.copy()
+        s_z[dim_ijk] = new_size
 
         xWorldLimits = spatial_ref.XWorldLimits.copy()
         yWorldLimits = spatial_ref.YWorldLimits.copy()
         zWorldLimits = spatial_ref.ZWorldLimits.copy()
 
-        new_spatial_ref = imref3d(imageSize=sz, 
+        new_spatial_ref = imref3d(imageSize=s_z, 
                                 pixelExtentInWorldX=res_xyz[0],
                                 pixelExtentInWorldY=res_xyz[1],
                                 pixelExtentInWorldZ=res_xyz[2],
@@ -117,7 +121,8 @@ def compute_roi(roi_xyz, spatial_ref, orientation, scan_type, interp=False) -> n
 
             # Sampled volume is now centered on queried volume.
             new_spatial_ref.WorldLimits(axis=direction, newValue=(new_spatial_ref.WorldLimits(axis=direction) -
-                                                                (new_spatial_ref.WorldLimits(axis=direction)[0] - new_limit)))
+                                                                (new_spatial_ref.WorldLimits(axis=direction)[0] - 
+                                                                 new_limit)))
         else:
             # Less than a 0.01 mm, sampled and queried volume are considered
             # to be the same. At this point,

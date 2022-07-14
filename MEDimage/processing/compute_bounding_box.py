@@ -14,7 +14,6 @@ def compute_bounding_box(mask) -> np.ndarray:
 
     Returns:
         ndarray: An array containing the indexes of the bounding box.
-
     """
 
     indices = np.where(np.reshape(mask, np.size(mask), order='F') == 1)

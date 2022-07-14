@@ -2,13 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import math
-from typing import Tuple, Union
+from types import UnionType
+from typing import List, Tuple, Union
 
 import numpy as np
 from skimage.measure import marching_cubes
 
 
-def find_i_x(levels, fract_vol, x) -> np.ndarray:
+def find_i_x(levels: np.ndarray,
+             fract_vol: np.ndarray,
+             x: float) -> np.ndarray:
     """Computes intensity at volume fraction.
 
     Args:
@@ -26,7 +29,9 @@ def find_i_x(levels, fract_vol, x) -> np.ndarray:
 
     return ix
     
-def find_v_x(fract_int, fract_vol, x) -> np.ndarray:
+def find_v_x(fract_int: np.ndarray,
+             fract_vol: np.ndarray,
+             x: float) -> np.ndarray:
     """Computes volume at intensity fraction.
 
     Args:
@@ -44,7 +49,10 @@ def find_v_x(fract_int, fract_vol, x) -> np.ndarray:
 
     return vx
 
-def get_area_dens_approx(a, b, c, n) -> float:
+def get_area_dens_approx(a: float,
+                         b: float,
+                         c: float,
+                         n: float) -> float:
     """Computes area density - minimum volume enclosing ellipsoid
     
     Args:
@@ -72,7 +80,7 @@ def get_area_dens_approx(a, b, c, n) -> float:
 
     return a_ell
 
-def get_axis_lengths(xyz) -> Tuple[float, float, float]:
+def get_axis_lengths(xyz: np.ndarray) -> Tuple[float, float, float]:
     """Computes AxisLengths.
     
     Args:
@@ -107,7 +115,7 @@ def get_axis_lengths(xyz) -> Tuple[float, float, float]:
 
     return major, minor, least
 
-def get_glcm_cross_diag_prob(p_ij) -> np.ndarray:
+def get_glcm_cross_diag_prob(p_ij: np.ndarray) -> np.ndarray:
     """Computes cross diagonal probabilities.
 
     Args:
@@ -137,7 +145,7 @@ def get_glcm_cross_diag_prob(p_ij) -> np.ndarray:
 
     return p_iplusj
 
-def get_glcm_diag_prob(p_ij) -> np.ndarray:
+def get_glcm_diag_prob(p_ij: np.ndarray) -> np.ndarray:
     """Computes diagonal probabilities.
 
     Args:
@@ -168,7 +176,11 @@ def get_glcm_diag_prob(p_ij) -> np.ndarray:
 
     return p_iminusj
 
-def get_com(xgl_int, xgl_morph, xyz_int, xyz_morph) -> Union[float, np.ndarray]:
+def get_com(xgl_int: np.ndarray,
+            xgl_morph: np.ndarray,
+            xyz_int: np.ndarray,
+            xyz_morph: np.ndarray) -> Union[float,
+                                            np.ndarray]:
     """Calculates center of mass shift (in mm, since resolution is in mm).
 
     Note: 
@@ -207,7 +219,9 @@ def get_com(xgl_int, xgl_morph, xyz_int, xyz_morph) -> Union[float, np.ndarray]:
 
     return com
 
-def get_loc_peak(img_obj, roi_obj, res) -> float:
+def get_loc_peak(img_obj: np.ndarray,
+                 roi_obj: np.ndarray,
+                 res: np.ndarray) -> float:
     """Computes Local intensity peak.
 
     Note:
@@ -271,7 +285,10 @@ def get_loc_peak(img_obj, roi_obj, res) -> float:
 
     return local_peak
 
-def get_mesh(mask, res) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def get_mesh(mask: np.ndarray,
+             res: Union[np.ndarray, List]) -> Tuple[np.ndarray,
+                                                    np.ndarray,
+                                                    np.ndarray]:
     """Compute Mesh.
 
     Note:
@@ -314,7 +331,9 @@ def get_mesh(mask, res) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
 
     return xyz, faces, vertices
 
-def get_glob_peak(img_obj, roi_obj, res) -> float:
+def get_glob_peak(img_obj: np.ndarray,
+                  roi_obj: np.ndarray,
+                  res: np.ndarray) -> float:
     """Computes Global intensity peak.
 
     Note:

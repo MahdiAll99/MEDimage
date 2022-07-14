@@ -5,7 +5,8 @@ import numpy as np
 from scipy.stats import iqr, kurtosis, skew, scoreatpercentile, variation
 
 
-def extract_all(vol: np.ndarray, intensity: str = None) -> dict:
+def extract_all(vol: np.ndarray,
+                intensity: str = None) -> dict:
     """Compute Intensity-based statistical features.
     This features refer to Intensity-based statistical family in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
