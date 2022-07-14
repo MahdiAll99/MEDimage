@@ -1,9 +1,12 @@
+from ast import Return
 import json
 import logging
 import os
+import re
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
+from time import time
 from typing import List, Union
 
 import nibabel as nib
@@ -17,6 +20,11 @@ from MEDimage.MEDimage import MEDimage
 from MEDimage.utils.imref import imref3d
 from tqdm import tqdm, trange
 
+from ..processing.compute_suv_map import compute_suv_map
+from ..processing.get_roi import get_roi
+from ..utils.get_file_paths import get_file_paths
+from ..utils.get_patient_names import get_patient_names
+from ..utils.json_utils import load_json
 from ..utils.save_MEDimage import save_MEDimage
 from .process_dicom_scan_files import process_dicom_scan_files as pdsf
 
@@ -49,7 +57,10 @@ class DataManager(object):
             self, 
             path_to_dicoms: List = [],
             path_to_niftis: List = [],
-            path_save: Path = None,
+            path_csv: Union[Path, str] = None,
+            path_save: Union[Path, str] = None,
+            path_save_checks: Union[Path, str] = None,
+            path_pre_checks_settings: Union[Path, str] = None,
             save: bool = False,
             keep_instances: bool = True,
             n_batch: int = 2
@@ -57,11 +68,11 @@ class DataManager(object):
         """Constructor of the class DataManager.
 
         Args:
-            path_to_dicoms (Path, optional): Path specifying the full path to the starting directory
+            path_to_dicoms (Union[Path, str], optional): Path specifying the full path to the starting directory
                 where the DICOM data is located.
-            path_to_niftis (Path, optional): Path specifying the full path to the starting directory
+            path_to_niftis (Union[Path, str], optional): Path specifying the full path to the starting directory
                 where the NIfTI is located.
-            path_save (Path, optional): Full path to the directory where to save all the MEDimage classes.
+            path_save (Union[Path, str], optional): Full path to the directory where to save all the MEDimage classes.
             save (bool, optional): True to save the MEDimage classes, False to return them.
             keep_instances(bool, optional): If True, will keep the created MEDimage instances in
                 the `instances` attribute.
@@ -73,7 +84,10 @@ class DataManager(object):
         """
         self._path_to_dicoms = path_to_dicoms
         self._path_to_niftis = path_to_niftis
+        self._path_csv = path_csv
+        self._path_pre_checks_settings = path_pre_checks_settings
         self._path_save = path_save
+        self._path_save_checks = path_save_checks
         self.save = save
         self.keep_instances = keep_instances
         self.n_batch = n_batch
@@ -620,3 +634,290 @@ class DataManager(object):
                                             }, ignore_index=True)
         self.summary = summary
         print(summary.to_string(index=False))
+
+    def pre_checks_init(
+            self, 
+            path_save_checks: Union[Path, str], 
+            path_csv: Union[Path, str],
+            force: bool = False
+        ) -> None:
+        """Initializes all the class attributes needed to run pre-readiomics check methods.
+
+        This method is useful to make sure all the important attributes are ready before running
+        radiomics pre-checks, in case these attributes were not specified during the class intialization.
+
+        Args:
+            path_save_checks(Union[Path, str]): Path to where the radiomics checks are gonna be saved.
+            path_csv(Union[Path, str]): Path to the csv file that will be used to read scans.
+            fore(bool, optional): If ture, will replace the values of the existing attributes and
+                will skip (keep the originals) if false.
+        """
+        if self._path_save_checks and force:
+            self._path_save_checks = path_save_checks
+        if self._path_csv and force:
+            self._path_csv = path_csv
+
+    def __pre_radiomics_checks_dimensions(self, wildcards_dimensions: List = [], use_instances: bool = True):
+        """
+        """
+        @dataclass
+        class xyDim:
+            data = []
+            mean = []
+            median = []
+            std = []
+            min = []
+            max = []
+            p5 = []
+            p95 = []
+
+        @dataclass
+        class zDim:
+            data = []
+            mean = []
+            median = []
+            std = []
+            min = []
+            max = []
+            p5 = []
+            p95 = []
+
+        if len(wildcards_dimensions) == 0 and not use_instances:
+            print("Wildcard is empty and instances use is not allowed, the pre-checks will be aborted")
+            return
+
+        # TODO: seperate by studies and scan type (MRscan, CTscan...)
+        # TODO: Two summaries (df, list of names saves) -> name_save = name_save(ROI) : Glioma-Huashan-001__T1.MRscan.npy({GTV})
+        file_paths = list()
+        if use_instances:
+                n_instances = len(self.instances)
+                xyDim.data = np.zeros((n_instances, 1))
+                xyDim.data = np.multiply(xyDim.data, np.nan)
+                zDim.data = np.zeros((n_instances, 1))
+                zDim.data = np.multiply(zDim.data, np.nan)
+                for i in tqdm(range(len(self.instances))):
+                    try:
+                        MEDimg = self.instances[i]
+                        xyDim.data[i] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
+                        zDim.data[i]  = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
+                    except Exception as e:
+                        print(e)
+                # Running analysis
+                xyDim.data = np.concatenate(xyDim.data)
+                xyDim.mean = np.mean(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.median = np.median(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.std = np.std(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.min = np.min(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.max = np.max(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.p5 = np.percentile(xyDim.data[~np.isnan(xyDim.data)], 5)
+                xyDim.p95 = np.percentile(xyDim.data[~np.isnan(xyDim.data)], 95)
+                zDim.mean = np.mean(zDim.data[~np.isnan(zDim.data)])
+                zDim.median = np.median(zDim.data[~np.isnan(zDim.data)])
+                zDim.std = np.std(zDim.data[~np.isnan(zDim.data)])
+                zDim.min = np.min(zDim.data[~np.isnan(zDim.data)])
+                zDim.max = np.max(zDim.data[~np.isnan(zDim.data)])
+                zDim.p5 = np.percentile(zDim.data[~np.isnan(zDim.data)], 5)
+                zDim.p95 = np.percentile(zDim.data[~np.isnan(zDim.data)], 95)
+
+                # Saving files using wildcard for name
+                wildcard = wildcards_dimensions[0]
+                wildcard = str(wildcard).replace('*', '')
+                np.save(self._path_save_checks / ('xyDim_' + wildcard), xyDim)
+                np.save(self._path_save_checks / ('zDim_' + wildcard), zDim)
+        else:
+            for w in range(len(wildcards_dimensions)):
+                wildcard = wildcards_dimensions[w]
+                file_paths = get_file_paths(self._path_save, wildcard)
+                n_files = len(file_paths)
+                xyDim.data = np.zeros((n_files, 1))
+                xyDim.data = np.multiply(xyDim.data, np.nan)
+                zDim.data = np.zeros((n_files, 1))
+                zDim.data = np.multiply(zDim.data, np.nan)
+                for f in tqdm(range(len(file_paths))):
+                    try:
+                        MEDimg = np.load(file_paths[0], allow_pickle=True)
+                        xyDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
+                        zDim.data[f]  = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
+                    except Exception as e:
+                        print(e)
+
+                xyDim.data = np.concatenate(xyDim.data)
+                xyDim.mean = np.mean(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.median = np.median(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.std = np.std(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.min = np.min(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.max = np.max(xyDim.data[~np.isnan(xyDim.data)])
+                xyDim.p5 = np.percentile(xyDim.data[~np.isnan(xyDim.data)], 5)
+                xyDim.p95 = np.percentile(xyDim.data[~np.isnan(xyDim.data)], 95)
+                zDim.mean = np.mean(zDim.data[~np.isnan(zDim.data)])
+                zDim.median = np.median(zDim.data[~np.isnan(zDim.data)])
+                zDim.std = np.std(zDim.data[~np.isnan(zDim.data)])
+                zDim.min = np.min(zDim.data[~np.isnan(zDim.data)])
+                zDim.max = np.max(zDim.data[~np.isnan(zDim.data)])
+                zDim.p5 = np.percentile(zDim.data[~np.isnan(zDim.data)], 5)
+                zDim.p95 = np.percentile(zDim.data[~np.isnan(zDim.data)], 95)
+
+                # Saving files using wildcard for name
+                wildcard = str(wildcard).replace('*', '')
+                np.save(self._path_save_checks / ('xyDim_' + wildcard), xyDim)
+                np.save(self._path_save_checks / ('zDim_' + wildcard), zDim)
+
+    def __pre_radiomics_checks_window(
+            self, 
+            wildcards_window: List = [], 
+            use_instances: bool = True
+        ) -> None:
+        """
+        """
+        @dataclass
+        class roiData:
+            data = []
+            mean = []
+            median = []
+            std = []
+            min = []
+            max = []
+            p5 = []
+            p95 = []
+
+        if len(wildcards_window) == 0:
+            print("Wilcards is empty")
+            return
+        if not use_instances:
+            roi_table = pd.read_csv(self._path_csv)
+            roi_names = [[], [], []]
+            roi_names[0] = roi_table['PatientID']
+            roi_names[1] = roi_table['ImagingScanName']
+            roi_names[2] = roi_table['ImagingModality']
+            patient_names = get_patient_names(roi_names)
+
+        temp_val = []
+        temp = []
+        file_paths = []
+        if not use_instances:
+            for w in range(len(wildcards_window)):
+                wildcard = wildcards_window[w]
+                file_paths = get_file_paths(self._path_save, wildcard)
+            n_files = len(file_paths)
+            for f in tqdm(range(n_files)):
+                file = file_paths[0]
+                _, filename = os.path.split(file)
+                filename, ext = os.path.splitext(filename)
+                patient_name = filename + ext
+                try:
+                    MEDimg = np.load(file, allow_pickle=True)
+                    if re.search('PTscan', wildcard):
+                        MEDimg.scan.volume.data = compute_suv_map(
+                                                    np.double(MEDimg.scan.volume.data), 
+                                                    MEDimg.dicomH[2])
+                    patient_names = pd.Index(patient_names)
+                    ind_roi = patient_names.get_loc(patient_name)
+                    name_roi = roi_table.loc[ind_roi][3]
+                    vol_obj_init, roi_obj_init = get_roi(MEDimg, name_roi, 'box')
+                    temp = vol_obj_init.data[roi_obj_init.data == 1]
+                    temp_val.append(len(temp))
+                    roiData.data.append(np.zeros(shape=(n_files, temp_val[f])))
+                    roiData.data[f] = temp
+                except:
+                    roiData.data[f] = []
+        else:
+            for i in tqdm(range(self.instances)):
+                instance = self.instances[i]
+                patient_name = instance.name
+                try:
+                    if re.search('PTscan', wildcard):
+                        instance.scan.volume.data = compute_suv_map(np.double(instance.scan.volume.data), instance.dicomH[2])
+                    patient_names = pd.Index(patient_names)
+                    ind_roi = patient_names.get_loc(patient_name)
+                    name_roi = roi_table.loc[ind_roi][3]
+                    vol_obj_init, roi_obj_init = get_roi(instance, name_roi, 'box')
+                    temp = vol_obj_init.data[roi_obj_init.data == 1]
+                    temp_val.append(len(temp))
+                    roiData.data.append(np.zeros(shape=(n_files, temp_val[f])))
+                    roiData.data[f] = temp
+                except:
+                    roiData.data[f] = []
+
+        roiData.data = np.concatenate(roiData.data)
+        roiData.mean = np.mean(roiData.data[~np.isnan(roiData.data)])
+        roiData.median = np.median(roiData.data[~np.isnan(roiData.data)])
+        roiData.std = np.std(roiData.data[~np.isnan(roiData.data)])
+        roiData.min = np.min(roiData.data[~np.isnan(roiData.data)])
+        roiData.max = np.max(roiData.data[~np.isnan(roiData.data)])
+        roiData.p5 = np.percentile(roiData.data[~np.isnan(roiData.data)], 5)
+        roiData.p95 = np.percentile(roiData.data[~np.isnan(roiData.data)], 95)
+
+        # save final checks
+        np.save(self._path_save_checks / ('roiData_' + wildcard), roiData)
+
+    def pre_radiomics_checks(self, use_instances: bool = True) -> None:
+        """Finds proper dimension and re-segmentation ranges options for radiomics analyses. 
+        
+        The resulting files from this method can then be analyzed and used to set up radiomics 
+        parameters options in computation methods.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        # Initialization
+        path_study = Path.cwd()
+
+        # Load params
+        settings = self._path_pre_checks_settings
+        settings = load_json(settings)
+        settings = settings['pre_radiomics_checks']  
+
+        # Setting up paths
+        if 'path_save_checks' in settings and settings['path_save_checks']:
+            self._path_save_checks = Path(settings['path_save_checks']) 
+        if 'path_csv' in settings and settings['path_csv']:
+            self._path_csv = Path(settings['path_csv']) 
+
+        # Wildcards of groups of files to analyze for dimensions in path_data.
+        # See for example: https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html
+        # Keep the cell empty if no dimension checks are to be performed.
+        wildcards_dimensions = []
+        for i in range(len(settings['wildcards_dimensions'])):
+            wildcards_dimensions.append(settings['wildcards_dimensions'][i])
+
+        # ROI intensity window checks params
+        wildcards_window = []
+        for i in range(len(settings['wildcards_window'])):
+            wildcards_window.append([settings['wildcards_window'][i]])
+
+        # PRE-RADIOMICS CHECKS
+        if not self._path_save_checks:
+            os.mkdir(path_study / 'checks')
+            self._path_save_checks = Path(path_study / 'checks')
+        else:
+            if self._path_save_checks.name != 'checks' and (self._path_save_checks / 'checks').exists():
+                self._path_save_checks /= 'checks'
+            else:
+                self._path_save_checks /= 'checks'
+                os.mkdir(self._path_save_checks)
+
+        start = time()
+        print('\n\n************************* PRE-RADIOMICS CHECKS *************************', end='')
+
+        # 1. PRE-RADIOMICS CHECKS -- DIMENSIONS
+        start1 = time()
+        print('\n--> PRE-RADIOMICS CHECKS -- DIMENSIONS ... ', end='')
+        self.__pre_radiomics_checks_dimensions(wildcards_dimensions, use_instances)
+        print('DONE', end='')
+        time1 = f"{time() - start1:.2f}"
+        print(f'\nElapsed time: {time1} sec', end='')
+
+        # 2. PRE-RADIOMICS CHECKS - WINDOW
+        start2 = time()
+        print('\n\n--> PRE-RADIOMICS CHECKS -- WINDOW ... \n', end='')
+        self.__pre_radiomics_checks_window(wildcards_window, use_instances)
+        print('DONE', end='')
+        time2 = f"{time() - start2:.2f}"
+        print(f'\nElapsed time: {time2} sec', end='')
+
+        time_elapsed = f"{time() - start:.2f}"
+        print(f'\n\n--> TOTAL TIME FOR PRE-RADIOMICS CHECKS: {time_elapsed} seconds')
+        print('-------------------------------------------------------------------------------------')
