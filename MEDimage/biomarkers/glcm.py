@@ -976,7 +976,7 @@ def get_dict(vol: np.ndarray)-> dict:
     glcm_dict = get_cm_features(vol, intensity_range=[np.nan, np.nan])
     return glcm_dict
 
-def joint_max(glcm_dict: dict) -> np.ndarray:
+def joint_max(glcm_dict: dict) -> float:
     """Computes joint maximum features
     This feature refers to "Fcm_joint_max" (id = GYBY) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -989,7 +989,7 @@ def joint_max(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_joint_max"]
 
-def joint_avg(glcm_dict: dict) -> np.ndarray:
+def joint_avg(glcm_dict: dict) -> float:
     """Computes joint  average features
     This feature refers to "Fcm_joint_avg" (id = 60VM) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1002,7 +1002,7 @@ def joint_avg(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_joint_avg"]
 
-def joint_var(glcm_dict: dict) -> np.ndarray:
+def joint_var(glcm_dict: dict) -> float:
     """Computes joint variance features
     This feature refers to "Fcm_var" (id = UR99) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1015,7 +1015,7 @@ def joint_var(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_joint_var"]
 
-def joint_entr(glcm_dict: dict) -> np.ndarray:
+def joint_entr(glcm_dict: dict) -> float:
     """Computes joint entropy features
     This feature refers to "Fcm_joint_entr" (id = TU9B) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1028,7 +1028,7 @@ def joint_entr(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_joint_entr"]
 
-def diff_avg(glcm_dict: dict) -> np.ndarray:
+def diff_avg(glcm_dict: dict) -> float:
     """Computes difference average features
     This feature refers to "Fcm_diff_avg" (id = TF7R) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1041,7 +1041,7 @@ def diff_avg(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_diff_avg"]
 
-def diff_var(glcm_dict: dict) -> np.ndarray:
+def diff_var(glcm_dict: dict) -> float:
     """Computes difference variance features
     This feature refers to "Fcm_diff_var" (id = D3YU) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1054,7 +1054,7 @@ def diff_var(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_diff_var"]
 
-def diff_entr(glcm_dict: dict) -> np.ndarray:
+def diff_entr(glcm_dict: dict) -> float:
     """Computes difference entropy features
     This feature refers to "Fcm_diff_entr" (id = NTRS) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1067,7 +1067,7 @@ def diff_entr(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_diff_entr"]
 
-def sum_avg(glcm_dict: dict) -> np.ndarray:
+def sum_avg(glcm_dict: dict) -> float:
     """Computes sum average features
     This feature refers to "Fcm_sum_avg" (id = ZGXS) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1080,7 +1080,7 @@ def sum_avg(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_sum_avg"]
 
-def sum_var(glcm_dict: dict) -> np.ndarray:
+def sum_var(glcm_dict: dict) -> float:
     """Computes sum variance features
     This feature refers to "Fcm_sum_var" (id = OEEB) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1093,7 +1093,7 @@ def sum_var(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_sum_var"]
 
-def sum_entr(glcm_dict: dict) -> np.ndarray:
+def sum_entr(glcm_dict: dict) -> float:
     """Computes sum entropy features
     This feature refers to "Fcm_sum_entr" (id = P6QZ) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1106,7 +1106,7 @@ def sum_entr(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_sum_entr"]
 
-def energy(glcm_dict: dict) -> np.ndarray:
+def energy(glcm_dict: dict) -> float:
     """Computes angular second moment features
     This feature refers to "Fcm_energy" (id = 8ZQL) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1119,7 +1119,7 @@ def energy(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_energy"]
 
-def contrast(glcm_dict: dict) -> np.ndarray:
+def contrast(glcm_dict: dict) -> float:
     """Computes constrast features
     This feature refers to "Fcm_contrast" (id = ACUI) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1132,7 +1132,7 @@ def contrast(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_contrast"]
 
-def dissimilarity(glcm_dict: dict) -> np.ndarray:
+def dissimilarity(glcm_dict: dict) -> float:
     """Computes dissimilarity features
     This feature refers to "Fcm_dissimilarity" (id = 8S9J) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1145,7 +1145,7 @@ def dissimilarity(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_dissimilarity"]
 
-def inv_diff(glcm_dict: dict) -> np.ndarray:
+def inv_diff(glcm_dict: dict) -> float:
     """Computes inverse difference features
     This feature refers to "Fcm_inv_diff" (id = IB1Z) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1158,7 +1158,7 @@ def inv_diff(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_inv_diff"]
 
-def inv_diff_norm(glcm_dict: dict) -> np.ndarray:
+def inv_diff_norm(glcm_dict: dict) -> float:
     """Computes inverse difference normalised features
     This feature refers to "Fcm_inv_diff_norm" (id = NDRX) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1171,7 +1171,7 @@ def inv_diff_norm(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_inv_diff_norm"]
 
-def inv_diff_mom(glcm_dict: dict) -> np.ndarray:
+def inv_diff_mom(glcm_dict: dict) -> float:
     """Computes inverse difference moment features
     This feature refers to "Fcm_inv_diff_mom" (id = WF0Z) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1184,7 +1184,7 @@ def inv_diff_mom(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_inv_diff_mom"]
 
-def inv_diff_mom_norm(glcm_dict: dict) -> np.ndarray:
+def inv_diff_mom_norm(glcm_dict: dict) -> float:
     """Computes inverse difference moment normalised features
     This feature refers to "Fcm_inv_diff_mom_norm" (id = 1QCO) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1197,7 +1197,7 @@ def inv_diff_mom_norm(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_inv_diff_mom_norm"]
 
-def inv_var(glcm_dict: dict) -> np.ndarray:
+def inv_var(glcm_dict: dict) -> float:
     """Computes inverse variance features
     This feature refers to "Fcm_inv_var" (id = E8JP) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1210,7 +1210,7 @@ def inv_var(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_inv_var"]
 
-def corr(glcm_dict: dict) -> np.ndarray:
+def corr(glcm_dict: dict) -> float:
     """Computes correlation features
     This feature refers to "Fcm_corr" (id = NI2N) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1223,7 +1223,7 @@ def corr(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_corr"]
 
-def auto_corr(glcm_dict: dict) -> np.ndarray:
+def auto_corr(glcm_dict: dict) -> float:
     """Computes autocorrelation features
     This feature refers to "Fcm_auto_corr" (id = QWB0) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1236,7 +1236,7 @@ def auto_corr(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_auto_corr"]
 
-def info_corr1(glcm_dict: dict) -> np.ndarray:
+def info_corr1(glcm_dict: dict) -> float:
     """Computes information correlation 1 features
     This feature refers to "Fcm_info_corr1" (id = R8DG) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1249,7 +1249,7 @@ def info_corr1(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_info_corr1"]
 
-def info_corr2(glcm_dict: dict) -> np.ndarray:
+def info_corr2(glcm_dict: dict) -> float:
     """Computes information correlation 2 features - Note: iteration over combinations of i and j
     This feature refers to "Fcm_info_corr2" (id = JN9H) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1262,7 +1262,7 @@ def info_corr2(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_info_corr2"]
 
-def clust_tend(glcm_dict: dict) -> np.ndarray:
+def clust_tend(glcm_dict: dict) -> float:
     """Computes cluster tendency features
     This feature refers to "Fcm_clust_tend" (id = DG8W) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1275,7 +1275,7 @@ def clust_tend(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_clust_tend"]
 
-def clust_shade(glcm_dict: dict) -> np.ndarray:
+def clust_shade(glcm_dict: dict) -> float:
     """Computes cluster shade features
     This feature refers to "Fcm_clust_shade" (id = 7NFM) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -1288,7 +1288,7 @@ def clust_shade(glcm_dict: dict) -> np.ndarray:
     """
     return glcm_dict["Fcm_clust_shade"]
 
-def clust_prom(glcm_dict: dict) -> np.ndarray:
+def clust_prom(glcm_dict: dict) -> float:
     """Computes cluster prominence features
     This feature refers to "Fcm_clust_prom" (id = AE86) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
