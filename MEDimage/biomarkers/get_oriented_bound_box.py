@@ -2,23 +2,38 @@
 # -*- coding: utf-8 -*-
 
 import copy
+from typing import List
 
 import numpy as np
 import pandas as pd
 from scipy.spatial import ConvexHull
 
 
-def min_oriented_bound_box(pos_mat):
-    # Implementation of Chan and Tan's algorithm (C.K. Chan, S.T. Tan.
-    # Determination of the minimum bounding box of an
-    # arbitrary solid: an iterative approach. Comp Struc 79 (2001) 1433-1449
+def min_oriented_bound_box(pos_mat: np.ndarray) -> np.ndarray:
+    """Determination of the minimum bounding box of an arbitrary solid: an iterative approach.
+
+    Args:
+        pos_mat (ndarray): matrix position
+
+    Returns:
+        ndarray: return bounding box dimensions
+    """
 
     ##########################
     # Internal functions
     ##########################
 
-    def calc_rot_aabb_surface(theta, hull_mat):
-        # Function to calculate surface of the axis-aligned bounding box of a rotated 2D contour
+    def calc_rot_aabb_surface(theta: float,
+                              hull_mat: np.ndarray) -> np.ndarray:
+        """Function to calculate surface of the axis-aligned bounding box of a rotated 2D contour
+
+        Args:
+            theta (float): angle in radian
+            hull_mat (nddarray): convex hull matrix
+
+        Returns:
+            ndarray: the surface of the axis-aligned bounding box of a rotated 2D contour
+        """
 
         # Create rotation matrix and rotate over theta
         rot_mat = rot_matrix(theta=theta, dim=2)
@@ -30,8 +45,22 @@ def min_oriented_bound_box(pos_mat):
 
         return rot_aabb_area
 
-    def approx_min_theta(hull_mat, theta_sel, res, max_rep=5):
-        # Iterative approximator for finding angle theta that minimises surface area
+    def approx_min_theta(hull_mat: np.ndarray,
+                         theta_sel: float,
+                         res: float,
+                         max_rep: int=5) -> np.ndarray:
+        """Iterative approximator for finding angle theta that minimises surface area
+
+        Args:
+            hull_mat (ndarray): convex hull matrix
+            theta_sel (float): angle in radian
+            res (float): value in radian
+            max_rep (int, optional): maximum repetition. Defaults to 5.
+
+        Returns:
+            ndarray: the angle theta that minimises surfae area
+        """
+
         for i in np.arange(0, max_rep):
 
             # Select new thetas in vicinity of
@@ -50,10 +79,24 @@ def min_oriented_bound_box(pos_mat):
 
         return theta_sel
 
-    def rotate_minimal_projection(input_pos, rot_axis, n_minima=3, res_init=5.0):
-        # Function to that rotates input_pos to find the rotation that
-        # minimises the projection of input_pos on the
-        # plane normal to the rot_axis
+    def rotate_minimal_projection(input_pos: float,
+                                  rot_axis: int,
+                                  n_minima: int=3,
+                                  res_init: float=5.0):
+        """Function to that rotates input_pos to find the rotation that
+        minimises the projection of input_pos on the
+        plane normal to the rot_axis
+
+        Args:
+            input_pos (float): input position value
+            rot_axis (int): rotation axis value
+            n_minima (int, optional): _description_. Defaults to 3.
+            res_init (float, optional): _description_. Defaults to 5.0.
+
+        Returns:
+            _type_: _description_
+        """
+
 
         # Find axis aligned bounding box of the point set
         aabb_max = np.max(input_pos, axis=0)
@@ -173,8 +216,20 @@ def min_oriented_bound_box(pos_mat):
     return ombb_dims
 
 
-def rot_matrix(theta, dim=2, rot_axis=-1):
-    # Creates a 2d or 3d rotation matrix
+def rot_matrix(theta: float,
+               dim: int=2,
+               rot_axis: int=-1) -> np.ndarray:
+    """Creates a 2d or 3d rotation matrix
+
+    Args:
+        theta (float): angle in radian
+        dim (int, optional): dimension size. Defaults to 2.
+        rot_axis (int, optional): rotation axis value. Defaults to -1.
+
+    Returns:
+        ndarray: rotation matrix
+    """
+
     if dim == 2:
         rot_mat = np.array([[np.cos(theta), -np.sin(theta)],
                             [np.sin(theta), np.cos(theta)]])
@@ -200,8 +255,15 @@ def rot_matrix(theta, dim=2, rot_axis=-1):
     return rot_mat
 
 
-def sig_proc_segmentise(x):
-    # Produces a list of segments from input x with values (0,1)
+def sig_proc_segmentise(x: List) -> List:
+    """Produces a list of segments from input x with values (0,1)
+
+    Args:
+        x (List): list of values
+
+    Returns:
+        List: list of segments from input x with values (0,1)
+    """
 
     # Create a difference vector
     y = np.diff(x)
@@ -263,8 +325,17 @@ def sig_proc_segmentise(x):
     return df_segm
 
 
-def sig_proc_find_peaks(x, ddir="pos"):
-    # Determines peak positions in array of values
+def sig_proc_find_peaks(x: float,
+                        ddir: str="pos") -> pd.DataFrame:
+    """Determines peak positions in array of values
+
+    Args:
+        x (float): value
+        ddir (str, optional): positive or negative value. Defaults to "pos".
+
+    Returns:
+        pd.DataFrame: peak positions in array of values
+    """
 
     # Invert when looking for local minima
     if ddir == "neg":

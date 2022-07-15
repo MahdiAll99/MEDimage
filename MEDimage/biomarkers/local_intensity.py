@@ -8,7 +8,10 @@ from numpy import ndarray
 from ..biomarkers.utils import get_glob_peak, get_loc_peak
 
 
-def extract_all(img_obj: ndarray, roi_obj: ndarray, res: ndarray, intensity=None) -> Dict:
+def extract_all(img_obj: ndarray,
+                roi_obj: ndarray,
+                res: ndarray,
+                intensity=None) -> Dict:
     """Compute Local Intensity Features.
     This features refer to Local Intensity family in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
 
@@ -50,7 +53,9 @@ def extract_all(img_obj: ndarray, roi_obj: ndarray, res: ndarray, intensity=None
 
     return loc_int
 
-def peak_local(img_obj: ndarray, roi_obj: ndarray, res: ndarray) -> float:
+def peak_local(img_obj: ndarray,
+               roi_obj: ndarray,
+               res: ndarray) -> float:
     """Computes local intensity peak.
     This feature refers to "Floc_peak_local" (id = VJGA) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -67,7 +72,9 @@ def peak_local(img_obj: ndarray, roi_obj: ndarray, res: ndarray) -> float:
     """
     return get_loc_peak(img_obj, roi_obj, res)
 
-def peak_global(img_obj: ndarray, roi_obj: ndarray, res: ndarray) -> float:
+def peak_global(img_obj: ndarray,
+                roi_obj: ndarray,
+                res: ndarray) -> float:
     """Computes global intensity peak.
     This feature refers to "Floc_peak_global" (id = 0F91) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)

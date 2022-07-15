@@ -4,13 +4,13 @@
 import numpy as np
 
 
-def batch_patients(n_patient, n_batch) -> np.ndarray:
+def batch_patients(n_patient: int,
+                   n_batch: int) -> np.ndarray:
     """Replaces volume intensities outside the ROI with NaN.
 
     Args:
         n_patient (int): Number of patient.
-        n_batch (int): Number of batch, usually less or equal
-            to the cores number on your machine.
+        n_batch (int): Number of batch, usually less or equal to the cores number on your machine.
 
     Returns:
         ndarray: List of indexes with size n_batch and max value n_patient.

@@ -15,8 +15,7 @@ def compute_roi(roi_xyz: np.ndarray,
                 orientation: str,
                 scan_type: str,
                 interp=False) -> np.ndarray:
-    """
-    Computes the ROI (Region of interest) mask using the XYZ coordinates.
+    """Computes the ROI (Region of interest) mask using the XYZ coordinates.
 
     Note:
         HERE, ONLY THE DIMENSION OF SLICES IS ACTAULLY INTERPOLATED --> THIS IS

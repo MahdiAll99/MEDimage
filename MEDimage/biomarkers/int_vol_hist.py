@@ -190,7 +190,7 @@ def extract_all(MEDimg: MEDimage,
 
     return int_vol_hist
 
-def V10(MEDimg: MEDimage, 
+def v10(MEDimg: MEDimage, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
@@ -239,7 +239,7 @@ def V10(MEDimg: MEDimage,
 
     return v10
 
-def V90(MEDimg: MEDimage, 
+def v90(MEDimg: MEDimage, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
@@ -288,7 +288,7 @@ def V90(MEDimg: MEDimage,
 
     return v90
 
-def I10(MEDimg: MEDimage, 
+def i10(MEDimg: MEDimage, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
@@ -337,7 +337,7 @@ def I10(MEDimg: MEDimage,
 
     return i10
 
-def I90(MEDimg: MEDimage, 
+def i90(MEDimg: MEDimage, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
@@ -386,7 +386,7 @@ def I90(MEDimg: MEDimage,
 
     return i90
 
-def V10minusV90(MEDimg: MEDimage, 
+def v10_minus_v90(MEDimg: MEDimage, 
                 vol: np.ndarray, 
                 vol_int_re: np.ndarray, 
                 wd: int, 
@@ -438,7 +438,7 @@ def V10minusV90(MEDimg: MEDimage,
 
     return v10 - v90
 
-def I10minusI90(MEDimg: MEDimage, 
+def i10_minus_i90(MEDimg: MEDimage, 
                 vol: np.ndarray, 
                 vol_int_re: np.ndarray, 
                 wd: int, 

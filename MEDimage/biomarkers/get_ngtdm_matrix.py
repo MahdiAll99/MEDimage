@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from ctypes import Union
 from typing import Tuple
 
 import numpy as np
+from pyparsing import Optional
 
 
-def get_ngtdm_matrix(roi_only, levels, dist_correction=False) -> Tuple[np.ndarray, np.ndarray]:
+def get_ngtdm_matrix(roi_only:np.ndarray,
+                     levels:np.ndarray,
+                     dist_correction: Union[str, Optional]=False) -> Tuple[np.ndarray, np.ndarray]:
     """Computes ngtdm matrix.
 
     This function computes the Neighborhood Gray-Tone Difference Matrix

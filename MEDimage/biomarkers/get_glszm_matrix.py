@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from ctypes import Union
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import numpy as np
 import skimage.measure as skim

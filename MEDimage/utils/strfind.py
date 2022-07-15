@@ -5,7 +5,8 @@ from re import finditer
 from typing import List
 
 
-def strfind(pattern, string) -> List[int]:
+def strfind(pattern: str,
+            string: str) -> List[int]:
     """Finds indices of pattern in string. Based on regex.
 
     Note:
@@ -16,13 +17,10 @@ def strfind(pattern, string) -> List[int]:
         string (str): String used to find matches.
 
     Returns:
-        List[int]: List of indexes of every occurence of pattern
-            in the passed string.
-    
-    Raises:
-        ValueError: If the pattern does not use backslash with 
-            special regex symbols
+        List[int]: List of indexes of every occurence of pattern in the passed string.
 
+    Raises:
+        ValueError: If the pattern does not use backslash with special regex symbols
     """
 
     if pattern in ('+', '-'):

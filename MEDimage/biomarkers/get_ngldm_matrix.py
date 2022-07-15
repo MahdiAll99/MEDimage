@@ -4,7 +4,8 @@
 import numpy as np
 
 
-def get_ngldm_matrix(roi_only, levels) -> float:
+def get_ngldm_matrix(roi_only: np.array,
+                     levels: np.ndarray) -> float:
     """Compute NGLDMmatrix.
 
     Args:

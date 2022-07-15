@@ -8,21 +8,17 @@ import numpy as np
 from ..utils.strfind import strfind
 
 
-def parse_contour_string(contour_string) -> Union[
-                                        Tuple[float, List[str]], 
-                                        Tuple[int, List[str]], 
-                                        Tuple[List[int], List[str]]
-                                        ]:
-    """Finds the delimeters('+' and '-') and the contour indexe(s)
-    from the given string.
+def parse_contour_string(contour_string) -> Union[Tuple[float, List[str]],
+                                                  Tuple[int, List[str]],
+                                                  Tuple[List[int], List[str]]]:
+    """Finds the delimeters('+' and '-') and the contour indexe(s) from the given string.
 
     Args:
         contour_string (str, float or int): Index or string of indexes with
         delimeters. FOR EXAMPLE '3' or '1-3+2'.
 
     Returns:
-        float, int: If `contour_string` is a an int or float we return 
-            `contour_string`.
+        float, int: If `contour_string` is a an int or float we return `contour_string`.
         List[str]: List of the delimeters.
         List[int]: List of the contour indexes.
 
@@ -33,7 +29,6 @@ def parse_contour_string(contour_string) -> Union[
         >>> contour_string = 1
         >>> parse_contour_string(contour_string)
         1, []
-
     """
 
     if isinstance(contour_string, (int, float)):

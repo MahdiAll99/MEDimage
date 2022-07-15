@@ -9,13 +9,15 @@ import numpy as np
 from ..biomarkers.get_gldzm_matrix import get_gldzm_matrix
 
 
-def extract_all(vol_int: np.ndarray, mask_morph: np.ndarray, gldzm: np.ndarray = None) -> Dict:
+def extract_all(vol_int: np.ndarray,
+                mask_morph: np.ndarray,
+                gldzm: np.ndarray = None) -> Dict:
     """Compute gldzm features.
 
      Args:
         vol_int: 3D volume, isotropically resampled,
-            quantized (e.g. n_g = 32, levels = [1, ..., n_g]),
-            with NaNs outside the region of interest.
+                 quantized (e.g. n_g = 32, levels = [1, ..., n_g]),
+                 with NaNs outside the region of interest.
         mask_morph: Morphological ROI mask.
 
     Returns:
@@ -121,8 +123,8 @@ def get_matrix(vol_int: np.ndarray, mask_morph: np.ndarray) -> np.ndarray:
 
     Args:
         vol_int (ndarray): 3D volume, isotropically resampled,
-            quantized (e.g. n_g = 32, levels = [1, ..., n_g]),
-            with NaNs outside the region of interest.
+                           quantized (e.g. n_g = 32, levels = [1, ..., n_g]),
+                           with NaNs outside the region of interest.
         mask_morph (ndarray): Morphological ROI mask.
 
     Returns:

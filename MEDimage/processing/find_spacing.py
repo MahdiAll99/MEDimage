@@ -6,22 +6,21 @@ import numpy as np
 from ..utils.mode import mode
 
 
-def find_spacing(points, scan_type) -> float:
-    """
-    Finds the slice spacing in mm.
+def find_spacing(points: np.ndarray,
+                 scan_type: str) -> float:
+    """Finds the slice spacing in mm.
 
     Note:
         This function works for points from at least 2 slices. If only
         one slice is present, the function returns a None.
 
     Args:
-        points (ndarray): Array of (x,y,z) triplets defining a contour in the 
+        points (ndarray): Array of (x,y,z) triplets defining a contour in the
             Patient-Based Coordinate System extracted from DICOM RTstruct.
         scan_type (str): Imaging modality (MRscan, CTscan...) 
 
     Returns:
         float: Slice spacing in mm.
-
     """
     decim_keep = 4  # We keep at most 4 decimals to find the slice spacing.
 

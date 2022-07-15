@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import math
-from ctypes import Union
-from typing import List
+from typing import List, Union
 
 import numpy as np
 from scipy.sparse import spdiags

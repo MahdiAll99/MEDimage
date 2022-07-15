@@ -8,21 +8,19 @@ import numpy as np
 from skimage.exposure import equalize_hist
 
 
-def equalization(vol_re) -> np.ndarray:
-    """
-    Performs histogram equalisation of the ROI imaging intensities.
+def equalization(vol_re: np.ndarray) -> np.ndarray:
+    """Performs histogram equalisation of the ROI imaging intensities.
 
     Note:
         THIS IS A PURE "WHAT IS CONTAINED WITHIN THE ROI" EQUALIZATION. THIS IS
         NOT INFLUENCED BY THE "user_set_min_val" USED FOR FBS DISCRESTISATION.
 
     Args:
-        vol_re (ndarray): 3D array of the image volume that will be studied with 
-            NaN value for the excluded voxels (voxels outside the ROI mask).
+        vol_re (ndarray): 3D array of the image volume that will be studied with
+                          NaN value for the excluded voxels (voxels outside the ROI mask).
 
     Returns:
         ndarray: Same input image volume but with redistributed intensities.
-
     """
 
     # AZ: This was made part of the function call

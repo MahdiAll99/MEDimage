@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import List
 import numpy as np
 
 
-def get_moran_i(vol: np.ndarray, res) -> float:
+def get_moran_i(vol: np.ndarray,
+                res: List[float]) -> float:
     """Compute Moran's Index.
 
     Args:

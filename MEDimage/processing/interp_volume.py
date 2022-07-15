@@ -15,43 +15,39 @@ from ..processing.compute_box import compute_box
 _logger = logging.getLogger(__name__)
 
 
-def interp_volume(MEDimage, 
-                vol_obj_s, 
-                vox_dim=None, 
-                interp_met=None, 
-                round_val=None,
-                image_type=None, 
-                roi_obj_s=None, 
-                box_string=None) -> image_volume_obj:
+def interp_volume(MEDimage: object, 
+                  vol_obj_s: np.ndarray,
+                  vox_dim=None,
+                  interp_met=None,
+                  round_val=None,
+                  image_type=None,
+                  roi_obj_s=None,
+                  box_string=None) -> image_volume_obj:
     """3D voxel interpolation on the input volume.
 
     Args:
         MEDimage (object): The MEDimage class object.
         vol_obj_s (image_volume_obj): Imaging  that will be interpolated.
-        vox_dim (array): Array of the voxel dimension. The following format is used 
-            [Xin,Yin,Zslice], where Xin and Yin are the X (left to right) and 
-            Y (bottom to top) IN-PLANE resolutions, and Zslice is the slice spacing,
-            NO MATTER THE ORIENTATION OF THE VOLUME (i.e. axial , sagittal, coronal).
+        vox_dim (array): Array of the voxel dimension. The following format is used
+                         [Xin,Yin,Zslice], where Xin and Yin are the X (left to right) and
+                         Y (bottom to top) IN-PLANE resolutions, and Zslice is the slice spacing,
+                         NO MATTER THE ORIENTATION OF THE VOLUME (i.e. axial , sagittal, coronal).
         interp_met (str): {nearest, linear, spline, cubic} optional, Interpolation method
         round_val (float): Rounding value. Must be between 0 and 1 for ROI interpolation
-            and to a power of 10 for Image interpolation.
-        image_type (str): 'image' for imaging data interpolation and 'roi' for ROI mask
-            data interpolation.
-        roi_obj_s (image_volume_obj): Mask data, will be used to compute a new specific box 
-            and the new imref3d object for the imaging data.
+                           and to a power of 10 for Image interpolation.
+        image_type (str): 'image' for imaging data interpolation and 'roi' for ROI mask data interpolation.
+        roi_obj_s (image_volume_obj): Mask data, will be used to compute a new specific box
+                                      and the new imref3d object for the imaging data.
         box_string (str): Specifies the size if the box containing the ROI
-            - 'full': Full imaging data as output.
-            - 'box' computes the smallest bounding box.
-            - Ex: 'box10': 10 voxels in all three dimensions are added to
-                the smallest bounding box. The number after 'box' defines the
-                number of voxels to add.
-            - Ex: '2box': Computes the smallest box and outputs double its
-                size. The number before 'box' defines the multiplication in
-                size.
+                          - 'full': Full imaging data as output.
+                          - 'box' computes the smallest bounding box.
+                          - Ex: 'box10': 10 voxels in all three dimensions are added to
+                            the smallest bounding box. The number after 'box' defines the number of voxels to add.
+                          - Ex: '2box': Computes the smallest box and outputs double its
+                            size. The number before 'box' defines the multiplication in size.
 
     Returns:
         ndarray: 3D array of 1's and 0's defining the ROI mask.
-
     """
     try:
         # PARSING ARGUMENTS

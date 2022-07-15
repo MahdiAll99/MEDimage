@@ -17,9 +17,9 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
 
 
 def extract_all(vol: np.ndarray,
-                dist_correction=None,
-                glcm_merge_method="vol_merge",
-                method="new") -> Dict:
+                dist_correction: Union[bool, str]=None,
+                glcm_merge_method: str="vol_merge",
+                method: str="new") -> Dict:
     """Computes glcm features.
     This features refer to Glcm family in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -76,10 +76,10 @@ def extract_all(vol: np.ndarray,
 
 def get_cm_features(vol: np.ndarray,
                     intensity_range: np.ndarray,
-                    glcm_spatial_method="3d",
-                    glcm_dist=1.0,
-                    glcm_merge_method="vol_merge",
-                    dist_weight_norm=None) -> Dict:
+                    glcm_spatial_method: str="3d",
+                    glcm_dist: float=1.0,
+                    glcm_merge_method: float="vol_merge",
+                    dist_weight_norm: Union[bool, str]=None) -> Dict:
     """Extracts co-occurrence matrix-based features from the intensity roi mask.
 
     Note:

@@ -7,10 +7,10 @@ from typing import List, Union
 import numpy as np
 
 
-def get_neighbour_direction(d=1.8, 
-                            distance="euclidian", 
+def get_neighbour_direction(d=1.8,
+                            distance="euclidian",
                             centre=False,
-                            complete=False, 
+                            complete=False,
                             dim3=True) -> np.ndarray:
     """Defines transitions to neighbour voxels.
 
@@ -21,17 +21,16 @@ def get_neighbour_direction(d=1.8,
     Args:
         d (float, optional): Max distance between voxels.
         distance (str, optional): Distance norm used to compute distances. MUST BE
-            "manhattan", "l1", "l_1", "euclidian", "l2", "l_2", "chebyshev", "linf" or "l_inf".
+                                  "manhattan", "l1", "l_1", "euclidian", "l2", "l_2", "chebyshev", "linf" or "l_inf".
         centre (bool, optional): Flags whether the [0,0,0] direction should be included
         complete(bool, optional): Flags whether all directions should be computed (True)
-            or just the primary ones (False). For example, including [0,0,1] and [0,0,-1] 
-            directions may lead to redundant texture matrices.
+                                  or just the primary ones (False). For example, including [0,0,1] and [0,0,-1]
+                                  directions may lead to redundant texture matrices.
         dim3(bool, optional): flags whether full 3D (True) or only in-slice (2D; False)
-            directions should be considered.
+                              directions should be considered.
 
     Returns:
         ndarray: set of k neighbour direction vectors.
-    
     """
 
     # Base transition vector
@@ -75,8 +74,10 @@ def get_neighbour_direction(d=1.8,
     return nbrs[:, index]
 
 
-def rep(x, each=1, times=1) -> np.ndarray:
-    """"replicates the values in `x`.
+def rep(x: np.ndarray,
+        each=1,
+        times=1) -> np.ndarray:
+    """"Replicates the values in `x`.
     Replicates the "rep" function found in R for tiling and repeating vectors.
 
     Note:
@@ -86,12 +87,11 @@ def rep(x, each=1, times=1) -> np.ndarray:
     Args:
         x (ndarray): Array to replicate.
         each (int): Integer (non-negative) giving the number of times to repeat
-            each element of the passed array.
+                    each element of the passed array.
         times (int): Integer (non-negative). Each element of `x` is repeated each times.
 
     Returns:
         ndarray: Array with same values but replicated.
-    
     """
 
     each = int(each)
@@ -105,8 +105,9 @@ def rep(x, each=1, times=1) -> np.ndarray:
 
     return x
 
-
-def get_value(x, index, replace_invalid=True) -> np.ndarray:
+def get_value(x: np.ndarray,
+              index: int,
+              replace_invalid=True) -> np.ndarray:
     """Retrieves intensity values from an image intensity table used for computing
     texture features.
 
@@ -117,8 +118,8 @@ def get_value(x, index, replace_invalid=True) -> np.ndarray:
     Args:
         x (ndarray): set of intensity values.
         index (int): Index to the provided set of intensity values.
-        replace_invalid (bool, optional): If True, invalid indices will be replaced 
-            by a placeholder "NaN" value.
+        replace_invalid (bool, optional): If True, invalid indices will be replaced
+                                          by a placeholder "NaN" value.
 
     Returns:
         ndarray: Array of the intensity values found at the requested indices.
@@ -141,7 +142,11 @@ def get_value(x, index, replace_invalid=True) -> np.ndarray:
     return read_x
 
 
-def coord2index(x, y, z, dims) -> Union[np.ndarray, List]:
+def coord2index(x: np.ndarray,
+                y: np.ndarray,
+                z: np.ndarray,
+                dims: Union[List, np.ndarray]) -> Union[np.ndarray,
+                                                        List]:
     """Translate requested coordinates to row indices in image intensity tables.
 
     Note:
@@ -170,7 +175,7 @@ def coord2index(x, y, z, dims) -> Union[np.ndarray, List]:
     return index
 
 
-def is_list_all_none(x) -> bool:
+def is_list_all_none(x: List) -> bool:
     """Determines if all list elements are None.
 
     Args:

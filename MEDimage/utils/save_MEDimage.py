@@ -4,14 +4,14 @@ from pathlib import Path
 from MEDimage.MEDimage import MEDimage
 
 
-def save_MEDimage(MEDimg: MEDimage, series_description: str, path_save: Path) -> None:
-    """
-    Saves MEDimage class instance in a pickle object
+def save_MEDimage(MEDimg: MEDimage,
+                  series_description: str,
+                  path_save: Path) -> None:
+    """Saves MEDimage class instance in a pickle object
     
     Args:
         MEDimg (MEDimage): MEDimage instance
-        series_description (str): field of DICOM headers of imaging 
-            volume with TAG: (0008,103E). For ex: 'T1'
+        series_description (str): field of DICOM headers of imaging volume with TAG: (0008,103E). For ex: 'T1'
         path_save (Path): MEDimage instance saving paths
     
     Returns:

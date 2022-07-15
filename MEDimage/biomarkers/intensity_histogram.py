@@ -296,7 +296,7 @@ def min(vol: np.ndarray) -> float:
 
     return np.min(x)  # Minimum grey level
 
-def P10(vol: np.ndarray) -> float:
+def p10(vol: np.ndarray) -> float:
     """Compute Intensity histogram 10th percentile feature of the input dataset (3D Array).
     This feature refers to "Fih_P10" (id = GPMT) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
@@ -312,7 +312,7 @@ def P10(vol: np.ndarray) -> float:
 
     return scoreatpercentile(x, 10)  # 10th percentile
 
-def P90(vol: np.ndarray) -> float:
+def p90(vol: np.ndarray) -> float:
     """Compute Intensity histogram 90th percentile feature of the input dataset (3D Array).
     This feature refers to "Fih_P90" (id = OZ0C) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
