@@ -670,6 +670,8 @@ class BatchExtractor(object):
             None.
         """
         # Initialize ray
+        if ray.is_initialized():
+            ray.shutdown()
         ray.init(local_mode=True, include_dashboard=True)
 
         # Load and process computing parameters
