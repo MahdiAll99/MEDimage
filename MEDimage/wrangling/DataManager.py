@@ -113,6 +113,7 @@ class DataManager(object):
         self.summary = {}
         self.__studies = []
         self.__institutions = []
+        self.__scans = []
         self.__warned = False
 
     def __find_uid_cell_index(self, uid: Union[str, List[str]], cell: List[str]) -> List: 
@@ -297,6 +298,7 @@ class DataManager(object):
             name_save += '+' + '+'.join(roi_names.values())
             # save new studies
             if name_save.split('_')[0].count('-') >= 2:
+                scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
                 if name_save.split('-')[0] not in self.__studies:
                     self.__studies.append(name_save.split('-')[0])  # add new study
                 if name_save.split('-')[1] not in self.__institutions:
@@ -304,8 +306,15 @@ class DataManager(object):
                 if name_save.split('-')[0] not in self.summary:
                     self.summary[name_save.split('-')[0]] = {}
                 if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
-                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = []
-                self.summary[name_save.split('-')[0]][name_save.split('-')[1]].append(name_save)
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = {}  # add new institution
+                if scan_type not in self.__scans:
+                    self.__scans.append(scan_type)
+                if scan_type not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type] = []
+                self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
+            else:
+                logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
 
         nb_job_left = n_scans - n_batch
 
@@ -335,11 +344,9 @@ class DataManager(object):
             name_save = self.__get_MEDimage_name_save(instance)
             if self._path_save:
                 self.path_to_objects.extend(str(self._path_save / name_save))
-            # Update processing summary:
-            roi_names = instance.scan.ROI.roi_names
-            name_save += '+' + '+'.join(roi_names.values())
-            # save new studies
+            # Update processing summary
             if name_save.split('_')[0].count('-') >= 2:
+                scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
                 if name_save.split('-')[0] not in self.__studies:
                     self.__studies.append(name_save.split('-')[0])  # add new study
                 if name_save.split('-')[1] not in self.__institutions:
@@ -347,8 +354,15 @@ class DataManager(object):
                 if name_save.split('-')[0] not in self.summary:
                     self.summary[name_save.split('-')[0]] = {}
                 if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
-                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = []
-                self.summary[name_save.split('-')[0]][name_save.split('-')[1]].append(name_save)
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = {}  # add new institution
+                if scan_type not in self.__scans:
+                    self.__scans.append(scan_type)
+                if scan_type not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type] = []
+                self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
+            else:
+                logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
 
         # Get MEDimage instances
         if len(self.instances)>10 and not self.__warned:
@@ -514,11 +528,9 @@ class DataManager(object):
             name_save = self.__get_MEDimage_name_save(MEDimage_instance)
             if self._path_save:
                 self.path_to_objects.append(str(self._path_save / name_save))
-            # Update processing summary:
-            roi_names = MEDimage_instance.scan.ROI.roi_names
-            name_save += '+' + '+'.join(roi_names.values())
-            # save new studies
+            # Update processing summary
             if name_save.split('_')[0].count('-') >= 2:
+                scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
                 if name_save.split('-')[0] not in self.__studies:
                     self.__studies.append(name_save.split('-')[0])  # add new study
                 if name_save.split('-')[1] not in self.__institutions:
@@ -526,8 +538,15 @@ class DataManager(object):
                 if name_save.split('-')[0] not in self.summary:
                     self.summary[name_save.split('-')[0]] = {}  # add new study to summary
                 if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
-                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = []  # add new institution
-                self.summary[name_save.split('-')[0]][name_save.split('-')[1]].append(name_save)
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = {}  # add new institution
+                if scan_type not in self.__scans:
+                    self.__scans.append(scan_type)
+                if scan_type not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type] = []
+                self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
+            else:
+                logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
         print('DONE')
         return self.instances
 
@@ -564,130 +583,55 @@ class DataManager(object):
                     csv_data[roi_type_label][key] = rows
             
             self.csv_data = csv_data
+            self.summarize()
 
     def summarize(self):
-        """Creates and shows a summary of processed scans by study, institution, scan type and roi type
+        """Creates and shows a summary of processed scans organized by study, institution, scan type and roi type
 
         Args:
             None
         Returns:
             None
         """
-        summary = pd.DataFrame(columns=['study', 'institution', 'scan_type', 'roi_type', 'count'])
-        # Process each scan in summary
-        for scan in self.summary:
-            if '-' not in scan.split('_')[0]:
-                logging.warning(f"The patient ID of the following file: {scan} does not respect the MEDimage "\
-                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
-                continue
-            # Initialization
-            study = scan.split('-')[0]
-            institution = scan.split('-')[1]
-            scan_type = scan[scan.find('__')+2 : scan.find('.')]
-            roi_names = scan.split('+')[1:]
-            roi_names = [roi_names] if roi_names is str else roi_names
-            # summarize by study
-            if study in summary['study'].values:
-                summary.loc[(summary['study'].dropna() == study).argmax(), 'count'] += 1
-                # update institutions data
-                if institution in summary['institution'][(summary['study'].dropna() == study)].values:
-                    summary.loc[((summary['study'].dropna() == study) & 
-                                (summary['institution'].dropna() == institution)).argmax(), 'count'] += 1
-                    # update scans type data
-                    if scan_type in summary['scan_type'][(summary['study'].dropna() == study)
-                                                        & (summary['institution'].dropna() == institution)].values:
-                        summary.loc[((summary['study'].dropna() == study) & 
-                                    (summary['institution'].dropna() == institution) &
-                                    (summary['scan_type'].dropna() == scan_type)).argmax(), 'count'] += 1
-                        # update rois type data
-                        for roi_name in roi_names:
-                            if roi_name in summary['roi_type'][(summary['study'].dropna() == study)
-                                                        & (summary['institution'].dropna() == institution)
-                                                        & (summary['roi_type'].dropna() == roi_name)].values:
-                                summary.loc[((summary['study'].dropna() == study) & 
-                                            (summary['institution'].dropna() == institution) &
-                                            (summary['scan_type'].dropna() == scan_type) &
-                                            (summary['roi_type'].dropna() == roi_name)).argmax(), 'count'] += 1
-                            else:
-                                summary = summary.append({
-                                                        'study': study, 
-                                                        'institution': institution, 
-                                                        'scan_type': scan_type, 
-                                                        'roi_type': roi_name, 
-                                                        'count' : 1
-                                                        }, ignore_index=True)
-                    else:
-                        summary = summary.append({
-                                                'study': study, 
-                                                'institution': institution, 
-                                                'scan_type': scan_type,
+        summary_df = pd.DataFrame(columns=['study', 'institution', 'scan_type', 'roi_type', 'count'])
+
+        for study in self.summary:
+            summary_df = summary_df.append({
+                                        'study': study,
+                                        'institution': "",
+                                        'scan_type': "",
+                                        'roi_type': "",
+                                        'count' : len(self.summary[study])
+                                        }, ignore_index=True)
+            for institution in self.summary[study]:
+                summary_df = summary_df.append({
+                                            'study': study,
+                                            'institution': institution,
+                                            'scan_type': "",
+                                            'roi_type': "",
+                                            'count' : len(self.summary[study][institution])
+                                            }, ignore_index=True)
+                for scan in self.summary[study][institution]:
+                    summary_df = summary_df.append({
+                                                'study': study,
+                                                'institution': institution,
+                                                'scan_type': scan,
                                                 'roi_type': "",
+                                                'count' : len(self.summary[study][institution][scan])
+                                                }, ignore_index=True)
+                    if self.csv_data:
+                        patient_id = scan.split('_')[0]
+                        for roi_type in self.csv_data:
+                            if patient_id in self.csv_data[roi_type]:
+                                break
+                            summary_df = summary_df.append({
+                                                'study': study,
+                                                'institution': institution,
+                                                'scan_type': scan,
+                                                'roi_type': roi_type,
                                                 'count' : 1
                                                 }, ignore_index=True)
-                        for roi_name in roi_names:
-                            summary = summary.append({
-                                                    'study': study, 
-                                                    'institution': institution, 
-                                                    'scan_type': scan_type, 
-                                                    'roi_type': roi_name, 
-                                                    'count' : 1
-                                                    }, ignore_index=True)
-                else:
-                    summary = summary.append({
-                                            'study': study, 
-                                            'institution': institution, 
-                                            'scan_type': "", 
-                                            'roi_type': "", 
-                                            'count' : 1
-                                            }, ignore_index=True)
-                    summary = summary.append({
-                                            'study': study, 
-                                            'institution': institution, 
-                                            'scan_type': scan_type, 
-                                            'roi_type': "", 
-                                            'count' : 1
-                                            }, ignore_index=True)
-                    for roi_name in roi_names:
-                        summary = summary.append({
-                                                'study': study, 
-                                                'institution': institution, 
-                                                'scan_type': scan_type, 
-                                                'roi_type': roi_name, 
-                                                'count' : 1
-                                                }, ignore_index=True)
-            # Add new study
-            else:
-                summary = summary.append({
-                                        'study': study, 
-                                        'institution': "", 
-                                        'scan_type': "", 
-                                        'roi_type': "", 
-                                        'count' : 1
-                                        }, ignore_index=True)
-                summary = summary.append({
-                                        'study': study, 
-                                        'institution': institution, 
-                                        'scan_type': "", 
-                                        'roi_type': "", 
-                                        'count' : 1
-                                        }, ignore_index=True)
-                summary = summary.append({
-                                        'study': study, 
-                                        'institution': institution, 
-                                        'scan_type': scan_type, 
-                                        'roi_type': "", 
-                                        'count' : 1
-                                        }, ignore_index=True)
-                for roi_name in roi_names:
-                    summary = summary.append({
-                                            'study': study, 
-                                            'institution': institution, 
-                                            'scan_type': scan_type, 
-                                            'roi_type': roi_name, 
-                                            'count' : 1
-                                            }, ignore_index=True)
-        self.summary = summary
-        print(summary.to_string(index=False))
+        print(summary_df.to_markdown(index=False))
 
     def pre_checks_init(
             self, 
