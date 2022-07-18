@@ -1,4 +1,4 @@
-from ast import Return
+import csv
 import json
 import logging
 import os
@@ -61,6 +61,7 @@ class DataManager(object):
             path_save: Union[Path, str] = None,
             path_save_checks: Union[Path, str] = None,
             path_pre_checks_settings: Union[Path, str] = None,
+            roi_type_labels: Union[str, List[str]] = [],
             save: bool = False,
             keep_instances: bool = True,
             n_batch: int = 2
@@ -88,6 +89,7 @@ class DataManager(object):
         self._path_pre_checks_settings = path_pre_checks_settings
         self._path_save = path_save
         self._path_save_checks = path_save_checks
+        self.roi_type_labels = [roi_type_labels] if roi_type_labels is str else roi_type_labels
         self.save = save
         self.keep_instances = keep_instances
         self.n_batch = n_batch
@@ -108,9 +110,9 @@ class DataManager(object):
         )
         self.instances = []
         self.path_to_objects = []
-        self.summary = []
-        self.studies = []
-        self.institutions = []
+        self.summary = {}
+        self.__studies = []
+        self.__institutions = []
         self.__warned = False
 
     def __find_uid_cell_index(self, uid: Union[str, List[str]], cell: List[str]) -> List: 
@@ -286,14 +288,24 @@ class DataManager(object):
                         self.save)
             for i in range(n_batch)]
         # Update the path to the created instances
-        if self._path_save:
-            for instance in ray.get(ids):
-                name_save = self.__get_MEDimage_name_save(instance)
+        for instance in ray.get(ids):
+            name_save = self.__get_MEDimage_name_save(instance)
+            if self._path_save:
                 self.path_to_objects.append(str(self._path_save / name_save))
-                # Update processing summary:
-                roi_names = instance.scan.ROI.roi_names
-                name_save += '+' + '+'.join(roi_names.values())
-                self.summary.append(name_save)
+            # Update processing summary:
+            roi_names = instance.scan.ROI.roi_names
+            name_save += '+' + '+'.join(roi_names.values())
+            # save new studies
+            if name_save.split('_')[0].count('-') >= 2:
+                if name_save.split('-')[0] not in self.__studies:
+                    self.__studies.append(name_save.split('-')[0])  # add new study
+                if name_save.split('-')[1] not in self.__institutions:
+                    self.__institutions.append(name_save.split('-')[1])  # add new study
+                if name_save.split('-')[0] not in self.summary:
+                    self.summary[name_save.split('-')[0]] = {}
+                if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = []
+                self.summary[name_save.split('-')[0]][name_save.split('-')[1]].append(name_save)
 
         nb_job_left = n_scans - n_batch
 
@@ -319,20 +331,24 @@ class DataManager(object):
                 nb_job_left -= 1
 
         # Update the path to the created instances
-        if self._path_save:
-            for instance in ray.get(ids):
-                name_save = self.__get_MEDimage_name_save(instance)
+        for instance in ray.get(ids):
+            name_save = self.__get_MEDimage_name_save(instance)
+            if self._path_save:
                 self.path_to_objects.extend(str(self._path_save / name_save))
-                # Update processing summary:
-                roi_names = instance.scan.ROI.roi_names
-                name_save += '+' + '+'.join(roi_names.values())
-                self.summary.append(name_save)
-                # save new studies
-                if name_save.split('_')[0].count('-') >= 2:
-                    if name_save.split('-')[0] not in self.studies:
-                        self.studies.append(name_save.split('-')[0])  # add new study
-                    if name_save.split('-')[1] not in self.institutions:
-                        self.institutions.append(name_save.split('-')[1])  # add new study
+            # Update processing summary:
+            roi_names = instance.scan.ROI.roi_names
+            name_save += '+' + '+'.join(roi_names.values())
+            # save new studies
+            if name_save.split('_')[0].count('-') >= 2:
+                if name_save.split('-')[0] not in self.__studies:
+                    self.__studies.append(name_save.split('-')[0])  # add new study
+                if name_save.split('-')[1] not in self.__institutions:
+                    self.__institutions.append(name_save.split('-')[1])  # add new study
+                if name_save.split('-')[0] not in self.summary:
+                    self.summary[name_save.split('-')[0]] = {}
+                if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = []
+                self.summary[name_save.split('-')[0]][name_save.split('-')[1]].append(name_save)
 
         # Get MEDimage instances
         if len(self.instances)>10 and not self.__warned:
@@ -501,15 +517,53 @@ class DataManager(object):
             # Update processing summary:
             roi_names = MEDimage_instance.scan.ROI.roi_names
             name_save += '+' + '+'.join(roi_names.values())
-            self.summary.append(name_save)
             # save new studies
             if name_save.split('_')[0].count('-') >= 2:
-                if name_save.split('-')[0] not in self.studies:
-                    self.studies.append(name_save.split('-')[0])  # add new study
-                if name_save.split('-')[1] not in self.institutions:
-                    self.institutions.append(name_save.split('-')[1])  # add new study
+                if name_save.split('-')[0] not in self.__studies:
+                    self.__studies.append(name_save.split('-')[0])  # add new study
+                if name_save.split('-')[1] not in self.__institutions:
+                    self.__institutions.append(name_save.split('-')[1])  # add new institution
+                if name_save.split('-')[0] not in self.summary:
+                    self.summary[name_save.split('-')[0]] = {}  # add new study to summary
+                if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = []  # add new institution
+                self.summary[name_save.split('-')[0]][name_save.split('-')[1]].append(name_save)
         print('DONE')
         return self.instances
+
+    def update_from_csv(self, path_csv: Union[str, Path] = None) -> None:
+        """Updates `csv` attribute from a given path to a csv file
+
+        Args:
+            path_csv(optional, Union[str, Path]): Path to a csv file
+        
+        Returns:
+            None
+        """
+        if not (path_csv or self._path_csv):
+            print('No csv provided, no updates will be made')
+        else:
+            # Extract roi type label from csv file name
+            name_csv = self._path_csv.name
+            roi_type_label = name_csv[name_csv.find('_')+1 : name_csv.find('.')]
+            if roi_type_label not in self.roi_type_labels:
+                self.roi_type_labels.append(roi_type_label)
+
+            # Create a dictionary
+            csv_data = {}
+            csv_data[roi_type_label] = {}
+            # Open a csv reader using DictReader
+            with open(self._path_csv, encoding='utf-8') as csvf:
+                csv_reader = csv.DictReader(csvf)
+                # Convert each row into a dictionary
+                # and add it to data
+                for rows in csv_reader:
+                    # Assuming a column named 'No' to
+                    # be the primary key
+                    key = rows['PatientID']
+                    csv_data[roi_type_label][key] = rows
+            
+            self.csv_data = csv_data
 
     def summarize(self):
         """Creates and shows a summary of processed scans by study, institution, scan type and roi type
