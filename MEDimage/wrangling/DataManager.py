@@ -53,6 +53,16 @@ class DataManager(object):
         stack_path_roi: List
         stack_path_all: List
 
+
+    @dataclass
+    class Paths(object):
+        _path_to_dicoms: List
+        _path_to_niftis: List
+        _path_csv: Union[Path, str]
+        _path_pre_checks_settings: Union[Path, str]
+        _path_save: Union[Path, str]
+        _path_save_checks: Union[Path, str]
+
     def __init__(
             self, 
             path_to_dicoms: List = [],
@@ -83,12 +93,14 @@ class DataManager(object):
         Returns:
             None
         """
-        self._path_to_dicoms = path_to_dicoms
-        self._path_to_niftis = path_to_niftis
-        self._path_csv = path_csv
-        self._path_pre_checks_settings = path_pre_checks_settings
-        self._path_save = path_save
-        self._path_save_checks = path_save_checks
+        self.paths = self.Paths(
+                path_to_dicoms,
+                path_to_niftis,
+                path_csv,
+                path_save,
+                path_save_checks,
+                path_pre_checks_settings,
+        )
         self.roi_type_labels = [roi_type_labels] if roi_type_labels is str else roi_type_labels
         self.save = save
         self.keep_instances = keep_instances
@@ -111,6 +123,7 @@ class DataManager(object):
         self.instances = []
         self.path_to_objects = []
         self.summary = {}
+        self.csv_data = None
         self.__studies = []
         self.__institutions = []
         self.__scans = []
@@ -204,15 +217,15 @@ class DataManager(object):
         """
         # SCANNING ALL FOLDERS IN INITIAL DIRECTORY
         print('\n--> Scanning all folders in initial directory...', end='')
-        p = Path(self._path_to_dicoms)
+        p = Path(self.paths._path_to_dicoms)
         e_rglob = '*.[!xlsx,!xls,!py,!.DS_Store,!csv,!.,!txt,!..,!TXT,!npy,!m,!CT.npy]*'
 
         # EXTRACT ALL FILES IN THE PATH TO DICOMS
-        if self._path_to_dicoms.is_dir():
+        if self.paths._path_to_dicoms.is_dir():
             stack_folder_temp = list(p.rglob(e_rglob))
             stack_folder = [x for x in stack_folder_temp if not x.is_dir()]
-        elif str(self._path_to_dicoms).find('json') != -1:
-            with open(self._path_to_dicoms) as f:
+        elif str(self.paths._path_to_dicoms).find('json') != -1:
+            with open(self.paths._path_to_dicoms) as f:
                 data = json.load(f)
                 for value in data.values():
                     stack_folder_temp = value
@@ -285,18 +298,15 @@ class DataManager(object):
         ids = [pdsf.remote(
                         self.dicom.cell_path_images[i], 
                         self.dicom.cell_path_rs[i], 
-                        self._path_save,
+                        self.paths._path_save,
                         self.save)
             for i in range(n_batch)]
         # Update the path to the created instances
         for instance in ray.get(ids):
             name_save = self.__get_MEDimage_name_save(instance)
-            if self._path_save:
-                self.path_to_objects.append(str(self._path_save / name_save))
-            # Update processing summary:
-            roi_names = instance.scan.ROI.roi_names
-            name_save += '+' + '+'.join(roi_names.values())
-            # save new studies
+            if self.paths._path_save:
+                self.path_to_objects.append(str(self.paths._path_save / name_save))
+            # Update processing summary
             if name_save.split('_')[0].count('-') >= 2:
                 scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
                 if name_save.split('-')[0] not in self.__studies:
@@ -335,15 +345,15 @@ class DataManager(object):
                 idx = n_scans - nb_job_left
                 ids.extend([pdsf.remote(self.dicom.cell_path_images[idx], 
                                         self.dicom.cell_path_rs[idx], 
-                                        self._path_save,
+                                        self.paths._path_save,
                                         self.save)])
                 nb_job_left -= 1
 
         # Update the path to the created instances
         for instance in ray.get(ids):
             name_save = self.__get_MEDimage_name_save(instance)
-            if self._path_save:
-                self.path_to_objects.extend(str(self._path_save / name_save))
+            if self.paths._path_save:
+                self.path_to_objects.extend(str(self.paths._path_save / name_save))
             # Update processing summary
             if name_save.split('_')[0].count('-') >= 2:
                 scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
@@ -387,7 +397,7 @@ class DataManager(object):
             None.
         """
         print('\n--> Scanning all folders in initial directory')
-        p = Path(self._path_to_niftis)
+        p = Path(self.paths._path_to_niftis)
         e_rglob1 = '*.nii'
         e_rglob2 = '*.nii.gz'
 
@@ -522,12 +532,12 @@ class DataManager(object):
             MEDimage_instance = self.__associate_roi_to_image(file, MEDimg)
             if self.keep_instances:
                 self.instances.append(MEDimage_instance)
-            if self.save and self._path_save:
-                save_MEDimage(MEDimg, MEDimg.type.split('scan')[0], self._path_save)
+            if self.save and self.paths._path_save:
+                save_MEDimage(MEDimg, MEDimg.type.split('scan')[0], self.paths._path_save)
             # Update the path to the created instances
             name_save = self.__get_MEDimage_name_save(MEDimage_instance)
-            if self._path_save:
-                self.path_to_objects.append(str(self._path_save / name_save))
+            if self.paths._path_save:
+                self.path_to_objects.append(str(self.paths._path_save / name_save))
             # Update processing summary
             if name_save.split('_')[0].count('-') >= 2:
                 scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
@@ -559,11 +569,11 @@ class DataManager(object):
         Returns:
             None
         """
-        if not (path_csv or self._path_csv):
+        if not (path_csv or self.paths._path_csv):
             print('No csv provided, no updates will be made')
         else:
             # Extract roi type label from csv file name
-            name_csv = self._path_csv.name
+            name_csv = self.paths._path_csv.name
             roi_type_label = name_csv[name_csv.find('_')+1 : name_csv.find('.')]
             if roi_type_label not in self.roi_type_labels:
                 self.roi_type_labels.append(roi_type_label)
@@ -572,7 +582,7 @@ class DataManager(object):
             csv_data = {}
             csv_data[roi_type_label] = {}
             # Open a csv reader using DictReader
-            with open(self._path_csv, encoding='utf-8') as csvf:
+            with open(self.paths._path_csv, encoding='utf-8') as csvf:
                 csv_reader = csv.DictReader(csvf)
                 # Convert each row into a dictionary
                 # and add it to data
@@ -650,10 +660,10 @@ class DataManager(object):
             fore(bool, optional): If ture, will replace the values of the existing attributes and
                 will skip (keep the originals) if false.
         """
-        if self._path_save_checks and force:
-            self._path_save_checks = path_save_checks
-        if self._path_csv and force:
-            self._path_csv = path_csv
+        if self.paths._path_save_checks and force:
+            self.paths._path_save_checks = path_save_checks
+        if self.paths._path_csv and force:
+            self.paths._path_csv = path_csv
 
     def __pre_radiomics_checks_dimensions(self, wildcards_dimensions: List = [], use_instances: bool = True):
         """
@@ -685,7 +695,8 @@ class DataManager(object):
             return
 
         # TODO: seperate by studies and scan type (MRscan, CTscan...)
-        # TODO: Two summaries (df, list of names saves) -> name_save = name_save(ROI) : Glioma-Huashan-001__T1.MRscan.npy({GTV})
+        # TODO: Two summaries (df, list of names saves) -> 
+        # name_save = name_save(ROI) : Glioma-Huashan-001__T1.MRscan.npy({GTV})
         file_paths = list()
         if use_instances:
                 n_instances = len(self.instances)
@@ -720,12 +731,12 @@ class DataManager(object):
                 # Saving files using wildcard for name
                 wildcard = wildcards_dimensions[0]
                 wildcard = str(wildcard).replace('*', '')
-                np.save(self._path_save_checks / ('xyDim_' + wildcard), xyDim)
-                np.save(self._path_save_checks / ('zDim_' + wildcard), zDim)
+                np.save(self.paths._path_save_checks / ('xyDim_' + wildcard), xyDim)
+                np.save(self.paths._path_save_checks / ('zDim_' + wildcard), zDim)
         else:
             for w in range(len(wildcards_dimensions)):
                 wildcard = wildcards_dimensions[w]
-                file_paths = get_file_paths(self._path_save, wildcard)
+                file_paths = get_file_paths(self.paths._path_save, wildcard)
                 n_files = len(file_paths)
                 xyDim.data = np.zeros((n_files, 1))
                 xyDim.data = np.multiply(xyDim.data, np.nan)
@@ -757,8 +768,8 @@ class DataManager(object):
 
                 # Saving files using wildcard for name
                 wildcard = str(wildcard).replace('*', '')
-                np.save(self._path_save_checks / ('xyDim_' + wildcard), xyDim)
-                np.save(self._path_save_checks / ('zDim_' + wildcard), zDim)
+                np.save(self.paths._path_save_checks / ('xyDim_' + wildcard), xyDim)
+                np.save(self.paths._path_save_checks / ('zDim_' + wildcard), zDim)
 
     def __pre_radiomics_checks_window(
             self, 
@@ -782,7 +793,7 @@ class DataManager(object):
             print("Wilcards is empty")
             return
         if not use_instances:
-            roi_table = pd.read_csv(self._path_csv)
+            roi_table = pd.read_csv(self.paths._path_csv)
             roi_names = [[], [], []]
             roi_names[0] = roi_table['PatientID']
             roi_names[1] = roi_table['ImagingScanName']
@@ -795,7 +806,7 @@ class DataManager(object):
         if not use_instances:
             for w in range(len(wildcards_window)):
                 wildcard = wildcards_window[w]
-                file_paths = get_file_paths(self._path_save, wildcard)
+                file_paths = get_file_paths(self.paths._path_save, wildcard)
             n_files = len(file_paths)
             for f in tqdm(range(n_files)):
                 file = file_paths[0]
@@ -846,7 +857,7 @@ class DataManager(object):
         roiData.p95 = np.percentile(roiData.data[~np.isnan(roiData.data)], 95)
 
         # save final checks
-        np.save(self._path_save_checks / ('roiData_' + wildcard), roiData)
+        np.save(self.paths._path_save_checks / ('roiData_' + wildcard), roiData)
 
     def pre_radiomics_checks(self, use_instances: bool = True) -> None:
         """Finds proper dimension and re-segmentation ranges options for radiomics analyses. 
@@ -864,15 +875,15 @@ class DataManager(object):
         path_study = Path.cwd()
 
         # Load params
-        settings = self._path_pre_checks_settings
+        settings = self.paths._path_pre_checks_settings
         settings = load_json(settings)
         settings = settings['pre_radiomics_checks']  
 
         # Setting up paths
         if 'path_save_checks' in settings and settings['path_save_checks']:
-            self._path_save_checks = Path(settings['path_save_checks']) 
+            self.paths._path_save_checks = Path(settings['path_save_checks']) 
         if 'path_csv' in settings and settings['path_csv']:
-            self._path_csv = Path(settings['path_csv']) 
+            self.paths._path_csv = Path(settings['path_csv']) 
 
         # Wildcards of groups of files to analyze for dimensions in path_data.
         # See for example: https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html
@@ -887,15 +898,15 @@ class DataManager(object):
             wildcards_window.append([settings['wildcards_window'][i]])
 
         # PRE-RADIOMICS CHECKS
-        if not self._path_save_checks:
+        if not self.paths._path_save_checks:
             os.mkdir(path_study / 'checks')
-            self._path_save_checks = Path(path_study / 'checks')
+            self.paths._path_save_checks = Path(path_study / 'checks')
         else:
-            if self._path_save_checks.name != 'checks' and (self._path_save_checks / 'checks').exists():
-                self._path_save_checks /= 'checks'
+            if self.paths._path_save_checks.name != 'checks' and (self.paths._path_save_checks / 'checks').exists():
+                self.paths._path_save_checks /= 'checks'
             else:
-                self._path_save_checks /= 'checks'
-                os.mkdir(self._path_save_checks)
+                self.paths._path_save_checks /= 'checks'
+                os.mkdir(self.paths._path_save_checks)
 
         start = time()
         print('\n\n************************* PRE-RADIOMICS CHECKS *************************', end='')
