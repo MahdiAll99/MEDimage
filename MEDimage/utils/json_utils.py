@@ -71,7 +71,7 @@ def save_json(file_path, data, cls=None) -> None:
     """
     if _is_jsonable(data):
         with open(file_path, 'w') as fp:
-            json.dump(data, fp, cls=cls)
+            json.dump(data, fp, indent=4, cls=cls)
     else:
         raise TypeError("The given data is not JSON serializable. \
             We rocommend using a costum encoder.")
