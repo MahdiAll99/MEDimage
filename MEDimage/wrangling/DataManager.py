@@ -56,6 +56,7 @@ class DataManager(object):
 
     @dataclass
     class Paths(object):
+        """Paths management class that will organize the paths used in the processing"""
         _path_to_dicoms: List
         _path_to_niftis: List
         _path_csv: Union[Path, str]
@@ -71,7 +72,6 @@ class DataManager(object):
             path_save: Union[Path, str] = None,
             path_save_checks: Union[Path, str] = None,
             path_pre_checks_settings: Union[Path, str] = None,
-            roi_type_labels: Union[str, List[str]] = [],
             save: bool = False,
             keep_instances: bool = True,
             n_batch: int = 2
@@ -79,20 +79,38 @@ class DataManager(object):
         """Constructor of the class DataManager.
 
         Args:
-            path_to_dicoms (Union[Path, str], optional): Path specifying the full path to the starting directory
+            path_to_dicoms (Union[Path, str], optional): Full path to the starting directory
                 where the DICOM data is located.
-            path_to_niftis (Union[Path, str], optional): Path specifying the full path to the starting directory
+            path_to_niftis (Union[Path, str], optional): Full path to the starting directory
                 where the NIfTI is located.
+            path_csv (Union[Path, str], optional): Full path to the CSV file containing the scans info list.
             path_save (Union[Path, str], optional): Full path to the directory where to save all the MEDimage classes.
-            save (bool, optional): True to save the MEDimage classes, False to return them.
-            keep_instances(bool, optional): If True, will keep the created MEDimage instances in
-                the `instances` attribute.
+            path_save_checks(Union[Path, str], optional): Full path to the directory where to save all 
+                the pre-radiomics checks analysis results.
+            path_pre_checks_settings(Union[Path, str], optional): Full path to the JSON file of the pre-checks analysis
+                parameters.
+            save (bool, optional): True to save the MEDimage classes in `path_save`.
+            keep_instances(bool, optional): If True, will keep the created MEDimage instances in the class instance.
             n_batch (int, optional): Numerical value specifying the number of batch to use in the
-                parallel computations (use 0 for serial).
-
+                parallel computations (use 0 for serial computation).
+        
         Returns:
             None
         """
+        # Convert all paths to Pathlib.Path
+        if path_to_dicoms:
+            path_to_dicoms = Path(path_to_dicoms)
+        if path_to_niftis:
+            path_to_niftis = Path(path_to_niftis)
+        if path_csv:
+            path_csv = Path(path_csv)
+        if path_save:
+            path_save = Path(path_save)
+        if path_save_checks:
+            path_save_checks = Path(path_save_checks)
+        if path_pre_checks_settings:
+            path_pre_checks_settings = Path(path_pre_checks_settings)
+
         self.paths = self.Paths(
                 path_to_dicoms,
                 path_to_niftis,
@@ -101,11 +119,10 @@ class DataManager(object):
                 path_save_checks,
                 path_pre_checks_settings,
         )
-        self.roi_type_labels = [roi_type_labels] if roi_type_labels is str else roi_type_labels
         self.save = save
         self.keep_instances = keep_instances
         self.n_batch = n_batch
-        self.dicom = self.DICOM(
+        self.__dicom = self.DICOM(
                 stack_series_rs=[],
                 stack_path_rs=[],
                 stack_frame_rs=[],
@@ -115,7 +132,7 @@ class DataManager(object):
                 cell_frame_rs=[],
                 cell_frame_id=[]
         )
-        self.nifti = self.NIfTI(
+        self.__nifti = self.NIfTI(
                 stack_path_images=[],
                 stack_path_roi=[],
                 stack_path_all=[]
@@ -192,21 +209,21 @@ class DataManager(object):
             None
         """
         print('--> Associating all RT objects to imaging volumes')
-        n_rs = len(self.dicom.stack_path_rs)
+        n_rs = len(self.__dicom.stack_path_rs)
         if n_rs:
             for i in trange(0, n_rs):
                 try: # PUT ALL THE DICOM PATHS WITH THE SAME UID IN THE SAME PATH LIST
                     ind_series_id = self.__find_uid_cell_index(
-                                                        self.dicom.stack_series_rs[i], 
-                                                        self.dicom.cell_series_id)
+                                                        self.__dicom.stack_series_rs[i], 
+                                                        self.__dicom.cell_series_id)
                     for n in range(len(ind_series_id)):
-                        self.dicom.cell_path_rs[ind_series_id[n]] += [self.dicom.stack_path_rs[i]]
+                        self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
                 except:
                     ind_series_id = self.__find_uid_cell_index(
-                                                        self.dicom.stack_frame_rs[i], 
-                                                        self.dicom.cell_frame_id)
+                                                        self.__dicom.stack_frame_rs[i], 
+                                                        self.__dicom.cell_frame_id)
                     for n in range(len(ind_series_id)):
-                        self.dicom.cell_path_rs[ind_series_id[n]] += [self.dicom.stack_path_rs[i]]
+                        self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
         print('DONE')
 
     def __read_all_dicoms(self) -> None:
@@ -240,15 +257,15 @@ class DataManager(object):
                     if info.Modality in ['MR', 'PT', 'CT']:
                         ind_series_id = self.__find_uid_cell_index(
                                                         info.SeriesInstanceUID, 
-                                                        self.dicom.cell_series_id)[0]
-                        if ind_series_id == len(self.dicom.cell_series_id):  # New volume
-                            self.dicom.cell_series_id = self.dicom.cell_series_id + [info.SeriesInstanceUID]
-                            self.dicom.cell_frame_id += [info.FrameOfReferenceUID]
-                            self.dicom.cell_path_images += [[]]
-                            self.dicom.cell_path_rs = self.dicom.cell_path_rs + [[]]
-                        self.dicom.cell_path_images[ind_series_id] += [file]
+                                                        self.__dicom.cell_series_id)[0]
+                        if ind_series_id == len(self.__dicom.cell_series_id):  # New volume
+                            self.__dicom.cell_series_id = self.__dicom.cell_series_id + [info.SeriesInstanceUID]
+                            self.__dicom.cell_frame_id += [info.FrameOfReferenceUID]
+                            self.__dicom.cell_path_images += [[]]
+                            self.__dicom.cell_path_rs = self.__dicom.cell_path_rs + [[]]
+                        self.__dicom.cell_path_images[ind_series_id] += [file]
                     elif info.Modality == 'RTSTRUCT':
-                        self.dicom.stack_path_rs += [file]
+                        self.__dicom.stack_path_rs += [file]
                         try:
                             series_uid = info.ReferencedFrameOfReferenceSequence[
                                         0].RTReferencedStudySequence[
@@ -256,12 +273,12 @@ class DataManager(object):
                                         0].SeriesInstanceUID
                         except:
                             series_uid = 'NotFound'
-                        self.dicom.stack_series_rs += [series_uid]
+                        self.__dicom.stack_series_rs += [series_uid]
                         try:
                             frame_uid = info.ReferencedFrameOfReferenceSequence[0].FrameOfReferenceUID
                         except:
                             frame_uid = info.FrameOfReferenceUID
-                        self.dicom.stack_frame_rs += [frame_uid]
+                        self.__dicom.stack_frame_rs += [frame_uid]
 
                 except Exception as e:
                     print(f'Error while reading: {file}, error: {e}\n')
@@ -286,7 +303,7 @@ class DataManager(object):
         print('--> Reading all DICOM objects to create MEDimage classes')
         self.__read_all_dicoms()
 
-        n_scans = len(self.dicom.cell_path_images)
+        n_scans = len(self.__dicom.cell_path_images)
         if self.n_batch is None:
             n_batch = 1
         elif n_scans < self.n_batch:
@@ -296,8 +313,8 @@ class DataManager(object):
 
         # Distribute the first tasks to all workers
         ids = [pdsf.remote(
-                        self.dicom.cell_path_images[i], 
-                        self.dicom.cell_path_rs[i], 
+                        self.__dicom.cell_path_images[i], 
+                        self.__dicom.cell_path_rs[i], 
                         self.paths._path_save,
                         self.save)
             for i in range(n_batch)]
@@ -343,8 +360,8 @@ class DataManager(object):
             ids = not_ready
             if nb_job_left > 0:
                 idx = n_scans - nb_job_left
-                ids.extend([pdsf.remote(self.dicom.cell_path_images[idx], 
-                                        self.dicom.cell_path_rs[idx], 
+                ids.extend([pdsf.remote(self.__dicom.cell_path_images[idx], 
+                                        self.__dicom.cell_path_rs[idx], 
                                         self.paths._path_save,
                                         self.save)])
                 nb_job_left -= 1
@@ -389,10 +406,6 @@ class DataManager(object):
         """Reads all files in the initial path and organizes other path to images and roi
         in the class attributes.
 
-        Note:
-            The `nifti_image_path` filename must respect the following naming convention:
-            PatientID__ImagingScanName(tumorAuto).ImagingModality.nii.gz
-
         Returns:
             None.
         """
@@ -403,17 +416,17 @@ class DataManager(object):
 
         # EXTRACT ALL FILES IN THE PATH TO DICOMS
         if p.is_dir():
-            self.nifti.stack_path_all = list(p.rglob(e_rglob1))
-            self.nifti.stack_path_all.extend(list(p.rglob(e_rglob2)))
+            self.__nifti.stack_path_all = list(p.rglob(e_rglob1))
+            self.__nifti.stack_path_all.extend(list(p.rglob(e_rglob2)))
         else:
             raise TypeError("`_path_to_niftis` must be a path to a directory")
 
-        all_niftis = list(self.nifti.stack_path_all)
+        all_niftis = list(self.__nifti.stack_path_all)
         for i in trange(0, len(all_niftis)):
             if 'ROI' in all_niftis[i].name.split("."):
-                self.nifti.stack_path_roi.append(all_niftis[i])
+                self.__nifti.stack_path_roi.append(all_niftis[i])
             else:
-                self.nifti.stack_path_images.append(all_niftis[i])
+                self.__nifti.stack_path_images.append(all_niftis[i])
         print('DONE')
 
     def __associate_roi_to_image(self, image_file: Union[Path, str], MEDimg: MEDimage) -> MEDimage:
@@ -430,7 +443,7 @@ class DataManager(object):
         image_file = Path(image_file)
         roi_index = 0
 
-        for file in self.nifti.stack_path_roi:
+        for file in self.__nifti.stack_path_roi:
             _id = image_file.name.split("(")[0] # id is PatientID__ImagingScanName
             # Load the patient's ROI nifti files:
             if file.name.startswith(_id) and 'ROI' in file.name.split("."):
@@ -459,26 +472,26 @@ class DataManager(object):
         nifti_data = MEDimg.scan.volume.data
 
         # spatialRef Creation
-        pixelX = abs(nifti.affine[0, 0])
-        pixelY = abs(nifti.affine[1, 1])
-        sliceS = abs(nifti.affine[2, 2])
+        pixel_x = abs(nifti.affine[0, 0])
+        pixel_y = abs(nifti.affine[1, 1])
+        slices = abs(nifti.affine[2, 2])
         min_grid = nifti.affine[:3, 3] * [-1.0, -1.0, 1.0] # x and y are flipped
-        min_Xgrid = min_grid[0]
-        min_Ygrid = min_grid[1]
-        min_Zgrid = min_grid[2]
+        min_x_grid = min_grid[0]
+        min_y_grid = min_grid[1]
+        min_z_grid = min_grid[2]
         size_image = np.shape(nifti_data)
-        spatialRef = imref3d(size_image, abs(pixelX), abs(pixelY), abs(sliceS))
+        spatialRef = imref3d(size_image, abs(pixel_x), abs(pixel_y), abs(slices))
         spatialRef.XWorldLimits = (np.array(spatialRef.XWorldLimits) -
                                 (spatialRef.XWorldLimits[0] -
-                                    (min_Xgrid-pixelX/2))
+                                    (min_x_grid-pixel_x/2))
                                 ).tolist()
         spatialRef.YWorldLimits = (np.array(spatialRef.YWorldLimits) -
                                 (spatialRef.YWorldLimits[0] -
-                                    (min_Ygrid-pixelY/2))
+                                    (min_y_grid-pixel_y/2))
                                 ).tolist()
         spatialRef.ZWorldLimits = (np.array(spatialRef.ZWorldLimits) -
                                 (spatialRef.ZWorldLimits[0] -
-                                    (min_Zgrid-sliceS/2))
+                                    (min_z_grid-slices/2))
                                 ).tolist()
 
         # Converting the results into lists
@@ -499,17 +512,20 @@ class DataManager(object):
         self.process_all_niftis()
 
     def process_all_niftis(self) -> List[MEDimage]:
-        """This function reads the NIfTI content of all the sub-folder tree of a starting directory defined by
-        `path_to_niftis`. It then organizes the data in the MEDimage class including the region of  interest (ROI)
-        defined by an associated mask file. All MEDimage classes hereby created are saved in `path_save` with a name
-        varying with every scan.
+        """This function reads the NIfTI content of all the sub-folder tree of a starting directory. 
+        It then organizes the data in the MEDimage class including the region of  interest (ROI)
+        defined by an associated mask file. All MEDimage classes hereby created are saved in a specific path
+        with a name specific name varying with every scan.
+
+        Args:
+            None.
 
         Returns:
             List[MEDimage]: List of MEDimage instances.
         """
         self.__read_all_niftis()
         print('--> Reading all NIfTI objects (imaging volumes & masks) to create MEDimage classes')
-        for file in tqdm(self.nifti.stack_path_images):
+        for file in tqdm(self.__nifti.stack_path_images):
             # User cannot save over 10 instances in the class
             if len(self.instances)>10 and not self.__warned:
                 warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
@@ -561,10 +577,11 @@ class DataManager(object):
         return self.instances
 
     def update_from_csv(self, path_csv: Union[str, Path] = None) -> None:
-        """Updates `csv` attribute from a given path to a csv file
+        """Updates the class from a given CSV and summarizes the processed scans again according to it.
 
         Args:
-            path_csv(optional, Union[str, Path]): Path to a csv file
+            path_csv(optional, Union[str, Path]): Path to a csv file, if not given, will check
+                for csv info in the class attributes.
         
         Returns:
             None
@@ -575,8 +592,6 @@ class DataManager(object):
             # Extract roi type label from csv file name
             name_csv = self.paths._path_csv.name
             roi_type_label = name_csv[name_csv.find('_')+1 : name_csv.find('.')]
-            if roi_type_label not in self.roi_type_labels:
-                self.roi_type_labels.append(roi_type_label)
 
             # Create a dictionary
             csv_data = {}
@@ -649,15 +664,15 @@ class DataManager(object):
             path_csv: Union[Path, str],
             force: bool = False
         ) -> None:
-        """Initializes all the class attributes needed to run pre-readiomics check methods.
+        """Initializes all the class attributes needed to run pre-radiomics check methods.
 
         This method is useful to make sure all the important attributes are ready before running
-        radiomics pre-checks, in case these attributes were not specified during the class intialization.
+        radiomics pre-checks, in case these attributes were not specified during the class initialization.
 
         Args:
             path_save_checks(Union[Path, str]): Path to where the radiomics checks are gonna be saved.
             path_csv(Union[Path, str]): Path to the csv file that will be used to read scans.
-            fore(bool, optional): If ture, will replace the values of the existing attributes and
+            force(bool, optional): If True, will replace the values of the existing attributes and
                 will skip (keep the originals) if false.
         """
         if self.paths._path_save_checks and force:
@@ -665,8 +680,22 @@ class DataManager(object):
         if self.paths._path_csv and force:
             self.paths._path_csv = path_csv
 
-    def __pre_radiomics_checks_dimensions(self, wildcards_dimensions: List = [], use_instances: bool = True):
-        """
+    def __pre_radiomics_checks_dimensions(
+                                        self, 
+                                        wildcards_dimensions: List[str] = [], 
+                                        use_instances: bool = True
+                                        ) -> None:
+        """Finds proper dimensions options for radiomics analyses for a group of scans
+
+        Args:
+            wildcards_dimensions(List[str], optional): List of wildcards that determines the scans 
+                that will be analyzed. You can learn more about wildcards in
+                :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
+            use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
+                for the analysis. If False, will analyze scans in the path where the instances were saved.
+        
+        Returns:
+            None.
         """
         xy_dim = {
             "data": [],
@@ -784,7 +813,19 @@ class DataManager(object):
             use_instances: bool = True,
             path_csv: Union[str, Path] = None
         ) -> None:
-        """
+        """Finds proper re-segmentation ranges options for radiomics analyses for a group of scans
+
+        Args:
+            wildcards_window(List[str], optional): List of wildcards that determines the scans 
+            that will be analyzed. You can learn more about wildcards in
+                :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
+            use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
+                for the analysis. If False, will analyze scans in the path where the instances were saved.
+            path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be
+                analyzed (a CSV file for a single ROI type).
+        
+        Returns:
+            None.
         """
         roi_data= {
             "data": [],
@@ -879,16 +920,26 @@ class DataManager(object):
         save_json(self.paths._path_save_checks / ('roi_data_' + wildcard), roi_data)
 
     def pre_radiomics_checks(self, 
-                            use_instances: bool = True,
                             wildcards_dimensions: List = [],
-                            wildcards_window: List = []) -> None:
+                            wildcards_window: List = [],
+                            use_instances: bool = True,
+                            path_csv: Union[str, Path] = None) -> None:
         """Finds proper dimension and re-segmentation ranges options for radiomics analyses. 
 
         The resulting files from this method can then be analyzed and used to set up radiomics 
         parameters options in computation methods.
 
         Args:
-            None
+            wildcards_dimensions(List[str], optional): List of wildcards that determines the scans 
+                that will be analyzed. You can learn more about wildcards in
+                :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
+            wildcards_window(List[str], optional): List of wildcards that determines the scans 
+                that will be analyzed. You can learn more about wildcards in
+                :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
+            use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
+                for the analysis. If False, will analyze scans in the path where the instances were saved.
+            path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be
+                analyzed (a CSV file for a single ROI type).
 
         Returns:
             None
@@ -946,7 +997,7 @@ class DataManager(object):
         # 2. PRE-RADIOMICS CHECKS - WINDOW
         start2 = time()
         print('\n\n--> PRE-RADIOMICS CHECKS -- WINDOW ... \n', end='')
-        self.__pre_radiomics_checks_window(wildcards_window, use_instances)
+        self.__pre_radiomics_checks_window(wildcards_window, use_instances, path_csv)
         print('DONE', end='')
         time2 = f"{time() - start2:.2f}"
         print(f'\nElapsed time: {time2} sec', end='')
