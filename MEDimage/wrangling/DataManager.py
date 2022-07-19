@@ -21,10 +21,10 @@ from MEDimage.utils.imref import imref3d
 from tqdm import tqdm, trange
 
 from ..processing.compute_suv_map import compute_suv_map
-from ..processing.get_roi import get_roi
+from ..processing.get_roi_from_indexes import get_roi_from_indexes
 from ..utils.get_file_paths import get_file_paths
 from ..utils.get_patient_names import get_patient_names
-from ..utils.json_utils import load_json
+from ..utils.json_utils import load_json, save_json
 from ..utils.save_MEDimage import save_MEDimage
 from .process_dicom_scan_files import process_dicom_scan_files as pdsf
 
@@ -59,9 +59,9 @@ class DataManager(object):
         _path_to_dicoms: List
         _path_to_niftis: List
         _path_csv: Union[Path, str]
-        _path_pre_checks_settings: Union[Path, str]
         _path_save: Union[Path, str]
         _path_save_checks: Union[Path, str]
+        _path_pre_checks_settings: Union[Path, str]
 
     def __init__(
             self, 
@@ -668,27 +668,26 @@ class DataManager(object):
     def __pre_radiomics_checks_dimensions(self, wildcards_dimensions: List = [], use_instances: bool = True):
         """
         """
-        @dataclass
-        class xyDim:
-            data = []
-            mean = []
-            median = []
-            std = []
-            min = []
-            max = []
-            p5 = []
-            p95 = []
-
-        @dataclass
-        class zDim:
-            data = []
-            mean = []
-            median = []
-            std = []
-            min = []
-            max = []
-            p5 = []
-            p95 = []
+        xy_dim = {
+            "data": [],
+            "mean": [],
+            "median": [],
+            "std": [],
+            "min": [],
+            "max": [],
+            "p5": [],
+            "p95": []
+        }
+        z_dim = {
+            "data": [],
+            "mean": [],
+            "median": [],
+            "std": [],
+            "min": [],
+            "max": [],
+            "p5": [],
+            "p95": []
+        }
 
         if len(wildcards_dimensions) == 0 and not use_instances:
             print("Wildcard is empty and instances use is not allowed, the pre-checks will be aborted")
@@ -698,170 +697,193 @@ class DataManager(object):
         # TODO: Two summaries (df, list of names saves) -> 
         # name_save = name_save(ROI) : Glioma-Huashan-001__T1.MRscan.npy({GTV})
         file_paths = list()
-        if use_instances:
+        for w in range(len(wildcards_dimensions)):
+            wildcard = wildcards_dimensions[w]
+            if use_instances:
+                wildcard = str(wildcard).replace('*', '')
+                study, scan_type = wildcard.split('.')[0:2]
                 n_instances = len(self.instances)
-                xyDim.data = np.zeros((n_instances, 1))
-                xyDim.data = np.multiply(xyDim.data, np.nan)
-                zDim.data = np.zeros((n_instances, 1))
-                zDim.data = np.multiply(zDim.data, np.nan)
+                xy_dim["data"] = np.zeros((n_instances, 1))
+                xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
+                z_dim["data"] = np.zeros((n_instances, 1))
+                z_dim["data"] = np.multiply(z_dim["data"], np.nan)
                 for i in tqdm(range(len(self.instances))):
                     try:
                         MEDimg = self.instances[i]
-                        xyDim.data[i] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
-                        zDim.data[i]  = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
+                        if MEDimg.patientID.split('-')[0] == study and MEDimg.type == scan_type:
+                            xy_dim["data"][i] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
+                            z_dim["data"][i]  = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
+                        else:
+                            continue
                     except Exception as e:
                         print(e)
                 # Running analysis
-                xyDim.data = np.concatenate(xyDim.data)
-                xyDim.mean = np.mean(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.median = np.median(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.std = np.std(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.min = np.min(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.max = np.max(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.p5 = np.percentile(xyDim.data[~np.isnan(xyDim.data)], 5)
-                xyDim.p95 = np.percentile(xyDim.data[~np.isnan(xyDim.data)], 95)
-                zDim.mean = np.mean(zDim.data[~np.isnan(zDim.data)])
-                zDim.median = np.median(zDim.data[~np.isnan(zDim.data)])
-                zDim.std = np.std(zDim.data[~np.isnan(zDim.data)])
-                zDim.min = np.min(zDim.data[~np.isnan(zDim.data)])
-                zDim.max = np.max(zDim.data[~np.isnan(zDim.data)])
-                zDim.p5 = np.percentile(zDim.data[~np.isnan(zDim.data)], 5)
-                zDim.p95 = np.percentile(zDim.data[~np.isnan(zDim.data)], 95)
+                xy_dim["data"] = np.concatenate(xy_dim["data"])
+                xy_dim["mean"] = np.mean(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["median"] = np.median(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["std"] = np.std(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["min"] = np.min(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["max"] = np.max(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["p5"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 5)
+                xy_dim["p95"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 95)
+                z_dim["mean"] = np.mean(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["median"] = np.median(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["std"] = np.std(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["min"] = np.min(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["max"] = np.max(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["p5"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 5)
+                z_dim["p95"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 95)
+                xy_dim["data"] = xy_dim["data"].tolist()
+                z_dim["data"] = z_dim["data"].tolist()
 
                 # Saving files using wildcard for name
-                wildcard = wildcards_dimensions[0]
-                wildcard = str(wildcard).replace('*', '')
-                np.save(self.paths._path_save_checks / ('xyDim_' + wildcard), xyDim)
-                np.save(self.paths._path_save_checks / ('zDim_' + wildcard), zDim)
-        else:
-            for w in range(len(wildcards_dimensions)):
-                wildcard = wildcards_dimensions[w]
+                wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
+                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim)
+                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim)
+            else:
                 file_paths = get_file_paths(self.paths._path_save, wildcard)
                 n_files = len(file_paths)
-                xyDim.data = np.zeros((n_files, 1))
-                xyDim.data = np.multiply(xyDim.data, np.nan)
-                zDim.data = np.zeros((n_files, 1))
-                zDim.data = np.multiply(zDim.data, np.nan)
+                xy_dim["data"] = np.zeros((n_files, 1))
+                xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
+                z_dim["data"] = np.zeros((n_files, 1))
+                z_dim["data"] = np.multiply(z_dim["data"], np.nan)
                 for f in tqdm(range(len(file_paths))):
                     try:
                         MEDimg = np.load(file_paths[0], allow_pickle=True)
-                        xyDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
-                        zDim.data[f]  = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
+                        xy_dim["data"][f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
+                        z_dim["data"][f]  = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
                     except Exception as e:
                         print(e)
 
-                xyDim.data = np.concatenate(xyDim.data)
-                xyDim.mean = np.mean(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.median = np.median(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.std = np.std(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.min = np.min(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.max = np.max(xyDim.data[~np.isnan(xyDim.data)])
-                xyDim.p5 = np.percentile(xyDim.data[~np.isnan(xyDim.data)], 5)
-                xyDim.p95 = np.percentile(xyDim.data[~np.isnan(xyDim.data)], 95)
-                zDim.mean = np.mean(zDim.data[~np.isnan(zDim.data)])
-                zDim.median = np.median(zDim.data[~np.isnan(zDim.data)])
-                zDim.std = np.std(zDim.data[~np.isnan(zDim.data)])
-                zDim.min = np.min(zDim.data[~np.isnan(zDim.data)])
-                zDim.max = np.max(zDim.data[~np.isnan(zDim.data)])
-                zDim.p5 = np.percentile(zDim.data[~np.isnan(zDim.data)], 5)
-                zDim.p95 = np.percentile(zDim.data[~np.isnan(zDim.data)], 95)
+                xy_dim["data"] = np.concatenate(xy_dim["data"])
+                xy_dim["mean"] = np.mean(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["median"] = np.median(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["std"] = np.std(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["min"] = np.min(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["max"] = np.max(xy_dim["data"][~np.isnan(xy_dim["data"])])
+                xy_dim["p5"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 5)
+                xy_dim["p95"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 95)
+                z_dim["mean"] = np.mean(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["median"] = np.median(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["std"] = np.std(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["min"] = np.min(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["max"] = np.max(z_dim["data"][~np.isnan(z_dim["data"])])
+                z_dim["p5"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 5)
+                z_dim["p95"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 95)
+                xy_dim["data"] = xy_dim["data"].tolist()
+                z_dim["data"] = z_dim["data"].tolist()
 
                 # Saving files using wildcard for name
-                wildcard = str(wildcard).replace('*', '')
-                np.save(self.paths._path_save_checks / ('xyDim_' + wildcard), xyDim)
-                np.save(self.paths._path_save_checks / ('zDim_' + wildcard), zDim)
+                wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
+                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim)
+                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim)
 
     def __pre_radiomics_checks_window(
             self, 
             wildcards_window: List = [], 
-            use_instances: bool = True
+            use_instances: bool = True,
+            path_csv: Union[str, Path] = None
         ) -> None:
         """
         """
-        @dataclass
-        class roiData:
-            data = []
-            mean = []
-            median = []
-            std = []
-            min = []
-            max = []
-            p5 = []
-            p95 = []
+        roi_data= {
+            "data": [],
+            "mean": [],
+            "median": [],
+            "std": [],
+            "min": [],
+            "max": [],
+            "p5": [],
+            "p95": []
+        }
 
         if len(wildcards_window) == 0:
             print("Wilcards is empty")
             return
-        if not use_instances:
-            roi_table = pd.read_csv(self.paths._path_csv)
-            roi_names = [[], [], []]
-            roi_names[0] = roi_table['PatientID']
-            roi_names[1] = roi_table['ImagingScanName']
-            roi_names[2] = roi_table['ImagingModality']
-            patient_names = get_patient_names(roi_names)
+        if path_csv:
+            self.paths._path_csv = Path(path_csv)
+        roi_table = pd.read_csv(self.paths._path_csv)
+        roi_names = [[], [], []]
+        roi_names[0] = roi_table['PatientID']
+        roi_names[1] = roi_table['ImagingScanName']
+        roi_names[2] = roi_table['ImagingModality']
+        patient_names = get_patient_names(roi_names)
 
         temp_val = []
         temp = []
         file_paths = []
-        if not use_instances:
-            for w in range(len(wildcards_window)):
-                wildcard = wildcards_window[w]
+        for w in range(len(wildcards_window)):
+            wildcard = wildcards_window[w]
+            if not use_instances:
                 file_paths = get_file_paths(self.paths._path_save, wildcard)
-            n_files = len(file_paths)
-            for f in tqdm(range(n_files)):
-                file = file_paths[0]
-                _, filename = os.path.split(file)
-                filename, ext = os.path.splitext(filename)
-                patient_name = filename + ext
-                try:
-                    MEDimg = np.load(file, allow_pickle=True)
-                    if re.search('PTscan', wildcard):
-                        MEDimg.scan.volume.data = compute_suv_map(
-                                                    np.double(MEDimg.scan.volume.data), 
-                                                    MEDimg.dicomH[2])
-                    patient_names = pd.Index(patient_names)
-                    ind_roi = patient_names.get_loc(patient_name)
-                    name_roi = roi_table.loc[ind_roi][3]
-                    vol_obj_init, roi_obj_init = get_roi(MEDimg, name_roi, 'box')
-                    temp = vol_obj_init.data[roi_obj_init.data == 1]
-                    temp_val.append(len(temp))
-                    roiData.data.append(np.zeros(shape=(n_files, temp_val[f])))
-                    roiData.data[f] = temp
-                except:
-                    roiData.data[f] = []
-        else:
-            for i in tqdm(range(self.instances)):
-                instance = self.instances[i]
-                patient_name = instance.name
-                try:
-                    if re.search('PTscan', wildcard):
-                        instance.scan.volume.data = compute_suv_map(np.double(instance.scan.volume.data), instance.dicomH[2])
-                    patient_names = pd.Index(patient_names)
-                    ind_roi = patient_names.get_loc(patient_name)
-                    name_roi = roi_table.loc[ind_roi][3]
-                    vol_obj_init, roi_obj_init = get_roi(instance, name_roi, 'box')
-                    temp = vol_obj_init.data[roi_obj_init.data == 1]
-                    temp_val.append(len(temp))
-                    roiData.data.append(np.zeros(shape=(n_files, temp_val[f])))
-                    roiData.data[f] = temp
-                except:
-                    roiData.data[f] = []
+                n_files = len(file_paths)
+                for f in tqdm(range(n_files)):
+                    file = file_paths[f]
+                    _, filename = os.path.split(file)
+                    filename, ext = os.path.splitext(filename)
+                    patient_name = filename + ext
+                    try:
+                        MEDimg = np.load(file, allow_pickle=True)
+                        if re.search('PTscan', wildcard):
+                            MEDimg.scan.volume.data = compute_suv_map(
+                                                        np.double(MEDimg.scan.volume.data), 
+                                                        MEDimg.dicomH[2])
+                        patient_names = pd.Index(patient_names)
+                        ind_roi = patient_names.get_loc(patient_name)
+                        name_roi = roi_table.loc[ind_roi][3]
+                        vol_obj_init, roi_obj_init = get_roi_from_indexes(MEDimg, name_roi, 'box')
+                        temp = vol_obj_init.data[roi_obj_init.data == 1]
+                        temp_val.append(len(temp))
+                        roi_data["data"].append(np.zeros(shape=(n_files, temp_val[f])))
+                        roi_data["data"][f] = temp
+                    except:
+                        roi_data["data"][f] = []
+            else:
+                for i in tqdm(range(len(self.instances))):
+                    wildcard = str(wildcard).replace('*', '')
+                    study, scan_type = wildcard.split('.')[0:2]
+                    MEDimg = self.instances[i]
+                    patient_name = self.__get_MEDimage_name_save(MEDimg)
+                    if MEDimg.patientID.split('-')[0] == study and MEDimg.type == scan_type:
+                        try:
+                            if re.search('PTscan', wildcard):
+                                MEDimg.scan.volume.data = compute_suv_map(np.double(MEDimg.scan.volume.data), 
+                                                                            MEDimg.dicomH[2])
+                            patient_names = pd.Index(patient_names)
+                            ind_roi = patient_names.get_loc(patient_name)
+                            name_roi = roi_table.loc[ind_roi][3]
+                            vol_obj_init, roi_obj_init = get_roi_from_indexes(MEDimg, name_roi, 'box')
+                            temp = vol_obj_init.data[roi_obj_init.data == 1]
+                            temp_val.append(len(temp))
+                            roi_data["data"].append(np.zeros(shape=(len(self.instances), temp_val[i])))
+                            roi_data["data"][i] = temp
+                        except:
+                            roi_data["data"].append([])
+                            roi_data["data"][i] = []
+                    else:
+                        roi_data["data"].append([])
+                        continue
 
-        roiData.data = np.concatenate(roiData.data)
-        roiData.mean = np.mean(roiData.data[~np.isnan(roiData.data)])
-        roiData.median = np.median(roiData.data[~np.isnan(roiData.data)])
-        roiData.std = np.std(roiData.data[~np.isnan(roiData.data)])
-        roiData.min = np.min(roiData.data[~np.isnan(roiData.data)])
-        roiData.max = np.max(roiData.data[~np.isnan(roiData.data)])
-        roiData.p5 = np.percentile(roiData.data[~np.isnan(roiData.data)], 5)
-        roiData.p95 = np.percentile(roiData.data[~np.isnan(roiData.data)], 95)
+        roi_data["data"] = np.concatenate(roi_data["data"])
+        roi_data["mean"] = np.mean(roi_data["data"][~np.isnan(roi_data["data"])])
+        roi_data["median"] = np.median(roi_data["data"][~np.isnan(roi_data["data"])])
+        roi_data["std"] = np.std(roi_data["data"][~np.isnan(roi_data["data"])])
+        roi_data["min"] = np.min(roi_data["data"][~np.isnan(roi_data["data"])])
+        roi_data["max"] = np.max(roi_data["data"][~np.isnan(roi_data["data"])])
+        roi_data["p5"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 5)
+        roi_data["p95"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 95)
+        roi_data["data"] = roi_data["data"].tolist()
 
         # save final checks
-        np.save(self.paths._path_save_checks / ('roiData_' + wildcard), roiData)
+        wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
+        save_json(self.paths._path_save_checks / ('roi_data_' + wildcard), roi_data)
 
-    def pre_radiomics_checks(self, use_instances: bool = True) -> None:
+    def pre_radiomics_checks(self, 
+                            use_instances: bool = True,
+                            wildcards_dimensions: List = [],
+                            wildcards_window: List = []) -> None:
         """Finds proper dimension and re-segmentation ranges options for radiomics analyses. 
-        
+
         The resulting files from this method can then be analyzed and used to set up radiomics 
         parameters options in computation methods.
 
@@ -888,14 +910,16 @@ class DataManager(object):
         # Wildcards of groups of files to analyze for dimensions in path_data.
         # See for example: https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html
         # Keep the cell empty if no dimension checks are to be performed.
-        wildcards_dimensions = []
-        for i in range(len(settings['wildcards_dimensions'])):
-            wildcards_dimensions.append(settings['wildcards_dimensions'][i])
+        if not wildcards_dimensions:
+            wildcards_dimensions = []
+            for i in range(len(settings['wildcards_dimensions'])):
+                wildcards_dimensions.append(settings['wildcards_dimensions'][i])
 
         # ROI intensity window checks params
-        wildcards_window = []
-        for i in range(len(settings['wildcards_window'])):
-            wildcards_window.append([settings['wildcards_window'][i]])
+        if not wildcards_window:
+            wildcards_window = []
+            for i in range(len(settings['wildcards_window'])):
+                wildcards_window.append(settings['wildcards_window'][i])
 
         # PRE-RADIOMICS CHECKS
         if not self.paths._path_save_checks:
