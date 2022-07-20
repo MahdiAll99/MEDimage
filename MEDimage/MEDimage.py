@@ -11,6 +11,7 @@ from numpyencoder import NumpyEncoder
 from PIL import Image
 
 from MEDimage.processing.compute_suv_map import compute_suv_map
+from MEDimage.utils.image_volume_obj import image_volume_obj
 
 from .utils.imref import imref3d
 from .utils.json_utils import load_json
@@ -18,9 +19,6 @@ from .utils.json_utils import load_json
 
 class MEDimage(object):
     """Organizes all scan data (patientID, imaging data, scan type...). 
-
-    Args:
-        MEDimg (MEDimage, optional): A MEDimage instance.
 
     Attributes:
         patientID (str): Patient ID.
@@ -32,6 +30,14 @@ class MEDimage(object):
     """
 
     def __init__(self, MEDimg=None) -> None:
+        """Constructor of the MEDimage class
+
+        Args:
+            MEDimg(MEDimage): A MEDimage class instance.
+        
+        Returns:
+            None
+        """
         try:
             self.patientID = MEDimg.patientID
         except:
@@ -64,7 +70,14 @@ class MEDimage(object):
         self.skip = False
 
     def __init_process_params(self, im_params: Dict) -> None:
-        """Initializes the processing params from a given Dict."""
+        """Initializes the processing params from a given Dict.
+        
+        Args:
+            im_params(Dict): Dictionary of different processing params.
+        
+        Returns:
+            None.
+        """
         if self.type == 'CTscan' and 'imParamCT' in im_params:
             im_params = im_params['imParamCT']
         elif self.type == 'MRscan' and 'imParamMR' in im_params:
@@ -77,6 +90,15 @@ class MEDimage(object):
         # processes (mostly) prior to the computation of radiomics
         # features. Optional argument in the function computeRadiomics.
         box_string = 'box10'
+        if 'compute_diag_features' in im_params:
+            compute_diag_features = im_params['compute_diag_features']
+        else:
+            compute_diag_features = False
+
+        if compute_diag_features:  # If compute_diag_features is true.
+            box_string = 'full'  # This is required for proper comparison.
+
+        self.params.process.box_string = box_string
 
         # get default scan parameters from im_param_scan
         self.params.process.filter = im_params['filter']
@@ -97,17 +119,9 @@ class MEDimage(object):
         # Variable used to determine if there is 'arbitrary' (e.g., MRI)
         # or 'definite' (e.g., CT) intensities.
         self.params.process.intensity = im_params['intensity']
-
-        if 'compute_diag_features' in im_params:
-            compute_diag_features = im_params['compute_diag_features']
-        else:
-            compute_diag_features = False
-
-        if compute_diag_features:  # If compute_diag_features is true.
-            box_string = 'full'  # This is required for proper comparison.
-
-        self.params.process.box_string = box_string
+        # Voxels dimension
         self.params.process.n_scale = len(self.params.process.scale_text)
+        # Setting up discretisation params
         self.params.process.n_algo = len(self.params.process.algo)
         self.params.process.n_gl = len(self.params.process.gray_levels[0])
         self.params.process.n_exp = self.params.process.n_scale * self.params.process.n_algo * self.params.process.n_gl
@@ -129,9 +143,14 @@ class MEDimage(object):
         if self.params.process.box_string is None:
             self.params.process.box_string = 'full'
         
-    def __init_filter_params(self, filter_params) -> None:
-        """
-        Initializes the filtering params from a given Dict.
+    def __init_filter_params(self, filter_params: Dict) -> None:
+        """Initializes the filtering params from a given Dict.
+
+        Args:
+            filter_params(Dict): Dictionary of the filtering parameters.
+        
+        Returns:
+            None.
         """
         if 'imParamFilter' in filter_params:
             filter_params = filter_params['imParamFilter']
@@ -154,8 +173,15 @@ class MEDimage(object):
         # wavelet filter params
         self.params.filter.wavelet.init_from_json(filter_params['wavelet'])
 
-    def init_params(self, im_param_scan):
+    def init_params(self, im_param_scan: Dict) -> None:
+        """Initializes the Params class from a dictionary.
 
+        Args:
+            im_param_scan(Dict): Dictionary of different processing, extraction and filtering params.
+        
+        Returns:
+            None.
+        """
         try:
             # get default scan parameters from im_param_scan
             self.__init_process_params(im_param_scan)
@@ -189,10 +215,15 @@ class MEDimage(object):
             print(message)
             self.skip = True
 
-    def init_ntf_calculation(self, vol_obj) -> None:
+    def init_ntf_calculation(self, vol_obj: image_volume_obj) -> None:
         """
-        Initializes all the computation parameters for NON-TEXTURE FEATURES 
-        as well as the results dict.
+        Initializes all the computation parameters for non-texture features  as well as the results dict.
+
+        Args:
+            vol_obj(image_volume_obj): Imaging volume.
+        
+        Returns:
+            None.
         """
         try:
             if sum(self.params.process.scale_non_text) == 0:  # In case the user chose to not interpolate
@@ -285,8 +316,15 @@ class MEDimage(object):
 
     def init_tf_calculation(self, algo:int, gl:int, scale:int) -> None:
         """
-        Initializes all the computation parameters for TEXTURE FEATURES 
-        as well as the results dict.
+        Initializes all the computation parameters for the texture-features as well as the results dict.
+
+        Args:
+            algo(int): Discretisation algorithms index.
+            gl(int): gray-level index.
+            scale(int): scale-text index.
+        
+        Returns:
+            None.
         """
         # check glcm merge method
         glcm_merge_method = self.params.radiomics.glcm.merge_method
@@ -364,7 +402,7 @@ class MEDimage(object):
         else:
             self.params.radiomics.processing_name = processing_name
 
-    def init_from_nifti(self, nifti_image_path) -> None:
+    def init_from_nifti(self, nifti_image_path: Path) -> None:
         """Initializes the MEDimage class using a NIfTI file.
 
         Args:
@@ -379,8 +417,8 @@ class MEDimage(object):
         self.format = "nifti"
         self.scan.set_orientation(orientation="Axial")
         self.scan.set_patientPosition(patientPosition="HFS")
-        self.scan.ROI.get_ROI_from_path(ROI_path=os.path.dirname(nifti_image_path), 
-                                        ID=Path(nifti_image_path).name.split("(")[0])
+        self.scan.ROI.get_roi_from_path(roi_path=os.path.dirname(nifti_image_path), 
+                                        id=Path(nifti_image_path).name.split("(")[0])
         self.scan.volume.data = nib.load(nifti_image_path).get_fdata()
         # RAS to LPS
         self.scan.volume.convert_to_LPS()
@@ -393,8 +431,22 @@ class MEDimage(object):
                         glcm_features: Dict = {}, glrlm_features: Dict = {},
                         glszm_features: Dict = {}, gldzm_features: Dict = {}, 
                         ngtdm_features: Dict = {}, ngldm_features: Dict = {}) -> None:
-        """
-        Updates the results attribute with the extracted features
+        """Updates the results attribute with the extracted features.
+
+        Args:
+            int_vol_hist_features(Dict, optional): Dictionary of the intensity volume histogram features.
+            morph_features(Dict, optional): Dictionary of the morphological features.
+            loc_int_features(Dict, optional): Dictionary of the intensity local intensity features.
+            stats_features(Dict, optional): Dictionary of the statistical features.
+            int_hist_features(Dict, optional): Dictionary of the intensity histogram features.
+            glcm_features(Dict, optional): Dictionary of the GLCM features.
+            glrlm_features(Dict, optional): Dictionary of the GLRLM features.
+            glszm_features(Dict, optional): Dictionary of the GLSZM features.
+            gldzm_features(Dict, optional): Dictionary of the GLDZM features.
+            ngtdm_features(Dict, optional): Dictionary of the NGTDM features.
+            ngldm_features(Dict, optional): Dictionary of the NGLDM features.
+        Returns:
+            None.
         """
         # check glcm merge method
         glcm_merge_method = self.params.radiomics.glcm.merge_method
@@ -446,6 +498,16 @@ class MEDimage(object):
                     roi_type_label: str, patient_num: int = None) -> None:
         """
         Saves extracted radiomics features in a JSON file.
+
+        Args:
+            scan_file_name(List): List of scan files.
+            path_save(Path): Saving path.
+            roi_type(str): Type of the ROI.
+            roi_type_label(str): Label of the ROI type.
+            patient_num(int): Index of scan.
+        
+        Returns:
+            None.
         """
         path_save = Path(path_save)
         params = {}
@@ -477,7 +539,7 @@ class MEDimage(object):
 
 
     class Params:
-        """Organizes all processing, filtering and features extraction"""
+        """Organizes all processing, filtering and features extraction parameters"""
 
         def __init__(self) -> None:
             """
@@ -489,9 +551,10 @@ class MEDimage(object):
 
 
         class Process:
+            """Organizes all processing parameters."""
             def __init__(self, **kwargs) -> None:
                 """
-                Organizes all processing, filtering and features extraction
+                Constructor of the `Process` class.
                 """
                 self.algo = kwargs['algo'] if 'algo' in kwargs else None
                 self.box_string = kwargs['box_string'] if 'box_string' in kwargs else None
@@ -517,9 +580,15 @@ class MEDimage(object):
 
             def init_from_json(self, path_to_json: Union[Path, str]) -> None:
                 """
-                Updates params attributes from json file
+                Updates class attributes from json file.
+
+                Args:
+                    path_to_json(Union[Path, str]): Path to the JSON file with processing parameters.
+                
+                Returns:
+                    None.
                 """
-                __params = load_json(path_to_json)
+                __params = load_json(Path(path_to_json))
 
                 self.algo = __params['algo'] if 'algo' in __params else self.algo
                 self.box_string = __params['box_string'] if 'box_string' in __params else self.box_string
@@ -545,7 +614,18 @@ class MEDimage(object):
 
 
         class Filter:
+            """Organizes all filtering parameters"""
             def __init__(self, filter_type: str = "") -> None:
+                """
+                Constructor of the Filter class.
+
+                Args:
+                    filter_type(str): Type of the filter that will be used (Must be 'mean', 'log', 'laws',
+                        'gabor' or 'wavelet').
+                
+                Returns:
+                    None.
+                """
                 self.filter_type = filter_type
                 self.mean = self.Mean()
                 self.log = self.Log()
@@ -555,12 +635,22 @@ class MEDimage(object):
 
 
             class Mean:
+                """Organizes the Mean filter parameters"""
                 def __init__(
                         self, ndims: int = 0, name_save: str = '', 
                         padding: str = '', size: int = 0
                 ) -> None:
                     """
-                    Updates params attributes from json file
+                    Constructor of the Mean class.
+
+                    Args:
+                        ndims(int): Filter dimension. 
+                        name_save(str): Specific name added to final extraction results file. 
+                        padding(str): padding mode. 
+                        size(int): Filter size. 
+                                       
+                    Returns:
+                        None.
                     """
                     self.name_save = name_save
                     self.ndims = ndims
@@ -568,7 +658,15 @@ class MEDimage(object):
                     self.size = size
 
                 def init_from_json(self, params: Dict) -> None:
-                    """Updates mean filter params from a given dict"""
+                    """
+                    Updates class attributes from json file.
+
+                    Args:
+                        params(Dict): Dictionary of the Mean filter parameters.
+                    
+                    Returns:
+                        None.
+                    """
                     self.name_save = params['name_save']
                     self.ndims = params['ndims']
                     self.padding = params['padding']
@@ -576,13 +674,24 @@ class MEDimage(object):
 
 
             class Log:
+                """Organizes the Log filter parameters"""
                 def __init__(
                         self, ndims: int = 0, sigma: float = 0.0, 
                         padding: str = '', orthogonal_rot: bool = False, 
                         name_save: str = ''
                 ) -> None:
                     """
-                    Updates params attributes from json file
+                    Constructor of the Log class.
+
+                    Args:
+                        ndims(int): Filter dimension. 
+                        sigma(float): Float of the sigma value.
+                        padding(str): padding mode.
+                        orthogonal_rot(bool): If True will compute average response over orthogonal planes. 
+                        name_save(str): Specific name added to final extraction results file. 
+                                       
+                    Returns:
+                        None.
                     """
                     self.name_save = name_save
                     self.ndims = ndims
@@ -591,7 +700,15 @@ class MEDimage(object):
                     self.sigma = sigma
 
                 def init_from_json(self, params: Dict) -> None:
-                    """Updates mean filter params from a given dict"""
+                    """
+                    Updates class attributes from json file.
+
+                    Args:
+                        params(Dict): Dictionary of the Log filter parameters.
+                    
+                    Returns:
+                        None.
+                    """
                     self.name_save = params['name_save']
                     self.ndims = params['ndims']
                     self.orthogonal_rot = params['orthogonal_rot']
@@ -600,6 +717,7 @@ class MEDimage(object):
 
 
             class Gabor:
+                """Organizes the gabor filter parameters"""
                 def __init__(
                         self, sigma: float = 0.0, _lambda: float = 0.0,  
                         gamma: float = 0.0, theta: str = '', rot_invariance: bool = False,
@@ -607,7 +725,20 @@ class MEDimage(object):
                         padding: str = ''
                 ) -> None:
                     """
-                    Updates params attributes from json file
+                    Constructor of the Gabor class.
+
+                    Args:
+                        sigma(float): Float of the sigma value.
+                        _lambda(float): Float of the lambda value.
+                        gamma(float): Float of the gamma value.
+                        theta(str): String of the theta angle value.
+                        rot_invariance(bool): If True the filter will be rotation invariant.
+                        orthogonal_rot(bool): If True will compute average response over orthogonal planes.
+                        name_save(str): Specific name added to final extraction results file.
+                        padding(str): padding mode.
+                                       
+                    Returns:
+                        None.
                     """
                     self._lambda = _lambda
                     self.gamma = gamma
@@ -619,7 +750,15 @@ class MEDimage(object):
                     self.theta = theta
 
                 def init_from_json(self, params: Dict) -> None:
-                    """Updates mean filter params from a given dict"""
+                    """
+                    Updates class attributes from json file.
+
+                    Args:
+                        params(Dict): Dictionary of the gabor filter parameters.
+                    
+                    Returns:
+                        None.
+                    """
                     self._lambda = params['_lambda']
                     self.gamma = params['gamma']
                     self.name_save = params['name_save']
@@ -637,13 +776,26 @@ class MEDimage(object):
 
 
             class Laws:
+                """Organizes the laws filter parameters"""
                 def __init__(
                         self, config: List = [], energy_distance: int = 0, 
                         energy_image: bool = False, rot_invariance: bool = False, 
                         orthogonal_rot: bool = False, name_save: str = '', padding: str = ''
                 ) -> None:
                     """
-                    Updates params attributes from json file
+                    Constructor of the Laws class.
+
+                    Args:
+                        config(List): Configuration of the Laws filter, for ex: ['E5', 'L5', 'E5'].
+                        energy_distance(int): Chebyshev distance.
+                        energy_image(bool): If True will compute the Laws terxture energy image.
+                        rot_invariance(bool): If True the filter will be rotation invariant.
+                        orthogonal_rot(bool): If True will compute average response over orthogonal planes.
+                        name_save(str): Specific name added to final extraction results file.
+                        padding(str): padding mode.
+                                       
+                    Returns:
+                        None.
                     """
                     self.config = config
                     self.energy_distance = energy_distance
@@ -654,7 +806,15 @@ class MEDimage(object):
                     self.rot_invariance = rot_invariance
 
                 def init_from_json(self, params: Dict) -> None:
-                    """Updates mean filter params from a given dict"""
+                    """
+                    Updates class attributes from json file.
+
+                    Args:
+                        params(Dict): Dictionary of the laws filter parameters.
+                    
+                    Returns:
+                        None.
+                    """
                     self.config = params['config']
                     self.energy_distance = params['energy_distance']
                     self.energy_image = params['energy_image']
@@ -665,13 +825,26 @@ class MEDimage(object):
 
 
             class Wavelet:
+                """Organizes the Wavelet filter parameters"""
                 def __init__(
                         self, ndims: int = 0, name_save: str = '', 
                         basis_function: str = '', subband: str = '', level: int = 0, 
                         rot_invariance: bool = False, padding: str = ''
                 ) -> None:
                     """
-                    Updates params attributes from json file
+                    Constructor of the Wavelet class.
+
+                    Args:
+                        ndims(int): Dimension of the filter.
+                        name_save(str): Specific name added to final extraction results file.
+                        basis_function(str): Wavelet basis function.
+                        subband(str): Wavelet subband.
+                        level(int): Decomposition level.
+                        rot_invariance(bool): If True the filter will be rotation invariant.
+                        padding(str): padding mode.
+                                       
+                    Returns:
+                        None.
                     """
                     self.basis_function = basis_function
                     self.level = level
@@ -682,7 +855,15 @@ class MEDimage(object):
                     self.subband = subband
 
                 def init_from_json(self, params: Dict) -> None:
-                    """Updates mean filter params from a given dict"""
+                    """
+                    Updates class attributes from json file.
+
+                    Args:
+                        params(Dict): Dictionary of the wavelet filter parameters.
+                    
+                    Returns:
+                        None.
+                    """
                     self.basis_function = params['basis_function']
                     self.level = params['level']
                     self.ndims = params['ndims']
@@ -693,9 +874,10 @@ class MEDimage(object):
 
 
         class Radiomics:
+            """Organizes the radiomics extraction parameters"""
             def __init__(self, **kwargs) -> None:
                 """
-                Features extraction parameters
+                Constructor of the Radiomics class.
                 """
                 self.ih_name = kwargs['ih_name'] if 'ih_name' in kwargs else None
                 self.ivh_name = kwargs['ivh_name'] if 'ivh_name' in kwargs else None
@@ -710,13 +892,29 @@ class MEDimage(object):
 
 
             class GLCM:
+                """Organizes the GLCM features extraction parameters"""
                 def __init__(
                         self, 
                         symmetry: str = None,
                         distance_norm: Dict = None,
-                        dist_correction: bool = False,
+                        dist_correction: Union[bool, str] = False,
                         merge_method: str = "vol_merge"
                 ) -> None:
+                    """
+                    Constructor of the GLCM class
+
+                    Args:
+                        symmetry(str): Symmetry type.
+                        distance_norm(Dict): Dictionary of extra parameters to add.
+                        dist_correction(Union[bool, str]): norm for distance weighting, must be 
+                            "manhattan", "euclidean" or "chebyshev". If True the norm for distance weighting 
+                            is gonna be "euclidean".
+                        merge_method(str): merging method which determines how features are
+                            calculated. Must be "average", "slice_merge", "dir_merge" and "vol_merge".
+                                       
+                    Returns:
+                        None.
+                    """
                     self.symmetry = symmetry
                     self.distance_norm = distance_norm
                     self.dist_correction = dist_correction
@@ -724,62 +922,116 @@ class MEDimage(object):
 
 
             class GLRLM:
+                """Organizes the GLRLM features extraction parameters"""
                 def __init__(
                         self, 
                         dist_correction: bool = False,
                         merge_method: str = "vol_merge"
                 ) -> None:
+                    """
+                    Constructor of the GLRLM class
+
+                    Args:
+                        dist_correction(bool): If True the norm for distance weighting is gonna be "euclidean".
+                        merge_method(str): merging method which determines how features are
+                            calculated. Must be "average", "slice_merge", "dir_merge" and "vol_merge".
+
+                    Returns:
+                        None.
+                    """
                     self.dist_correction = dist_correction
                     self.merge_method = merge_method
 
 
             class GLDZM:
+                """Organizes the GLDZM features extraction parameters"""
                 def __init__(
                         self, 
-                        symmetry: str = None,
                         distance_norm: Dict = None,
-                        dist_correction: bool = False
                 ) -> None:
-                    self.symmetry = symmetry
+                    """
+                    Constructor of the GLDZM class
+
+                    Args:
+                        distance_norm(Dict): Dictionary of extra parameters to add.
+
+                    Returns:
+                        None.
+                    """
                     self.distance_norm = distance_norm
-                    self.dist_correction = dist_correction
 
 
             class NGTDM:
+                """Organizes the NGTDM features extraction parameters"""
                 def __init__(
                         self, 
                         distance_norm: Dict = None,
                         dist_correction: str = None
                 ) -> None:
+                    """
+                    Constructor of the NGTDM class
+
+                    Args:
+                        distance_norm(Dict): Dictionary of extra parameters to add.
+                        dist_correction(bool): If True the norm for distance weighting is gonna be "euclidean".
+
+                    Returns:
+                        None.
+                    """
                     self.distance_norm = distance_norm
                     self.dist_correction = dist_correction
 
 
             class NGLDM:
+                """Organizes the NGLDM features extraction parameters"""
                 def __init__(self, distance_norm: Dict = None) -> None:
+                    """
+                    Constructor of the NGLDM class
+
+                    Args:
+                        distance_norm(Dict): Dictionary of extra parameters to add.
+
+                    Returns:
+                        None.
+                    """
                     self.distance_norm = distance_norm
 
 
     class Radiomics:
-        """Organized all extracted features.
-
-        Attributes:
-            image (Dict): Dict contating the extracted features.
-            params (Dict): Dict of the parameters used in features extraction (roi type, voxels diemension...)
-
+        """Organizes all the extracted features.
         """
         def __init__(self, image: Dict = None, params: Dict = None) -> None:
+            """Constructor of the Radiomics class
+            Args:
+                image(Dict): Dict of the extracted features.
+                params(Dict): Dict of the parameters used in features extraction (roi type, voxels diemension...)
+            
+            Returns:
+                None
+            """
             self.image = image if image else {}
             self.params = params if params else {}
 
         def update_params(self, params: Dict) -> None:
-            """Updates the radiomics params attribute"""
+            """Updates `params` attribute from a given Dict
+                Args:
+                    params(Dict): Dict of the parameters used in features extraction (roi type, voxels diemension...)
+                
+                Returns:
+                    None
+            """
             self.params['roi_type'] = params['roi_type']
             self.params['patientID'] = params['patientID']
             self.params['vox_dim'] = params['vox_dim']
 
         def to_json(self) -> Dict:
-            """Organized the radiomics class attributes in a Dict"""
+            """Summarizes the class attributes in a Dict
+                Args:
+                    None
+                
+                Returns:
+                    Dict: Dictionay of radiomics structure (extracted features and extraction params)
+            """
             radiomics = {
                 'image': self.image,
                 'params': self.params
@@ -790,11 +1042,6 @@ class MEDimage(object):
     class scan:
         """Organizes all imaging data (volume and ROI). 
 
-        Args:
-            orientation (str, optional): Imaging data orientation (axial, sagittal or coronal).
-            patientPosition (str, optional): Patient position specifies the position of the 
-                patient relative to the imaging equipment space (HFS, HFP...).
-
         Attributes:
             volume (object): Instance of MEDimage.scan.volume inner class.
             ROI (object): Instance of MEDimage.scan.ROI inner class.
@@ -803,7 +1050,17 @@ class MEDimage(object):
                 patient relative to the imaging equipment space (HFS, HFP...).
 
         """
-        def __init__(self, orientation=None, patientPosition=None):
+        def __init__(self, orientation: str=None, patientPosition: str=None) -> None:
+            """Constructor of the scan class
+
+            Args:
+                orientation (str, optional): Imaging data orientation (axial, sagittal or coronal).
+                patientPosition (str, optional): Patient position specifies the position of the 
+                    patient relative to the imaging equipment space (HFS, HFP...).
+            
+            Returns:
+                None.
+            """
             self.volume = self.volume() 
             self.volume_process = self.volume_process()
             self.ROI = self.ROI()
@@ -822,12 +1079,12 @@ class MEDimage(object):
         def set_ROI(self, *args):
             self.ROI = self.ROI(args)
 
-        def get_ROI_from_indexes(self, key):
+        def get_roi_from_indexes(self, key: int) -> np.ndarray:
             """
-            Extract ROI data using the saved indexes (Indexes of 1's).
+            Extracts ROI data using the saved indexes (Indexes of non-null values).
 
             Args:
-                ket (int): ROI index (A volume can have multiple ROIs).
+                key (int): Key of ROI indexes list (A volume can have multiple ROIs).
 
             Returns:
                 ndarray: n-dimensional array of ROI data.
@@ -837,20 +1094,20 @@ class MEDimage(object):
             roi_volume[self.ROI.get_indexes(key)] = 1
             return roi_volume.reshape(self.volume.data.shape)
 
-        def get_indexes_by_ROIname(self, ROIname : str):
+        def get_indexes_by_roi_name(self, roi_name : str) -> np.ndarray:
             """
-            Extract ROI data using ROI name..
+            Extract ROI data using the ROI name.
 
             Args:
-                ROIname (str): String of the ROI name (A volume can have multiple ROIs).
+                roi_name (str): String of the ROI name (A volume can have multiple ROIs).
 
             Returns:
-                ndarray: n-dimensional array of ROI data.
+                ndarray: n-dimensional array of the ROI data.
             
             """
-            ROIname_key = list(self.ROI.roi_names.values()).index(ROIname)
+            roi_name_key = list(self.ROI.roi_names.values()).index(roi_name)
             roi_volume = np.zeros_like(self.volume.data).flatten()
-            roi_volume[self.ROI.get_indexes(ROIname_key)] = 1
+            roi_volume[self.ROI.get_indexes(roi_name_key)] = 1
             return roi_volume.reshape(self.volume.data.shape)
 
         def display(self, _slice: int = None) -> None:
@@ -868,7 +1125,7 @@ class MEDimage(object):
             i = np.arange(0, size_m[0])
             j = np.arange(0, size_m[1])
             k = np.arange(0, size_m[2])
-            ind_mask = np.nonzero(self.get_ROI_from_indexes(0))
+            ind_mask = np.nonzero(self.get_roi_from_indexes(0))
             J, I, K = np.meshgrid(j, i, k, indexing='ij')
             I = I[ind_mask]
             J = J[ind_mask]
@@ -876,7 +1133,7 @@ class MEDimage(object):
             slices = np.unique(K)
 
             vol_data = self.volume.data.swapaxes(0, 1)[:, :, slices]
-            roi_data = self.get_ROI_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
+            roi_data = self.get_roi_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
             
             rows = int(np.round(np.sqrt(len(slices))))
             columns = int(np.ceil(len(slices) / rows))
@@ -943,7 +1200,7 @@ class MEDimage(object):
             i = np.arange(0, size_m[0])
             j = np.arange(0, size_m[1])
             k = np.arange(0, size_m[2])
-            ind_mask = np.nonzero(self.get_ROI_from_indexes(0))
+            ind_mask = np.nonzero(self.get_roi_from_indexes(0))
             J, I, K = np.meshgrid(j, i, k, indexing='ij')
             I = I[ind_mask]
             J = J[ind_mask]
@@ -951,7 +1208,7 @@ class MEDimage(object):
             slices = np.unique(K)
 
             vol_data = self.volume_process.data.swapaxes(0, 1)[:, :, slices]
-            roi_data = self.get_ROI_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
+            roi_data = self.get_roi_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
             
             rows = int(np.round(np.sqrt(len(slices))))
             columns = int(np.ceil(len(slices) / rows))
@@ -1005,32 +1262,21 @@ class MEDimage(object):
 
 
         class volume:
-            """Organizes all volume data and information. 
-
-            Args:
-                spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
-                scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
-                data (ndarray, optional): n-dimensional of the imaging data.
-                filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
-                        imaging data.
+            """Organizes all volume data and information related to imaging volume. 
 
             Attributes:
                 spatialRef (imref3d): Imaging data orientation (axial, sagittal or coronal).
                 scan_rot (ndarray): Array of the rotation applied to the XYZ points of the ROI.
                 data (ndarray): n-dimensional of the imaging data.
-                filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
-                    imaging data.
 
             """
-            def __init__(self, spatialRef=None, scan_rot=None, data=None):
+            def __init__(self, spatialRef: imref3d=None, scan_rot: str=None, data: np.ndarray=None) -> None:
                 """Organizes all volume data and information. 
 
                 Args:
                     spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                     scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
                     data (ndarray, optional): n-dimensional of the imaging data.
-                    filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
-                        imaging data.
 
                 """
                 self.spatialRef = spatialRef
@@ -1053,9 +1299,6 @@ class MEDimage(object):
                 """Convert Imaging data to LPS (Left-Posterior-Superior) coordinates system.
                 <https://www.slicer.org/wiki/Coordinate_systems>.
 
-                Args:
-                    ket (int): ROI index (A volume can have multiple ROIs).
-
                 Returns:
                     None.
 
@@ -1065,18 +1308,19 @@ class MEDimage(object):
                 # flip y
                 self.data = np.flip(self.data, 1)
             
-            def spatialRef_from_NIFTI(self, nifti_image_path):
+            def spatialRef_from_nifti(self, nifti_image_path: Union[Path, str]) -> None:
                 """Computes the imref3d spatialRef using a NIFTI file and
-                updates the spatialRef attribute.
+                updates the `spatialRef` attribute.
 
                 Args:
                     nifti_image_path (str): String of the NIFTI file path.
 
                 Returns:
                     None.
-                
+
                 """
-                # Loading the nifti file :
+                # Loading the nifti file:
+                nifti_image_path = Path(nifti_image_path)
                 nifti = nib.load(nifti_image_path)
                 nifti_data = self.data
 
@@ -1113,7 +1357,7 @@ class MEDimage(object):
                 self.update_spatialRef(spatialRef)
 
             def convert_spatialRef(self):
-                """converts the MEDimage spatialRef from RAS to LPS coordinates system.
+                """converts the `spatialRef` attribute from RAS to LPS coordinates system.
                 <https://www.slicer.org/wiki/Coordinate_systems>.
 
                 Args:
@@ -1144,11 +1388,6 @@ class MEDimage(object):
         class volume_process:
             """Organizes all volume data and information. 
 
-            Args:
-                spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
-                scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
-                data (ndarray, optional): n-dimensional of the imaging data.
-
             Attributes:
                 spatialRef (imref3d): Imaging data orientation (axial, sagittal or coronal).
                 scan_rot (ndarray): Array of the rotation applied to the XYZ points of the ROI.
@@ -1164,39 +1403,64 @@ class MEDimage(object):
                     spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                     scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
                     data (ndarray, optional): n-dimensional of the imaging data.
-                    filtered_data (Dict[ndarray]): Dict of n-dimensional arrays of the filtered 
-                        imaging data.
+                    user_string(str, optional): string explaining the processed data in the class.
+                
+                Returns:
+                    None.
 
                 """
                 self.data = data
                 self.scan_rot = scan_rot
                 self.spatialRef = spatialRef
                 self.user_string = user_string
-            
-            def update_processed_data(self, data: np.ndarray, user_string: str = ""):
+
+            def update_processed_data(self, data: np.ndarray, user_string: str = "") -> None:
                 if user_string:
                     self.user_string = user_string
                 self.data = data
 
-            def save(self, name_save: str, path: Union[Path, str]):
-                path = Path(path)
+            def save(self, name_save: str, path_save: Union[Path, str])-> None:
+                """Saves the processed data locally.
 
+                Args:
+                    name_save(str): Saving name of the processed data.
+                    path_save(Union[Path, str]): Path to where save the processed data.
+                
+                Returns:
+                    None.
+                """
+                path_save = Path(path_save)
                 if not name_save:
                     name_save = self.user_string
 
                 if not name_save.endswith('.npy'):
                     name_save += '.npy'
 
-                with open(path / name_save, 'wb') as f:
+                with open(path_save / name_save, 'wb') as f:
                     np.save(f, self.data)
 
-            def load(self, file_name, path, update=True):
-                path = Path(path)
+            def load(
+                    self, 
+                    file_name: str, 
+                    loading_path: Union[Path, str], 
+                    update: bool=True
+                ) -> Union[None, np.ndarray]:
+                """Saves the processed data locally.
+
+                Args:
+                    file_name(str): Name file of the processed data to load.
+                    loading_path(Union[Path, str]): Path to the processed data to load.
+                    update(bool, optional): If True, updates the class attrtibutes with loaded data.
+
+                Returns:
+                    None.
+                """
+                loading_path = Path(loading_path)
 
                 if not file_name.endswith('.npy'):
                     file_name += '.npy'
 
-                with open(path / file_name, 'rb') as f:
+                with open(loading_path / file_name, 'rb') as f:
                     if update:
                         self.update_processed_data(np.load(f, allow_pickle=True))
                     else:
@@ -1206,10 +1470,6 @@ class MEDimage(object):
         class ROI:
             """Organizes all ROI data and information. 
 
-            Args:
-                indexes (Dict, optional): Dict of the ROI indexes for each ROI name.
-                roi_names (Dict, optional): Dict of the ROI names.
-
             Attributes:
                 indexes (Dict): Dict of the ROI indexes for each ROI name.
                 roi_names (Dict): Dict of the ROI names.
@@ -1217,9 +1477,18 @@ class MEDimage(object):
                 nameSetInfo (Dict): Dict of the names of the structure sets that define the areas of 
                     significance. Either 'StructureSetName', 'StructureSetDescription', 'SeriesDescription' 
                     or 'SeriesInstanceUID'.
-
+            
             """
-            def __init__(self, indexes=None, roi_names=None) -> None:
+            def __init__(self, indexes: Dict=None, roi_names: Dict=None) -> None:
+                """Constructor of the ROI class.
+
+                Args:
+                    indexes (Dict, optional): Dict of the ROI indexes for each ROI name.
+                    roi_names (Dict, optional): Dict of the ROI names.
+                
+                Returns:
+                    None.
+                """
                 self.indexes = indexes if indexes else {}
                 self.roi_names = roi_names if roi_names else {}
                 self.nameSet = roi_names if roi_names else {}
@@ -1231,19 +1500,19 @@ class MEDimage(object):
                 else:
                     return self.indexes[str(key)]
 
-            def get_ROIname(self, key):
+            def get_roi_name(self, key):
                 if not self.roi_names or key is None:
                     return {}
                 else:
                     return self.roi_names[str(key)]
 
-            def get_nameSet(self, key):
+            def get_name_set(self, key):
                 if not self.nameSet or key is None:
                     return {}
                 else:
                     return self.nameSet[str(key)]
 
-            def get_nameSetInfo(self, key):
+            def get_name_set_info(self, key):
                 if not self.nameSetInfo or key is None:
                     return {}
                 else:
@@ -1255,37 +1524,32 @@ class MEDimage(object):
                 except:
                     Warning.warn("Wrong key given in update_indexes()")
 
-            def update_ROIname(self, key, ROIname):
+            def update_roi_name(self, key, roi_name):
                 try:
-                    self.roi_names[str(key)] = ROIname
+                    self.roi_names[str(key)] = roi_name
                 except:
-                    Warning.warn("Wrong key given in update_ROIname()")
+                    Warning.warn("Wrong key given in update_roi_name()")
 
-            def update_nameSet(self, key, nameSet):
+            def update_name_set(self, key, name_set):
                 try:
-                    self.nameSet[str(key)] = nameSet
+                    self.nameSet[str(key)] = name_set
                 except:
-                    Warning.warn("Wrong key given in update_nameSet()")
+                    Warning.warn("Wrong key given in update_name_set()")
 
-            def update_nameSetInfo(self, key, nameSetInfo):
+            def update_name_set_info(self, key, nameSetInfo):
                 try:
                     self.nameSetInfo[str(key)] = nameSetInfo
                 except:
-                    Warning.warn("Wrong key given in update_nameSetInfo()")
+                    Warning.warn("Wrong key given in update_name_set_info()")
             
-            def convert_to_LPS(self, data):
-                """
-                -------------------------------------------------------------------------
-                DESCRIPTION:
-                This function converts the given volume to LPS coordinates system. For 
-                more details please refer here : https://www.slicer.org/wiki/Coordinate_systems 
-                -------------------------------------------------------------------------
-                INPUTS:
-                - data : given volume data in RAS to be converted to LPS
-                -------------------------------------------------------------------------
-                OUTPUTS:
-                - data in LPS.
-                -------------------------------------------------------------------------
+            def convert_to_LPS(self, data: np.ndarray) -> np.ndarray:
+                """Converts the given volume to LPS coordinates system. For 
+                more details please refer here : https://www.slicer.org/wiki/Coordinate_systems
+                Args:
+                    data(ndarray) : Volume data in RAS to convert to to LPS
+
+                Returns:
+                    ndarray: n-dimensional of `data` in LPS.
                 """
                 # flip x
                 data = np.flip(data, 0)
@@ -1294,38 +1558,32 @@ class MEDimage(object):
 
                 return data
 
-            def get_ROI_from_path(self, ROI_path, ID):
-                """
-                -------------------------------------------------------------------------
-                DESCRIPTION:
-                This function extracts all ROI data from the given path for the given
+            def get_roi_from_path(self, roi_path: Union[Path, str], id: str):
+                """Extracts all ROI data from the given path for the given
                 patient ID and updates all class attributes with the new extracted data.
-                This method is called only once for NIFTI formats per patient.
-                -------------------------------------------------------------------------
-                INPUTS:
-                - ROI_path : Path where the ROI data is stored
-                - ID : The ID contains patient ID and the modality type, which makes it
-                possible for the method to extract the right data.
-                -------------------------------------------------------------------------
-                OUTPUTS:
-                - NO OUTPUTS.
-                -------------------------------------------------------------------------
+
+                Args:
+                    roi_path(Union[Path, str]): Path where the ROI data is stored.
+                    id(str): ID containing patient ID and the modality type, to identify the right file.
+                
+                Returns:
+                    None.
                 """
                 self.indexes = {}
                 self.roi_names = {}
                 self.nameSet = {}
                 self.nameSetInfo = {}
                 roi_index = 0
-                list_of_patients = os.listdir(ROI_path)
+                list_of_patients = os.listdir(roi_path)
 
                 for file in list_of_patients:
                     # Load the patient's ROI nifti files :
-                    if file.startswith(ID) and file.endswith('nii.gz') and 'ROI' in file.split("."):
-                        roi = nib.load(ROI_path + "/" + file)
+                    if file.startswith(id) and file.endswith('nii.gz') and 'ROI' in file.split("."):
+                        roi = nib.load(roi_path + "/" + file)
                         roi_data = self.convert_to_LPS(data=roi.get_fdata())
-                        roi_name = file[file.find("(")+1:file.find(")")]
-                        nameSet = file[file.find("_")+2:file.find("(")]
+                        roi_name = file[file.find("(")+1 : file.find(")")]
+                        name_set = file[file.find("_")+2 : file.find("(")]
                         self.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
-                        self.update_nameSet(key=roi_index, nameSet=nameSet)
-                        self.update_ROIname(key=roi_index, ROIname=roi_name)
+                        self.update_name_set(key=roi_index, nameSet=name_set)
+                        self.update_roi_name(key=roi_index, ROIname=roi_name)
                         roi_index += 1

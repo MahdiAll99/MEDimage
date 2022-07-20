@@ -65,11 +65,11 @@ def get_roi_from_indexes(
 
         for i in range(0, len(name_roi)):
             for j in range(0, n_contour_data):
-                name_temp = MEDimg.scan.ROI.get_ROIname(key=j)
+                name_temp = MEDimg.scan.ROI.get_roi_name(key=j)
                 if name_temp == name_roi[i]:
                     if name_structure_set:
                         # FOR DICOM + RTSTRUCT
-                        name_set_temp = MEDimg.scan.ROI.get_nameSet(key=j)
+                        name_set_temp = MEDimg.scan.ROI.get_name_set(key=j)
                         if name_set_temp == name_structure_set[i]:
                             contour_number[i] = j
                             break
@@ -107,12 +107,12 @@ def get_roi_from_indexes(
         vol = MEDimg.scan.volume.data.astype(np.float32)
 
         # APPLYING OPERATIONS ON ALL MASKS
-        roi = MEDimg.scan.get_indexes_by_ROIname(name_roi[0])
+        roi = MEDimg.scan.get_indexes_by_roi_name(name_roi[0])
         for c in np.arange(start=1, stop=n_contour):
             if operations[c-1] == "+":
-                roi += MEDimg.scan.get_indexes_by_ROIname(name_roi[c])
+                roi += MEDimg.scan.get_indexes_by_roi_name(name_roi[c])
             elif operations[c-1] == "-":
-                roi -= MEDimg.scan.get_indexes_by_ROIname(name_roi[c])
+                roi -= MEDimg.scan.get_indexes_by_roi_name(name_roi[c])
             else:
                 raise ValueError("Unknown operation on ROI.")
 

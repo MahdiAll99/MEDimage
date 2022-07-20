@@ -392,8 +392,8 @@ class DataManager(object):
                 roi_name = file.name[file.name.find("(") + 1 : file.name.find(")")]
                 name_set = file.name[file.name.find("_") + 2 : file.name.find("(")]
                 MEDimg.scan.ROI.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
-                MEDimg.scan.ROI.update_nameSet(key=roi_index, nameSet=name_set)
-                MEDimg.scan.ROI.update_ROIname(key=roi_index, ROIname=roi_name)
+                MEDimg.scan.ROI.update_name_set(key=roi_index, nameSet=name_set)
+                MEDimg.scan.ROI.update_roi_name(key=roi_index, ROIname=roi_name)
                 roi_index += 1
         return MEDimg
 

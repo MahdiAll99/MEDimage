@@ -6,16 +6,17 @@ import logging
 from typing import Union
 
 import numpy as np
-from ..utils.image_volume_obj import image_volume_obj
-from ..utils.parse_contour_string import parse_contour_string
+from MEDimage import MEDimage
 
-from .get_sep_roi_names import get_sep_roi_names
 from ..processing.compute_box import compute_box
 from ..processing.compute_roi import compute_roi
+from ..utils.image_volume_obj import image_volume_obj
+from ..utils.parse_contour_string import parse_contour_string
+from .get_sep_roi_names import get_sep_roi_names
 
 _logger = logging.getLogger(__name__)
 
-def get_roi(MEDimage: object,
+def get_roi(MEDimage: MEDimage,
             name_roi: str,
             box_string: str,
             interp=False) -> Union[image_volume_obj,
@@ -24,7 +25,7 @@ def get_roi(MEDimage: object,
     and associated mask from MEDimage object.
 
     Args:
-        MEDimage (object): The MEDimage class object.
+        MEDimage (MEDimage): The MEDimage class object.
         name_roi (str): name of the ROI since the a volume can have multuiple ROIs.
         box_string (str): Specifies the size if the box containing the ROI
                           - 'full': Full imaging data as output.
@@ -62,11 +63,11 @@ def get_roi(MEDimage: object,
 
         for i in range(0, len(name_roi)):
             for j in range(0, n_contour_data):
-                name_temp = MEDimage.scan.ROI.get_ROIname(key=j)
+                name_temp = MEDimage.scan.ROI.get_roi_name(key=j)
                 if name_temp == name_roi[i]:
                     if name_structure_set:
                         # FOR DICOM + RTSTRUCT
-                        name_set_temp = MEDimage.scan.ROI.get_nameSet(key=j)
+                        name_set_temp = MEDimage.scan.ROI.get_name_set(key=j)
                         if name_set_temp == name_structure_set[i]:
                             contour_number[i] = j
                             break

@@ -163,13 +163,13 @@ def process_dicom_scan_files(
                         name_set_info = name_field
                         break
 
-                MEDimg.scan.ROI.update_ROIname(key=contour_num,
+                MEDimg.scan.ROI.update_roi_name(key=contour_num,
                                                 ROIname=dicom_rs_full[rs].StructureSetROISequence[roi].ROIName)
                 MEDimg.scan.ROI.update_indexes(key=contour_num,
                                                 indexes=None)
-                MEDimg.scan.ROI.update_nameSet(key=contour_num,
+                MEDimg.scan.ROI.update_name_set(key=contour_num,
                                                 nameSet=name_set)
-                MEDimg.scan.ROI.update_nameSetInfo(key=contour_num,
+                MEDimg.scan.ROI.update_name_set_info(key=contour_num,
                                                 nameSetInfo=name_set_info)
                 
                 try:
