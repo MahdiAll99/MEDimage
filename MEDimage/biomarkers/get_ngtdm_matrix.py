@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from ctypes import Union
 from typing import Tuple
 
 import numpy as np
-from pyparsing import Optional
 
 
 def get_ngtdm_matrix(roi_only:np.ndarray,
                      levels:np.ndarray,
-                     dist_correction: Union[str, Optional]=False) -> Tuple[np.ndarray, np.ndarray]:
+                     dist_correction: bool=False) -> Tuple[np.ndarray, np.ndarray]:
     """Computes ngtdm matrix.
 
     This function computes the Neighborhood Gray-Tone Difference Matrix
@@ -35,7 +33,7 @@ def get_ngtdm_matrix(roi_only:np.ndarray,
             for texture analysis computations. Voxels outside the ROI are set to NaNs.
         levels (ndarray): Vector containing the quantized gray-levels in the tumor region
             (or reconstruction levels of quantization).
-        dist_correction (str, optional): Set this variable to true in order to use
+        dist_correction (bool, optional): Set this variable to true in order to use
             discretization length difference corrections as used 
             here: https://doi.org/10.1088/0031-9155/60/14/5471.
             Set this variable to false to replicate IBSI results.

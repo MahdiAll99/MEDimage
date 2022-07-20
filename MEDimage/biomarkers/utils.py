@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import math
-from types import UnionType
 from typing import List, Tuple, Union
 
 import numpy as np

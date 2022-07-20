@@ -31,7 +31,7 @@ class MEDimageFilter(ABC):
 
         Args:
             images (ndarray): A n-dimensional numpy array that represent a batch of images to filter
-            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagital axis
+            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagittal axis
 
         Returns:
             ndarray: The filtered image
@@ -145,7 +145,7 @@ class Mean(MEDimageFilter):
         """This method construct the mean kernel using the parameters specified to the constructor.
 
         Returns:
-            ndarray: The mean kernel as a numpy multidimensionnal array
+            ndarray: The mean kernel as a numpy multidimensional array
         """
 
         # Initialize the kernel as tensor of zeros
@@ -161,7 +161,7 @@ class Mean(MEDimageFilter):
     
         Args:
             images (ndarray): A n-dimensional numpy array that represent the images to filter
-            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagital axis
+            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagittal axis
 
         Returns:
             ndarray: The filtered image
@@ -205,7 +205,7 @@ class LaplacianOfGaussian(MEDimageFilter):
         """This method construct the LoG kernel using the parameters specified to the constructor
     
         Returns:
-            ndarray: The laplacian of gaussian kernel as a numpy multidimensionnal array
+            ndarray: The laplacian of gaussian kernel as a numpy multidimensional array
         """
 
         def compute_weight(position):
@@ -234,7 +234,7 @@ class LaplacianOfGaussian(MEDimageFilter):
 
         Args:
             images (ndarray): A n-dimensional numpy array that represent the images to filter
-            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagital axis
+            orthogonal_rot (bool): If true, the 3D images will be rotated over coronal, axial and sagittal axis
 
         Returns:
             ndarray: The filtered image
@@ -401,7 +401,7 @@ class Laws(MEDimageFilter):
 
         Args:
             name (float): The filter name. (Such as L3, L5, E3, E5, S3, S5, W5 or R5)
-            pad (bool): If true, add zero padding of lenght 1 each side of kernel L3, E3 and S3
+            pad (bool): If true, add zero padding of length 1 each side of kernel L3, E3 and S3
 
         Returns:
             ndarray: A 1D filter that is needed to construct the Laws kernel.
@@ -599,7 +599,7 @@ class Wavelet(MEDimageFilter):
 
     def __unpad(self,
                 images: np.ndarray,
-                padding; List) -> np.ndarray:
+                padding: List) -> np.ndarray:
         """Unpad a batch of images
 
         Args:
