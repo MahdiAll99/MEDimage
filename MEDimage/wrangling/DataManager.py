@@ -618,6 +618,13 @@ class DataManager(object):
         Returns:
             None
         """
+        def count_scans(summary):
+            count = 0
+            for study in summary:
+                for institution in summary[study]:
+                    count += len(summary[study][institution])
+            return count
+
         summary_df = pd.DataFrame(columns=['study', 'institution', 'scan_type', 'roi_type', 'count'])
 
         for study in self.summary:
@@ -626,7 +633,7 @@ class DataManager(object):
                                         'institution': "",
                                         'scan_type': "",
                                         'roi_type': "",
-                                        'count' : len(self.summary[study])
+                                        'count' : count_scans(self.summary)
                                         }, ignore_index=True)
             for institution in self.summary[study]:
                 summary_df = summary_df.append({
