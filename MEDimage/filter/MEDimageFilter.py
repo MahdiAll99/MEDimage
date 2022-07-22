@@ -290,9 +290,9 @@ class Gabor(MEDimageFilter):
     def create_kernel(self) -> List[np.ndarray]:
         """Create the kernel of the Gabor filter
     
-        Returns: 
-            List[ndarray]: A list of numpy 2D-array that contain the kernel of the real part and the
-                           imaginary part respectively.
+        Returns:
+            List[ndarray]: A list of numpy 2D-array that contain the kernel of the real part and
+            the imaginary part respectively.
         """
 
         def compute_weight(position, theta):
@@ -443,7 +443,7 @@ class Laws(MEDimageFilter):
 
     def create_kernel(self) -> np.ndarray:
         """Create the Laws by computing the outer product of 1d filter specified in the config attribute.
-        Kernel = config[0] X config[1] X ... X config[n]. Where X is the outer product.
+        :math:`Kernel = config[0] X config[1] X ... X config[n]`. Where X is the outer product.
 
         Returns:
             ndarray: A numpy multi-dimensional arrays that represent the Laws kernel.

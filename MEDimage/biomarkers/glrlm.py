@@ -19,16 +19,17 @@ def extract_all(vol: np.ndarray,
                 glrlm_merge_method: str="vol_merge",
                 method: str="new") -> Dict:
     """Computes glrlm features.
-    This features refer to Grey Level Run Length Matrix family in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This features refer to Grey Level Run Length Matrix family in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol (ndarray): 3D volume, isotropically resampled, quantized
                        (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
                        of interest.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-                                                      discretization length difference corrections as used here:
-                                                      <https://doi.org/10.1088/0031-9155/60/14/5471>.
+                                                      discretization length difference corrections as used
+                                                      by the `Institute of Physics and Engineering in
+                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
                                                       Set this variable to false to replicate IBSI results.
                                                       Or use string and specify the norm for distance weighting.
                                                       Weighting is only performed if this argument is
@@ -39,21 +40,18 @@ def extract_all(vol: np.ndarray,
         method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
 
     Returns:
-        Dict: Dict of the glrlm features.Compute GLRLMfeatures.
+        Dict: Dict of the glrlm features.
 
     Raises:
-        ValueError: If `method` is not 'old' or 'new'.
+        ValueError:
+            If `method` is not 'old' or 'new'.
 
-    Todo:
-        *Enable calculation of RLM features using different spatial
-            methods (2d, 2.5d, 3d)
-        *Enable calculation of RLM features using different RLM
-            distance settings
-        *Enable calculation of RLM features for different merge methods
-            (average, slice_merge, dir_merge, vol_merge)
-        *Provide the range of discretised intensities from a calling
-            function and pass to get_rlm_features.
-        *Test if dist_correction works as expected.
+    Todo: 
+        * Enable calculation of RLM features using different spatial methods (2d, 2.5d, 3d)
+        * Enable calculation of RLM features using different RLM distance settings
+        * Enable calculation of RLM features for different merge methods (average, slice_merge, dir_merge, vol_merge)
+        * Provide the range of discretised intensities from a calling function and pass to get_rlm_features.
+        * Test if dist_correction works as expected.
     """
     if method == "old":
         rlm_features = get_rlm_features_deprecated(vol=vol, dist_correction=dist_correction)
@@ -297,12 +295,12 @@ def combine_rlm_matrices(rlm_list: list,
         merge_method (str): Merging method which determines how features are calculated.
             One of "average", "slice_merge", "dir_merge" and "vol_merge". Note that not all
             combinations of spatial and merge method are valid.
-        spatial_method (str): spatial method which determines the way co-occurrence
+        spatial_method (str): Spatial method which determines the way co-occurrence
             matrices are calculated and how features are determined. One of "2d", "2.5d"
             or "3d".
 
     Returns:
-        List[CooccurrenceMatrix]: list of one or more merged RunLengthMatrix objects.
+        List[CooccurrenceMatrix]: List of one or more merged RunLengthMatrix objects.
     """
     # Initiate empty list
     use_list = []
@@ -452,8 +450,8 @@ def combine_rlm_matrices(rlm_list: list,
 class RunLengthMatrix:
     """Class that contains a single run length matrix.
 
-    Note :
-        Code was adapted from the in-house radiomics software created at
+    Note:
+        This code was adapted from the in-house radiomics software created at
         OncoRay, Dresden, Germany.
 
     Args:
@@ -538,7 +536,7 @@ class RunLengthMatrix:
         Raises:
             ValueError:
                 If `self.spatial_method` is not "2d", "2.5d" or "3d".
-                If `dist_weight_norm` is not "manhattan", "euclidean" or "chebyshev".
+                Also, if ``dist_weight_norm`` is not "manhattan", "euclidean" or "chebyshev".
         """
         # Check if the df_img actually exists
         if df_img is None:
@@ -854,15 +852,16 @@ def get_rlm_features_deprecated(vol: np.ndarray,
                                 dist_correction: typing.Union[bool, str]) -> Dict:
     """Calculates grey level run length matrix features.
 
-     Note:
+    Note:
         Deprecated code. Calculates grey level run length features, but slowly.
-        A newer and faster method is available : `get_rlm_features()`
+        A newer and faster method is available : ``get_rlm_features()``
 
     Args:
         vol (ndarray): 3D input volume.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-                                                      discretization length difference corrections as used here:
-                                                      <https://doi.org/10.1088/0031-9155/60/14/5471>.
+                                                      discretization length difference corrections as used
+                                                      by the `Institute of Physics and Engineering in
+                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
                                                       Set this variable to false to replicate IBSI results.
                                                       Or use string and specify the norm for distance weighting.
                                                       Weighting is only performed if this argument is
@@ -974,8 +973,8 @@ def get_rlm_features_deprecated(vol: np.ndarray,
 
 def sre(upd_list: np.ndarray) -> float:
     """Compute Short runs emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_sre" (ID = 22OV) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_sre" (ID = 22OV) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1003,8 +1002,8 @@ def sre(upd_list: np.ndarray) -> float:
 
 def lre(upd_list: np.ndarray) -> float:
     """Compute Long runs emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_lre" (ID = W4KF) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_lre" (ID = W4KF) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1032,8 +1031,8 @@ def lre(upd_list: np.ndarray) -> float:
 
 def glnu(upd_list: np.ndarray) -> float:
     """Compute Grey level non-uniformity feature from the run length matrices list.
-    This feature refers to "Frlm_glnu" (ID = R5YN) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_glnu" (ID = R5YN) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1061,8 +1060,8 @@ def glnu(upd_list: np.ndarray) -> float:
 
 def glnu_norm(upd_list: np.ndarray) -> float:
     """Compute Grey level non-uniformity normalised feature from the run length matrices list.
-    This feature refers to "Frlm_glnu_norm" (ID = OVBL) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_glnu_norm" (ID = OVBL) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1090,8 +1089,8 @@ def glnu_norm(upd_list: np.ndarray) -> float:
 
 def rlnu(upd_list: np.ndarray) -> float:
     """Compute Run length non-uniformity feature from the run length matrices list.
-    This feature refers to "Frlm_rlnu" (ID = W92Y) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_rlnu" (ID = W92Y) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1119,8 +1118,8 @@ def rlnu(upd_list: np.ndarray) -> float:
 
 def rlnu_norm(upd_list: np.ndarray) -> float:
     """Compute Run length non-uniformity normalised feature from the run length matrices list.
-    This feature refers to "Frlm_rlnu_norm" (ID = IC23) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_rlnu_norm" (ID = IC23) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1148,8 +1147,8 @@ def rlnu_norm(upd_list: np.ndarray) -> float:
 
 def r_perc(upd_list: np.ndarray) -> float:
     """Compute Run percentage feature from the run length matrices list.
-    This feature refers to "Frlm_r_perc" (ID = 9ZK5) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_r_perc" (ID = 9ZK5) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1177,8 +1176,8 @@ def r_perc(upd_list: np.ndarray) -> float:
 
 def lgre(upd_list: np.ndarray) -> float:
     """Compute Low grey level run emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_lgre" (ID = V3SW) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_lgre" (ID = V3SW) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1206,8 +1205,8 @@ def lgre(upd_list: np.ndarray) -> float:
 
 def hgre(upd_list: np.ndarray) -> float:
     """Compute High grey level run emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_hgre" (ID = G3QZ) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_hgre" (ID = G3QZ) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1235,8 +1234,8 @@ def hgre(upd_list: np.ndarray) -> float:
 
 def srlge(upd_list: np.ndarray) -> float:
     """Compute Short run low grey level emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_srlge" (ID = HTZT) in the IBSI1 reference manual 
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_srlge" (ID = HTZT) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1264,8 +1263,8 @@ def srlge(upd_list: np.ndarray) -> float:
 
 def srhge(upd_list: np.ndarray) -> float:
     """Compute Short run high grey level emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_srhge" (ID = GD3A) in the IBSI1 reference manual 
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_srhge" (ID = GD3A) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1293,8 +1292,8 @@ def srhge(upd_list: np.ndarray) -> float:
 
 def lrlge(upd_list: np.ndarray) -> float:
     """Compute Long run low grey level emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_lrlge" (ID = IVPO) in the IBSI1 reference manual 
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_lrlge" (ID = IVPO) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1322,8 +1321,8 @@ def lrlge(upd_list: np.ndarray) -> float:
 
 def lrhge(upd_list: np.ndarray) -> float:
     """Compute Long run high grey level emphasisfeature from the run length matrices list.
-    This feature refers to "Frlm_lrhge" (ID = 3KUM) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_lrhge" (ID = 3KUM) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1351,8 +1350,8 @@ def lrhge(upd_list: np.ndarray) -> float:
 
 def gl_var(upd_list: np.ndarray) -> float:
     """Compute Grey level variance feature from the run length matrices list.
-    This feature refers to "Frlm_gl_var" (ID = 8CE5) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_gl_var" (ID = 8CE5) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1380,8 +1379,8 @@ def gl_var(upd_list: np.ndarray) -> float:
 
 def rl_var(upd_list: np.ndarray) -> float:
     """Compute Run length variancefeature from the run length matrices list.
-    This feature refers to "Frlm_rl_var" (ID = SXLW) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_rl_var" (ID = SXLW) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.
@@ -1409,8 +1408,8 @@ def rl_var(upd_list: np.ndarray) -> float:
 
 def rl_entr(upd_list: np.ndarray) -> float:
     """Compute Zone size entropy feature from the run length matrices list.
-    This feature refers to "Frlm_rl_entr" (ID = HJ9O) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Frlm_rl_entr" (ID = HJ9O) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         upd_list (ndarray): Run length matrices computed and merged according given method.

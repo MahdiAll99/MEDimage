@@ -18,23 +18,25 @@ def discretisation(vol_re: np.ndarray,
     """Quantisizes the image intensities inside the ROI.
 
     Note:
-        FOR 'FBS' TYPE, IT IS ASSUMED THAT RE-SEGMENTATION WITH
-        PROPER RANGE WAS ALREADY PERFORMED.
+        For 'FBS' type, it is assumed that re-segmentation with
+        proper range was already performed
 
     Args:
         vol_re (ndarray): 3D array of the image volume that will be studied with
                           NaN value for the excluded voxels (voxels outside the ROI mask).
-        discr_type (str): Discretisaion approach/type MUST BE: "FBS", "FBN", "FBSequal"
+        discr_type (str): Discretisaion approach/type must be: "FBS", "FBN", "FBSequal"
                           or "FBNequal".
         n_q (float): Number of bins for FBS algorithm and bin width for FBN algorithm.
         user_set_min_val (float): Minimum of range re-segmentation for FBS discretisation,
                                   for FBN discretisation, this value has no importance as an argument
                                   and will not be used.
-        ivh (bool): MUST BE SET TO True FOR IVH (Intensity-Volume histogram) FEATURES.
+        ivh (bool): Must be set to True for IVH (Intensity-Volume histogram) features.
 
     Returns:
-        ndarray: Same input image volume but with discretised intensities.
-        float: bin width.
+        2-element tuple containing
+
+        - ndarray: Same input image volume but with discretised intensities.
+        - float: bin width.
     """
 
     # AZ: NOTE: the "type" variable that appeared in the MATLAB source code

@@ -19,8 +19,7 @@ def find_i_x(levels: np.ndarray,
         x (float): Fraction percentage, between 0 and 100.
 
     Returns:
-        ndarray: Array of minimum discretised intensity present 
-            in at most `x`% of the volume.
+        ndarray: Array of minimum discretised intensity present in at most :math:`x` % of the volume.
     
     """
     ind = np.where(fract_vol <= x/100)[0][0]
@@ -39,8 +38,8 @@ def find_v_x(fract_int: np.ndarray,
         x (float): Fraction percentage, between 0 and 100.
 
     Returns:
-        ndarray: Array of largest volume fraction `fract_vol` that has an 
-            intensity fraction `fract_int` of at least `x`%.
+        ndarray: Array of largest volume fraction ``fract_vol`` that has an
+        intensity fraction ``fract_int`` of at least :math:`x` %.
 
     """
     ind = np.where(fract_int >= x/100)[0][0]
@@ -87,7 +86,7 @@ def get_axis_lengths(xyz: np.ndarray) -> Tuple[float, float, float]:
             positions of the points in the ROI (1's) of the mask volume. In mm.
 
     Returns:
-        Tuple[float, float, float]: Array of three column vectors
+        Tuple[float, float, float]: Array of three column vectors 
             [Major axis lengths, Minor axis lengths, Least axis lengths].
 
     """

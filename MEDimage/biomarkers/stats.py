@@ -8,10 +8,10 @@ from scipy.stats import iqr, kurtosis, skew, scoreatpercentile, variation
 def extract_all(vol: np.ndarray,
                 intensity: str = None) -> dict:
     """Compute Intensity-based statistical features.
-    This features refer to Intensity-based statistical family in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    These features refer to "Intensity-based statistical features" (ID = UHIW) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
-     Args:
+    Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
             --> vol: continuos imaging intensity distribution
         intensity(optional str): If 'arbitrary', some feature will not be computed.
@@ -82,8 +82,8 @@ def extract_all(vol: np.ndarray,
 
 def mean(vol: np.ndarray) -> float:
     """Compute statistical mean feature of the input dataset (3D Array).
-    This feature refers to "Fstat_mean" (ID = Q4LE) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_mean" (ID = Q4LE)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -98,8 +98,8 @@ def mean(vol: np.ndarray) -> float:
 
 def var(vol: np.ndarray) -> float:
     """Compute statistical variance feature of the input dataset (3D Array).
-    This feature refers to "Fstat_var" (ID = ECT3) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_var" (ID = ECT3)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -114,8 +114,8 @@ def var(vol: np.ndarray) -> float:
 
 def skewness(vol: np.ndarray) -> float:
     """Compute the sample skewness feature of the input dataset (3D Array).
-    This feature refers to "Fstat_skew" (ID = KE2A) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_skew" (ID = KE2A)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -131,8 +131,8 @@ def skewness(vol: np.ndarray) -> float:
 
 def kurt(vol: np.ndarray) -> float:
     """Compute the kurtosis (Fisher or Pearson) feature of the input dataset (3D Array).
-    This feature refers to "Fstat_kurt" (ID = IPH6) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_kurt" (ID = IPH6)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -148,8 +148,8 @@ def kurt(vol: np.ndarray) -> float:
 
 def median(vol: np.ndarray) -> float:
     """Compute the median feature along the specified axis of the input dataset (3D Array).
-    This feature refers to "Fstat_median" (ID = Y12H) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_median" (ID = Y12H)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -164,8 +164,8 @@ def median(vol: np.ndarray) -> float:
 
 def min(vol: np.ndarray) -> float:
     """Compute the minimum grey level feature of the input dataset (3D Array).
-    This feature refers to "Fstat_min" (ID = 1GSF) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_min" (ID = 1GSF)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -180,8 +180,8 @@ def min(vol: np.ndarray) -> float:
 
 def p10(vol: np.ndarray) -> float:
     """Calculate the score at the 10th percentile feature of the input dataset (3D Array).
-    This feature refers to "Fstat_P10" (ID = QG58) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_P10" (ID = QG58)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -196,8 +196,8 @@ def p10(vol: np.ndarray) -> float:
 
 def p90(vol: np.ndarray) -> float:
     """Calculate the score at the 90th percentile feature of the input dataset (3D Array).
-    This feature refers to "Fstat_P90" (ID = 8DWT) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_P90" (ID = 8DWT)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -212,8 +212,8 @@ def p90(vol: np.ndarray) -> float:
 
 def max(vol: np.ndarray) -> float:
     """Compute the maximum grey level feature of the input dataset (3D Array).
-    This feature refers to "Fstat_max" (ID = 84IY) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_max" (ID = 84IY)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -228,8 +228,8 @@ def max(vol: np.ndarray) -> float:
 
 def iqrange(vol: np.ndarray) -> float:
     """Compute the interquartile range feature of the input dataset (3D Array).
-    This feature refers to "Fstat_iqr" (ID = SALO) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_iqr" (ID = SALO)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -244,8 +244,8 @@ def iqrange(vol: np.ndarray) -> float:
 
 def range(vol: np.ndarray) -> float:
     """Range of values (maximum - minimum) feature along an axis of the input dataset (3D Array).
-    This feature refers to "Fstat_range" (ID = 2OJQ) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_range" (ID = 2OJQ)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -261,8 +261,8 @@ def range(vol: np.ndarray) -> float:
 
 def mad(vol: np.ndarray) -> float:
     """Mean absolute deviation feature of the input dataset (3D Array).
-    This feature refers to "Fstat_mad" (ID = 4FUA) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_mad" (ID = 4FUA)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -277,8 +277,8 @@ def mad(vol: np.ndarray) -> float:
 
 def rmad(vol: np.ndarray) -> float:
     """Robust mean absolute deviation feature of the input dataset (3D Array).
-    This feature refers to "Fstat_rmad" (ID = 1128) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_rmad" (ID = 1128)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -299,8 +299,8 @@ def rmad(vol: np.ndarray) -> float:
 
 def medad(vol: np.ndarray) -> float:
     """Median absolute deviation feature of the input dataset (3D Array).
-    This feature refers to "Fstat_medad" (ID = N72L) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_medad" (ID = N72L)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -315,8 +315,8 @@ def medad(vol: np.ndarray) -> float:
 
 def cov(vol: np.ndarray) -> float:
     """Compute the coefficient of variation feature of the input dataset (3D Array).
-    This feature refers to "Fstat_cov" (ID = 7TET) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_cov" (ID = 7TET)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -331,8 +331,8 @@ def cov(vol: np.ndarray) -> float:
 
 def qcod(vol: np.ndarray) -> float:
     """Compute the quartile coefficient of dispersion feature of the input dataset (3D Array).
-    This feature refers to "Fstat_qcod" (ID = 9S40) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_qcod" (ID = 9S40)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -348,8 +348,8 @@ def qcod(vol: np.ndarray) -> float:
 
 def energy(vol: np.ndarray) -> float:
     """Compute the energy feature of the input dataset (3D Array).
-    This feature refers to "Fstat_energy" (ID = N8CA) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_energy" (ID = N8CA)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -364,8 +364,8 @@ def energy(vol: np.ndarray) -> float:
 
 def rms(vol: np.ndarray) -> float:
     """Compute the root mean square feature of the input dataset (3D Array).
-    This feature refers to "Fstat_rms" (ID = 5ZWQ) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fstat_rms" (ID = 5ZWQ)  in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest

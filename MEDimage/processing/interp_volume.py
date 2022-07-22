@@ -6,6 +6,8 @@ from copy import deepcopy
 import logging
 
 import numpy as np
+
+from MEDimage.MEDimage import MEDimage
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
 from ..utils.interp3 import interp3
@@ -15,7 +17,7 @@ from ..processing.compute_box import compute_box
 _logger = logging.getLogger(__name__)
 
 
-def interp_volume(MEDimage: object, 
+def interp_volume(MEDimage: MEDimage, 
                   vol_obj_s: np.ndarray,
                   vox_dim=None,
                   interp_met=None,
@@ -31,7 +33,7 @@ def interp_volume(MEDimage: object,
         vox_dim (array): Array of the voxel dimension. The following format is used
                          [Xin,Yin,Zslice], where Xin and Yin are the X (left to right) and
                          Y (bottom to top) IN-PLANE resolutions, and Zslice is the slice spacing,
-                         NO MATTER THE ORIENTATION OF THE VOLUME (i.e. axial , sagittal, coronal).
+                         no matter the orientation of the volume (i.e. axial , sagittal, coronal).
         interp_met (str): {nearest, linear, spline, cubic} optional, Interpolation method
         round_val (float): Rounding value. Must be between 0 and 1 for ROI interpolation
                            and to a power of 10 for Image interpolation.
@@ -39,11 +41,13 @@ def interp_volume(MEDimage: object,
         roi_obj_s (image_volume_obj): Mask data, will be used to compute a new specific box
                                       and the new imref3d object for the imaging data.
         box_string (str): Specifies the size if the box containing the ROI
-                          - 'full': Full imaging data as output.
-                          - 'box' computes the smallest bounding box.
-                          - Ex: 'box10': 10 voxels in all three dimensions are added to
-                            the smallest bounding box. The number after 'box' defines the number of voxels to add.
-                          - Ex: '2box': Computes the smallest box and outputs double its
+
+                          - 'full': full imaging data as output.
+                          - 'box': computes the smallest bounding box.
+                          - Ex: 'box10': 10 voxels in all three dimensions are added to \
+                            the smallest bounding box. The number after 'box' defines the \
+                            number of voxels to add.
+                          - Ex: '2box': Computes the smallest box and outputs double its \
                             size. The number before 'box' defines the multiplication in size.
 
     Returns:

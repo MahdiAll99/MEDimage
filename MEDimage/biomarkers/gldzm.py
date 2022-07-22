@@ -12,16 +12,18 @@ from ..biomarkers.get_gldzm_matrix import get_gldzm_matrix
 def extract_all(vol_int: np.ndarray,
                 mask_morph: np.ndarray,
                 gldzm: np.ndarray = None) -> Dict:
-    """Compute gldzm features.
+    """Computes gldzm features.
+    This feature refers to "Grey level distance zone based features" (ID = VMDZ)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
-     Args:
-        vol_int: 3D volume, isotropically resampled,
-                 quantized (e.g. n_g = 32, levels = [1, ..., n_g]),
-                 with NaNs outside the region of interest.
-        mask_morph: Morphological ROI mask.
+    Args:
+        vol_int (np.ndarray): 3D volume, isotropically resampled, quantized (e.g. n_g = 32, levels = [1, ..., n_g]),
+        with NaNs outside the region of interest.
+        mask_morph (np.ndarray): Morphological ROI mask.
+        gldzm (np.ndarray, optional): array of the gray level distance zone matrix. Defaults to None.
 
     Returns:
-        Dict of gldzm features.
+        Dict: dict of ``gldzm`` features
     """
     gldzm_features = {'Fdzm_sde': [],
                       'Fdzm_lde': [],
@@ -140,14 +142,14 @@ def get_matrix(vol_int: np.ndarray, mask_morph: np.ndarray) -> np.ndarray:
 
 def sde(gldzm: np.ndarray) -> float:
     """Computes small distance emphasis feature.
-    This feature refers to "Fdzm_sde" (ID = 0GBI) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
-
+    This feature refers to "Fdzm_sde" (ID = 0GBI) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
 
     Returns:
-        float: the small distance emphasis
+        float: the small distance emphasis feature
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     s_z = np.shape(gldzm)  # Size of gldzm
@@ -158,9 +160,9 @@ def sde(gldzm: np.ndarray) -> float:
     return (np.matmul(p_d, np.transpose(np.power(1.0 / np.array(c_vect), 2))))
 
 def lde(gldzm: np.ndarray) -> float:
-    """Computes large distance emphasis feature
-    This feature refers to "Fdzm_lde" (ID = MB4I) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    """Computes large distance emphasis feature.
+    This feature refers to "Fdzm_lde" (ID = MB4I) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
@@ -177,9 +179,9 @@ def lde(gldzm: np.ndarray) -> float:
     return (np.matmul(p_d, np.transpose(np.power(np.array(c_vect), 2))))
 
 def lgze(gldzm: np.ndarray) -> float:
-    """Computes distance matrix low grey level zone emphasis feature
-    This feature refers to "Fdzm_lgze" (ID = S1RA) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    """Computes distance matrix low grey level zone emphasis feature.
+    This feature refers to "Fdzm_lgze" (ID = S1RA) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
@@ -196,9 +198,9 @@ def lgze(gldzm: np.ndarray) -> float:
     return np.matmul(p_g, np.transpose(np.power(1.0/np.array(r_vect), 2)))
 
 def hgze(gldzm: np.ndarray) -> float:
-    """Computes distance matrix high grey level zone emphasis feature
-    This feature refers to "Fdzm_hgze" (ID = K26C) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    """Computes distance matrix high grey level zone emphasis feature.
+    This feature refers to "Fdzm_hgze" (ID = K26C) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
@@ -215,9 +217,9 @@ def hgze(gldzm: np.ndarray) -> float:
     return np.matmul(p_g, np.transpose(np.power(np.array(r_vect), 2)))
 
 def sdlge(gldzm: np.ndarray) -> float:
-    """Computes small distance low grey level emphasis feature
-    This feature refers to "Fdzm_sdlge" (ID = RUVG) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    """Computes small distance low grey level emphasis feature.
+    This feature refers to "Fdzm_sdlge" (ID = RUVG) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
@@ -235,9 +237,9 @@ def sdlge(gldzm: np.ndarray) -> float:
     return np.sum(np.sum(gldzm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
 def sdhge(gldzm: np.ndarray) -> float:
-    """Computes small distance high grey level emphasis feature
-    This feature refers to "Fdzm_sdhge" (ID = DKNJ) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    """Computes small distance high grey level emphasis feature.
+    This feature refers to "Fdzm_sdhge" (ID = DKNJ) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
@@ -255,9 +257,9 @@ def sdhge(gldzm: np.ndarray) -> float:
     return np.sum(np.sum(gldzm*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
 
 def ldlge(gldzm: np.ndarray) -> float:
-    """Computes large distance low grey level emphasis feature
-    This feature refers to "Fdzm_ldlge" (ID = A7WM) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    """Computes large distance low grey level emphasis feature.
+    This feature refers to "Fdzm_ldlge" (ID = A7WM) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
@@ -275,9 +277,9 @@ def ldlge(gldzm: np.ndarray) -> float:
     return np.sum(np.sum(gldzm*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
 
 def ldhge(gldzm: np.ndarray) -> float:
-    """Computes large distance high grey level emphasis feature
-    This feature refers to "Fdzm_ldhge" (ID = KLTH) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    """Computes large distance high grey level emphasis feature.
+    This feature refers to "Fdzm_ldhge" (ID = KLTH) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
@@ -297,14 +299,14 @@ def ldhge(gldzm: np.ndarray) -> float:
 
 def glnu(gldzm: np.ndarray) -> float:
     """Computes distance zone matrix gray level non-uniformity
-    This feature refers to "Fdzm_glnu" (ID = VFT7) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fdzm_glnu" (ID = VFT7) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
 
     Returns:
-        float: the gray level non-uniformity
+        float: the gray level non-uniformity feature
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     p_g = np.transpose(np.sum(gldzm, 1))  # Gray-Level Vector
@@ -315,14 +317,14 @@ def glnu(gldzm: np.ndarray) -> float:
 
 def glnu_norm(gldzm: np.ndarray) -> float:
     """Computes distance zone matrix gray level non-uniformity normalised
-    This feature refers to "Fdzm_glnu_norm" (ID = 7HP3) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fdzm_glnu_norm" (ID = 7HP3) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
 
     Returns:
-        float: the gray level non-uniformity normalised
+        float: the gray level non-uniformity normalised feature
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     p_g = np.transpose(np.sum(gldzm, 1))  # Gray-Level Vector
@@ -332,14 +334,14 @@ def glnu_norm(gldzm: np.ndarray) -> float:
 
 def zdnu(gldzm: np.ndarray) -> float:
     """Computes zone distance non-uniformity
-    This feature refers to "Fdzm_zdnu" (ID = V294) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fdzm_zdnu" (ID = V294) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
 
     Returns:
-        float: the zone distance non-uniformity
+        float: the zone distance non-uniformity feature
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     p_d = np.sum(gldzm, 0)  # Distance Zone Vector
@@ -350,14 +352,14 @@ def zdnu(gldzm: np.ndarray) -> float:
 
 def zdnu_norm(gldzm: np.ndarray) -> float:
     """Computes zone distance non-uniformity normalised
-    This feature refers to "Fdzm_zdnu_norm" (ID = IATH) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fdzm_zdnu_norm" (ID = IATH) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
 
     Returns:
-        float: the zone distance non-uniformity normalised
+        float: the zone distance non-uniformity normalised feature
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     p_d = np.sum(gldzm, 0)  # Distance Zone Vector
@@ -367,14 +369,14 @@ def zdnu_norm(gldzm: np.ndarray) -> float:
 
 def z_perc(gldzm, vol_int):
     """Computes zone percentage
-    This feature refers to "Fdzm_z_perc" (ID = VIWW) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fdzm_z_perc" (ID = VIWW) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
 
     Returns:
-        float: the zone percentage
+        float: the zone percentage feature
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     n_s = np.sum(gldzm)
@@ -384,14 +386,14 @@ def z_perc(gldzm, vol_int):
 
 def gl_var(gldzm: np.ndarray) -> float:
     """Computes grey level variance
-    This feature refers to "Fdzm_gl_var" (ID = QK93) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fdzm_gl_var" (ID = QK93) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
 
     Returns:
-        float: the grey level variance
+        float: the grey level variance feature
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     s_z = np.shape(gldzm)  # Size of gldzm
@@ -407,14 +409,14 @@ def gl_var(gldzm: np.ndarray) -> float:
 
 def zd_var(gldzm: np.ndarray) -> float:
     """Computes zone distance variance
-    This feature refers to "Fdzm_zd_var" (ID = 7WT1) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fdzm_zd_var" (ID = 7WT1) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
 
     Returns:
-        float: the zone distance variance
+        float: the zone distance variance feature
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     s_z = np.shape(gldzm)  # Size of gldzm
@@ -430,14 +432,14 @@ def zd_var(gldzm: np.ndarray) -> float:
 
 def zd_entr(gldzm: np.ndarray) -> float:
     """Computes zone distance entropy
-    This feature refers to "Fdzm_zd_entr" (ID = GBDU) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fdzm_zd_entr" (ID = GBDU) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         gldzm (ndarray): array of the gray level distance zone matrix
 
     Returns:
-        float: the zone distance entropy
+        float: the zone distance entropy feature
     """
     gldzm = gldzm / np.sum(gldzm)  # Normalization of gldzm
     val_pos = gldzm[np.nonzero(gldzm)]

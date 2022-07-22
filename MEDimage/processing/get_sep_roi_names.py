@@ -16,16 +16,18 @@ def get_sep_roi_names(name_roi_in: str,
     have multiple ROI names seperated with curly brackets and delimeters.
 
     Note:
-        WORKS ONLY FOR DELIMITERS "+" and "-".
+        Works only for delimiters "+" and "-".
 
     Args:
-        name_roi_in (str): Name of ROIs that will be extracted from the imagign volume.
+        name_roi_in (str): Name of ROIs that will be extracted from the imagign volume. \
                            Separated with curly brackets and delimeters. Ex: '{ED}+{ET}'.
         delimiters (List): List of delimeters of "+" and "-".
 
     Returns:
-        List[int]: List of ROI names seperated and excluding curly brackets.
-        ndarray: array of 1's and -1's that defines the regions that will
+        2-element tuple containing 
+        
+        - List[int]: List of ROI names seperated and excluding curly brackets.
+        - ndarray: array of 1's and -1's that defines the regions that will \
                  included and/or excluded in/from the imaging data.
 
     Examples:

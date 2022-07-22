@@ -17,40 +17,27 @@ def compute_roi(roi_xyz: np.ndarray,
                 interp=False) -> np.ndarray:
     """Computes the ROI (Region of interest) mask using the XYZ coordinates.
 
-    Note:
-        HERE, ONLY THE DIMENSION OF SLICES IS ACTAULLY INTERPOLATED --> THIS IS
-        THE ONLY RESOLUTION INFO WE CAN GET FROM THE RTstruct XYZ POINTS.
-        WE ASSUME THAT THE FUNCTION "poly2mask.m" WILL CORRECTLY CLOSE ANY
-        POLYGON IN THE IN-PLANE DIMENSION, EVEN IF WE GO FROM LOWER TO HIGHER
-        RESOLUTION (e.g. RTstruct created on PET and applied to CT)
-        --> ALLOWS TO INTERPOLATE A RTstruct CREATED ON ANOTHER IMAGING VOLUME
-            WITH DIFFERENT RESOLUTIONS, BUT FROM THE SAME FRAM OF REFERENCE
-            (e.g. T1w and T2w in MR scans, PET/CT, etc.)
-        --> IN THE IDEAL AND RECOMMENDED CASE, A SPECIFIC RTstruct WAS CREATED AND
-            SAVED FOR EACH IMAGING VOLUME (SAFE PRACTICE)
-        --> The 'interp' should be used only if tested and verified. False
-                is currently the default in get_roi.py
-
     Args:
         roi_xyz (ndarray): array of (x,y,z) triplets defining a contour in the Patient-Based
                            Coordinate System extracted from DICOM RTstruct.
         spatial_ref (imref3d): imref3d object (same functionality of MATLAB imref3d class).
-        orientation (str): Imaging data orientation (axial, sagittal or coronal).
+        orientation (str): Imaging data ``orientation`` (axial, sagittal or coronal).
         scan_type (str): Imaging modality (MRscan, CTscan...).
-        interp (bool): Specifies if we need to use an interpolation
-                       process prior to "get_polygon_mask()" in the slice axis direction.
-                       - True: Interpolation is performed in the slice axis dimensions.
-                               To be further tested, thus please use with caution (True is safer).
-                       - False (default): No interpolation. This can definitely be safe
-                                          when the RTstruct has been saved specifically for the volume of
-                                          interest.
+        interp (bool): Specifies if we need to use an interpolation \
+            process prior to :func:`get_polygon_mask()` in the slice axis direction.
+
+            - True: Interpolation is performed in the slice axis dimensions. To be further \
+                tested, thus please use with caution (True is safer).
+            - False (default): No interpolation. This can definitely be safe \
+                when the RTstruct has been saved specifically for the volume of \
+                interest.
+        
     Returns:
         ndarray: 3D array of 1's and 0's defining the ROI mask.
 
     Todo:
-        * USING INTERPOLATION --> THIS PART NEEDS TO BE FURTHER TESTED.
-        * Consider changing to if statement. Changing interp variable here
-        will change the interp variable everywhere
+        - Using interpolation: this part needs to be further tested.
+        - Consider changing to 'if statement'. Changing ``interp`` variable here will change the ``interp`` variable everywhere
     """
 
     while interp:

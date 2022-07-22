@@ -12,7 +12,9 @@ from ..biomarkers.get_ngtdm_matrix import get_ngtdm_matrix
 
 def extract_all(vol: np.ndarray,
                 dist_correction :Union[bool, str]=None) -> Dict:
-    """Compute ngtdm features.
+    """Compute Neighbourhood grey tone difference based features.
+    These features refer to "Neighbourhood grey tone difference based features" (ID = IPET) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
 
@@ -20,8 +22,9 @@ def extract_all(vol: np.ndarray,
                        (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
                        of interest.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-                                                      discretization length difference corrections as used here:
-                                                      <https://doi.org/10.1088/0031-9155/60/14/5471>.
+                                                      discretization length difference corrections as used
+                                                      by the `Institute of Physics and Engineering in
+                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
                                                       Set this variable to false to replicate IBSI results.
                                                       Or use string and specify the norm for distance weighting.
                                                       Weighting is only performed if this argument is
@@ -114,8 +117,9 @@ def get_matrix(vol: np.ndarray,
         vol (ndarray): 3D volume, isotropically resampled, quantized
             (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region of interest.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-                                                      discretization length difference corrections as used here:
-                                                      <https://doi.org/10.1088/0031-9155/60/14/5471>.
+                                                      discretization length difference corrections as used
+                                                      by the `Institute of Physics and Engineering in
+                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
                                                       Set this variable to false to replicate IBSI results.
                                                       Or use string and specify the norm for distance weighting.
                                                       Weighting is only performed if this argument is
@@ -135,6 +139,8 @@ def get_matrix(vol: np.ndarray,
 def coarseness(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes coarseness feature.
+    This feature refers to "Coarseness" (ID = QCDE) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix
@@ -152,6 +158,8 @@ def coarseness(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
 def contrast(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes contrast feature.
+    This feature refers to "Contrast" (ID = 65HE) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix
@@ -178,6 +186,8 @@ def contrast(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
 def busyness(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes busyness feature.
+    This feature refers to "Busyness" (ID = NQ30) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix
@@ -208,6 +218,8 @@ def busyness(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
 def complexity(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes complexity feature.
+    This feature refers to "Complexity" (ID = HDEZ) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix
@@ -238,6 +250,8 @@ def complexity(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
 def strength(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes strength feature.
+    This feature refers to "Strength" (ID = 1X9X) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix

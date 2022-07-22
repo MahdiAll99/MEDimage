@@ -6,7 +6,7 @@ import logging
 from typing import Union
 
 import numpy as np
-from MEDimage import MEDimage
+from MEDimage.MEDimage import MEDimage
 
 from ..processing.compute_box import compute_box
 from ..processing.compute_roi import compute_roi
@@ -28,19 +28,23 @@ def get_roi(MEDimage: MEDimage,
         MEDimage (MEDimage): The MEDimage class object.
         name_roi (str): name of the ROI since the a volume can have multuiple ROIs.
         box_string (str): Specifies the size if the box containing the ROI
-                          - 'full': Full imaging data as output.
-                          - 'box' computes the smallest bounding box.
-                          - Ex: 'box10': 10 voxels in all three dimensions are added to
-                            the smallest bounding box. The number after 'box' defines the
+
+                          - 'full': full imaging data as output.
+                          - 'box': computes the smallest bounding box.
+                          - Ex: 'box10': 10 voxels in all three dimensions are added to \
+                            the smallest bounding box. The number after 'box' defines the \
                             number of voxels to add.
-                          - Ex: '2box': Computes the smallest box and outputs double its
+                          - Ex: '2box': Computes the smallest box and outputs double its \
                             size. The number before 'box' defines the multiplication in size.
+
         interp (bool): True if we need to use an interpolation for box computation.
 
     Returns:
-        image_volume_obj: 3D array of imaging data defining box containing the ROI.
+        2-element tuple containing
+
+        - image_volume_obj: 3D array of imaging data defining box containing the ROI. \
             vol.data is the 3D array, vol.spatialRef is its associated imref3d object.
-        image_volume_obj: 3D array of 1's and 0's defining the ROI.
+        - image_volume_obj: 3D array of 1's and 0's defining the ROI. \
             roi.data is the 3D array, roi.spatialRef is its associated imref3d object.
     """
     # PARSING OF ARGUMENTS

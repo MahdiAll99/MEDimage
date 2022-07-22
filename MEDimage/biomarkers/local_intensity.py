@@ -13,7 +13,8 @@ def extract_all(img_obj: ndarray,
                 res: ndarray,
                 intensity=None) -> Dict:
     """Compute Local Intensity Features.
-    This features refer to Local Intensity family in the IBSI1 reference manual https://arxiv.org/abs/1612.07003 (PDF)
+    This features refer to Local Intensity family in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         img_obj (ndarray): Continuous image intensity distribution, with no NaNs
@@ -57,8 +58,8 @@ def peak_local(img_obj: ndarray,
                roi_obj: ndarray,
                res: ndarray) -> float:
     """Computes local intensity peak.
-    This feature refers to "Floc_peak_local" (ID = VJGA) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Floc_peak_local" (ID = VJGA) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         img_obj (ndarray): Continuous image intensity distribution, with no NaNs
@@ -76,8 +77,8 @@ def peak_global(img_obj: ndarray,
                 roi_obj: ndarray,
                 res: ndarray) -> float:
     """Computes global intensity peak.
-    This feature refers to "Floc_peak_global" (ID = 0F91) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Floc_peak_global" (ID = 0F91) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         img_obj (ndarray): Continuous image intensity distribution, with no NaNs

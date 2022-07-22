@@ -15,7 +15,7 @@ def get_radiomic_names(roi_names: np.ndarray,
         roi_type (str): _description_
 
     Returns:
-        list: list with the radiomaic names
+        list: list with the radiomic names
     """
 
     n_names = np.size(roi_names)[0]

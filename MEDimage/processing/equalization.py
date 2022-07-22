@@ -12,8 +12,8 @@ def equalization(vol_re: np.ndarray) -> np.ndarray:
     """Performs histogram equalisation of the ROI imaging intensities.
 
     Note:
-        THIS IS A PURE "WHAT IS CONTAINED WITHIN THE ROI" EQUALIZATION. THIS IS
-        NOT INFLUENCED BY THE "user_set_min_val" USED FOR FBS DISCRESTISATION.
+        This is a pure "what is contained within the roi" equalization. this is
+        not influenced by the :func:`user_set_min_val()` used for FBS discretisation.
 
     Args:
         vol_re (ndarray): 3D array of the image volume that will be studied with
@@ -26,7 +26,7 @@ def equalization(vol_re: np.ndarray) -> np.ndarray:
     # AZ: This was made part of the function call
     # n_g = 64
     # This is the default we will use. It means that when using 'FBS',
-    # nq should be chosen wisely such
+    # n_q should be chosen wisely such
     # that the total number of grey levels does not exceed 64, for all
     # patients (recommended).
     # This choice was amde by considering that the best equalization

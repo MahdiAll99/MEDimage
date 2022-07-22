@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 from typing import Tuple
 
 import numpy as np
-from .compute_bounding_box import compute_bounding_box
+
 from ..utils.imref import imref3d, intrinsicToWorld
+from .compute_bounding_box import compute_bounding_box
 
 
 def compute_box(vol: np.ndarray,
@@ -16,31 +16,33 @@ def compute_box(vol: np.ndarray,
                                           np.ndarray,
                                           imref3d]:
     """Computes a new box around the ROI (Region of interest) from the original box
-    and updates the volume and the spatial_ref.
+    and updates the volume and the ``spatial_ref``.
 
     Args:
         vol (ndarray): ROI mask with values of 0 and 1.
         roi (ndarray): ROI mask with values of 0 and 1.
         spatial_ref (imref3d): imref3d object (same functionality of MATLAB imref3d class).
         box_string (str): Specifies the new box to be computed
-                          --> 'full': Full imaging data as output.
-                          --> 'box' computes the smallest bounding box.
-                          --> Ex: 'box10': 10 voxels in all three dimensions are added to
-                              the smallest bounding box. The number after 'box' defines the
-                              number of voxels to add.
-                          --> Ex: '2box': Computes the smallest box and outputs double its
-                              size. The number before 'box' defines the multiplication in
-                              size.
-    Returns:
-        ndarray: 3D array of imaging data defining the smallest box containing the ROI.
-        ndarray: 3D array of 1's and 0's defining the ROI in ROIbox.
-        imref3d: The associated imref3d object imaging data.
+
+            * 'full': full imaging data as output.
+            * 'box': computes the smallest bounding box.
+            * Ex: 'box10' means 10 voxels in all three dimensions are added to the smallest bounding box. The number \
+                after 'box' defines the number of voxels to add.
+            * Ex: '2box' computes the smallest box and outputs double its \
+                size. The number before 'box' defines the multiplication in size.
+    
+    Returns: 
+        3-element tuple containing
+
+        - ndarray: 3D array of imaging data defining the smallest box containing the ROI.
+        - ndarray: 3D array of 1's and 0's defining the ROI in ROIbox.
+        - imref3d: The associated imref3d object imaging data.
 
     Todo:
-        * I would not recommend parsing different settings into a string.
-        Provide two or more parameters instead, and use None if one or more
-        are not used.
-        * there is no else statement, so "new_spatial_ref" might be unset
+        * I would not recommend parsing different settings into a string. \
+            Provide two or more parameters instead, and use None if one or more \
+            are not used.
+        * There is no else statement, so "new_spatial_ref" might be unset
     """
 
     if "box" in box_string:

@@ -10,15 +10,16 @@ def compute_suv_map(raw_pet: np.ndarray,
                     dicom_h: pydicom.Dataset) -> np.ndarray:
     """Computes the suv_map of a raw input PET volume. It is assumed that
     the calibration factor was applied beforehand to the PET volume
-    (e.g., raw_pet = raw_pet*RescaleSlope + RescaleIntercept).
+    
+    E.g: raw_pet = raw_pet*RescaleSlope + RescaleIntercept.
 
     Args:
         raw_pet (ndarray):3D array representing the PET volume in raw format.
         dicom_h (pydicom.dataset.FileDataset): DICOM header of one of the
-            corresponding slice of 'raw_pet'.
+            corresponding slice of ``raw_pet``.
 
     Returns:
-        ndarray: 'raw_pet' converted to SUVs (standard uptake values).
+        ndarray: ``raw_pet`` converted to SUVs (standard uptake values).
     """
     def dcm_hhmmss(date_str: str) -> float:
         """"Converts to seconds
