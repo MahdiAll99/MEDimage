@@ -124,7 +124,7 @@ def get_matrix(vol: np.ndarray) -> np.ndarray:
             quantized (e.g. n_g = 32, levels = [1, ..., n_g]), 
             with NaNs outside the region of interest.
         levels: Vector containing the quantized gray-levels 
-            in the tumor region (or reconstruction levels of quantization).
+            in the tumor region (or reconstruction ``levels`` of quantization).
     
     Returns:
         ndarray: Array of Gray-Level Size Zone Matrix of 'vol'.

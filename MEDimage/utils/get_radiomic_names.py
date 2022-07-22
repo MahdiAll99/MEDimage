@@ -2,11 +2,20 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import List
 import numpy as np
 
 
-def get_radiomic_names(roi_names: np.ndarray, roi_type):
-    """
+def get_radiomic_names(roi_names: np.ndarray,
+                       roi_type: str) -> List:
+    """Get radiomic names
+
+    Args:
+        roi_names (np.ndarray): _description_
+        roi_type (str): _description_
+
+    Returns:
+        list: list with the radiomaic names
     """
 
     n_names = np.size(roi_names)[0]

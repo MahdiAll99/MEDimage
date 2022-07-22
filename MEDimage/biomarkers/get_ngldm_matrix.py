@@ -6,17 +6,19 @@ import numpy as np
 
 def get_ngldm_matrix(roi_only: np.array,
                      levels: np.ndarray) -> float:
-    """Compute NGLDMmatrix.
+    """Computes Neighbouring grey level dependence matrix.
+    This matrix refers to "Neighbouring grey level dependence based features" (ID = REK0)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         roi_only_int (ndarray): Smallest box containing the ROI, with the imaging data ready
             for texture analysis computations. Voxels outside the ROI are
             set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels
-            in the tumor region (or reconstruction levels of quantization).
+            in the tumor region (or reconstruction ``levels`` of quantization).
 
     Returns:
-        ndarray: Array of neighbouring grey level dependence matrix of 'roi_only'.
+        ndarray: Array of neighbouring grey level dependence matrix of ``roi_only``.
 
     """
     roi_only = roi_only.copy()

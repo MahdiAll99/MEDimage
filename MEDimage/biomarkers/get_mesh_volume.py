@@ -6,15 +6,17 @@ import numpy as np
 
 def get_mesh_volume(faces: np.ndarray,
                     vertices:np.ndarray) -> float:
-    """Compute MeshVolume.
+    """Computes MeshVolume feature.
+    This feature refers to "Volume (mesh)" (ID = RNU0)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         faces (np.ndarray): matrix of three column vectors, defining the [X,Y,Z]
-                          positions of the faces of the isosurface or convex hull of the mask
+                          positions of the ``faces`` of the isosurface or convex hull of the mask
                           (output from "isosurface.m" or "convhull.m" functions of MATLAB).
-                          --> These are more precisely indexes to "vertices"
+                          --> These are more precisely indexes to ``vertices``
         vertices (np.ndarray): matrix of three column vectors, defining the
-                             [X,Y,Z] positions of the vertices of the isosurface of the mask (output
+                             [X,Y,Z] positions of the ``vertices`` of the isosurface of the mask (output
                              from "isosurface.m" function of MATLAB).
                              --> In mm.
 

@@ -29,14 +29,14 @@ def extract_all(vol: np.ndarray,
                        (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
                        of interest.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-                                                      discretization length difference corrections as used here:
-                                                      <https://doi.org/10.1088/0031-9155/60/14/5471>.
-                                                      Set this variable to false to replicate IBSI results.
-                                                      Or use string and specify the norm for distance weighting. Weighting is
-                                                      only performed if this argument is "manhattan", "euclidean" or "chebyshev".
+        discretization length difference corrections as used here:
+        <https://doi.org/10.1088/0031-9155/60/14/5471>.
+        Set this variable to false to replicate IBSI results.
+        Or use string and specify the norm for distance weighting. Weighting is
+        only performed if this argument is "manhattan", "euclidean" or "chebyshev".
         glcm_merge_method (str, optional): merging method which determines how features are
-                                           calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
-                                           Note that not all combinations of spatial and merge method are valid.
+        calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+        Note that not all combinations of spatial and merge method are valid.
         method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
 
     Returns:
@@ -384,7 +384,7 @@ def combine_matrices(glcm_list: List,
 class CooccurrenceMatrix:
     """ Class that contains a single co-occurrence matrix.
 
-    Note :
+    Note:
         Code was adapted from the in-house radiomics software created at
         OncoRay, Dresden, Germany.
 
@@ -402,19 +402,6 @@ class CooccurrenceMatrix:
                                              sparse format (row, column, count).
         n_v (int, optional): The number of voxels in the volume.
 
-    Attributes:
-        distance (int): Chebyshev distance.
-        direction (ndarray): Direction along which neighbouring voxels are found.
-        direction_id (int): Direction index to identify unique direction vectors.
-        spatial_method (str): Spatial method used to calculate the co-occurrence
-                              matrix: "2d", "2.5d" or "3d".
-        img_slice (ndarray): Corresponding slice index (only if the co-occurrence
-                             matrix corresponds to a 2d image slice).
-        merge_method (str): Method for merging the co-occurrence matrix with other
-                            co-occurrence matrices.
-        matrix (pandas.DataFrame): The actual co-occurrence matrix in sparse format
-                                   (row, column, count).
-        n_v (int): The number of voxels in the volume.
     """
 
     def __init__(self,
@@ -445,7 +432,7 @@ class CooccurrenceMatrix:
 
     def _copy(self):
         """
-        Returns a copy of the co-occurrence matrix object.
+        Returns a copy of the co-occurrence ``matrix`` object.
         """
         return deepcopy(self)
 
@@ -468,8 +455,9 @@ class CooccurrenceMatrix:
 
         Raises:
             ValueError:
-                If `self.spatial_method` is not "2d", "2.5d" or "3d".
-                If `dist_weight_norm` is not "manhattan", "euclidean" or "chebyshev".
+                * If `self.spatial_method` is not "2d", "2.5d" or "3d".
+                * If `dist_weight_norm` is not "manhattan", "euclidean" or "chebyshev".
+                
         """
         # Check if the roi contains any masked voxels. If this is not the case, don't construct the glcm.
         if not np.any(df_img.roi_int_mask):
@@ -978,7 +966,7 @@ def get_dict(vol: np.ndarray)-> dict:
 
 def joint_max(glcm_dict: dict) -> float:
     """Computes joint maximum features
-    This feature refers to "Fcm_joint_max" (id = GYBY) in the IBSI1 reference manual
+    This feature refers to "Fcm_joint_max" (ID = GYBY) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -991,7 +979,7 @@ def joint_max(glcm_dict: dict) -> float:
 
 def joint_avg(glcm_dict: dict) -> float:
     """Computes joint  average features
-    This feature refers to "Fcm_joint_avg" (id = 60VM) in the IBSI1 reference manual
+    This feature refers to "Fcm_joint_avg" (ID = 60VM) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1004,7 +992,7 @@ def joint_avg(glcm_dict: dict) -> float:
 
 def joint_var(glcm_dict: dict) -> float:
     """Computes joint variance features
-    This feature refers to "Fcm_var" (id = UR99) in the IBSI1 reference manual
+    This feature refers to "Fcm_var" (ID = UR99) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1017,7 +1005,7 @@ def joint_var(glcm_dict: dict) -> float:
 
 def joint_entr(glcm_dict: dict) -> float:
     """Computes joint entropy features
-    This feature refers to "Fcm_joint_entr" (id = TU9B) in the IBSI1 reference manual
+    This feature refers to "Fcm_joint_entr" (ID = TU9B) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1030,7 +1018,7 @@ def joint_entr(glcm_dict: dict) -> float:
 
 def diff_avg(glcm_dict: dict) -> float:
     """Computes difference average features
-    This feature refers to "Fcm_diff_avg" (id = TF7R) in the IBSI1 reference manual
+    This feature refers to "Fcm_diff_avg" (ID = TF7R) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1043,7 +1031,7 @@ def diff_avg(glcm_dict: dict) -> float:
 
 def diff_var(glcm_dict: dict) -> float:
     """Computes difference variance features
-    This feature refers to "Fcm_diff_var" (id = D3YU) in the IBSI1 reference manual
+    This feature refers to "Fcm_diff_var" (ID = D3YU) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1056,7 +1044,7 @@ def diff_var(glcm_dict: dict) -> float:
 
 def diff_entr(glcm_dict: dict) -> float:
     """Computes difference entropy features
-    This feature refers to "Fcm_diff_entr" (id = NTRS) in the IBSI1 reference manual
+    This feature refers to "Fcm_diff_entr" (ID = NTRS) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1069,7 +1057,7 @@ def diff_entr(glcm_dict: dict) -> float:
 
 def sum_avg(glcm_dict: dict) -> float:
     """Computes sum average features
-    This feature refers to "Fcm_sum_avg" (id = ZGXS) in the IBSI1 reference manual
+    This feature refers to "Fcm_sum_avg" (ID = ZGXS) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1082,7 +1070,7 @@ def sum_avg(glcm_dict: dict) -> float:
 
 def sum_var(glcm_dict: dict) -> float:
     """Computes sum variance features
-    This feature refers to "Fcm_sum_var" (id = OEEB) in the IBSI1 reference manual
+    This feature refers to "Fcm_sum_var" (ID = OEEB) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1095,7 +1083,7 @@ def sum_var(glcm_dict: dict) -> float:
 
 def sum_entr(glcm_dict: dict) -> float:
     """Computes sum entropy features
-    This feature refers to "Fcm_sum_entr" (id = P6QZ) in the IBSI1 reference manual
+    This feature refers to "Fcm_sum_entr" (ID = P6QZ) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1108,7 +1096,7 @@ def sum_entr(glcm_dict: dict) -> float:
 
 def energy(glcm_dict: dict) -> float:
     """Computes angular second moment features
-    This feature refers to "Fcm_energy" (id = 8ZQL) in the IBSI1 reference manual
+    This feature refers to "Fcm_energy" (ID = 8ZQL) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1121,7 +1109,7 @@ def energy(glcm_dict: dict) -> float:
 
 def contrast(glcm_dict: dict) -> float:
     """Computes constrast features
-    This feature refers to "Fcm_contrast" (id = ACUI) in the IBSI1 reference manual
+    This feature refers to "Fcm_contrast" (ID = ACUI) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1134,7 +1122,7 @@ def contrast(glcm_dict: dict) -> float:
 
 def dissimilarity(glcm_dict: dict) -> float:
     """Computes dissimilarity features
-    This feature refers to "Fcm_dissimilarity" (id = 8S9J) in the IBSI1 reference manual
+    This feature refers to "Fcm_dissimilarity" (ID = 8S9J) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1147,7 +1135,7 @@ def dissimilarity(glcm_dict: dict) -> float:
 
 def inv_diff(glcm_dict: dict) -> float:
     """Computes inverse difference features
-    This feature refers to "Fcm_inv_diff" (id = IB1Z) in the IBSI1 reference manual
+    This feature refers to "Fcm_inv_diff" (ID = IB1Z) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1160,7 +1148,7 @@ def inv_diff(glcm_dict: dict) -> float:
 
 def inv_diff_norm(glcm_dict: dict) -> float:
     """Computes inverse difference normalised features
-    This feature refers to "Fcm_inv_diff_norm" (id = NDRX) in the IBSI1 reference manual
+    This feature refers to "Fcm_inv_diff_norm" (ID = NDRX) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1173,7 +1161,7 @@ def inv_diff_norm(glcm_dict: dict) -> float:
 
 def inv_diff_mom(glcm_dict: dict) -> float:
     """Computes inverse difference moment features
-    This feature refers to "Fcm_inv_diff_mom" (id = WF0Z) in the IBSI1 reference manual
+    This feature refers to "Fcm_inv_diff_mom" (ID = WF0Z) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1186,7 +1174,7 @@ def inv_diff_mom(glcm_dict: dict) -> float:
 
 def inv_diff_mom_norm(glcm_dict: dict) -> float:
     """Computes inverse difference moment normalised features
-    This feature refers to "Fcm_inv_diff_mom_norm" (id = 1QCO) in the IBSI1 reference manual
+    This feature refers to "Fcm_inv_diff_mom_norm" (ID = 1QCO) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1199,7 +1187,7 @@ def inv_diff_mom_norm(glcm_dict: dict) -> float:
 
 def inv_var(glcm_dict: dict) -> float:
     """Computes inverse variance features
-    This feature refers to "Fcm_inv_var" (id = E8JP) in the IBSI1 reference manual
+    This feature refers to "Fcm_inv_var" (ID = E8JP) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1212,7 +1200,7 @@ def inv_var(glcm_dict: dict) -> float:
 
 def corr(glcm_dict: dict) -> float:
     """Computes correlation features
-    This feature refers to "Fcm_corr" (id = NI2N) in the IBSI1 reference manual
+    This feature refers to "Fcm_corr" (ID = NI2N) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1225,7 +1213,7 @@ def corr(glcm_dict: dict) -> float:
 
 def auto_corr(glcm_dict: dict) -> float:
     """Computes autocorrelation features
-    This feature refers to "Fcm_auto_corr" (id = QWB0) in the IBSI1 reference manual
+    This feature refers to "Fcm_auto_corr" (ID = QWB0) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1238,7 +1226,7 @@ def auto_corr(glcm_dict: dict) -> float:
 
 def info_corr1(glcm_dict: dict) -> float:
     """Computes information correlation 1 features
-    This feature refers to "Fcm_info_corr1" (id = R8DG) in the IBSI1 reference manual
+    This feature refers to "Fcm_info_corr1" (ID = R8DG) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1251,7 +1239,7 @@ def info_corr1(glcm_dict: dict) -> float:
 
 def info_corr2(glcm_dict: dict) -> float:
     """Computes information correlation 2 features - Note: iteration over combinations of i and j
-    This feature refers to "Fcm_info_corr2" (id = JN9H) in the IBSI1 reference manual
+    This feature refers to "Fcm_info_corr2" (ID = JN9H) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1264,7 +1252,7 @@ def info_corr2(glcm_dict: dict) -> float:
 
 def clust_tend(glcm_dict: dict) -> float:
     """Computes cluster tendency features
-    This feature refers to "Fcm_clust_tend" (id = DG8W) in the IBSI1 reference manual
+    This feature refers to "Fcm_clust_tend" (ID = DG8W) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1277,7 +1265,7 @@ def clust_tend(glcm_dict: dict) -> float:
 
 def clust_shade(glcm_dict: dict) -> float:
     """Computes cluster shade features
-    This feature refers to "Fcm_clust_shade" (id = 7NFM) in the IBSI1 reference manual
+    This feature refers to "Fcm_clust_shade" (ID = 7NFM) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1290,7 +1278,7 @@ def clust_shade(glcm_dict: dict) -> float:
 
 def clust_prom(glcm_dict: dict) -> float:
     """Computes cluster prominence features
-    This feature refers to "Fcm_clust_prom" (id = AE86) in the IBSI1 reference manual
+    This feature refers to "Fcm_clust_prom" (ID = AE86) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:

@@ -10,7 +10,9 @@ from scipy.spatial import ConvexHull
 
 
 def min_oriented_bound_box(pos_mat: np.ndarray) -> np.ndarray:
-    """Determination of the minimum bounding box of an arbitrary solid: an iterative approach.
+    """Computes the minimum bounding box of an arbitrary solid: an iterative approach.
+    This feature refers to "Volume density (oriented minimum bounding box)" (ID = ZH1A)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         pos_mat (ndarray): matrix position

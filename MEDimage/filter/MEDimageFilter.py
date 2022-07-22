@@ -13,7 +13,7 @@ class MEDimageFilter(ABC):
 
     def __init__(self,
                  ndims: int,
-                 padding="mirror"):
+                 padding: str="mirror"):
         """Constructor of the abstract class Filter
         Args:
             ndims (int): Number of dimension
@@ -26,7 +26,7 @@ class MEDimageFilter(ABC):
 
     def _convolve(self,
                   images: np.ndarray,
-                  orthogonal_rot=False) -> np.ndarray:
+                  orthogonal_rot: bool=False) -> np.ndarray:
         """Convolve a given n-dimensional array with the kernel to generate a filtered image.
 
         Args:
@@ -177,8 +177,8 @@ class LaplacianOfGaussian(MEDimageFilter):
     def __init__(self,
                  ndims: int,
                  size: int,
-                 sigma=0.1,
-                 padding="symmetric"):
+                 sigma: float=0.1,
+                 padding: str="symmetric"):
         """The constructor of the laplacian of gaussian (LoG) filter
 
         Args:

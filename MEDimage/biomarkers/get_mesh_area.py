@@ -6,16 +6,19 @@ import numpy as np
 
 def get_mesh_area(faces: np.ndarray,
                   vertices: np.ndarray) -> float:
-    """Compute MeshArea.
+    """Computes the surface area (mesh) feature from the ROI mesh by 
+    summing over the triangular face surface areas. 
+    This feature refers to "Surface area (mesh)" (ID = C0JK)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         faces (np.ndarray): matrix of three column vectors, defining the [X,Y,Z]
-                          positions of the faces of the isosurface or convex hull of the mask
+                          positions of the ``faces`` of the isosurface or convex hull of the mask
                           (output from "isosurface.m" or "convhull.m" functions of MATLAB).
-                          --> These are more precisely indexes to "vertices"
+                          --> These are more precisely indexes to ``vertices``
         vertices (np.ndarray): matrix of three column vectors,
                              defining the [X,Y,Z]
-                             positions of the vertices of the isosurface of the mask (output
+                             positions of the ``vertices`` of the isosurface of the mask (output
                              from "isosurface.m" function of MATLAB).
                              --> In mm.
 

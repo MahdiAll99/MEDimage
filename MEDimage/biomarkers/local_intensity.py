@@ -57,7 +57,7 @@ def peak_local(img_obj: ndarray,
                roi_obj: ndarray,
                res: ndarray) -> float:
     """Computes local intensity peak.
-    This feature refers to "Floc_peak_local" (id = VJGA) in the IBSI1 reference manual
+    This feature refers to "Floc_peak_local" (ID = VJGA) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -76,7 +76,7 @@ def peak_global(img_obj: ndarray,
                 roi_obj: ndarray,
                 res: ndarray) -> float:
     """Computes global intensity peak.
-    This feature refers to "Floc_peak_global" (id = 0F91) in the IBSI1 reference manual
+    This feature refers to "Floc_peak_global" (ID = 0F91) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:

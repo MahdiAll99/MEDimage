@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-- Creation: June 2018
-"""
-
 from typing import List, Union
+
 import numpy as np
 import scipy.ndimage as sc
 import skimage.measure as skim
@@ -14,24 +11,28 @@ import skimage.measure as skim
 def get_gldzm_matrix(roi_only_int: np.ndarray,
                      mask: np.ndarray,
                      levels: Union[np.ndarray, List]) -> np.ndarray:
-    """Computes gldzm matrix.
+    r"""
+    Computes Grey level distance zone matrix.
+    This matrix refers to "Grey level distance zone based features" (ID = VMDZ)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_. 
 
     Args:
         roi_only_int (ndarray): 3D volume, isotropically resampled,
-                                quantized (e.g. n_g = 32, levels = [1, ..., n_g]),
-                                with NaNs outside the region of interest.
-        mask (ndarray): Morphological ROI mask.
+            quantized (e.g. n_g = 32, levels = [1, ..., n_g]),
+            with NaNs outside the region of interest.
+        mask (ndarray): Morphological ROI ``mask``.
         levels (ndarray or List): Vector containing the quantized gray-levels
-                                  in the tumor region (or reconstruction levels of quantization).
+                                  in the tumor region (or reconstruction ``levels`` of quantization).
 
     Returns:
         ndarray: Grey level distance zone Matrix.
 
     Todo:
-        *levels: should be removed at some point, no longer needed if we always
-                 quantize our volume such that `levels = 1,2,3,4,...,max(quantized Volume)`.
-                 So simply calculate `levels = 1:max(roi_only(~isnan(roi_only(:))))`
-                 directly in this function.
+        ``levels`` should be removed at some point, no longer needed if we always 
+        quantize our volume such that ``levels = 1,2,3,4,...,max(quantized Volume)``.
+        So simply calculate ``levels = 1:max(roi_only(~isnan(roi_only(:))))``
+        directly in this function.
+
     """
 
     roi_only_int = roi_only_int.copy()

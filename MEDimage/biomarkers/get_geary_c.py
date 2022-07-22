@@ -8,13 +8,15 @@ import numpy as np
 def get_geary_c(vol: np.ndarray,
                 res: np.ndarray) -> float:
     """Computes Geary'C measure (Assesses intensity differences between voxels).
+    This feature refers to "Geary's C measure" (ID = NPT7) 
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
 
     Returns:
-        float: computed value of Geary'C measure.
+        float: computes value of Geary'C measure.
     """
     vol = vol.copy()
     res = res.copy()

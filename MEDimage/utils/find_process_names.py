@@ -2,8 +2,10 @@ from inspect import stack, getmodule
 from typing import List
 
 def get_process_names() -> List:
-    """
-    Get process names
+    """Get process names
+
+    Returns:
+        List: process names
     """
     module_names = ["none"]
     for stack_entry in stack():

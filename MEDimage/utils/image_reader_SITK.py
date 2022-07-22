@@ -2,20 +2,22 @@
 # -*- coding: utf-8 -*-
 
 
+from pathlib import Path
+from typing import Dict, Union
 import SimpleITK as sitk
 import numpy as np
 
 
-def image_reader_SITK(path, option=None):
-    """Return the image in a numpy array or a dictionary with the header
-    of the image.
+def image_reader_SITK(path: Path, 
+                      option: str=None) -> Union[Dict, None]:
+    """Return the image in a numpy array or a dictionary with the header of the image.
 
     Args:
         path (path): path of the file
-        option ():
+        option (str): name of the option, either 'image' or 'header'
     
     Returns:
-        Union[None, Dict]: 
+        Union[Dict, None]: dictionary with the header of the image
     """
     if option is None or option == 'image':
         # return the image in a numpy array

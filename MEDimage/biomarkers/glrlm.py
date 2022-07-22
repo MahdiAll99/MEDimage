@@ -974,7 +974,7 @@ def get_rlm_features_deprecated(vol: np.ndarray,
 
 def sre(upd_list: np.ndarray) -> float:
     """Compute Short runs emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_sre" (id = 22OV) in the IBSI1 reference manual
+    This feature refers to "Frlm_sre" (ID = 22OV) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1003,7 +1003,7 @@ def sre(upd_list: np.ndarray) -> float:
 
 def lre(upd_list: np.ndarray) -> float:
     """Compute Long runs emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_lre" (id = W4KF) in the IBSI1 reference manual
+    This feature refers to "Frlm_lre" (ID = W4KF) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1032,7 +1032,7 @@ def lre(upd_list: np.ndarray) -> float:
 
 def glnu(upd_list: np.ndarray) -> float:
     """Compute Grey level non-uniformity feature from the run length matrices list.
-    This feature refers to "Frlm_glnu" (id = R5YN) in the IBSI1 reference manual
+    This feature refers to "Frlm_glnu" (ID = R5YN) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1061,7 +1061,7 @@ def glnu(upd_list: np.ndarray) -> float:
 
 def glnu_norm(upd_list: np.ndarray) -> float:
     """Compute Grey level non-uniformity normalised feature from the run length matrices list.
-    This feature refers to "Frlm_glnu_norm" (id = OVBL) in the IBSI1 reference manual
+    This feature refers to "Frlm_glnu_norm" (ID = OVBL) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1090,7 +1090,7 @@ def glnu_norm(upd_list: np.ndarray) -> float:
 
 def rlnu(upd_list: np.ndarray) -> float:
     """Compute Run length non-uniformity feature from the run length matrices list.
-    This feature refers to "Frlm_rlnu" (id = W92Y) in the IBSI1 reference manual
+    This feature refers to "Frlm_rlnu" (ID = W92Y) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1119,7 +1119,7 @@ def rlnu(upd_list: np.ndarray) -> float:
 
 def rlnu_norm(upd_list: np.ndarray) -> float:
     """Compute Run length non-uniformity normalised feature from the run length matrices list.
-    This feature refers to "Frlm_rlnu_norm" (id = IC23) in the IBSI1 reference manual
+    This feature refers to "Frlm_rlnu_norm" (ID = IC23) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1148,7 +1148,7 @@ def rlnu_norm(upd_list: np.ndarray) -> float:
 
 def r_perc(upd_list: np.ndarray) -> float:
     """Compute Run percentage feature from the run length matrices list.
-    This feature refers to "Frlm_r_perc" (id = 9ZK5) in the IBSI1 reference manual
+    This feature refers to "Frlm_r_perc" (ID = 9ZK5) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1177,7 +1177,7 @@ def r_perc(upd_list: np.ndarray) -> float:
 
 def lgre(upd_list: np.ndarray) -> float:
     """Compute Low grey level run emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_lgre" (id = V3SW) in the IBSI1 reference manual
+    This feature refers to "Frlm_lgre" (ID = V3SW) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1206,7 +1206,7 @@ def lgre(upd_list: np.ndarray) -> float:
 
 def hgre(upd_list: np.ndarray) -> float:
     """Compute High grey level run emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_hgre" (id = G3QZ) in the IBSI1 reference manual
+    This feature refers to "Frlm_hgre" (ID = G3QZ) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1235,7 +1235,7 @@ def hgre(upd_list: np.ndarray) -> float:
 
 def srlge(upd_list: np.ndarray) -> float:
     """Compute Short run low grey level emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_srlge" (id = HTZT) in the IBSI1 reference manual 
+    This feature refers to "Frlm_srlge" (ID = HTZT) in the IBSI1 reference manual 
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1264,7 +1264,7 @@ def srlge(upd_list: np.ndarray) -> float:
 
 def srhge(upd_list: np.ndarray) -> float:
     """Compute Short run high grey level emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_srhge" (id = GD3A) in the IBSI1 reference manual 
+    This feature refers to "Frlm_srhge" (ID = GD3A) in the IBSI1 reference manual 
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1293,7 +1293,7 @@ def srhge(upd_list: np.ndarray) -> float:
 
 def lrlge(upd_list: np.ndarray) -> float:
     """Compute Long run low grey level emphasis feature from the run length matrices list.
-    This feature refers to "Frlm_lrlge" (id = IVPO) in the IBSI1 reference manual 
+    This feature refers to "Frlm_lrlge" (ID = IVPO) in the IBSI1 reference manual 
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1322,7 +1322,7 @@ def lrlge(upd_list: np.ndarray) -> float:
 
 def lrhge(upd_list: np.ndarray) -> float:
     """Compute Long run high grey level emphasisfeature from the run length matrices list.
-    This feature refers to "Frlm_lrhge" (id = 3KUM) in the IBSI1 reference manual
+    This feature refers to "Frlm_lrhge" (ID = 3KUM) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1351,7 +1351,7 @@ def lrhge(upd_list: np.ndarray) -> float:
 
 def gl_var(upd_list: np.ndarray) -> float:
     """Compute Grey level variance feature from the run length matrices list.
-    This feature refers to "Frlm_gl_var" (id = 8CE5) in the IBSI1 reference manual
+    This feature refers to "Frlm_gl_var" (ID = 8CE5) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1380,7 +1380,7 @@ def gl_var(upd_list: np.ndarray) -> float:
 
 def rl_var(upd_list: np.ndarray) -> float:
     """Compute Run length variancefeature from the run length matrices list.
-    This feature refers to "Frlm_rl_var" (id = SXLW) in the IBSI1 reference manual
+    This feature refers to "Frlm_rl_var" (ID = SXLW) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1409,7 +1409,7 @@ def rl_var(upd_list: np.ndarray) -> float:
 
 def rl_entr(upd_list: np.ndarray) -> float:
     """Compute Zone size entropy feature from the run length matrices list.
-    This feature refers to "Frlm_rl_entr" (id = HJ9O) in the IBSI1 reference manual
+    This feature refers to "Frlm_rl_entr" (ID = HJ9O) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:

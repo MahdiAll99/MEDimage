@@ -292,7 +292,7 @@ def vol(vol: np.ndarray,
         mask_morph: np.ndarray, 
         res: np.ndarray) -> float:
     """Computes morphological volume feature.
-    This feature refers to "Fmorph_vol" (id = RNUO) in the IBSI1 reference manual
+    This feature refers to "Fmorph_vol" (ID = RNUO) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -316,7 +316,7 @@ def approx_vol(vol: np.ndarray,
                mask_morph: np.ndarray, 
                res: np.ndarray) -> float:
     """Computes morphological approximate volume feature.
-    This feature refers to "Fmorph_approx_vol" (id = YEKZ) in the IBSI1 reference manual
+    This feature refers to "Fmorph_approx_vol" (ID = YEKZ) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -339,7 +339,7 @@ def area(vol: np.ndarray,
          mask_morph: np.ndarray, 
          res: np.ndarray) -> float:
     """Computes Surface area feature.
-    This feature refers to "Fmorph_area" (id = COJJK) in the IBSI1 reference manual
+    This feature refers to "Fmorph_area" (ID = COJJK) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -363,7 +363,7 @@ def av(vol: np.ndarray,
        mask_morph: np.ndarray, 
        res: np.ndarray) -> float:
     """Computes Surface to volume ratio feature.
-    This feature refers to "Fmorph_av" (id = 2PR5) in the IBSI1 reference manual
+    This feature refers to "Fmorph_av" (ID = 2PR5) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -387,7 +387,7 @@ def comp_1(vol: np.ndarray,
            mask_morph: np.ndarray, 
            res: np.ndarray) -> float:
     """Computes Compactness 1 feature.
-    This feature refers to "Fmorph_comp_1" (id = SKGS) in the IBSI1 reference manual
+    This feature refers to "Fmorph_comp_1" (ID = SKGS) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -411,7 +411,7 @@ def comp_2(vol: np.ndarray,
            mask_morph: np.ndarray, 
            res: np.ndarray) -> float:
     """Computes Compactness 2 feature.
-    This feature refers to "Fmorph_comp_2" (id = BQWJ) in the IBSI1 reference manual
+    This feature refers to "Fmorph_comp_2" (ID = BQWJ) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -435,7 +435,7 @@ def sph_dispr(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Spherical disproportion feature.
-    This feature refers to "Fmorph_sph_dispr" (id = KRCK) in the IBSI1 reference manual
+    This feature refers to "Fmorph_sph_dispr" (ID = KRCK) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -459,7 +459,7 @@ def sphericity(vol: np.ndarray,
                mask_morph: np.ndarray, 
                res: np.ndarray) -> float:
     """Computes Sphericity feature.
-    This feature refers to "Fmorph_sphericity" (id = QCFX) in the IBSI1 reference manual
+    This feature refers to "Fmorph_sphericity" (ID = QCFX) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -483,7 +483,7 @@ def asphericity(vol: np.ndarray,
                 mask_morph: np.ndarray, 
                 res: np.ndarray) -> float:
     """Computes Asphericity feature.
-    This feature refers to "Fmorph_asphericity" (id =  25C) in the IBSI1 reference manual
+    This feature refers to "Fmorph_asphericity" (ID =  25C) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -507,7 +507,7 @@ def com(vol: np.ndarray,
         mask_morph: np.ndarray, 
         res: np.ndarray) -> float:
     """Computes Centre of mass shift feature.
-    This feature refers to "Fmorph_com" (id =  KLM) in the IBSI1 reference manual
+    This feature refers to "Fmorph_com" (ID =  KLM) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -531,7 +531,7 @@ def diam(vol: np.ndarray,
          mask_morph: np.ndarray, 
          res: np.ndarray) -> float:
     """Computes Maximum 3D diameter feature.
-    This feature refers to "Fmorph_diam" (id = L0JK) in the IBSI1 reference manual
+    This feature refers to "Fmorph_diam" (ID = L0JK) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -555,7 +555,7 @@ def pca_major(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Major axis length feature.
-    This feature refers to "Fmorph_pca_major" (id = TDIC) in the IBSI1 reference manual
+    This feature refers to "Fmorph_pca_major" (ID = TDIC) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -580,7 +580,7 @@ def pca_minor(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Minor axis length feature.
-    This feature refers to "Fmorph_pca_minor" (id = P9VJ) in the IBSI1 reference manual
+    This feature refers to "Fmorph_pca_minor" (ID = P9VJ) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -605,7 +605,7 @@ def pca_least(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Least axis length feature.
-    This feature refers to "Fmorph_pca_least" (id = 7J51) in the IBSI1 reference manual
+    This feature refers to "Fmorph_pca_least" (ID = 7J51) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -630,7 +630,7 @@ def pca_elongation(vol: np.ndarray,
                    mask_morph: np.ndarray, 
                    res: np.ndarray) -> float:
     """Computes Elongation feature.
-    This feature refers to "Fmorph_pca_elongation" (id = Q3CK) in the IBSI1 reference manual
+    This feature refers to "Fmorph_pca_elongation" (ID = Q3CK) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -655,7 +655,7 @@ def pca_flatness(vol: np.ndarray,
                  mask_morph: np.ndarray, 
                  res: np.ndarray) -> float:
     """Computes Flatness feature.
-    This feature refers to "Fmorph_pca_flatness" (id = N17B) in the IBSI1 reference manual
+    This feature refers to "Fmorph_pca_flatness" (ID = N17B) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -680,7 +680,7 @@ def v_dens_aabb(vol: np.ndarray,
                 mask_morph: np.ndarray, 
                 res: np.ndarray) -> float:
     """Computes Volume density - axis-aligned bounding box feature.
-    This feature refers to "Fmorph_v_dens_aabb" (id = PBX1) in the IBSI1 reference manual 
+    This feature refers to "Fmorph_v_dens_aabb" (ID = PBX1) in the IBSI1 reference manual 
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -709,7 +709,7 @@ def a_dens_aabb(vol: np.ndarray,
                 mask_morph: np.ndarray, 
                 res: np.ndarray) -> float:
     """Computes Area density - axis-aligned bounding box feature.
-    This feature refers to "Fmorph_a_dens_aabb" (id = R59B) in the IBSI1 reference manual
+    This feature refers to "Fmorph_a_dens_aabb" (ID = R59B) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -742,7 +742,7 @@ def v_dens_ombb(vol: np.ndarray,
     Determination of the minimum bounding box of an
     arbitrary solid: an iterative approach.
     Comp Struc 79 (2001) 1433-1449
-    This feature refers to "Fmorph_v_dens_ombb" (id = ZH1A) in the IBSI1 reference manual
+    This feature refers to "Fmorph_v_dens_ombb" (ID = ZH1A) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -773,7 +773,7 @@ def a_dens_ombb(vol: np.ndarray,
     Determination of the minimum bounding box of an
     arbitrary solid: an iterative approach.
     Comp Struc 79 (2001) 1433-1449
-    This feature refers to "Fmorph_a_dens_ombb" (id = IQYR) in the IBSI1 reference manual
+    This feature refers to "Fmorph_a_dens_ombb" (ID = IQYR) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -803,7 +803,7 @@ def v_dens_aee(vol: np.ndarray,
                mask_morph: np.ndarray, 
                res: np.ndarray) -> float:
     """Computes Volume density - approximate enclosing ellipsoid feature.
-    This feature refers to "Fmorph_v_dens_aee" (id = 6BDE) in the IBSI1 reference manual
+    This feature refers to "Fmorph_v_dens_aee" (ID = 6BDE) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args: 
@@ -833,7 +833,7 @@ def a_dens_aee(vol: np.ndarray,
                mask_morph: np.ndarray, 
                res: np.ndarray) -> float:
     """Computes Area density - approximate enclosing ellipsoid feature.
-    This feature refers to "Fmorph_a_dens_aee" (id = RDD2) in the IBSI1 reference manual
+    This feature refers to "Fmorph_a_dens_aee" (ID = RDD2) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -872,7 +872,7 @@ def v_dens_mvee(vol: np.ndarray,
     Subsequent singular value decomposition of matrix A and
     taking the inverse of the square root of the diagonal of the
     sigma matrix will produce respective semi-axis lengths.
-    This feature refers to "Fmorph_v_dens_mvee" (id = SWZ1) in the IBSI1 reference manual
+    This feature refers to "Fmorph_v_dens_mvee" (ID = SWZ1) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -916,7 +916,7 @@ def a_dens_mvee(vol: np.ndarray,
     Subsequent singular value decomposition of matrix A and
     taking the inverse of the square root of the diagonal of the
     sigma matrix will produce respective semi-axis lengths.
-    This feature refers to "Fmorph_a_dens_mvee" (id = BRI8) in the IBSI1 reference manual
+    This feature refers to "Fmorph_a_dens_mvee" (ID = BRI8) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -951,7 +951,7 @@ def v_dens_conv_hull(vol: np.ndarray,
                      mask_morph: np.ndarray, 
                      res: np.ndarray) -> float:
     """Computes Volume density - convex hull feature.
-    This feature refers to "Fmorph_v_dens_conv_hull" (id = R3ER) in the IBSI1 reference manual
+    This feature refers to "Fmorph_v_dens_conv_hull" (ID = R3ER) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -977,7 +977,7 @@ def a_dens_conv_hull(vol: np.ndarray,
                      mask_morph: np.ndarray, 
                      res: np.ndarray) -> float:
     """Computes Area density - convex hull feature.
-    This feature refers to "Fmorph_a_dens_conv_hull" (id = 7T7F) in the IBSI1 reference manual
+    This feature refers to "Fmorph_a_dens_conv_hull" (ID = 7T7F) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1003,7 +1003,7 @@ def integ_int(vol: np.ndarray,
               mask_morph: np.ndarray, 
               res: np.ndarray) -> float:
     """Computes Integrated intensity feature.
-    This feature refers to "Fmorph_integ_int" (id = 99N0) in the IBSI1 reference manual
+    This feature refers to "Fmorph_integ_int" (ID = 99N0) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1030,7 +1030,7 @@ def moran_i(vol: np.ndarray,
             res: np.ndarray, 
             compute_moran_i: bool=False) -> float:
     """Computes Moran's I index feature.
-    This feature refers to "Fmorph_moran_i" (id = N365) in the IBSI1 reference manual
+    This feature refers to "Fmorph_moran_i" (ID = N365) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:
@@ -1060,7 +1060,7 @@ def geary_c(vol: np.ndarray,
             res: np.ndarray, 
             compute_geary_c: bool=False) -> float:
     """Computes Geary's C measure feature.
-    This feature refers to "Fmorph_geary_c" (id = NPT7) in the IBSI1 reference manual
+    This feature refers to "Fmorph_geary_c" (ID = NPT7) in the IBSI1 reference manual
     https://arxiv.org/abs/1612.07003 (PDF)
 
     Args:

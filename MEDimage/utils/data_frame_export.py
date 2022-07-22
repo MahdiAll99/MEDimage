@@ -7,8 +7,8 @@ def export_table(file_name: file,
     """Export table
 
     Args:
-        file_name (file):
-        data (object):
+        file_name (file): name of the file
+        data (object): the data
     
     Returns:
         None

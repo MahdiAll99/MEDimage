@@ -9,12 +9,13 @@ import skimage.measure as skim
 
 def get_glszm_matrix(roi_only: np.ndarray, 
                      levels: Union[np.ndarray, List]) -> Dict:
-    """Compute GLSZMmatrix.
-
+    r"""
     This function computes the Gray-Level Size Zone Matrix (GLSZM) of the
     region of interest (ROI) of an input volume. The input volume is assumed
     to be isotropically resampled. The zones of different sizes are computed
     using 26-voxel connectivity.
+    This matrix refers to "Grey level size zone based features" (ID = 9SAK)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_. 
 
     Note:
         This function is compatible with 2D analysis (language not adapted in the text).
@@ -24,16 +25,16 @@ def get_glszm_matrix(roi_only: np.ndarray,
             for texture analysis computations. Voxels outside the ROI are
             set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels
-            in the tumor region (or reconstruction levels of quantization).
+            in the tumor region (or reconstruction ``levels`` of quantization).
 
     Returns:
-        ndarray: Array of Gray-Level Size Zone Matrix of 'roi_only'.
+        ndarray: Array of Gray-Level Size Zone Matrix of ``roi_only``.
 
     REFERENCES:
         [1] Thibault, G., Fertil, B., Navarro, C., Pereira, S., Cau, P., Levy,
-            N., Mari, J.-L. (2009). Texture Indexes and Gray Level Size Zone
-            Matrix. Application to Cell Nuclei Classification. In Pattern
-            Recognition and Information Processing (PRIP) (pp. 140–145).
+        N., Mari, J.-L. (2009). Texture Indexes and Gray Level Size Zone
+        Matrix. Application to Cell Nuclei Classification. In Pattern
+        Recognition and Information Processing (PRIP) (pp. 140–145).
     """
 
     # PRELIMINARY
