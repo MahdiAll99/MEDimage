@@ -196,7 +196,7 @@ class DataManager(object):
             except:
                 series_description = MEDimg.dicomH[0].Modality.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
         else:
-            raise ValueError("Invalid format in the given MEDimage instance, must be 'npy' or 'nifti'")
+            raise ValueError("Invalid format in the given MEDimage instance, must be 'dicom' or 'nifti'")
         name_id = MEDimg.patientID.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
         # final saving name
         name_complete = name_id + '__' + series_description + '.' + MEDimg.type + '.npy'

@@ -63,7 +63,7 @@ def get_polygon_mask(roi_xyz: np.ndarray,
         # should evaluate to 1, as closed contours are meant to be defined on
         # a given slice
         select_slice = mode(K[ind]).astype(int)
-        inpoly = inpolygon(x_q=x_q, y_q=y_q, xv=points[ind, a], yv=points[ind, b])
+        inpoly = inpolygon(x_q=x_q, y_q=y_q, x_v=points[ind, a], y_v=points[ind, b])
         roi_mask[:, :, select_slice] = np.logical_or(
             roi_mask[:, :, select_slice], inpoly)
 

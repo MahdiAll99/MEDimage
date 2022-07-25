@@ -168,7 +168,7 @@ def process_dicom_scan_files(
                 MEDimg.scan.ROI.update_indexes(key=contour_num,
                                                 indexes=None)
                 MEDimg.scan.ROI.update_name_set(key=contour_num,
-                                                nameSet=name_set)
+                                                name_set=name_set)
                 MEDimg.scan.ROI.update_name_set_info(key=contour_num,
                                                 nameSetInfo=name_set_info)
                 
