@@ -114,7 +114,7 @@ def get_matrix(roi_only: np.ndarray,
 def joint_max(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes joint maximum features.
     This feature refers to "Fcm_joint_max" (ID = GYBY) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -138,7 +138,7 @@ def joint_max(glcm_dict: Dict) -> Union[float, List[float]]:
 def joint_avg(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes joint  average features.
     This feature refers to "Fcm_joint_avg" (ID = 60VM) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -162,7 +162,7 @@ def joint_avg(glcm_dict: Dict) -> Union[float, List[float]]:
 def joint_var(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes joint variance features.
     This feature refers to "Fcm_var" (ID = UR99) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -187,7 +187,7 @@ def joint_var(glcm_dict: Dict) -> Union[float, List[float]]:
 def joint_entr(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes joint entropy features.
     This feature refers to "Fcm_joint_entr" (ID = TU9B) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -211,7 +211,7 @@ def joint_entr(glcm_dict: Dict) -> Union[float, List[float]]:
 def diff_avg(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes difference average features.
     This feature refers to "Fcm_diff_avg" (ID = TF7R) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -235,7 +235,7 @@ def diff_avg(glcm_dict: Dict) -> Union[float, List[float]]:
 def diff_var(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes difference variance features.
     This feature refers to "Fcm_diff_var" (ID = D3YU) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -260,7 +260,7 @@ def diff_var(glcm_dict: Dict) -> Union[float, List[float]]:
 def diff_entr(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes difference entropy features.
     This feature refers to "Fcm_diff_entr" (ID = NTRS) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -284,7 +284,7 @@ def diff_entr(glcm_dict: Dict) -> Union[float, List[float]]:
 def sum_avg(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes sum average features.
     This feature refers to "Fcm_sum_avg" (ID = ZGXS) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -308,7 +308,7 @@ def sum_avg(glcm_dict: Dict) -> Union[float, List[float]]:
 def sum_var(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes sum variance features.
     This feature refers to "Fcm_sum_var" (ID = OEEB) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -333,7 +333,7 @@ def sum_var(glcm_dict: Dict) -> Union[float, List[float]]:
 def sum_entr(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes sum entropy features.
     This feature refers to "Fcm_sum_entr" (ID = P6QZ) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -357,7 +357,7 @@ def sum_entr(glcm_dict: Dict) -> Union[float, List[float]]:
 def energy(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes angular second moment features.
     This feature refers to "Fcm_energy" (ID = 8ZQL) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -381,7 +381,7 @@ def energy(glcm_dict: Dict) -> Union[float, List[float]]:
 def contrast(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes constrast features.
     This feature refers to "Fcm_contrast" (ID = ACUI) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -405,7 +405,7 @@ def contrast(glcm_dict: Dict) -> Union[float, List[float]]:
 def dissimilarity(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes dissimilarity features.
     This feature refers to "Fcm_dissimilarity" (ID = 8S9J) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -429,7 +429,7 @@ def dissimilarity(glcm_dict: Dict) -> Union[float, List[float]]:
 def inv_diff(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes inverse difference features.
     This feature refers to "Fcm_inv_diff" (ID = IB1Z) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -453,7 +453,7 @@ def inv_diff(glcm_dict: Dict) -> Union[float, List[float]]:
 def inv_diff_norm(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes inverse difference normalized features.
     This feature refers to "Fcm_inv_diff_norm" (ID = NDRX) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -477,7 +477,7 @@ def inv_diff_norm(glcm_dict: Dict) -> Union[float, List[float]]:
 def inv_diff_mom(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes inverse difference moment features.
     This feature refers to "Fcm_inv_diff_mom" (ID = WF0Z) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -501,7 +501,7 @@ def inv_diff_mom(glcm_dict: Dict) -> Union[float, List[float]]:
 def inv_diff_mom_norm(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes inverse difference moment normalized features.
     This feature refers to "Fcm_inv_diff_mom_norm" (ID = 1QCO) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -525,7 +525,7 @@ def inv_diff_mom_norm(glcm_dict: Dict) -> Union[float, List[float]]:
 def inv_var(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes inverse variance features.
     This feature refers to "Fcm_inv_var" (ID = E8JP) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -554,7 +554,7 @@ def inv_var(glcm_dict: Dict) -> Union[float, List[float]]:
 def corr(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes correlation features.
     This feature refers to "Fcm_corr" (ID = NI2N) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -584,7 +584,7 @@ def corr(glcm_dict: Dict) -> Union[float, List[float]]:
 def auto_corr(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes autocorrelation features.
     This feature refers to "Fcm_auto_corr" (ID = QWB0) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -608,7 +608,7 @@ def auto_corr(glcm_dict: Dict) -> Union[float, List[float]]:
 def info_corr1(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes information correlation 1 features.
     This feature refers to "Fcm_info_corr1" (ID = R8DG) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -638,7 +638,7 @@ def info_corr1(glcm_dict: Dict) -> Union[float, List[float]]:
 def info_corr2(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes information correlation 2 features - Note: iteration over combinations of i and j
     This feature refers to "Fcm_info_corr2" (ID = JN9H) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -670,7 +670,7 @@ def info_corr2(glcm_dict: Dict) -> Union[float, List[float]]:
 def clust_tend(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes cluster tendency features.
     This feature refers to "Fcm_clust_tend" (ID = DG8W) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -695,7 +695,7 @@ def clust_tend(glcm_dict: Dict) -> Union[float, List[float]]:
 def clust_shade(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes cluster shade features.
     This feature refers to "Fcm_clust_shade" (ID = 7NFM) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -720,7 +720,7 @@ def clust_shade(glcm_dict: Dict) -> Union[float, List[float]]:
 def clust_prom(glcm_dict: Dict) -> Union[float, List[float]]:
     """Computes cluster prominence features.
     This feature refers to "Fcm_clust_prom" (ID = AE86) in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
@@ -745,7 +745,7 @@ def clust_prom(glcm_dict: Dict) -> Union[float, List[float]]:
 def extract_all(vol, dist_correction=None, glcm_merge_method="vol_merge") -> Dict:
     """Computes glcm features.
     This features refer to Glcm family in the `IBSI1 reference \
-    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol (ndarray): 3D volume, isotropically resampled, quantized
@@ -753,7 +753,7 @@ def extract_all(vol, dist_correction=None, glcm_merge_method="vol_merge") -> Dic
                        of interest.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
                                                       discretization length difference corrections as used by the `Institute of Physics and
-                                                      Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
+                                                      Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`__.
                                                       Set this variable to false to replicate IBSI results.
                                                       Or use string and specify the norm for distance weighting. Weighting is
                                                       only performed if this argument is "manhattan", "euclidean" or "chebyshev".

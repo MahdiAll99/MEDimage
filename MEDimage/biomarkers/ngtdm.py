@@ -146,7 +146,7 @@ def extract_all(vol: np.ndarray,
                 dist_correction :Union[bool, str]=None) -> Dict:
     """Compute Neighbourhood grey tone difference based features.
     These features refer to "Neighbourhood grey tone difference based features" (ID = IPET) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
 
@@ -156,7 +156,7 @@ def extract_all(vol: np.ndarray,
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
                                                       discretization length difference corrections as used
                                                       by the `Institute of Physics and Engineering in
-                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
+                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`__.
                                                       Set this variable to false to replicate IBSI results.
                                                       Or use string and specify the norm for distance weighting.
                                                       Weighting is only performed if this argument is
@@ -251,7 +251,7 @@ def get_single_matrix(vol: np.ndarray,
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
                                                       discretization length difference corrections as used
                                                       by the `Institute of Physics and Engineering in
-                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
+                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`__.
                                                       Set this variable to false to replicate IBSI results.
                                                       Or use string and specify the norm for distance weighting.
                                                       Weighting is only performed if this argument is
@@ -272,7 +272,7 @@ def coarseness(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes coarseness feature.
     This feature refers to "Coarseness" (ID = QCDE) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix
@@ -291,7 +291,7 @@ def contrast(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes contrast feature.
     This feature refers to "Contrast" (ID = 65HE) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix
@@ -319,7 +319,7 @@ def busyness(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes busyness feature.
     This feature refers to "Busyness" (ID = NQ30) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix
@@ -351,7 +351,7 @@ def complexity(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes complexity feature.
     This feature refers to "Complexity" (ID = HDEZ) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix
@@ -383,7 +383,7 @@ def strength(ngtdm: np.ndarray, count_valid: np.ndarray)-> float:
     """
     Computes strength feature.
     This feature refers to "Strength" (ID = 1X9X) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         ngtdm (ndarray): array of neighbourhood grey tone difference matrix

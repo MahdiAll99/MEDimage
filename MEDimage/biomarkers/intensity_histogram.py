@@ -46,7 +46,7 @@ def init_IH(vol: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.integer, np.nda
 def extract_all(vol: np.ndarray) -> Dict:
     """Computes Intensity Histogram Features.
     These features refer to Intensity histogram family in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol (ndarray): 3D volume, QUANTIZED (e.g. nBins = 100,
@@ -194,7 +194,7 @@ def extract_all(vol: np.ndarray) -> Dict:
 def mean(vol: np.ndarray) -> float:
     """Compute Intensity histogram mean feature of the input dataset (3D Array).
     This feature refers to "Fih_mean" (ID = X6K6) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -210,7 +210,7 @@ def mean(vol: np.ndarray) -> float:
 def var(vol: np.ndarray) -> float:
     """Compute Intensity histogram variance feature of the input dataset (3D Array).
     This feature refers to "Fih_var" (ID = CH89) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -227,7 +227,7 @@ def var(vol: np.ndarray) -> float:
 def skewness(vol: np.ndarray) -> float:
     """Compute Intensity histogram skewness feature of the input dataset (3D Array).
     This feature refers to "Fih_skew" (ID = 88K1) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -247,7 +247,7 @@ def skewness(vol: np.ndarray) -> float:
 def kurt(vol: np.ndarray) -> float:
     """Compute Intensity histogram kurtosis feature of the input dataset (3D Array).
     This feature refers to "Fih_kurt" (ID = C3I7) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -267,7 +267,7 @@ def kurt(vol: np.ndarray) -> float:
 def median(vol: np.ndarray) -> float:
     """Compute Intensity histogram median feature along the specified axis of the input dataset (3D Array).
     This feature refers to "Fih_median" (ID = WIFQ) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -283,7 +283,7 @@ def median(vol: np.ndarray) -> float:
 def min(vol: np.ndarray) -> float:
     """Compute Intensity histogram minimum grey level feature of the input dataset (3D Array).
     This feature refers to "Fih_min" (ID = 1PR8) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -299,7 +299,7 @@ def min(vol: np.ndarray) -> float:
 def p10(vol: np.ndarray) -> float:
     """Compute Intensity histogram 10th percentile feature of the input dataset (3D Array).
     This feature refers to "Fih_P10" (ID = GPMT) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -315,7 +315,7 @@ def p10(vol: np.ndarray) -> float:
 def p90(vol: np.ndarray) -> float:
     """Compute Intensity histogram 90th percentile feature of the input dataset (3D Array).
     This feature refers to "Fih_P90" (ID = OZ0C) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -330,7 +330,7 @@ def p90(vol: np.ndarray) -> float:
 def max(vol: np.ndarray) -> float:
     """Compute Intensity histogram maximum grey level feature of the input dataset (3D Array).
     This feature refers to "Fih_max" (ID = 3NCY) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -346,7 +346,7 @@ def max(vol: np.ndarray) -> float:
 def mode(vol: np.ndarray) -> np.integer:
     """Compute Intensity histogram mode feature of the input dataset (3D Array).
     This feature refers to "Fih_mode" (ID = AMMC) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -373,7 +373,7 @@ def mode(vol: np.ndarray) -> np.integer:
 def iqrange(vol: np.ndarray) -> float:
     r"""Compute Intensity histogram interquantile range feature of the input dataset (3D Array).
     This feature refers to "Fih_iqr" (ID = WR0O) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -390,7 +390,7 @@ def iqrange(vol: np.ndarray) -> float:
 def range(vol: np.ndarray) -> float:
     """Compute Intensity histogram range of values (maximum - minimum) feature of the input dataset (3D Array).
     This feature refers to "Fih_range" (ID = 5Z3W) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -406,7 +406,7 @@ def range(vol: np.ndarray) -> float:
 def mad(vol: np.ndarray) -> float:
     """Compute Intensity histogram mean absolute deviation feature of the input dataset (3D Array).
     This feature refers to "Fih_mad" (ID = D2ZX) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -423,7 +423,7 @@ def mad(vol: np.ndarray) -> float:
 def rmad(vol: np.ndarray) -> float:
     """Compute Intensity histogram robust mean absolute deviation feature of the input dataset (3D Array).
     This feature refers to "Fih_rmad" (ID = WRZB) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -445,7 +445,7 @@ def rmad(vol: np.ndarray) -> float:
 def medad(vol: np.ndarray) -> float:
     """Intensity histogram median absolute deviation feature of the input dataset (3D Array).
     This feature refers to "Fih_medad" (ID = 4RNL) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -461,7 +461,7 @@ def medad(vol: np.ndarray) -> float:
 def cov(vol: np.ndarray) -> float:
     """Compute Intensity histogram coefficient of variation feature of the input dataset (3D Array).
     This feature refers to "Fih_cov" (ID = CWYJ) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -477,7 +477,7 @@ def cov(vol: np.ndarray) -> float:
 def qcod(vol: np.ndarray) -> float:
     """Compute the quartile coefficient of dispersion feature of the input dataset (3D Array).
     This feature refers to "Fih_qcod" (ID = SLWD) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -494,7 +494,7 @@ def qcod(vol: np.ndarray) -> float:
 def entropy(vol: np.ndarray) -> float:
     """Compute Intensity histogram entropy feature of the input dataset (3D Array).
     This feature refers to "Fih_entropy" (ID = TLU2) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -511,7 +511,7 @@ def entropy(vol: np.ndarray) -> float:
 def uniformity(vol: np.ndarray) -> float:
     """Compute Intensity histogram uniformity feature of the input dataset (3D Array).
     This feature refers to "Fih_uniformity" (ID = BJ5W) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -528,7 +528,7 @@ def uniformity(vol: np.ndarray) -> float:
 def hist_grad_calc(vol: np.ndarray) -> np.ndarray:
     """Calculation of histogram gradient.
     This feature refers to "Fih_hist_grad_calc" (ID = 12CE) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -549,7 +549,7 @@ def hist_grad_calc(vol: np.ndarray) -> np.ndarray:
 def max_grad(vol: np.ndarray) -> float:
     """Calculation of Maximum histogram gradient feature.
     This feature refers to "Fih_max_grad" (ID = 12CE) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -565,7 +565,7 @@ def max_grad(vol: np.ndarray) -> float:
 def max_grad_gl(vol: np.ndarray) -> float:
     """Calculation of Maximum histogram gradient grey level feature.
     This feature refers to "Fih_max_grad_gl" (ID = 8E6O) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -583,7 +583,7 @@ def max_grad_gl(vol: np.ndarray) -> float:
 def min_grad(vol: np.ndarray) -> float:
     """Calculation of Minimum histogram gradient feature.
     This feature refers to "Fih_min_grad" (ID = VQB3) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
@@ -599,7 +599,7 @@ def min_grad(vol: np.ndarray) -> float:
 def min_grad_gl(vol: np.ndarray) -> float:
     """Calculation of Minimum histogram gradient grey level feature.
     This feature refers to "Fih_min_grad_gl" (ID = RHQZ) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest

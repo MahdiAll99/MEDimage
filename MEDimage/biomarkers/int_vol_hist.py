@@ -108,7 +108,7 @@ def extract_all(MEDimg: MEDimage,
                 user_set_range: np.ndarray=None) -> Dict:
     """Computes Intensity-volume Histogram Features.
     This features refer to Intensity-volume histogram family in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Note:
         For the input volume, naturally discretised volume can be kept as it is (e.g. HU values of CT scans).
@@ -197,7 +197,7 @@ def v10(MEDimg: MEDimage,
         user_set_range: np.ndarray=None) -> float:
     """Computes Volume at intensity fraction 10 feature.
     This feature refers to "Fivh_V10" (ID = BC2M) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
 
     Args:
@@ -241,7 +241,7 @@ def v90(MEDimg: MEDimage,
         user_set_range: np.ndarray=None) -> float:
     """Computes Volume at intensity fraction 90 feature.
     This feature refers to "Fivh_V90" (ID = BC2M) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -284,7 +284,7 @@ def i10(MEDimg: MEDimage,
         user_set_range: np.ndarray=None) -> float:
     """Computes Intensity at volume fraction 10 feature.
     This feature refers to "Fivh_I10" (ID = GBPN) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -327,7 +327,7 @@ def i90(MEDimg: MEDimage,
         user_set_range: np.ndarray=None) -> float:
     """Computes Intensity at volume fraction 90 feature.
     This feature refers to "Fivh_I90" (ID = GBPN) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -370,7 +370,7 @@ def v10_minus_v90(MEDimg: MEDimage,
                 user_set_range: np.ndarray=None) -> float:
     """Computes Volume at intensity fraction difference v10-v90
     This feature refers to "Fivh_V10minusV90" (ID = DDTU) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -416,7 +416,7 @@ def i10_minus_i90(MEDimg: MEDimage,
                 user_set_range: np.ndarray=None) -> float:
     """Computes Intensity at volume fraction difference i10-i90
     This feature refers to "Fivh_I10minusI90" (ID = CNV2) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -466,7 +466,7 @@ def auc(MEDimg: MEDimage,
     """
     Computes Area under IVH curve.
     This feature refers to "Fivh_auc" (ID = 9CMM) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Note:
         For the input volume:

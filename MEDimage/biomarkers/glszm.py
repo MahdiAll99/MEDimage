@@ -74,7 +74,7 @@ def extract_all(vol: np.ndarray,
                 glszm: np.ndarray = None) -> Dict:
     """Computes glszm features.
     These features refer to "Grey level size zone based features" (ID = 9SAK)  
-    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_. 
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__. 
     
     Args:
         vol (ndarray): 3D volume, isotropically resampled, quantized
@@ -206,7 +206,7 @@ def get_single_matrix(vol: np.ndarray) -> np.ndarray:
 def sze(glszm: np.ndarray) -> float:
     """Computes small zone emphasis feature.
     This feature refers to "Fszm_sze" (ID = 5QRC) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -227,7 +227,7 @@ def sze(glszm: np.ndarray) -> float:
 def lze(glszm: np.ndarray) -> float:
     """Computes large zone emphasis feature.
     This feature refers to "Fszm_lze" (ID = 48P8) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -248,7 +248,7 @@ def lze(glszm: np.ndarray) -> float:
 def lgze(glszm: np.ndarray) -> float:
     """Computes low grey zone emphasis feature.
     This feature refers to "Fszm_lgze" (ID = XMSY) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -270,7 +270,7 @@ def lgze(glszm: np.ndarray) -> float:
 def hgze(glszm: np.ndarray) -> float:
     """Computes high grey zone emphasis feature.
     This feature refers to "Fszm_hgze" (ID = 5GN9) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -291,7 +291,7 @@ def hgze(glszm: np.ndarray) -> float:
 def szlge(glszm: np.ndarray) -> float:
     """Computes small zone low grey level emphasis feature.
     This feature refers to "Fszm_szlge" (ID = 5RAI) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -314,7 +314,7 @@ def szlge(glszm: np.ndarray) -> float:
 def szhge(glszm: np.ndarray) -> float:
     """Computes small zone high grey level emphasis feature.
     This feature refers to "Fszm_szhge" (ID = HW1V) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -337,7 +337,7 @@ def szhge(glszm: np.ndarray) -> float:
 def lzlge(glszm: np.ndarray) -> float:
     """Computes large zone low grey level emphasis feature.
     This feature refers to "Fszm_lzlge" (ID = YH51) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -360,7 +360,7 @@ def lzlge(glszm: np.ndarray) -> float:
 def lzhge(glszm: np.ndarray) -> float:
     """Computes large zone high grey level emphasis feature.
     This feature refers to "Fszm_lzhge" (ID = J17V) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -383,7 +383,7 @@ def lzhge(glszm: np.ndarray) -> float:
 def glnu(glszm: np.ndarray) -> float:
     """Computes grey level non-uniformity feature.
     This feature refers to "Fszm_glnu" (ID = JNSA) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -403,7 +403,7 @@ def glnu(glszm: np.ndarray) -> float:
 def glnu_norm(glszm: np.ndarray) -> float:
     """Computes grey level non-uniformity normalised 
     This feature refers to "Fszm_glnu_norm" (ID = Y1RO) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -422,7 +422,7 @@ def glnu_norm(glszm: np.ndarray) -> float:
 def zsnu(glszm: np.ndarray) -> float:
     """Computes zone size non-uniformity 
     This feature refers to "Fszm_zsnu" (ID = 4JP3) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -442,7 +442,7 @@ def zsnu(glszm: np.ndarray) -> float:
 def zsnu_norm(glszm: np.ndarray) -> float:
     """Computes zone size non-uniformity normalised 
     This feature refers to "Fszm_zsnu_norm" (ID = VB3A) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -461,7 +461,7 @@ def zsnu_norm(glszm: np.ndarray) -> float:
 def z_perc(glszm: np.ndarray) -> float:
     """Computes zone percentage 
     This feature refers to "Fszm_z_perc" (ID = P30P) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -483,7 +483,7 @@ def z_perc(glszm: np.ndarray) -> float:
 def gl_var(glszm: np.ndarray) -> float:
     """Computes grey level variance 
     This feature refers to "Fszm_gl_var" (ID = BYLV) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -510,7 +510,7 @@ def gl_var(glszm: np.ndarray) -> float:
 def zs_var(glszm: np.ndarray) -> float:
     """Computes zone size variance 
     This feature refers to "Fszm_zs_var" (ID = 3NSA) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
@@ -537,7 +537,7 @@ def zs_var(glszm: np.ndarray) -> float:
 def zs_entr(glszm: np.ndarray) -> float:
     """Computes zone size entropy 
     This feature refers to "Fszm_zs_entr" (ID = GU8N) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
         glszm (ndarray): array of the gray level size zone matrix
