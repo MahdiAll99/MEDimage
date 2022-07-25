@@ -6,10 +6,8 @@ from scipy.ndimage import map_coordinates
 
 
 def interp3(v, x_q, y_q, z_q, method) -> np.ndarray:
-    """Interpolation for 3-D gridded data in meshgrid format,
-    implements similar functionality MATLAB interp3.
-
-    REF: <https://www.mathworks.com/help/matlab/ref/interp3.html>
+    """ `Interpolation for 3-D gridded data <https://www.mathworks.com/help/matlab/ref/interp3.html>` \
+    in meshgrid format, implements similar functionality MATLAB interp3.
 
     Args:
         X, Y, Z (ndarray) : Query points, should be intrinsic coordinates.

@@ -19,7 +19,7 @@ def get_neighbour_direction(d=1.8,
         OncoRay, Dresden, Germany.
 
     Args:
-        d (float, optional): Max distance between voxels.
+        d (float, optional): Max ``distance`` between voxels.
         distance (str, optional): Distance norm used to compute distances. MUST BE
                                   "manhattan", "l1", "l_1", "euclidian", "l2", "l_2", "chebyshev", "linf" or "l_inf".
         centre (bool, optional): Flags whether the [0,0,0] direction should be included

@@ -11,7 +11,7 @@ def _is_jsonable(data: any) -> bool:
     """Checks if the given data is JSON serializable.
 
     Args:
-        data (Any): Data that will be checked.
+        data (Any): ``Data`` that will be checked.
 
     Returns:
         bool: True if the given data is serializable, False if not.
@@ -24,10 +24,10 @@ def _is_jsonable(data: any) -> bool:
 
 
 def posix_to_string(dictionnary: Dict) -> None:
-    """converts all Pathlib.Path to str [Pathlib is not serializable].
+    """Converts all Pathlib.Path to str [Pathlib is not serializable].
 
     Args:
-        dictionnary (Dict): Input dict with Pathlib.Path values to convert.
+        dictionnary (Dict): ``Input`` dict with Pathlib.Path values to convert.
 
     Returns:
         None: Mutate the given dictionary.
@@ -62,10 +62,10 @@ def save_json(file_path: pathlib.Path, data: any, cls=None) -> None:
         cls(object, optional): Costum JSONDecoder subclass. If not specified JSONDecoder is used. 
 
     Returns:
-        None: saves the data in JSON file to the file_path.
+        None: saves the ``data`` in JSON file to the file_path.
 
     Raises:
-        TypeError: If `data` is not JSON serializable.
+        TypeError: If ``data`` is not JSON serializable.
     """
     if _is_jsonable(data):
         with open(file_path, 'w') as fp:

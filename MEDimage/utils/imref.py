@@ -36,7 +36,8 @@ def sizes_match(R, A):
 class imref3d:
     """This class mirrors the functionality of the matlab imref3d class
 
-    An imref3d object stores the relationship between the intrinsic coordinates 
+    An `imref3d object <https://www.mathworks.com/help/images/ref/imref3d.html>`_. 
+    stores the relationship between the intrinsic coordinates 
     anchored to the columns,  rows, and planes of a 3-D image and the spatial 
     location of the same column, row, and plane locations in a world coordinate system.
 
@@ -44,7 +45,7 @@ class imref3d:
     of the coordinate system such that intrinsic-x, -y and -z values align with world-x, -y 
     and -z values, respectively. The resolution in each dimension can be different.
 
-    REF: <https://www.mathworks.com/help/images/ref/imref3d.html>
+    REF: 
 
     Args:
         ImageSize (ndarray, optional): Number of elements in each spatial dimension, 

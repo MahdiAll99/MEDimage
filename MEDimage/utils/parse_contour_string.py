@@ -18,16 +18,16 @@ def parse_contour_string(contour_string) -> Union[Tuple[float, List[str]],
         delimeters. FOR EXAMPLE '3' or '1-3+2'.
 
     Returns:
-        float, int: If `contour_string` is a an int or float we return `contour_string`.
+        float, int: If ``contour_string`` is a an int or float we return ``contour_string``.
         List[str]: List of the delimeters.
         List[int]: List of the contour indexes.
 
     Example:
-        >>> contour_string = '1-3+2'
-        >>> parse_contour_string(contour_string)
+        >>> ``contour_string`` = '1-3+2'
+        >>> :function: parse_contour_string(contour_string)
         [1, 2, 3], ['+', '-']
-        >>> contour_string = 1
-        >>> parse_contour_string(contour_string)
+        >>> ``contour_string`` = 1
+        >>> :function: parse_contour_string(contour_string)
         1, []
     """
 
