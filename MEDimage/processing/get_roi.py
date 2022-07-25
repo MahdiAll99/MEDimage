@@ -6,7 +6,7 @@ import logging
 from typing import Union
 
 import numpy as np
-from MEDimage.MEDimage import MEDimage
+from MEDimage import MEDimage
 
 from ..processing.compute_box import compute_box
 from ..processing.compute_roi import compute_roi

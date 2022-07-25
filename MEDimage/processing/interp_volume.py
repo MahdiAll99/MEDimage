@@ -7,7 +7,7 @@ import logging
 
 import numpy as np
 
-from MEDimage.MEDimage import MEDimage
+from MEDimage import MEDimage
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
 from ..utils.interp3 import interp3
