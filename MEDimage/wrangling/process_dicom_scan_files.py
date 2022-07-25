@@ -164,7 +164,7 @@ def process_dicom_scan_files(
                         break
 
                 MEDimg.scan.ROI.update_roi_name(key=contour_num,
-                                                ROIname=dicom_rs_full[rs].StructureSetROISequence[roi].ROIName)
+                                                roi_name=dicom_rs_full[rs].StructureSetROISequence[roi].ROIName)
                 MEDimg.scan.ROI.update_indexes(key=contour_num,
                                                 indexes=None)
                 MEDimg.scan.ROI.update_name_set(key=contour_num,
@@ -206,7 +206,7 @@ def process_dicom_scan_files(
                     MEDimg.scan.ROI.update_indexes(key=contour_num, indexes=np.nonzero(roi_obj.data.flatten()))
 
                 except Exception as e:
-                    print('patientID: ' + dicom_hi[0].patientID + ' error: ' + str(e) + ' n_roi: ' + str(roi) + ' n_rs:' + str(rs))
+                    print('patientID: ' + dicom_hi[0].PatientID + ' error: ' + str(e) + ' n_roi: ' + str(roi) + ' n_rs:' + str(rs))
                     MEDimg.scan.ROI.update_indexes(key=contour_num, indexes=np.NaN)
                 contour_num += 1
 
@@ -222,7 +222,7 @@ def process_dicom_scan_files(
                 save_MEDimage(MEDimg, dicom_h[0].Modality, path_save)
 
     except Exception as e:
-        print('patientID: ' + dicom_hi[0].patientID + ' error: ' + str(e))
+        print('patientID: ' + dicom_hi[0].PatientID + ' error: ' + str(e))
         return MEDimg
     
     return MEDimg

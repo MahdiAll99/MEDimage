@@ -248,7 +248,8 @@ class DataManager(object):
                     stack_folder_temp = value
             directory_name = str(stack_folder_temp).replace("'", '').replace('[', '').replace(']', '')
             stack_folder = self.__get_list_of_files(directory_name)
-
+        else:
+            raise ValueError("The given dicom folder path either doesn't exist or not a folder.")
         # READ ALL DICOM FILES AND UPDATE ATTRIBUTES FOR FURTHER PROCESSING
         for file in tqdm(stack_folder):
             if pydicom.misc.is_dicom(file):
@@ -453,7 +454,7 @@ class DataManager(object):
                 name_set = file.name[file.name.find("_") + 2 : file.name.find("(")]
                 MEDimg.scan.ROI.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
                 MEDimg.scan.ROI.update_name_set(key=roi_index, nameSet=name_set)
-                MEDimg.scan.ROI.update_roi_name(key=roi_index, ROIname=roi_name)
+                MEDimg.scan.ROI.update_roi_name(key=roi_index, roi_name=roi_name)
                 roi_index += 1
         return MEDimg
 
