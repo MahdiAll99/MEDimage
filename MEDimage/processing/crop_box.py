@@ -8,9 +8,9 @@ from nibabel import Nifti1Image
 from scipy.ndimage import center_of_mass
 
 
-def voxel_to_spatial(affine, voxel_pos: list) -> np.array:
-    """
-    Convert voxel position into spatial position.
+def voxel_to_spatial(affine: np.ndarray,
+                     voxel_pos: list) -> np.array:
+    """Convert voxel position into spatial position.
 
     Args:
         affine (ndarray): Affine matrix.
@@ -18,15 +18,14 @@ def voxel_to_spatial(affine, voxel_pos: list) -> np.array:
 
     Returns:
         ndarray: A numpy array that correspond to the spatial position in mm.
-
     """
     m = affine[:3, :3]
     translation = affine[:3, 3]
     return m.dot(voxel_pos) + translation
 
-def spatial_to_voxel(affine, spatial_pos: list) -> np.array:
-    """
-    Convert spatial position into voxel position
+def spatial_to_voxel(affine: np.ndarray,
+                     spatial_pos: list) -> np.array:
+    """Convert spatial position into voxel position
 
     Args:
         affine (ndarray): Affine matrix.
@@ -34,7 +33,6 @@ def spatial_to_voxel(affine, spatial_pos: list) -> np.array:
 
     Returns:
         ndarray: A numpy array that correspond to the position in the voxel.
-
     """
     affine = np.linalg.inv(affine)
     m = affine[:3, :3]
@@ -42,23 +40,21 @@ def spatial_to_voxel(affine, spatial_pos: list) -> np.array:
     return m.dot(spatial_pos) + translation
 
 def crop_nifti_box(image: Nifti1Image,
-        roi: Nifti1Image,
-        crop_shape: List[int],
-        center: Union[Sequence[int], None] = None
-        ) -> Tuple[Nifti1Image, Nifti1Image]:
-    """
-    Crops the Nifti image and ROI.
+                   roi: Nifti1Image,
+                   crop_shape: List[int],
+                   center: Union[Sequence[int], None] = None) -> Tuple[Nifti1Image,
+                                                                       Nifti1Image]:
+    """Crops the Nifti image and ROI.
 
     Args:
         image (Nifti1Image): Class for the file NIfTI1 format image that will be cropped.
         roi (Nifti1Image): Class for the file NIfTI1 format ROI that will be cropped.
         crop_shape (List[int]): The dimension of the region to crop in term of number of voxel.
-        center (Union[Sequence[int], None]): A list that indicate the center of the cropping box 
-            in term of spatial position.
+        center (Union[Sequence[int], None]): A list that indicate the center of the cropping box
+                                             in term of spatial position.
 
     Returns:
-        Tuple[Nifti1Image, Nifti1Image] : Two Nifti images of the cropped image and roi 
-
+        Tuple[Nifti1Image, Nifti1Image] : Two Nifti images of the cropped image and roi
     """
     assert np.sum(np.array(crop_shape) % 2) == 0, "All elements of crop_shape should be even number."
 
@@ -102,27 +98,24 @@ def crop_nifti_box(image: Nifti1Image,
     # Update the image and the ROI
     image = Nifti1Image(image_data, affine=image.affine, header=image.header)
     roi = Nifti1Image(roi_data, affine=roi.affine, header=roi.header)
-    
+
     return image, roi
 
 def crop_box(image_data: np.ndarray,
-        roi_data: np.ndarray,
-        crop_shape: List[int],
-        center: Union[Sequence[int], None] = None
-        ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Crops the imaging data and the ROI mask.
+             roi_data: np.ndarray,
+             crop_shape: List[int],
+             center: Union[Sequence[int], None] = None) -> Tuple[np.ndarray, np.ndarray]:
+    """Crops the imaging data and the ROI mask.
 
     Args:
         image_data (ndarray): Imaging data that will be cropped.
         roi_data (ndarray): Mask data that will be cropped.
         crop_shape (List[int]): The dimension of the region to crop in term of number of voxel.
         center (Union[Sequence[int], None]): A list that indicate the center of the cropping box 
-            in term of spatial position.
+                                             in term of spatial position.
 
     Returns:
-        Tuple[ndarray, ndarray] : Two numpy arrays of the cropped image and roi 
-
+        Tuple[ndarray, ndarray] : Two numpy arrays of the cropped image and roi
     """
     assert np.sum(np.array(crop_shape) % 2) == 0, "All elements of crop_shape should be even number."
 

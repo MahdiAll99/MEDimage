@@ -6,21 +6,24 @@ from deprecated import deprecated
 
 
 @deprecated(reason="Use scipy.distance.pdist() instaed")
-def get_max_3d_diam(faces, vertices) -> float:
-    """Compute Maximum 3D diameter.
-    
+def get_max_3d_diam(faces: np.ndarray,
+                    vertices: np.ndarray) -> float:
+    r"""
+    Computes Maximum 3D diameter feature.
+    This feature refers to "Maximum 3D diameter" (ID = L0JK)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_. 
+
     Args:
-        faces (ndarray): [n_points X 3] matrix of three column vectors, defining the
-            [X,Y,Z] positions of the faces of the isosurface or convex hull
-            of the mask (output from "isosurface.m" or "convhull.m" functions of MATLAB).
-            --> These are more precisely indexes to "vertices"
-        vertices (ndarray): [n_points X 3] matrix of three column vectors, defining the
-            [X,Y,Z] positions of the vertices of the isosurface of the
-            mask (in mm)(output from "isosurface.m" function of MATLAB).
-    
+        faces (ndarray): matrix of three column vectors, defining the
+                         [X,Y,Z] positions of the ``faces`` of the isosurface or convex hull
+                         of the mask (output from "isosurface.m" or "convhull.m" functions of MATLAB).
+                         --> These are more precisely indexes to ``vertices``
+        vertices (ndarray): matrix of three column vectors, defining the
+                            [X,Y,Z] positions of the ``vertices`` of the isosurface of the
+                            mask (in mm)(output from "isosurface.m" function of MATLAB).
+
     Returns:
         float: Maximum 3D diameter.
-
     """
 
     # Finding the max distance between all pair or points of the convex hull

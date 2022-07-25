@@ -2,17 +2,21 @@
 # -*- coding: utf-8 -*-
 
 import pickle
+from typing import Dict
 
 from MEDimage.MEDimage import MEDimage
 
 
-def initMEDimage(name_read, path_read, roi_type, im_params, log_file):
+def initMEDimage(name_read: str,
+                 path_read: str,
+                 roi_type: str,
+                 im_params: Dict,
+                 log_file: str):
     """
     Initializes the MEDimage class and the child classes.
 
     Args:
-        name_read (str): name of the scan that will be used to
-            initialize the MEDimage class and its children.
+        name_read (str): name of the scan that will be used to initialize the MEDimage class and its children.
         path_read (Path): Path to the scan file.
         roi_type (str): ROI type.
         im_params (Dict): Dict of the test parameters.

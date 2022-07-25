@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from importlib.resources import path
 from pathlib import Path
 from typing import List, Union
 
@@ -18,9 +19,8 @@ def get_file_paths(path_to_parent_folder: Union[str, Path], wildcard: str=None) 
             - Ex : '*.dcm*', to look for dicom files.
 
     Returns:
-        List: List of full paths to files with the specific wildcard located 
+        List: List of full paths to files with the specific wildcard located \
             in the given path to parent folder.
-    
     """
     if wildcard is None:
         wildcard = '*'

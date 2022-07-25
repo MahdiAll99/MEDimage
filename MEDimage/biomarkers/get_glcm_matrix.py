@@ -2,42 +2,45 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import List, Union
 import numpy as np
 
 
-def get_glcm_matrix(roi_only, levels, dist_correction=True) -> np.ndarray:
-    """Computes GLCM matrix.
-
+def get_glcm_matrix(roi_only: np.ndarray,
+                    levels: Union[np.ndarray, List],
+                    dist_correction=True) -> np.ndarray:
+    r"""
     This function computes the Gray-Level Co-occurence Matrix (GLCM) of the
     region of interest (ROI) of an input volume. The input volume is assumed
     to be isotropically resampled. Only one GLCM is computed per scan,
     simultaneously recording (i.e. adding up) the neighboring properties of
     the 26-connected neighbors of all voxels in the ROI. To account for
-    discretization length differences, neighbors at a distance of sqrt(3)
-    voxels around a center voxel increment the GLCM by a value of sqrt(3),
-    neighbors at a distance of sqrt(2) voxels around a center voxel increment
-    the GLCM by a value of sqrt(2), and neighbors at a distance of 1 voxels
+    discretization length differences, neighbors at a distance of :math:`\sqrt{3}`
+    voxels around a center voxel increment the GLCM by a value of :math:`\sqrt{3}`,
+    neighbors at a distance of :math:`\sqrt{2}` voxels around a center voxel increment
+    the GLCM by a value of :math:`\sqrt{2}`, and neighbors at a distance of 1 voxels
     around a center voxel increment the GLCM by a value of 1.
+    This matrix refers to "Grey level co-occurrence based features" (ID = LFYI) 
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
-        roi_only (ndarray): Smallest box containing the ROI, with the imaging data 
-            ready for texture analysis computations. Voxels outside the ROI are
-            set to NaNs.
+        roi_only (ndarray): Smallest box containing the ROI, with the imaging data
+                            ready for texture analysis computations. Voxels outside the ROI are
+                            set to NaNs.
         levels (ndarray or List): Vector containing the quantized gray-levels in the tumor region
-            (or reconstruction levels of quantization).
+                                  (or reconstruction ``levels`` of quantization).
         dist_correction (bool, optional): Set this variable to true in order to use
-            discretization length difference corrections as used
-            here: https://doi.org/10.1088/0031-9155/60/14/5471.
-            Set this variable to false to replicate IBSI results.
+                                discretization length difference corrections as used by the `Institute of Physics and
+                                Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
+                                Set this variable to false to replicate IBSI results.
 
     Returns:
-        ndarray: Gray-Level Co-occurence Matrix of `roi_only`.
+        ndarray: Gray-Level Co-occurence Matrix of ``roi_only``.
 
     REFERENCE:
         [1] Haralick, R. M., Shanmugam, K., & Dinstein, I. (1973). Textural
-            features for image classification. IEEE Transactions on Systems,
-            Man and Cybernetics, smc 3(6), 610–621.
-    
+        features for image classification. IEEE Transactions on Systems,
+        Man and Cybernetics, smc 3(6), 610–621.
     """
     # PARSING "dist_correction" ARGUMENT
     if type(dist_correction) is not bool:

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import List
 import numpy as np
 
 
-def get_moran_i(vol, res) -> float:
-    """Compute Moran's Index.
+def get_moran_i(vol: np.ndarray,
+                res: List[float]) -> float:
+    """Computes Moran's Index.
+    This feature refers to "Moran’s I index" (ID = N365)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol (ndarray): 3D volume, NON-QUANTIZED, continous imaging intensity distribution.
@@ -16,7 +20,6 @@ def get_moran_i(vol, res) -> float:
         float: Value of Moran's Index.
 
     """
-
     vol = vol.copy()
     res = res.copy()
 

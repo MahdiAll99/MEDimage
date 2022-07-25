@@ -5,7 +5,7 @@
 import numpy as np
 
 
-def compute_bounding_box(mask) -> np.ndarray:
+def compute_bounding_box(mask:np.ndarray) -> np.ndarray:
     """Computes the indexes of the ROI (Region of interest) enclosing box 
     in all dimensions.
 
@@ -14,7 +14,6 @@ def compute_bounding_box(mask) -> np.ndarray:
 
     Returns:
         ndarray: An array containing the indexes of the bounding box.
-
     """
 
     indices = np.where(np.reshape(mask, np.size(mask), order='F') == 1)

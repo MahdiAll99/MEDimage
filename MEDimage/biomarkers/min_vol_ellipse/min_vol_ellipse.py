@@ -7,7 +7,9 @@ from typing import Tuple
 import numpy as np
 
 
-def min_vol_ellipse(P, tolerance) -> Tuple[np.ndarray, np.ndarray]:
+def min_vol_ellipse(P: np.ndarray,
+                    tolerance: np.ndarray) -> Tuple[np.ndarray,
+                                                    np.ndarray]:
     """Compute min_vol_ellipse.
     
     Finds the minimum volume enclsing ellipsoid (MVEE) of a set of data

@@ -6,20 +6,18 @@ from scipy.ndimage import map_coordinates
 
 
 def interp3(v, x_q, y_q, z_q, method) -> np.ndarray:
-    """Interpolation for 3-D gridded data in meshgrid format,
-    implements similar functionality MATLAB interp3.
-
-    REF: <https://www.mathworks.com/help/matlab/ref/interp3.html>
+    """`Interpolation for 3-D gridded data <https://www.mathworks.com/help/matlab/ref/interp3.html>`_\
+    in meshgrid format, implements similar functionality MATLAB interp3.
 
     Args:
         X, Y, Z (ndarray) : Query points, should be intrinsic coordinates.
-        method (str): {nearest, linear, spline, cubic}, Interpolation method.
+        method (str): {nearest, linear, spline, cubic}, Interpolation ``method``.
 
     Returns:
         ndarray: Array of interpolated values.
     
     Raises:
-        ValueError: If `method` is not 'nearest', 'linear', 'spline' or 'cubic'.
+        ValueError: If ``method`` is not 'nearest', 'linear', 'spline' or 'cubic'.
 
     """
 

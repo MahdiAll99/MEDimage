@@ -1,7 +1,18 @@
 import os.path
+from isort import file
 import pandas as pd
 
-def export_table(file_name, data):
+def export_table(file_name: file,
+                 data: object):
+    """Export table
+
+    Args:
+        file_name (file): name of the file
+        data (object): the data
+    
+    Returns:
+        None
+    """
 
     if not isinstance(data, (pd.DataFrame, pd.Series)):
         raise TypeError(f"The exported data should be a pandas DataFrame or Series. Found: {type(data)}")

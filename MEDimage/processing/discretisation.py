@@ -10,35 +10,33 @@ import numpy as np
 from ..processing.equalization import equalization
 
 
-def discretisation(
-    vol_re, 
-    discr_type, 
-    nq=None, 
-    user_set_min_val=None, 
-    ivh=False
-    ) -> Tuple[np.ndarray, float]:
-    """
-    Quantisizes the image intensities inside the ROI.
+def discretisation(vol_re: np.ndarray,
+                   discr_type: str,
+                   n_q=None,
+                   user_set_min_val=None,
+                   ivh=False) -> Tuple[np.ndarray, float]:
+    """Quantisizes the image intensities inside the ROI.
 
     Note:
-        FOR 'FBS' TYPE, IT IS ASSUMED THAT RE-SEGMENTATION WITH 
-        PROPER RANGE WAS ALREADY PERFORMED.
+        For 'FBS' type, it is assumed that re-segmentation with
+        proper range was already performed
 
     Args:
-        vol_re (ndarray): 3D array of the image volume that will be studied with 
-            NaN value for the excluded voxels (voxels outside the ROI mask).
-        discr_type (str): Discretisaion approach/type MUST BE: "FBS", "FBN", "FBSequal"
-            or "FBNequal".
-        nq (float): Number of bins for FBS algorithm and bin width for FBN algorithm.
+        vol_re (ndarray): 3D array of the image volume that will be studied with
+                          NaN value for the excluded voxels (voxels outside the ROI mask).
+        discr_type (str): Discretisaion approach/type must be: "FBS", "FBN", "FBSequal"
+                          or "FBNequal".
+        n_q (float): Number of bins for FBS algorithm and bin width for FBN algorithm.
         user_set_min_val (float): Minimum of range re-segmentation for FBS discretisation,
-            for FBN discretisation, this value has no importance as an argument
-            and will not be used.
-        ivh (bool): MUST BE SET TO True FOR IVH (Intensity-Volume histogram) FEATURES.
+                                  for FBN discretisation, this value has no importance as an argument
+                                  and will not be used.
+        ivh (bool): Must be set to True for IVH (Intensity-Volume histogram) features.
 
     Returns:
-        ndarray: Same input image volume but with discretised intensities.
-        float: bin width.
+        2-element tuple containing
 
+        - ndarray: Same input image volume but with discretised intensities.
+        - float: bin width.
     """
 
     # AZ: NOTE: the "type" variable that appeared in the MATLAB source code
@@ -48,11 +46,11 @@ def discretisation(
     # PARSING ARGUMENTS
     vol_quant_re = deepcopy(vol_re)
 
-    if nq is None:
+    if n_q is None:
         return None
 
-    if not isinstance(nq, float):
-        nq = float(nq)
+    if not isinstance(n_q, float):
+        n_q = float(n_q)
 
     if discr_type not in ["FBS", "FBN", "FBSequal", "FBNequal"]:
         raise ValueError(
@@ -70,29 +68,29 @@ def discretisation(
     max_val = np.nanmax(vol_quant_re)
 
     if discr_type == "FBS":
-        wb = nq
-        wd = wb
-        vol_quant_re = np.floor((vol_quant_re - min_val) / wb) + 1.0
+        w_b = n_q
+        w_d = w_b
+        vol_quant_re = np.floor((vol_quant_re - min_val) / w_b) + 1.0
     elif discr_type == "FBN":
-        wb = (max_val - min_val) / nq
-        wd = 1.0
+        w_b = (max_val - min_val) / n_q
+        w_d = 1.0
         vol_quant_re = np.floor(
-            nq * ((vol_quant_re - min_val)/(max_val - min_val))) + 1.0
-        vol_quant_re[vol_quant_re == np.nanmax(vol_quant_re)] = nq
+            n_q * ((vol_quant_re - min_val)/(max_val - min_val))) + 1.0
+        vol_quant_re[vol_quant_re == np.nanmax(vol_quant_re)] = n_q
     elif discr_type == "FBSequal":
-        wb = nq
-        wd = wb
+        w_b = n_q
+        w_d = w_b
         vol_quant_re = equalization(vol_quant_re)
-        vol_quant_re = np.floor((vol_quant_re - min_val) / wb) + 1.0
+        vol_quant_re = np.floor((vol_quant_re - min_val) / w_b) + 1.0
     elif discr_type == "FBNequal":
-        wb = (max_val - min_val) / nq
-        wd = 1.0
+        w_b = (max_val - min_val) / n_q
+        w_d = 1.0
         vol_quant_re = vol_quant_re.astype(np.float32)
         vol_quant_re = equalization(vol_quant_re)
         vol_quant_re = np.floor(
-            nq * ((vol_quant_re - min_val)/(max_val - min_val))) + 1.0
-        vol_quant_re[vol_quant_re == np.nanmax(vol_quant_re)] = nq
+            n_q * ((vol_quant_re - min_val)/(max_val - min_val))) + 1.0
+        vol_quant_re[vol_quant_re == np.nanmax(vol_quant_re)] = n_q
     if ivh and discr_type in ["FBS", "FBSequal"]:
-        vol_quant_re = min_val + (vol_quant_re - 0.5) * wb
+        vol_quant_re = min_val + (vol_quant_re - 0.5) * w_b
 
-    return vol_quant_re, wd
+    return vol_quant_re, w_d

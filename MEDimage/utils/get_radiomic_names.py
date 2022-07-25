@@ -2,32 +2,20 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import Dict
 import numpy as np
 
 
-def get_radiomic_names(roi_names, roi_type):
-    """
-    -------------------------------------------------------------------------
-    AUTHOR(S): MEDomicsLab consortium
-    -------------------------------------------------------------------------
-    STATEMENT:
-    This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-    a package providing MATLAB programming tools for radiomics analysis.
-     --> Copyright (C) MEDomicsLab consortium.
+def get_radiomic_names(roi_names: np.array,
+                       roi_type: str) -> Dict:
+    """Generates radiomics names using ``roi_names`` and ``roi_types``.
 
-    This package is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+    Args:
+        roi_names (np.array): array of the ROI names.
+        roi_type(str): string of the ROI.
 
-    This package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package.  If not, see <http://www.gnu.org/licenses/>.
-    -------------------------------------------------------------------------
+    Returns:
+        dict: dict with the radiomic names
     """
 
     n_names = np.size(roi_names)[0]

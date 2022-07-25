@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Dict
+from typing import Dict, List, Union
 
 import numpy as np
 import skimage.measure as skim
 
 
-def get_glszm_matrix(roi_only, levels) -> Dict:
-    """Compute GLSZMmatrix.
-
-    This function computes the Gray-Level Size Zone Matrix (glszm) of the
+def get_glszm_matrix(roi_only: np.ndarray, 
+                     levels: Union[np.ndarray, List]) -> Dict:
+    r"""
+    This function computes the Gray-Level Size Zone Matrix (GLSZM) of the
     region of interest (ROI) of an input volume. The input volume is assumed
     to be isotropically resampled. The zones of different sizes are computed
     using 26-voxel connectivity.
+    This matrix refers to "Grey level size zone based features" (ID = 9SAK)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_. 
 
     Note:
         This function is compatible with 2D analysis (language not adapted in the text).
@@ -22,18 +24,17 @@ def get_glszm_matrix(roi_only, levels) -> Dict:
         roi_only_int (ndarray): Smallest box containing the ROI, with the imaging data ready
             for texture analysis computations. Voxels outside the ROI are
             set to NaNs.
-        levels (ndarray or List): Vector containing the quantized gray-levels 
-            in the tumor region (or reconstruction levels of quantization).
+        levels (ndarray or List): Vector containing the quantized gray-levels
+            in the tumor region (or reconstruction ``levels`` of quantization).
 
     Returns:
-        ndarray: Array of Gray-Level Size Zone Matrix of 'roi_only'.
+        ndarray: Array of Gray-Level Size Zone Matrix of ``roi_only``.
 
     REFERENCES:
         [1] Thibault, G., Fertil, B., Navarro, C., Pereira, S., Cau, P., Levy,
-            N., Mari, J.-L. (2009). Texture Indexes and Gray Level Size Zone
-            Matrix. Application to Cell Nuclei Classification. In Pattern
-            Recognition and Information Processing (PRIP) (pp. 140–145).
-    
+        N., Mari, J.-L. (2009). Texture Indexes and Gray Level Size Zone
+        Matrix. Application to Cell Nuclei Classification. In Pattern
+        Recognition and Information Processing (PRIP) (pp. 140–145).
     """
 
     # PRELIMINARY
@@ -47,15 +48,15 @@ def get_glszm_matrix(roi_only, levels) -> Dict:
     # In case (for example) we initially wanted to have 64 levels, but due to
     # quantization, only 60 resulted.
     unique_vect = levels
-    NL = np.size(levels) - 1
+    n_l = np.size(levels) - 1
 
     # INITIALIZATION
     # THIS NEEDS TO BE CHANGED. THE ARRAY INITIALIZED COULD BE TOO BIG!
-    glszm = np.zeros((NL, n_max))
+    glszm = np.zeros((n_l, n_max))
 
     # COMPUTATION OF glszm
     temp = roi_only.copy().astype('int')
-    for i in range(1, NL+1):
+    for i in range(1, n_l+1):
         temp[roi_only != unique_vect[i-1]] = 0
         temp[roi_only == unique_vect[i-1]] = 1
         conn_objects, n_zone = skim.label(temp, return_num=True)

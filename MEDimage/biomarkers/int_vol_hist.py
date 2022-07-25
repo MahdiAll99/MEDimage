@@ -106,14 +106,13 @@ def extract_all(MEDimg: MEDimage,
                 wd: int, 
                 user_set_range: np.ndarray=None) -> Dict:
     """Computes Intensity-volume Histogram Features.
-    This features refer to Intensity-volume histogram family in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This features refer to Intensity-volume histogram family in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Note:
-        For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
-        - All other volumes with continuous intensity distribution should be
-            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+        For the input volume, naturally discretised volume can be kept as it is (e.g. HU values of CT scans).
+        All other volumes with continuous intensity distribution should be
+        quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -190,20 +189,15 @@ def extract_all(MEDimg: MEDimage,
 
     return int_vol_hist
 
-def V10(MEDimg: MEDimage, 
+def v10(MEDimg: MEDimage, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
         user_set_range: np.ndarray=None) -> float:
     """Computes Volume at intensity fraction 10 feature.
-    This feature refers to "Fivh_V10" (id = BC2M) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    This feature refers to "Fivh_V10" (ID = BC2M) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
-    Note:
-        For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
-        - All other volumes with continuous intensity distribution should be
-            quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -239,20 +233,14 @@ def V10(MEDimg: MEDimage,
 
     return v10
 
-def V90(MEDimg: MEDimage, 
+def v90(MEDimg: MEDimage, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
         user_set_range: np.ndarray=None) -> float:
     """Computes Volume at intensity fraction 90 feature.
-    This feature refers to "Fivh_V90" (id = BC2M) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
-
-    Note:
-        For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
-        - All other volumes with continuous intensity distribution should be
-            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+    This feature refers to "Fivh_V90" (ID = BC2M) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -288,20 +276,14 @@ def V90(MEDimg: MEDimage,
 
     return v90
 
-def I10(MEDimg: MEDimage, 
+def i10(MEDimg: MEDimage, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
         user_set_range: np.ndarray=None) -> float:
     """Computes Intensity at volume fraction 10 feature.
-    This feature refers to "Fivh_I10" (id = GBPN) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
-
-    Note:
-        For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
-        - All other volumes with continuous intensity distribution should be
-            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+    This feature refers to "Fivh_I10" (ID = GBPN) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -337,20 +319,14 @@ def I10(MEDimg: MEDimage,
 
     return i10
 
-def I90(MEDimg: MEDimage, 
+def i90(MEDimg: MEDimage, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
         user_set_range: np.ndarray=None) -> float:
     """Computes Intensity at volume fraction 90 feature.
-    This feature refers to "Fivh_I90" (id = GBPN) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
-
-    Note:
-        For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
-        - All other volumes with continuous intensity distribution should be
-            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+    This feature refers to "Fivh_I90" (ID = GBPN) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -386,20 +362,14 @@ def I90(MEDimg: MEDimage,
 
     return i90
 
-def V10minusV90(MEDimg: MEDimage, 
+def v10_minus_v90(MEDimg: MEDimage, 
                 vol: np.ndarray, 
                 vol_int_re: np.ndarray, 
                 wd: int, 
                 user_set_range: np.ndarray=None) -> float:
     """Computes Volume at intensity fraction difference v10-v90
-    This feature refers to "Fivh_V10minusV90" (id = DDTU) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
-
-    Note:
-        For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
-        - All other volumes with continuous intensity distribution should be
-            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+    This feature refers to "Fivh_V10minusV90" (ID = DDTU) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -409,7 +379,7 @@ def V10minusV90(MEDimg: MEDimage,
         user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
 
     Returns:
-        float: Volume at intensity fraction difference v10-v90
+        float: Volume at intensity fraction difference v10-v90 feature.
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
@@ -438,20 +408,14 @@ def V10minusV90(MEDimg: MEDimage,
 
     return v10 - v90
 
-def I10minusI90(MEDimg: MEDimage, 
+def i10_minus_i90(MEDimg: MEDimage, 
                 vol: np.ndarray, 
                 vol_int_re: np.ndarray, 
                 wd: int, 
                 user_set_range: np.ndarray=None) -> float:
     """Computes Intensity at volume fraction difference i10-i90
-    This feature refers to "Fivh_I10minusI90" (id = CNV2) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
-
-    Note:
-        For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
-        - All other volumes with continuous intensity distribution should be
-            quantized (e.g., nBins = 100), with levels = [min, ..., max]
+    This feature refers to "Fivh_I10minusI90" (ID = CNV2) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         MEDimg (MEDimage): MEDimage instance.
@@ -461,7 +425,7 @@ def I10minusI90(MEDimg: MEDimage,
         user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
 
     Returns:
-        float: Intensity at volume fraction difference i10-i90
+        float: Intensity at volume fraction difference i10-i90 feature.
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
@@ -498,25 +462,26 @@ def auc(MEDimg: MEDimage,
                 vol_int_re: np.ndarray, 
                 wd: int, 
                 user_set_range: np.ndarray=None) -> float:
-    """Computes Area under IVH curve.
-    This feature refers to "Fivh_auc" (id = 9CMM) in the IBSI1 reference manual
-    https://arxiv.org/abs/1612.07003 (PDF)
+    """
+    Computes Area under IVH curve.
+    This feature refers to "Fivh_auc" (ID = 9CMM) in 
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Note:
         For the input volume:
-        - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
-        - All other volumes with continuous intensity distribution should be
+            * Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
+            * All other volumes with continuous intensity distribution should be
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     Args:
-        MEDimg (MEDimage): MEDimage instance.
-        vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
-        vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
-        wd (int): Discretisation width.
-        user_set_range (ndarray, optional): 1-D array with shape (1,2) of the intensity range.
+        MEDimg(MEDimage): MEDimage instance.
+        vol(ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
+        vol_int_re(ndarray): 3D volume, with NaNs outside the region of interest
+        wd(int): Discretisation width.
+        user_set_range(ndarray, optional): 1-D array with shape (1,2) of the intensity range.
 
     Returns:
-        float: Area under IVH curve
+        float: Area under IVH curve feature.
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.

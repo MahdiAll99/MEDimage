@@ -7,7 +7,7 @@ from typing import List
 import numpy as np
 
 
-def get_patient_names(roi_names) -> List[str]:
+def get_patient_names(roi_names: np.ndarray) -> List[str]:
     """Generates all file names for scans using CSV data. 
 
     Args:
@@ -16,7 +16,6 @@ def get_patient_names(roi_names) -> List[str]:
         
     Returns:
         list[str]: List of scans files name.
-
     """
     n_names = np.size(roi_names[0])
     patient_names = [0] * n_names

@@ -6,7 +6,9 @@ from copy import deepcopy
 import numpy as np
 
 
-def outlier_re_seg(vol, roi, outliers="") -> np.ndarray:
+def outlier_re_seg(vol: np.ndarray,
+                   roi: np.ndarray,
+                   outliers="") -> np.ndarray:
     """Removes voxels with outlier intensities from the given mask
     using the Collewet method.
 
@@ -14,17 +16,16 @@ def outlier_re_seg(vol, roi, outliers="") -> np.ndarray:
         vol (ndarray): Imaging data.
         roi (ndarray): ROI mask with values of 0 and 1.
         outliers (str, optional): Algo used to define outliers.
-            (For now this methods only implements "Collewet" method). 
+                                  (For now this methods only implements "Collewet" method).
 
     Returns:
         ndarray: An array with values of 0 and 1.
-    
+
     Raises:
         ValueError: If `outliers` is not "Collewet" or None.
 
-    TODO:
+    Todo:
         * Delete outliers argument or implements others outlining methods.
-        
     """
 
     if outliers != '':

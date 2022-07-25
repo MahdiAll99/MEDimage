@@ -3,23 +3,33 @@
 
 
 import numpy as np
+import pydicom
 
 
-def compute_suv_map(raw_pet, dicom_h) -> np.ndarray:
-    """Computes the suv_map of a raw input PET volume. It is assumed that 
-    the calibration factor was applied beforehand to the PET volume 
-    (e.g., raw_pet = raw_pet*RescaleSlope + RescaleIntercept).
+def compute_suv_map(raw_pet: np.ndarray,
+                    dicom_h: pydicom.Dataset) -> np.ndarray:
+    """Computes the suv_map of a raw input PET volume. It is assumed that
+    the calibration factor was applied beforehand to the PET volume
+    
+    E.g: raw_pet = raw_pet*RescaleSlope + RescaleIntercept.
 
     Args:
         raw_pet (ndarray):3D array representing the PET volume in raw format.
-        dicom_h (pydicom.dataset.FileDataset): DICOM header of one of the 
-            corresponding slice of 'raw_pet'.
-        
-    Returns:
-        ndarray: 'raw_pet' converted to SUVs (standard uptake values).
+        dicom_h (pydicom.dataset.FileDataset): DICOM header of one of the
+            corresponding slice of ``raw_pet``.
 
+    Returns:
+        ndarray: ``raw_pet`` converted to SUVs (standard uptake values).
     """
-    def dcm_hhmmss(date_str):
+    def dcm_hhmmss(date_str: str) -> float:
+        """"Converts to seconds
+
+        Args:
+            date_str (str): date string
+
+        Returns:
+            float: total seconds
+        """
         # Converts to seconds
         if not isinstance(date_str, str):
             date_str = str(date_str)
@@ -29,11 +39,9 @@ def compute_suv_map(raw_pet, dicom_h) -> np.ndarray:
         tot_sec = hh*60.0*60.0 + mm*60.0 + ss
         return tot_sec
 
-
     def pydicom_has_tag(dcm_seq, tag):
         # Checks if tag exists
         return get_pydicom_meta_tag(dcm_seq, tag, test_tag=True)
-
 
     def get_pydicom_meta_tag(dcm_seq, tag, tag_type=None, default=None,
                             test_tag=False):

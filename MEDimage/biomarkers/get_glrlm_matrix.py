@@ -2,41 +2,46 @@
 # -*- coding: utf-8 -*-
 
 import math
+from typing import List, Union
 
 import numpy as np
 from scipy.sparse import spdiags
 
-from ..biomarkers.wei_toolbox.rle_0 import  rle_0 as rle
-from ..biomarkers.wei_toolbox.rle_45 import  rle_45 as rle45
-from ..biomarkers.wei_toolbox.zigzag import  zigzag as zig
+from ..biomarkers.wei_toolbox.rle_0 import rle_0 as rle
+from ..biomarkers.wei_toolbox.rle_45 import rle_45 as rle45
+from ..biomarkers.wei_toolbox.zigzag import zigzag as zig
 
-def get_glrlm_matrix(roi_only, levels, dist_correction=None) -> np.ndarray:
-    """Compute glrm matrix.
 
-    This function computes the Gray-Level Run-Length Matrix (glrm) of the
+def get_glrlm_matrix(roi_only: np.ndarray,
+                     levels: Union[np.ndarray, List],
+                     dist_correction=None) -> np.ndarray:
+    r"""
+    This function computes the Gray-Level Run-Length Matrix (GLRLM) of the
     region of interest (ROI) of an input volume. The input volume is assumed
     to be isotropically resampled. Only one glrm is computed per scan,
     simultaneously adding up all possible run-lengths in the 13 directions of
     the 3D space. To account for discretization length differences, runs
-    constructed from voxels separated by a distance of sqrt(3) increment the
-    glrm by a value of sqrt(3), runs constructed from voxels separated by a
-    distance of sqrt(2) increment the glrm by a value of sqrt(2), and runs
+    constructed from voxels separated by a distance of :math:`\sqrt{3}` increment the
+    glrm by a value of :math:`\sqrt{3}`, runs constructed from voxels separated by a
+    distance of :math:`\sqrt{2}` increment the glrm by a value of :math:`\sqrt{2}`, and runs
     constructed from voxels separated by a distance of 1 increment the glrm
     by a value of 1. This function uses other functions from Wei's glrm
     toolbox [2].
+    This matrix refers to "Grey level run length based features" (ID = TP0I)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_. 
 
     Note:
         This function is compatible with 2D analysis (language not adapted in the text).
 
     Args:
-        roi_only_int (ndarray): Smallest box containing the ROI, with the imaging 
-            data readyfor texture analysis computations. Voxels outside the ROI 
+        roi_only_int (ndarray): Smallest box containing the ROI, with the imaging
+            data readyfor texture analysis computations. Voxels outside the ROI
             are set to NaNs.
-        levels (ndarray or List): Vector containing the quantized gray-levels 
-            in the tumor region (or reconstruction levels of quantization).
-        dist_correction: (optional). Set this variable to true in order to use
-            discretization length difference corrections as used
-            here: <https://doi.org/10.1088/0031-9155/60/14/5471>.
+        levels (ndarray or List): Vector containing the quantized gray-levels
+            in the tumor region (or reconstruction ``levels`` of quantization).
+        dist_correction (optional): Set this variable to true in order to use
+            discretization length difference corrections as used by the `Institute of Physics and
+            Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
             Set this variable to false to replicate IBSI results.
 
     Returns:
@@ -44,12 +49,12 @@ def get_glrlm_matrix(roi_only, levels, dist_correction=None) -> np.ndarray:
 
     REFERENCES:
         [1] Galloway, M. M. (1975). Texture analysis using gray level run lengths.
-            Computer Graphics and Image Processing, 4(2), 172–179.
-        [2] Wei's glrm toolbox: Xunkai Wei, Gray Level Run Length Matrix Toolbox
-            v1.0, Software,Beijing Aeronautical Technology Research Center, 2007.
-            <http://www.mathworks.com/matlabcentral/fileexchange/
-            17482-gray-level-run-length-matrix-toolbox>
+        Computer Graphics and Image Processing, 4(2), 172–179.
 
+        [2] Wei's glrm toolbox: Xunkai Wei,
+        `Gray Level Run Length Matrix
+        Toolbox <http://www.mathworks.com/matlabcentral/fileexchange/17482-gray-level-run-length-matrix-toolbox>`_
+        v1.0, Software,Beijing Aeronautical Technology Research Center, 2007.
     """
 
     # PARSING "dist_correction" ARGUMENT
@@ -74,13 +79,13 @@ def get_glrlm_matrix(roi_only, levels, dist_correction=None) -> np.ndarray:
     # QUANTIZATION EFFECTS CORRECTION
 
     unique_vol = levels  # levels
-    NL = np.size(levels) - 1
+    n_l = np.size(levels) - 1
 
     # INITIALIZATION
 
     size_v = np.shape(roi_only)
     num_init = np.ceil(np.max(size_v)).astype('int')  # Max run length
-    glrm = np.zeros((NL+1, num_init))
+    glrm = np.zeros((n_l+1, num_init))
 
     # START COMPUTATION
     # Directions [1,0,0], [0 1 0], [1 1 0] and [-1 1 0] : 2D directions

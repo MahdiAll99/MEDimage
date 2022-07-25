@@ -24,24 +24,26 @@ def get_roi_from_indexes(
     and associated mask from the indexes saved in 'MEDimage' file.
     
     Args:
-        MEDimage (object): The MEDimage class object.
+        MEDimage (MEDimage): The MEDimage class object.
         name_roi (str): name of the ROI since the a volume can have multuiple
             ROIs.
         box_string (str): Specifies the size if the box containing the ROI
+
             - 'full': Full imaging data as output.
-            - 'box' computes the smallest bounding box.
-            - Ex: 'box10': 10 voxels in all three dimensions are added to
-                the smallest bounding box. The number after 'box' defines the
+            - 'box': computes the smallest bounding box.
+            - Ex: 'box10': 10 voxels in all three dimensions are added to \
+                the smallest bounding box. The number after 'box' defines the \
                 number of voxels to add.
-            - Ex: '2box': Computes the smallest box and outputs double its
-                size. The number before 'box' defines the multiplication in
+            - Ex: '2box': Computes the smallest box and outputs double its \
+                size. The number before 'box' defines the multiplication in \
                 size.
 
     Returns:
-        ndarray: vol_obj, 3D array of imaging data defining the smallest box
-            containing the region of interest.
-        ndarray: roi_obj, 3D array of 1's and 0's defining the ROI in ROIbox.
+        2-element tuple containing
 
+        - ndarray: vol_obj, 3D array of imaging data defining the smallest box \
+            containing the region of interest.
+        - ndarray: roi_obj, 3D array of 1's and 0's defining the ROI in ROIbox.
     """
     # This takes care of the "Volume resection" step
     # as well using the argument "box". No fourth
@@ -67,11 +69,11 @@ def get_roi_from_indexes(
 
         for i in range(0, len(name_roi)):
             for j in range(0, n_contour_data):
-                name_temp = MEDimg.scan.ROI.get_ROIname(key=j)
+                name_temp = MEDimg.scan.ROI.get_roi_name(key=j)
                 if name_temp == name_roi[i]:
                     if name_structure_set:
                         # FOR DICOM + RTSTRUCT
-                        name_set_temp = MEDimg.scan.ROI.get_nameSet(key=j)
+                        name_set_temp = MEDimg.scan.ROI.get_name_set(key=j)
                         if name_set_temp == name_structure_set[i]:
                             contour_number[i] = j
                             break
@@ -109,12 +111,12 @@ def get_roi_from_indexes(
         vol = MEDimg.scan.volume.data.astype(np.float32)
 
         # APPLYING OPERATIONS ON ALL MASKS
-        roi = MEDimg.scan.get_indexes_by_ROIname(name_roi[0])
+        roi = MEDimg.scan.get_indexes_by_roi_name(name_roi[0])
         for c in np.arange(start=1, stop=n_contour):
             if operations[c-1] == "+":
-                roi += MEDimg.scan.get_indexes_by_ROIname(name_roi[c])
+                roi += MEDimg.scan.get_indexes_by_roi_name(name_roi[c])
             elif operations[c-1] == "-":
-                roi -= MEDimg.scan.get_indexes_by_ROIname(name_roi[c])
+                roi -= MEDimg.scan.get_indexes_by_roi_name(name_roi[c])
             else:
                 raise ValueError("Unknown operation on ROI.")
 

@@ -1,46 +1,50 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 
 
-def get_ngtdm_matrix(roi_only, levels, dist_correction=False) -> Tuple[np.ndarray, np.ndarray]:
+def get_ngtdm_matrix(roi_only:np.ndarray,
+                     levels:np.ndarray,
+                     dist_correction: bool=False) -> Tuple[np.ndarray, np.ndarray]:
     """Computes ngtdm matrix.
 
     This function computes the Neighborhood Gray-Tone Difference Matrix
-    (ngtdm) of the region of interest (ROI) of an input volume. The input
+    (NGTDM) of the region of interest (ROI) of an input volume. The input
     volume is assumed to be isotropically resampled. The ngtdm is computed
     using 26-voxel connectivity. To account for discretization length
     differences, all averages around a center voxel are performed such that
-    the neighbours at a distance of sqrt(3) voxels are given a weight of
-    1/sqrt(3), and the neighbours at a distance of sqrt(2) voxels are given a
-    weight of 1/sqrt(2).
+    the neighbours at a distance of :math:`\sqrt{3}` voxels are given a weight of
+    :math:`\sqrt{3}`, and the neighbours at a distance of :math:`\sqrt{2}` voxels are given a
+    weight of :math:`\sqrt{2}`.
+    This matrix refers to "Neighbourhood grey tone difference based features" (ID = IPET)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Note:
         This function is compatible with 2D analysis (language not adapted in the text)
+
+    Args:
+        roi_only (ndarray): Smallest box containing the ROI, with the imaging data ready
+            for texture analysis computations. Voxels outside the ROI are set to NaNs.
+        levels (ndarray): Vector containing the quantized gray-levels in the tumor region
+            (or reconstruction ``levels`` of quantization).
+        dist_correction (str, optional): Set this variable to true in order to use
+            discretization length difference corrections as used by the `Institute of Physics and
+            Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
+            Set this variable to false to replicate IBSI results.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: 
+            - ngtdm: Neighborhood Gray-Tone Difference Matrix of ``roi_only'``.
+            - count_valid: Array of number of valid voxels used in the ngtdm computation.
 
     REFERENCE:
         [1] Amadasun, M., & King, R. (1989). Textural Features Corresponding to
         Textural Properties. IEEE Transactions on Systems Man and Cybernetics,
         19(5), 1264–1274.
     
-    Args:
-        roi_only (ndarray): Smallest box containing the ROI, with the imaging data ready
-            for texture analysis computations. Voxels outside the ROI are set to NaNs.
-        levels (ndarray): Vector containing the quantized gray-levels in the tumor region
-            (or reconstruction levels of quantization).
-        dist_correction (str, optional): Set this variable to true in order to use
-            discretization length difference corrections as used 
-            here: https://doi.org/10.1088/0031-9155/60/14/5471.
-            Set this variable to false to replicate IBSI results.
-
-    Returns:
-        Tuple[np.ndarray, np.ndarray]: 
-            - ngtdm: Neighborhood Gray-Tone Difference Matrix of 'roi_only'.
-            - count_valid: Array of number of valid voxels used in the ngtdm computation.
-
     """
 
     # PARSING "dist_correction" ARGUMENT
