@@ -2,20 +2,20 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import List
+from typing import Dict
 import numpy as np
 
 
-def get_radiomic_names(roi_names: np.ndarray,
-                       roi_type: str) -> List:
-    """Get radiomic names
+def get_radiomic_names(roi_names: np.array,
+                       roi_type: str) -> Dict:
+    """Generates radiomics names using ``roi_names`` and ``roi_types``.
 
     Args:
-        roi_names (np.ndarray): _description_
-        roi_type (str): _description_
+        roi_names (np.array): array of the ROI names.
+        roi_type(str): string of the ROI.
 
     Returns:
-        list: list with the radiomic names
+        dict: dict with the radiomic names
     """
 
     n_names = np.size(roi_names)[0]

@@ -13,8 +13,8 @@ def inpolygon(x_q: np.ndarray,
     Finds points located inside or on edge of polygonal region.
 
     Note: 
-        unlike matlab inpolygon, this function does not determine the
-        status of single points (x_q, y_q). Instead, it determines the 
+        Unlike matlab inpolygon, this function does not determine the
+        status of single points :math:`(x_q, y_q)`. Instead, it determines the 
         status for an entire grid by ray-casting.
 
     Args:

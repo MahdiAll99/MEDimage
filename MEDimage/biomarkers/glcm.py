@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-from ast import Str
 from copy import deepcopy
 from typing import Dict, List, Union
 
@@ -16,28 +15,656 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   get_value, is_list_all_none)
 
 
-def extract_all(vol: np.ndarray,
-                dist_correction: Union[bool, str]=None,
-                glcm_merge_method: str="vol_merge",
-                method: str="new") -> Dict:
+def joint_max(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes joint maximum features.
+    This feature refers to "Fcm_joint_max" (ID = GYBY) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]:: List or float of the joint maximum feature(s)
+    """
+    temp = []
+    joint_max = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.max(df_pij.pij))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, joint max: {sum(temp) / len(temp)}')
+            joint_max.append(sum(temp) / len(temp))
+    return joint_max
+
+def joint_avg(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes joint  average features.
+    This feature refers to "Fcm_joint_avg" (ID = 60VM) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]:: List or float of the joint  average feature(s)
+    """
+    temp = []
+    joint_avg = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(df_pij.i * df_pij.pij))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, joint avg: {sum(temp) / len(temp)}')
+            joint_avg.append(sum(temp) / len(temp))
+    return joint_avg
+
+def joint_var(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes joint variance features.
+    This feature refers to "Fcm_var" (ID = UR99) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: List or float of the joint variance feature(s)
+    """
+    temp = []
+    joint_var = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            m_u = np.sum(df_pij.i * df_pij.pij)
+            temp.append(np.sum((df_pij.i - m_u) ** 2.0 * df_pij.pij))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, joint var: {sum(temp) / len(temp)}')
+            joint_var.append(sum(temp) / len(temp))
+    return joint_var
+
+def joint_entr(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes joint entropy features.
+    This feature refers to "Fcm_joint_entr" (ID = TU9B) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the joint entropy features
+    """
+    temp = []
+    joint_entr = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(-np.sum(df_pij.pij * np.log2(df_pij.pij)))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, joint entr: {sum(temp) / len(temp)}')
+            joint_entr.append(sum(temp) / len(temp))
+    return joint_entr
+
+def diff_avg(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes difference average features.
+    This feature refers to "Fcm_diff_avg" (ID = TF7R) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the difference average features
+    """
+    temp = []
+    diff_avg = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            _, _, _, df_pimj, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(df_pimj.k * df_pimj.pimj))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, diff avg: {sum(temp) / len(temp)}')
+            diff_avg.append(sum(temp) / len(temp))
+    return diff_avg
+
+def diff_var(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes difference variance features.
+    This feature refers to "Fcm_diff_var" (ID = D3YU) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the difference variance features
+    """
+    temp = []
+    diff_var = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            _, _, _, df_pimj, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            m_u = np.sum(df_pimj.k * df_pimj.pimj)
+            temp.append(np.sum((df_pimj.k - m_u) ** 2.0 * df_pimj.pimj))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, diff var: {sum(temp) / len(temp)}')
+            diff_var.append(sum(temp) / len(temp))
+    return diff_var
+
+def diff_entr(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes difference entropy features.
+    This feature refers to "Fcm_diff_entr" (ID = NTRS) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the difference entropy features
+    """
+    temp = []
+    diff_entr = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            _, _, _, df_pimj, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(-np.sum(df_pimj.pimj * np.log2(df_pimj.pimj)))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, diff entr: {sum(temp) / len(temp)}')
+            diff_entr.append(sum(temp) / len(temp))
+    return diff_entr
+
+def sum_avg(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes sum average features.
+    This feature refers to "Fcm_sum_avg" (ID = ZGXS) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the sum average features
+    """
+    temp = []
+    sum_avg = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            _, _, _, _, df_pipj, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(df_pipj.k * df_pipj.pipj))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, sum avg: {sum(temp) / len(temp)}')
+            sum_avg.append(sum(temp) / len(temp))
+    return sum_avg
+
+def sum_var(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes sum variance features.
+    This feature refers to "Fcm_sum_var" (ID = OEEB) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the sum variance features
+    """
+    temp = []
+    sum_var = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            _, _, _, _, df_pipj, _ = glcm.get_cm_data([np.nan, np.nan])
+            m_u = np.sum(df_pipj.k * df_pipj.pipj)
+            temp.append(np.sum((df_pipj.k - m_u) ** 2.0 * df_pipj.pipj))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, sum var: {sum(temp) / len(temp)}')
+            sum_var.append(sum(temp) / len(temp))
+    return sum_var
+
+def sum_entr(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes sum entropy features.
+    This feature refers to "Fcm_sum_entr" (ID = P6QZ) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the sum entropy features
+    """
+    temp = []
+    sum_entr = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            _, _, _, _, df_pipj, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(-np.sum(df_pipj.pipj * np.log2(df_pipj.pipj)))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, sum entr: {sum(temp) / len(temp)}')
+            sum_entr.append(sum(temp) / len(temp))
+    return sum_entr
+
+def energy(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes angular second moment features.
+    This feature refers to "Fcm_energy" (ID = 8ZQL) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the angular second moment features
+    """
+    temp = []
+    energy = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(df_pij.pij ** 2.0))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, energy: {sum(temp) / len(temp)}')
+            energy.append(sum(temp) / len(temp))
+    return energy
+
+def contrast(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes constrast features.
+    This feature refers to "Fcm_contrast" (ID = ACUI) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the contrast features
+    """
+    temp = []
+    contrast = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum((df_pij.i - df_pij.j) ** 2.0 * df_pij.pij))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, contrast: {sum(temp) / len(temp)}')
+            contrast.append(sum(temp) / len(temp))
+    return contrast
+
+def dissimilarity(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes dissimilarity features.
+    This feature refers to "Fcm_dissimilarity" (ID = 8S9J) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the dissimilarity features
+    """
+    temp = []
+    dissimilarity = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(np.abs(df_pij.i - df_pij.j) * df_pij.pij))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, dissimilarity: {sum(temp) / len(temp)}')
+            dissimilarity.append(sum(temp) / len(temp))
+    return dissimilarity
+
+def inv_diff(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes inverse difference features.
+    This feature refers to "Fcm_inv_diff" (ID = IB1Z) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the inverse difference features
+    """
+    temp = []
+    inv_diff = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(df_pij.pij / (1.0 + np.abs(df_pij.i - df_pij.j))))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, inv diff: {sum(temp) / len(temp)}')
+            inv_diff.append(sum(temp) / len(temp))
+    return inv_diff
+
+def inv_diff_norm(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes inverse difference normalized features.
+    This feature refers to "Fcm_inv_diff_norm" (ID = NDRX) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the inverse difference normalized features
+    """
+    temp = []
+    inv_diff_norm = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, n_g = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(df_pij.pij / (1.0 + np.abs(df_pij.i - df_pij.j) / n_g)))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, inv diff norm: {sum(temp) / len(temp)}')
+            inv_diff_norm.append(sum(temp) / len(temp))
+    return inv_diff_norm
+
+def inv_diff_mom(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes inverse difference moment features.
+    This feature refers to "Fcm_inv_diff_mom" (ID = WF0Z) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the inverse difference moment features
+    """
+    temp = []
+    inv_diff_mom = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(df_pij.pij / (1.0 + (df_pij.i - df_pij.j) ** 2.0)))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, inv diff mom: {sum(temp) / len(temp)}')
+            inv_diff_mom.append(sum(temp) / len(temp))
+    return inv_diff_mom
+
+def inv_diff_mom_norm(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes inverse difference moment normalized features.
+    This feature refers to "Fcm_inv_diff_mom_norm" (ID = 1QCO) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the inverse difference moment normalized features
+    """
+    temp = []
+    inv_diff_mom_norm = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, n_g = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(df_pij.pij / (1.0 + (df_pij.i - df_pij.j)** 2.0 / n_g ** 2.0)))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, inv diff mom norm: {sum(temp) / len(temp)}')
+            inv_diff_mom_norm.append(sum(temp) / len(temp))
+    return inv_diff_mom_norm
+
+def inv_var(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes inverse variance features.
+    This feature refers to "Fcm_inv_var" (ID = E8JP) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the inverse variance features
+    """
+    temp = []
+    inv_var = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, df_pi, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            mu_marg = np.sum(df_pi.i * df_pi.pi)
+            var_marg = np.sum((df_pi.i - mu_marg) ** 2.0 * df_pi.pi)
+            if var_marg == 0.0:
+                temp.append(1.0)
+            else:
+                temp.append(1.0 / var_marg * (np.sum(df_pij.i * df_pij.j * df_pij.pij) - mu_marg ** 2.0))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, inv var: {sum(temp) / len(temp)}')
+            inv_var.append(sum(temp) / len(temp))
+    return inv_var
+
+def corr(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes correlation features.
+    This feature refers to "Fcm_corr" (ID = NI2N) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the correlation features
+    """
+    temp = []
+    corr = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, df_pi, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            mu_marg = np.sum(df_pi.i * df_pi.pi)
+            var_marg = np.sum((df_pi.i - mu_marg) ** 2.0 * df_pi.pi)
+            if var_marg == 0.0:
+                temp.append(1.0)
+            else:
+                temp.append(1.0 / var_marg * (np.sum(df_pij.i * df_pij.j * df_pij.pij) - mu_marg ** 2.0))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, corr: {sum(temp) / len(temp)}')
+            corr.append(sum(temp) / len(temp))
+    return corr
+
+
+def auto_corr(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes autocorrelation features.
+    This feature refers to "Fcm_auto_corr" (ID = QWB0) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the autocorrelation features
+    """
+    temp = []
+    auto_corr = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, _, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            temp.append(np.sum(df_pij.i * df_pij.j * df_pij.pij))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, auto corr: {sum(temp) / len(temp)}')
+            auto_corr.append(sum(temp) / len(temp))
+    return auto_corr
+
+def info_corr1(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes information correlation 1 features.
+    This feature refers to "Fcm_info_corr1" (ID = R8DG) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the information correlation 1 features
+    """
+    temp = []
+    info_corr1 = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, df_pi, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            hxy = -np.sum(df_pij.pij * np.log2(df_pij.pij))
+            hxy_1 = -np.sum(df_pij.pij * np.log2(df_pij.pi * df_pij.pj))
+            hx = -np.sum(df_pi.pi * np.log2(df_pi.pi))
+            if len(df_pij) == 1 or hx == 0.0:
+                temp.append(1.0)
+            else:
+                temp.append((hxy - hxy_1) / hx)
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, info corr 1: {sum(temp) / len(temp)}')
+            info_corr1.append(sum(temp) / len(temp))
+    return info_corr1
+
+def info_corr2(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes information correlation 2 features - Note: iteration over combinations of i and j
+    This feature refers to "Fcm_info_corr2" (ID = JN9H) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the information correlation 2 features
+    """
+    temp = []
+    info_corr2 = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, df_pi, df_pj, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            hxy = - np.sum(df_pij.pij * np.log2(df_pij.pij))
+            hxy_2 = - np.sum(
+                        np.tile(df_pi.pi, len(df_pj)) * np.repeat(df_pj.pj, len(df_pi)) * \
+                        np.log2(np.tile(df_pi.pi, len(df_pj)) * np.repeat(df_pj.pj, len(df_pi)))
+                        )
+            if hxy_2 < hxy:
+                temp.append(0)
+            else:
+                temp.append(np.sqrt(1 - np.exp(-2.0 * (hxy_2 - hxy))))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, info corr 2: {sum(temp) / len(temp)}')
+            info_corr2.append(sum(temp) / len(temp))
+    return info_corr2
+
+def clust_tend(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes cluster tendency features.
+    This feature refers to "Fcm_clust_tend" (ID = DG8W) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the cluster tendency features
+    """
+    temp = []
+    clust_tend = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, df_pi, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            m_u = np.sum(df_pi.i * df_pi.pi)
+            temp.append(np.sum((df_pij.i + df_pij.j - 2 * m_u) ** 2.0 * df_pij.pij))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, clust tend: {sum(temp) / len(temp)}')
+            clust_tend.append(sum(temp) / len(temp))
+    return clust_tend
+
+def clust_shade(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes cluster shade features.
+    This feature refers to "Fcm_clust_shade" (ID = 7NFM) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the cluster shade features
+    """
+    temp = []
+    clust_shade = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, df_pi, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            m_u = np.sum(df_pi.i * df_pi.pi)
+            temp.append(np.sum((df_pij.i + df_pij.j - 2 * m_u) ** 3.0 * df_pij.pij))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, clust shade: {sum(temp) / len(temp)}')
+            clust_shade.append(sum(temp) / len(temp))
+    return clust_shade
+
+def clust_prom(glcm_dict: Dict) -> Union[float, List[float]]:
+    """Computes cluster prominence features.
+    This feature refers to "Fcm_clust_prom" (ID = AE86) in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+
+    Args:
+        glcm_dict (Dict): dictionary with glcm matrices, generated using :func:`get_glcm_matrices`
+
+    Returns:
+        Union[float, List[float]]: the cluster prominence features
+    """
+    temp = []
+    clust_prom = []
+    for key in glcm_dict.keys():
+        for glcm in glcm_dict[key]:
+            df_pij, df_pi, _, _, _, _ = glcm.get_cm_data([np.nan, np.nan])
+            m_u = np.sum(df_pi.i * df_pi.pi)
+            temp.append(np.sum((df_pij.i + df_pij.j - 2 * m_u) ** 4.0 * df_pij.pij))
+        if len(glcm_dict) <= 1:
+            return sum(temp) / len(temp)
+        else:
+            print(f'Merge method: {key}, clust prom: {sum(temp) / len(temp)}')
+            clust_prom.append(sum(temp) / len(temp))
+    return clust_prom
+
+def extract_all(vol, dist_correction=None, glcm_merge_method="vol_merge", method="new") -> Dict:
     """Computes glcm features.
-    This features refer to Glcm family in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+    This features refer to Glcm family in the `IBSI1 reference \
+    manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol (ndarray): 3D volume, isotropically resampled, quantized
                        (e.g. n_g = 32, levels = [1, ..., n_g]), with NaNs outside the region
                        of interest.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-        discretization length difference corrections as used here:
-        <https://doi.org/10.1088/0031-9155/60/14/5471>.
-        Set this variable to false to replicate IBSI results.
-        Or use string and specify the norm for distance weighting. Weighting is
-        only performed if this argument is "manhattan", "euclidean" or "chebyshev".
-        glcm_merge_method (str, optional): merging method which determines how features are
-        calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
-        Note that not all combinations of spatial and merge method are valid.
-        method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
+                                                      discretization length difference corrections as used by the `Institute of Physics and
+                                                      Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
+                                                      Set this variable to false to replicate IBSI results.
+                                                      Or use string and specify the norm for distance weighting. Weighting is
+                                                      only performed if this argument is "manhattan", "euclidean" or "chebyshev".
+        glcm_merge_method (str, optional): merging ``method`` which determines how features are
+                                           calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+                                           Note that not all combinations of spatial and merge ``method`` are valid.
+        method (str, optional): Either 'old' (deprecated) or 'new' (faster) ``method``.
 
     Returns:
         Dict: Dict of the glcm features.
@@ -46,15 +673,13 @@ def extract_all(vol: np.ndarray,
         ValueError: If `method` is not 'old' or 'new'.
 
     Todo:
-        *Enable calculation of CM features using different spatial
-            methods (2d, 2.5d, 3d)
-        *Enable calculation of CM features using different CM
-            distance settings
-        *Enable calculation of CM features for different merge methods
-            (average, slice_merge, dir_merge, vol_merge)
-        *Provide the range of discretised intensities from a calling
-            function and pass to get_cm_features.
-        *Test if dist_correction works as expected.
+
+        - Enable calculation of CM features using different spatial methods (2d, 2.5d, 3d)
+        - Enable calculation of CM features using different CM distance settings
+        - Enable calculation of CM features for different merge methods ("average", "slice_merge", "dir_merge" and "vol_merge")
+        - Provide the range of discretised intensities from a calling function and pass to :func:`get_cm_features`.
+        - Test if dist_correction works as expected.
+
     """
     if method == "old":
         glcm = get_cm_features_deprecated(
@@ -74,12 +699,130 @@ def extract_all(vol: np.ndarray,
 
     return glcm
 
-def get_cm_features(vol: np.ndarray,
-                    intensity_range: np.ndarray,
-                    glcm_spatial_method: str="3d",
-                    glcm_dist: float=1.0,
-                    glcm_merge_method: float="vol_merge",
-                    dist_weight_norm: Union[bool, str]=None) -> Dict:
+def get_glcm_matrices(vol,
+                    glcm_spatial_method="3d",
+                    glcm_dist=1.0,
+                    glcm_merge_method="vol_merge",
+                    dist_weight_norm=None) -> Dict:
+    """Extracts co-occurrence matrices from the intensity roi mask prior to features extraction.
+
+    Note:
+        This code was adapted from the in-house radiomics software created at
+        OncoRay, Dresden, Germany.
+
+    Args:
+        vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
+        intensity_range (ndarray): range of potential discretised intensities,provided as a list: 
+            [minimal discretised intensity, maximal discretised intensity]. 
+            If one or both values are unknown, replace the respective values with np.nan.
+        glcm_spatial_method (str, optional): spatial method which determines the way
+            co-occurrence matrices are calculated and how features are determined.
+            Must be "2d", "2.5d" or "3d".
+        glcm_dist (float, optional): Chebyshev distance for comparison between neighboring voxels.
+        glcm_merge_method (str, optional): merging method which determines how features are
+            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
+            Note that not all combinations of spatial and merge method are valid.
+        dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
+            performed if this argument is either "manhattan","euclidean", "chebyshev" or bool.
+
+    Returns:
+        Dict: Dict of the glcm features.
+
+    Raises:
+        ValueError: If `glcm_spatial_method` is not "2d", "2.5d" or "3d".
+    """
+    if type(glcm_spatial_method) is not list:
+        glcm_spatial_method = [glcm_spatial_method]
+
+    if type(glcm_dist) is not list:
+        glcm_dist = [glcm_dist]
+
+    if type(glcm_merge_method) is not list:
+        glcm_merge_method = [glcm_merge_method]
+
+    if type(dist_weight_norm) is bool:
+        if dist_weight_norm:
+            dist_weight_norm = "euclidean"
+
+    # Get the roi in tabular format
+    img_dims = vol.shape
+    index_id = np.arange(start=0, stop=vol.size)
+    coords = np.unravel_index(indices=index_id, shape=img_dims)
+    df_img = pd.DataFrame({"index_id": index_id,
+                           "g": np.ravel(vol),
+                           "x": coords[0],
+                           "y": coords[1],
+                           "z": coords[2],
+                           "roi_int_mask": np.ravel(np.isfinite(vol))})
+
+    # Iterate over spatial arrangements
+    for ii_spatial in glcm_spatial_method:
+        # Iterate over distances
+        for ii_dist in glcm_dist:
+            # Initiate list of glcm objects
+            glcm_list = []
+            # Perform 2D analysis
+            if ii_spatial.lower() in ["2d", "2.5d"]:
+                # Iterate over slices
+                for ii_slice in np.arange(0, img_dims[2]):
+                    # Get neighbour direction and iterate over neighbours
+                    nbrs = get_neighbour_direction(
+                        d=1,
+                        distance="chebyshev",
+                        centre=False,
+                        complete=False,
+                        dim3=False) * np.int(ii_dist)
+                    for ii_direction in np.arange(0, np.shape(nbrs)[1]):
+                        # Add glcm matrices to list
+                        glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist),
+                                                        direction=nbrs[:, ii_direction],
+                                                        direction_id=ii_direction,
+                                                        spatial_method=ii_spatial.lower(),
+                                                        img_slice=ii_slice)]
+
+            # Perform 3D analysis
+            elif ii_spatial.lower() == "3d":
+                # Get neighbour direction and iterate over neighbours
+                nbrs = get_neighbour_direction(d=1,
+                                            distance="chebyshev",
+                                            centre=False,
+                                            complete=False,
+                                            dim3=True) * np.int(ii_dist)
+
+                for ii_direction in np.arange(0, np.shape(nbrs)[1]):
+                    # Add glcm matrices to list
+                    glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), 
+                                                    direction=nbrs[:, ii_direction], 
+                                                    direction_id=ii_direction,
+                                                    spatial_method=ii_spatial.lower())]
+
+            else:
+                raise ValueError(
+                    "GCLM matrices can be determined in \"2d\", \"2.5d\" and \"3d\". \
+                        The requested method (%s) is not implemented.", ii_spatial)
+
+            # Calculate glcm matrices
+            for glcm in glcm_list:
+                glcm.calculate_cm_matrix(
+                    df_img=df_img, img_dims=img_dims, dist_weight_norm=dist_weight_norm)
+
+            # Merge matrices according to the given method
+            upd_list = {}
+            for merge_method in glcm_merge_method:
+                upd_list[merge_method] = combine_matrices(
+                    glcm_list=glcm_list, merge_method=merge_method, spatial_method=ii_spatial.lower())
+
+                # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
+                if upd_list is None:
+                    continue
+    return upd_list
+
+def get_cm_features(vol,
+                    intensity_range,
+                    glcm_spatial_method="3d",
+                    glcm_dist=1.0,
+                    glcm_merge_method="vol_merge",
+                    dist_weight_norm=None) -> Dict:
     """Extracts co-occurrence matrix-based features from the intensity roi mask.
 
     Note:
@@ -157,26 +900,26 @@ def get_cm_features(vol: np.ndarray,
                     for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                         # Add glcm matrices to list
                         glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist),
-                                                         direction=nbrs[:, ii_direction],
-                                                         direction_id=ii_direction,
-                                                         spatial_method=ii_spatial.lower(),
-                                                         img_slice=ii_slice)]
+                                                        direction=nbrs[:, ii_direction],
+                                                        direction_id=ii_direction,
+                                                        spatial_method=ii_spatial.lower(),
+                                                        img_slice=ii_slice)]
 
             # Perform 3D analysis
             elif ii_spatial.lower() == "3d":
                 # Get neighbour direction and iterate over neighbours
                 nbrs = get_neighbour_direction(d=1,
-                                               distance="chebyshev",
-                                               centre=False,
-                                               complete=False,
-                                               dim3=True) * np.int(ii_dist)
+                                            distance="chebyshev",
+                                            centre=False,
+                                            complete=False,
+                                            dim3=True) * np.int(ii_dist)
 
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                     # Add glcm matrices to list
                     glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), 
-                                                     direction=nbrs[:, ii_direction], 
-                                                     direction_id=ii_direction,
-                                                     spatial_method=ii_spatial.lower())]
+                                                    direction=nbrs[:, ii_direction], 
+                                                    direction_id=ii_direction,
+                                                    spatial_method=ii_spatial.lower())]
 
             else:
                 raise ValueError(
@@ -211,9 +954,7 @@ def get_cm_features(vol: np.ndarray,
 
     return df_feat
 
-def combine_matrices(glcm_list: List,
-                     merge_method: Str,
-                     spatial_method: Str) -> List:
+def combine_matrices(glcm_list: List, merge_method: str, spatial_method: str) -> List:
     """Merges co-occurrence matrices prior to feature calculation.
 
     Note:
@@ -328,7 +1069,7 @@ def combine_matrices(glcm_list: List,
                 for glcm_id in dir_glcm_id:
                     merge_n_v += glcm_list[glcm_id].n_v
 
-                # Create new cooccurrence matrix
+                # Create new co-occurrence matrix
                 use_list += [CooccurrenceMatrix(distance=glcm_list[dir_glcm_id[0]].distance,
                                                 direction=glcm_list[dir_glcm_id[0]].direction,
                                                 direction_id=ii_dir,
@@ -357,7 +1098,7 @@ def combine_matrices(glcm_list: List,
                                             matrix=None,
                                             n_v=0.0)]
         else:
-            # Merge cooccurrence matrices
+            # Merge co-occurrence matrices
             merge_cm = pd.concat(sel_matrix_list, axis=0)
             merge_cm = merge_cm.groupby(by=["i", "j"]).sum().reset_index()
 
@@ -366,7 +1107,7 @@ def combine_matrices(glcm_list: List,
             for glcm_id in np.arange(len(glcm_list)):
                 merge_n_v += glcm_list[glcm_id].n_v
 
-            # Create new cooccurrence matrix
+            # Create new co-occurrence matrix
             use_list += [CooccurrenceMatrix(distance=glcm_list[0].distance,
                                             direction=None,
                                             direction_id=None,
@@ -382,38 +1123,55 @@ def combine_matrices(glcm_list: List,
 
 
 class CooccurrenceMatrix:
-    """ Class that contains a single co-occurrence matrix.
+    """ Class that contains a single co-occurrence ``matrix``.
 
     Note:
         Code was adapted from the in-house radiomics software created at
         OncoRay, Dresden, Germany.
 
-    Args:
-        distance (int): Chebyshev distance.
+    Attributes:
+        distance (int): Chebyshev ``distance``.
         direction (ndarray): Direction along which neighbouring voxels are found.
-        direction_id (int): Direction index to identify unique direction vectors.
+        direction_id (int): Direction index to identify unique ``direction`` vectors.
         spatial_method (str): Spatial method used to calculate the co-occurrence
-                              matrix: "2d", "2.5d" or "3d".
-        img_slice (ndarray, optional): Corresponding slice index (only if the
-                                       co-occurrence matrix corresponds to a 2d image slice).
-        merge_method (str, optional): Method for merging the co-occurrence matrix
-                                      with other co-occurrence matrices.
-        matrix (pandas.DataFrame, optional): The actual co-occurrence matrix in
-                                             sparse format (row, column, count).
-        n_v (int, optional): The number of voxels in the volume.
-
+                              ``matrix``: "2d", "2.5d" or "3d".
+        img_slice (ndarray): Corresponding slice index (only if the co-occurrence
+                             ``matrix`` corresponds to a 2d image slice).
+        merge_method (str): Method for merging the co-occurrence ``matrix`` with other
+                            co-occurrence matrices.
+        matrix (pandas.DataFrame): The actual co-occurrence ``matrix`` in sparse format
+                                   (row, column, count).
+        n_v (int): The number of voxels in the volume.
     """
 
     def __init__(self,
-                distance,
-                direction,
-                direction_id,
-                spatial_method,
-                img_slice=None,
-                merge_method=None,
-                matrix=None,
-                n_v=None) -> None:
+                distance: int,
+                direction: np.ndarray,
+                direction_id: int,
+                spatial_method: str,
+                img_slice: np.ndarray=None,
+                merge_method: str=None,
+                matrix: pd.DataFrame=None,
+                n_v: int=None) -> None:
+        """Constructor of the CooccurrenceMatrix class
 
+        Args:
+            distance (int): Chebyshev ``distance``.
+            direction (ndarray): Direction along which neighbouring voxels are found.
+            direction_id (int): Direction index to identify unique ``direction`` vectors.
+            spatial_method (str): Spatial method used to calculate the co-occurrence
+                                ``matrix``: "2d", "2.5d" or "3d".
+            img_slice (ndarray, optional): Corresponding slice index (only if the
+                                        co-occurrence ``matrix`` corresponds to a 2d image slice).
+            merge_method (str, optional): Method for merging the co-occurrence ``matrix``
+                                        with other co-occurrence matrices.
+            matrix (pandas.DataFrame, optional): The actual co-occurrence ``matrix`` in
+                                                sparse format (row, column, count).
+            n_v (int, optional): The number of voxels in the volume.
+        
+        Returns:
+            None.
+        """
         # Distance used
         self.distance = distance
 
@@ -432,14 +1190,11 @@ class CooccurrenceMatrix:
 
     def _copy(self):
         """
-        Returns a copy of the co-occurrence ``matrix`` object.
+        Returns a copy of the co-occurrence matrix object.
         """
         return deepcopy(self)
 
-    def calculate_cm_matrix(self,
-                            df_img: pd.DataFrame,
-                            img_dims: Union[np.ndarray, List[float]],
-                            dist_weight_norm: Str) -> None:
+    def calculate_cm_matrix(self, df_img: pd.DataFrame, img_dims: np.ndarray, dist_weight_norm: str) -> None:
         """Function that calculates a co-occurrence matrix for the settings provided during
         initialisation and the input image.
 
@@ -455,9 +1210,9 @@ class CooccurrenceMatrix:
 
         Raises:
             ValueError:
-                * If `self.spatial_method` is not "2d", "2.5d" or "3d".
-                * If `dist_weight_norm` is not "manhattan", "euclidean" or "chebyshev".
-                
+                If `self.spatial_method` is not "2d", "2.5d" or "3d".
+                Also, if ``dist_weight_norm`` is not "manhattan", "euclidean" or "chebyshev".
+
         """
         # Check if the roi contains any masked voxels. If this is not the case, don't construct the glcm.
         if not np.any(df_img.roi_int_mask):
@@ -525,57 +1280,22 @@ class CooccurrenceMatrix:
         # Add matrix and number of voxels to object
         self.matrix = df_cm
 
-    def calculate_cm_features(self,
-                              intensity_range: np.ndarray) -> pd.DataFrame:
-        """Wrapper to json.dump function.
+    def get_cm_data(self, intensity_range: np.ndarray):
+        """Computes the probability distribution for the elements of the GLCM
+        (diagonal probability, cross-diagonal probability...) and number of gray-levels.
 
         Args:
             intensity_range (ndarray): Range of potential discretised intensities, provided as a list:
-                                       [minimal discretised intensity, maximal discretised intensity].
-                                       If one or both values are unknown,replace the respective values with np.nan.
+                [minimal discretised intensity, maximal discretised intensity].
+                If one or both values are unknown,replace the respective values with np.nan.
 
         Returns:
-            pandas.DataFrame: Data frame with values for each feature.
+            Typle[pd.DataFrame, pd.DataFrame, pd.DataFrame, float]:
+            - Occurence data frame
+            - Diagonal probabilty
+            - Cross-diagonal probabilty
+            - Number of gray levels
         """
-        # Create feature table
-        feat_names = ["Fcm_joint_max",
-                      "Fcm_joint_avg",
-                      "Fcm_joint_var",
-                      "Fcm_joint_entr",
-                      "Fcm_diff_avg",
-                      "Fcm_diff_var",
-                      "Fcm_diff_entr",
-                      "Fcm_sum_avg",
-                      "Fcm_sum_var",
-                      "Fcm_sum_entr",
-                      "Fcm_energy",
-                      "Fcm_contrast",
-                      "Fcm_dissimilarity",
-                      "Fcm_inv_diff",
-                      "Fcm_inv_diff_norm",
-                      "Fcm_inv_diff_mom",
-                      "Fcm_inv_diff_mom_norm",
-                      "Fcm_inv_var", "Fcm_corr",
-                      "Fcm_auto_corr",
-                      "Fcm_clust_tend",
-                      "Fcm_clust_shade",
-                      "Fcm_clust_prom",
-                      "Fcm_info_corr1",
-                      "Fcm_info_corr2"]
-
-        df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
-        df_feat.columns = feat_names
-
-        # Don't return data for empty slices or slices without a good matrix
-        if self.matrix is None:
-            # Update names
-            df_feat.columns += self._parse_names()
-            return df_feat
-        elif len(self.matrix) == 0:
-            # Update names
-            df_feat.columns += self._parse_names()
-            return df_feat
-
         # Occurrence data frames
         df_pij = deepcopy(self.matrix)
         df_pij["pij"] = df_pij.n / sum(df_pij.n)
@@ -604,6 +1324,44 @@ class CooccurrenceMatrix:
             intensity_range_loc[1] = np.max(df_pi.i) * 1.0
         # Number of grey levels
         n_g = intensity_range_loc[1] - intensity_range_loc[0] + 1.0
+
+        return df_pij, df_pi, df_pj, df_pimj, df_pipj, n_g
+
+    def calculate_cm_features(self, intensity_range: np.ndarray) -> pd.DataFrame:
+        """Wrapper to json.dump function.
+
+        Args:
+            intensity_range (np.ndarray): Range of potential discretised intensities, 
+                provided as a list: [minimal discretised intensity, maximal discretised intensity].
+                If one or both values are unknown,replace the respective values with np.nan.
+
+        Returns:
+            pandas.DataFrame: Data frame with values for each feature.
+        """
+        # Create feature table
+        feat_names = ["Fcm_joint_max", "Fcm_joint_avg", "Fcm_joint_var", "Fcm_joint_entr",
+                      "Fcm_diff_avg", "Fcm_diff_var", "Fcm_diff_entr",
+                      "Fcm_sum_avg", "Fcm_sum_var", "Fcm_sum_entr",
+                      "Fcm_energy", "Fcm_contrast", "Fcm_dissimilarity",
+                      "Fcm_inv_diff", "Fcm_inv_diff_norm", "Fcm_inv_diff_mom",
+                      "Fcm_inv_diff_mom_norm", "Fcm_inv_var", "Fcm_corr",
+                      "Fcm_auto_corr", "Fcm_clust_tend", "Fcm_clust_shade",
+                      "Fcm_clust_prom", "Fcm_info_corr1", "Fcm_info_corr2"]
+
+        df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
+        df_feat.columns = feat_names
+
+        # Don't return data for empty slices or slices without a good matrix
+        if self.matrix is None:
+            # Update names
+            df_feat.columns += self._parse_names()
+            return df_feat
+        elif len(self.matrix) == 0:
+            # Update names
+            df_feat.columns += self._parse_names()
+            return df_feat
+
+        df_pij, df_pi, df_pj, df_pimj, df_pipj, n_g = self.get_cm_data(intensity_range)
 
         ###############################################
         ######           glcm features           ######
@@ -730,6 +1488,9 @@ class CooccurrenceMatrix:
         """"Adds additional settings-related identifiers to each feature.
         Not used currently, as the use of different settings for the
         co-occurrence matrix is not supported.
+
+        Returns:
+            str: String of the features indetifier.
         """
         parse_str = ""
 
@@ -754,8 +1515,7 @@ class CooccurrenceMatrix:
         return parse_str
 
 @deprecated(reason="Use the new and the faster method get_cm_features()")
-def get_cm_features_deprecated(vol: np.ndarray,
-                               dist_correction: np.ndarray) -> Dict:
+def get_cm_features_deprecated(vol, dist_correction) -> Dict:
     """Calculates co-occurrence matrix features
 
     Note:
@@ -765,9 +1525,8 @@ def get_cm_features_deprecated(vol: np.ndarray,
     Args:
         vol (ndarray): 3D input volume.
         dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-                                                      discretization length difference corrections as used
-                                                      by the `Institute of Physics and Engineering in
-                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
+                                                      discretization length difference corrections as used by the `Institute of Physics and
+                                                      Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
                                                       Set this variable to false to replicate IBSI results.
                                                       Or use string and specify the norm for distance weighting.
                                                       Weighting is only performed if this argument is "manhattan",
@@ -952,340 +1711,3 @@ def get_cm_features_deprecated(vol: np.ndarray,
         glcm['Fcm_info_corr_2'] = np.sqrt(1 - np.exp(-2 * (hxy2 - hxy)))
 
     return glcm
-
-def get_dict(vol: np.ndarray)-> dict:
-    """Extracts co-occurrence matrix-based features from the intensity roi mask.
-
-    Args:
-        vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z)
-
-    Returns:
-        dict: dictionary with feature values
-    """
-    glcm_dict = get_cm_features(vol, intensity_range=[np.nan, np.nan])
-    return glcm_dict
-
-def joint_max(glcm_dict: dict) -> float:
-    """Computes joint maximum features
-    This feature refers to "Fcm_joint_max" (ID = GYBY) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the joint maximum features
-    """
-    return glcm_dict["Fcm_joint_max"]
-
-def joint_avg(glcm_dict: dict) -> float:
-    """Computes joint  average features
-    This feature refers to "Fcm_joint_avg" (ID = 60VM) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the joint  average features
-    """
-    return glcm_dict["Fcm_joint_avg"]
-
-def joint_var(glcm_dict: dict) -> float:
-    """Computes joint variance features
-    This feature refers to "Fcm_var" (ID = UR99) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the joint variance features
-    """
-    return glcm_dict["Fcm_joint_var"]
-
-def joint_entr(glcm_dict: dict) -> float:
-    """Computes joint entropy features
-    This feature refers to "Fcm_joint_entr" (ID = TU9B) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the joint entropy features
-    """
-    return glcm_dict["Fcm_joint_entr"]
-
-def diff_avg(glcm_dict: dict) -> float:
-    """Computes difference average features
-    This feature refers to "Fcm_diff_avg" (ID = TF7R) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the difference average features
-    """
-    return glcm_dict["Fcm_diff_avg"]
-
-def diff_var(glcm_dict: dict) -> float:
-    """Computes difference variance features
-    This feature refers to "Fcm_diff_var" (ID = D3YU) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the difference variance features
-    """
-    return glcm_dict["Fcm_diff_var"]
-
-def diff_entr(glcm_dict: dict) -> float:
-    """Computes difference entropy features
-    This feature refers to "Fcm_diff_entr" (ID = NTRS) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the difference entropy features
-    """
-    return glcm_dict["Fcm_diff_entr"]
-
-def sum_avg(glcm_dict: dict) -> float:
-    """Computes sum average features
-    This feature refers to "Fcm_sum_avg" (ID = ZGXS) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the sum average features
-    """
-    return glcm_dict["Fcm_sum_avg"]
-
-def sum_var(glcm_dict: dict) -> float:
-    """Computes sum variance features
-    This feature refers to "Fcm_sum_var" (ID = OEEB) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the sum variance features
-    """
-    return glcm_dict["Fcm_sum_var"]
-
-def sum_entr(glcm_dict: dict) -> float:
-    """Computes sum entropy features
-    This feature refers to "Fcm_sum_entr" (ID = P6QZ) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the sum entropy features
-    """
-    return glcm_dict["Fcm_sum_entr"]
-
-def energy(glcm_dict: dict) -> float:
-    """Computes angular second moment features
-    This feature refers to "Fcm_energy" (ID = 8ZQL) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the angular second moment features
-    """
-    return glcm_dict["Fcm_energy"]
-
-def contrast(glcm_dict: dict) -> float:
-    """Computes constrast features
-    This feature refers to "Fcm_contrast" (ID = ACUI) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the contrast features
-    """
-    return glcm_dict["Fcm_contrast"]
-
-def dissimilarity(glcm_dict: dict) -> float:
-    """Computes dissimilarity features
-    This feature refers to "Fcm_dissimilarity" (ID = 8S9J) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the dissimilarity features
-    """
-    return glcm_dict["Fcm_dissimilarity"]
-
-def inv_diff(glcm_dict: dict) -> float:
-    """Computes inverse difference features
-    This feature refers to "Fcm_inv_diff" (ID = IB1Z) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the inverse difference features
-    """
-    return glcm_dict["Fcm_inv_diff"]
-
-def inv_diff_norm(glcm_dict: dict) -> float:
-    """Computes inverse difference normalised features
-    This feature refers to "Fcm_inv_diff_norm" (ID = NDRX) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the inverse difference normalised features
-    """
-    return glcm_dict["Fcm_inv_diff_norm"]
-
-def inv_diff_mom(glcm_dict: dict) -> float:
-    """Computes inverse difference moment features
-    This feature refers to "Fcm_inv_diff_mom" (ID = WF0Z) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the inverse difference moment features
-    """
-    return glcm_dict["Fcm_inv_diff_mom"]
-
-def inv_diff_mom_norm(glcm_dict: dict) -> float:
-    """Computes inverse difference moment normalised features
-    This feature refers to "Fcm_inv_diff_mom_norm" (ID = 1QCO) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the inverse difference moment normalised features
-    """
-    return glcm_dict["Fcm_inv_diff_mom_norm"]
-
-def inv_var(glcm_dict: dict) -> float:
-    """Computes inverse variance features
-    This feature refers to "Fcm_inv_var" (ID = E8JP) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the inverse variance features
-    """
-    return glcm_dict["Fcm_inv_var"]
-
-def corr(glcm_dict: dict) -> float:
-    """Computes correlation features
-    This feature refers to "Fcm_corr" (ID = NI2N) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the correlation features
-    """
-    return glcm_dict["Fcm_corr"]
-
-def auto_corr(glcm_dict: dict) -> float:
-    """Computes autocorrelation features
-    This feature refers to "Fcm_auto_corr" (ID = QWB0) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the autocorrelation features
-    """
-    return glcm_dict["Fcm_auto_corr"]
-
-def info_corr1(glcm_dict: dict) -> float:
-    """Computes information correlation 1 features
-    This feature refers to "Fcm_info_corr1" (ID = R8DG) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the information correlation 1 features
-    """
-    return glcm_dict["Fcm_info_corr1"]
-
-def info_corr2(glcm_dict: dict) -> float:
-    """Computes information correlation 2 features - Note: iteration over combinations of i and j
-    This feature refers to "Fcm_info_corr2" (ID = JN9H) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the information correlation 2 features
-    """
-    return glcm_dict["Fcm_info_corr2"]
-
-def clust_tend(glcm_dict: dict) -> float:
-    """Computes cluster tendency features
-    This feature refers to "Fcm_clust_tend" (ID = DG8W) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the cluster tendency features
-    """
-    return glcm_dict["Fcm_clust_tend"]
-
-def clust_shade(glcm_dict: dict) -> float:
-    """Computes cluster shade features
-    This feature refers to "Fcm_clust_shade" (ID = 7NFM) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the cluster shade features
-    """
-    return glcm_dict["Fcm_clust_shade"]
-
-def clust_prom(glcm_dict: dict) -> float:
-    """Computes cluster prominence features
-    This feature refers to "Fcm_clust_prom" (ID = AE86) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        glcm_dict (dict): dictionary with feature values
-
-    Returns:
-        np.ndarray: the cluster prominence features
-    """
-    return glcm_dict["Fcm_clust_prom"]

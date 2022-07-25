@@ -20,7 +20,7 @@ def get_neighbour_direction(d=1.8,
 
     Args:
         d (float, optional): Max ``distance`` between voxels.
-        distance (str, optional): Distance norm used to compute distances. MUST BE
+        distance (str, optional): Distance norm used to compute distances. must be
                                   "manhattan", "l1", "l_1", "euclidian", "l2", "l_2", "chebyshev", "linf" or "l_inf".
         centre (bool, optional): Flags whether the [0,0,0] direction should be included
         complete(bool, optional): Flags whether all directions should be computed (True)
@@ -77,8 +77,8 @@ def get_neighbour_direction(d=1.8,
 def rep(x: np.ndarray,
         each=1,
         times=1) -> np.ndarray:
-    """"Replicates the values in `x`.
-    Replicates the "rep" function found in R for tiling and repeating vectors.
+    """Replicates the values in ``x``.
+    Replicates the :func:`"rep"` function found in R for tiling and repeating vectors.
 
     Note:
         Code was adapted from the in-house radiomics software created at OncoRay,
@@ -88,7 +88,7 @@ def rep(x: np.ndarray,
         x (ndarray): Array to replicate.
         each (int): Integer (non-negative) giving the number of times to repeat
                     each element of the passed array.
-        times (int): Integer (non-negative). Each element of `x` is repeated each times.
+        times (int): Integer (non-negative). Each element of ``x`` is repeated each times.
 
     Returns:
         ndarray: Array with same values but replicated.

@@ -81,7 +81,7 @@ def get_rlm_features(vol: np.ndarray,
         vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
         glrlm_spatial_method (str, optional): spatial method which determines the way
                                               co-occurrence matrices are calculated and how features are determined.
-                                              MUST BE "2d", "2.5d" or "3d".
+                                              must be "2d", "2.5d" or "3d".
         glrlm_merge_method (str, optional): merging method which determines how features are
                                             calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
                                             Note that not all combinations of spatial and merge method are valid.
@@ -197,7 +197,7 @@ def get_rlm_matrix(vol: np.ndarray,
         vol (ndarray): volume with discretised intensities as 3D numpy array (x, y, z).
         glrlm_spatial_method (str, optional): spatial method which determines the way
                                               co-occurrence matrices are calculated and how features are determined.
-                                              MUST BE "2d", "2.5d" or "3d".
+                                              must be "2d", "2.5d" or "3d".
         glrlm_merge_method (str, optional): merging method which determines how features are
                                             calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
                                             Note that not all combinations of spatial and merge method are valid.

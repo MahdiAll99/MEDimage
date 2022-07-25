@@ -10,7 +10,7 @@ def strfind(pattern: str,
     """Finds indices of ``pattern`` in ``string``. Based on regex.
 
     Note:
-        Be careful with + and - symbols. Use \+ and \- instead.
+        Be careful with + and - symbols. Use :math:`\+` and :math:`\-` instead.
 
     Args:
         pattern (str): Substring to be searched in the ``string``.

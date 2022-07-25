@@ -19,8 +19,8 @@ def mode(x: np.ndarray,
     Returns:
         2-element tuple containing
         
-        ndarray: Array of the modal (most common) value in the given array.
-        ndarray: Array of the counts if ``return_counts`` is True.
+        - ndarray: Array of the modal (most common) value in the given array.
+        - ndarray: Array of the counts if ``return_counts`` is True.
     """
 
     unique_values, counts = np.unique(x, return_counts=True)

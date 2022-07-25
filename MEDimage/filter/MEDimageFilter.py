@@ -443,7 +443,7 @@ class Laws(MEDimageFilter):
 
     def create_kernel(self) -> np.ndarray:
         """Create the Laws by computing the outer product of 1d filter specified in the config attribute.
-        :math:`Kernel = config[0] X config[1] X ... X config[n]`. Where X is the outer product.
+        Kernel = config[0] X config[1] X ... X config[n]. Where X is the outer product.
 
         Returns:
             ndarray: A numpy multi-dimensional arrays that represent the Laws kernel.

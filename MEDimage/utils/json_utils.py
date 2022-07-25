@@ -8,13 +8,13 @@ from typing import Dict
 
 
 def _is_jsonable(data: any) -> bool:
-    """Checks if the given data is JSON serializable.
+    """Checks if the given ``data`` is JSON serializable.
 
     Args:
         data (Any): ``Data`` that will be checked.
 
     Returns:
-        bool: True if the given data is serializable, False if not.
+        bool: True if the given ``data`` is serializable, False if not.
     """
     try:
         json.dumps(data)
@@ -39,7 +39,7 @@ def posix_to_string(dictionnary: Dict) -> None:
             dictionnary[key] = str(value) if isinstance(value, pathlib.PosixPath) else value
 
 
-def load_json(file_path: pathlib.Path) -> json.__dict__:
+def load_json(file_path: pathlib.Path) -> Dict:
     """Wrapper to json.load function.
 
     Args:
@@ -62,7 +62,7 @@ def save_json(file_path: pathlib.Path, data: any, cls=None) -> None:
         cls(object, optional): Costum JSONDecoder subclass. If not specified JSONDecoder is used. 
 
     Returns:
-        None: saves the ``data`` in JSON file to the file_path.
+        None: saves the ``data`` in JSON file to the ``file_path``.
 
     Raises:
         TypeError: If ``data`` is not JSON serializable.

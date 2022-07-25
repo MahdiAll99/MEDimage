@@ -6,15 +6,32 @@ from typing import Tuple, Union
 import numpy as np
 
 
-def intrinsicToWorld(R, xIntrinsic, yIntrinsic, zIntrinsic):
-    """
-    
+def intrinsicToWorld(R, xIntrinsic: float, yIntrinsic: float, zIntrinsic:float) -> Tuple[float, float, float]:
+    """Convert from intrinsic to world coordinates.
+
+    Args:
+        R (imref3d): imref3d object (same functionality of MATLAB imref3d class)
+        xIntrinsic (float):  Coordinates along the x-dimension in the intrinsic coordinate system
+        yIntrinsic (float):  Coordinates along the y-dimension in the intrinsic coordinate system
+        zIntrinsic (float):  Coordinates along the z-dimension in the intrinsic coordinate system
+
+    Returns:
+        float: world coordinates
     """
     return R.intrinsicToWorld(xIntrinsic=xIntrinsic, yIntrinsic=yIntrinsic, zIntrinsic=zIntrinsic)
 
 
-def worldToIntrinsic(R, xWorld, yWorld, zWorld):
-    """
+def worldToIntrinsic(R, xWorld: float, yWorld: float, zWorld: float) -> Tuple[float, float, float] :
+    """Convert from world coordinates to intrinsic.
+
+    Args:
+        R (imref3d): imref3d object (same functionality of MATLAB imref3d class)
+        xWorld (float): Coordinates along the x-dimension in the intrinsic coordinate system
+        yWorld (float): Coordinates along the y-dimension in the intrinsic coordinate system
+        zWorld (float): Coordinates along the z-dimension in the intrinsic coordinate system
+
+    Returns:
+        _type_: intrinsic coordinates
     """
     return R.worldToIntrinsic(xWorld=xWorld, yWorld=yWorld, zWorld=zWorld)
 
@@ -27,7 +44,7 @@ def sizes_match(R, A):
         A (imref3d): Second imref3d object.
 
     Returns:
-        bool: True if R and A have the same size, and false if not.
+        bool: True if ``R`` and ``A`` have the same size, and false if not.
 
     """
     return np.all(R.imageSize == A.imageSize)
@@ -36,7 +53,7 @@ def sizes_match(R, A):
 class imref3d:
     """This class mirrors the functionality of the matlab imref3d class
 
-    An `imref3d object <https://www.mathworks.com/help/images/ref/imref3d.html>`_. 
+    An `imref3d object <https://www.mathworks.com/help/images/ref/imref3d.html>`_ 
     stores the relationship between the intrinsic coordinates 
     anchored to the columns,  rows, and planes of a 3-D image and the spatial 
     location of the same column, row, and plane locations in a world coordinate system.
@@ -44,8 +61,6 @@ class imref3d:
     The image is sampled regularly in the planar world-x, world-y, and world-z coordinates 
     of the coordinate system such that intrinsic-x, -y and -z values align with world-x, -y 
     and -z values, respectively. The resolution in each dimension can be different.
-
-    REF: 
 
     Args:
         ImageSize (ndarray, optional): Number of elements in each spatial dimension, 
@@ -222,7 +237,7 @@ class imref3d:
                        xWorld: np.ndarray,
                        yWorld: np.ndarray,
                        zWorld: np.ndarray) -> np.ndarray:
-        """Determines which points defined by xWorld, yWorld and zWorld.
+        """Determines which points defined by ``xWorld``, ``yWorld`` and ``zWorld``.
 
         Args:
             xWorld (ndarray): Coordinates along the x-dimension in the world coordinate system.
@@ -244,11 +259,11 @@ class imref3d:
     def WorldLimits(self,
                     axis=None,
                     newValue=None) -> Union[np.ndarray, None]:
-        """Sets the WorldLimits to the new value for the given axis.
+        """Sets the WorldLimits to the new value for the given ``axis``.
         If the newValue is None, the method returns the attribute value.
 
         Args:
-            axis (str, optional): Specify the dimension, MUST BE 'X', 'Y' or 'Z'.
+            axis (str, optional): Specify the dimension, must be 'X', 'Y' or 'Z'.
             newValue (iterable, optional): New value for the WorldLimits attribute.
 
         Returns:
@@ -272,10 +287,10 @@ class imref3d:
                 self.ZWorldLimits = self._parse_to_ndarray(x=newValue, n=2)
 
     def PixelExtentInWorld(self, axis=None) -> Union[float, None]:
-        """Returns the PixelExtentInWorld attribute value for the given axis.
+        """Returns the PixelExtentInWorld attribute value for the given ``axis``.
 
         Args:
-            axis (str, optional): Specify the dimension, MUST BE 'X', 'Y' or 'Z'.
+            axis (str, optional): Specify the dimension, must be 'X', 'Y' or 'Z'.
 
         Returns:
             float: Size of a single pixel in the axis-dimension measured in the world coordinate system.
@@ -290,10 +305,10 @@ class imref3d:
     def IntrinsicLimits(self,
                         axis=None) -> Union[np.ndarray,
                                             None]:
-        """Returns the IntrinsicLimits attribute value for the given axis.
+        """Returns the IntrinsicLimits attribute value for the given ``axis``.
 
         Args:
-            axis (str, optional): Specify the dimension, MUST BE 'X', 'Y' or 'Z'.
+            axis (str, optional): Specify the dimension, must be 'X', 'Y' or 'Z'.
 
         Returns:
             ndarray: Limits of image in intrinsic units in the axis-dimension, specified as a 2-element row vector [xMin xMax].
@@ -308,10 +323,10 @@ class imref3d:
     def ImageExtentInWorld(self,
                            axis=None) -> Union[float,
                                                None]:
-        """Returns the ImageExtentInWorld attribute value for the given axis.
+        """Returns the ImageExtentInWorld attribute value for the given ``axis``.
 
         Args:
-            axis (str, optional): Specify the dimension, MUST BE 'X', 'Y' or 'Z'.
+            axis (str, optional): Specify the dimension, must be 'X', 'Y' or 'Z'.
 
         Returns:
             ndarray: Span of image in the axis-dimension in the world coordinate system.
