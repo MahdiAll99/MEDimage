@@ -3,20 +3,20 @@
 
 from importlib.resources import path
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 
-def get_file_paths(path_to_parent_folder: path,
-                   wildcard=None) -> List[Path]:
-    """Finds all files in the given path that matches the pattern/wildcard.
+def get_file_paths(path_to_parent_folder: Union[str, Path], wildcard: str=None) -> List[Path]:
+    """Finds all files in the given path that matches the pattern/wildcard. 
 
     Note:
         The search is done recursively in all subdirectories.
 
     Args:
-        path_to_parent_folder (Path): Full path to where the files are located.
-        wildcard (:obj:`str`, optional): String specifying which type of files to locate in the parent folder.
-            Ex : '*.dcm*', to look for dicom files.
+        path_to_parent_folder (Union[str, Path]): Full path to where the files are located.
+        wildcard (str, optional): String specifying which type of files 
+        to locate in the parent folder.
+            - Ex : '*.dcm*', to look for dicom files.
 
     Returns:
         List: List of full paths to files with the specific wildcard located \

@@ -7,7 +7,7 @@ from datetime import datetime
 from itertools import product
 from pathlib import Path
 from time import time
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 import MEDimage
 import numpy as np
@@ -18,7 +18,7 @@ from tqdm import trange
 
 class BatchExtractor(object):
     """
-    Organizes all the pateients/scans in batches to extract all the radiomic feautres
+    Organizes all the patients/scans in batches to extract all the radiomic features
     """
 
     def __init__(
@@ -26,7 +26,7 @@ class BatchExtractor(object):
             path_read: Union[str, Path],
             path_csv: Union[str, Path],
             path_params: Union[str, Path],
-            path_save: Union[str, Path] = None,
+            path_save: Union[str, Path],
             n_batch: int = 4
     ) -> None:
         """
@@ -35,7 +35,7 @@ class BatchExtractor(object):
         self._path_csv = Path(path_csv)
         self._path_params = Path(path_params)
         self._path_read = Path(path_read)
-        self._path_save = Path(path_save) if path_save is not None else None
+        self._path_save = Path(path_save)
         self.roi_types = []
         self.roi_type_labels = []
         self.n_bacth = n_batch
@@ -62,20 +62,39 @@ class BatchExtractor(object):
         if(im_params['imParamPET']['reSeg']['range'] and im_params['imParamPET']['reSeg']['range'][1] == "inf"):
             im_params['imParamPET']['reSeg']['range'][1] = np.inf
 
-        return im_params
+        # Get name save (for filtering purposes only)
+        try:
+            filter_type = im_params['imParamFilter']['filter_type']
+            name_save = im_params['imParamFilter'][filter_type]
+        except:
+            name_save = ''
+
+        return im_params, name_save
 
     @ray.remote
     def __compute_radiomics_one_patient(
             self,
-            name_patient,
-            roi_name,
-            im_params,
-            roi_type,
-            roi_type_label,
-            log_file
-        ) -> None:
+            name_patient: str,
+            roi_name: str,
+            im_params: Dict,
+            roi_type: str,
+            roi_type_label: str,
+            log_file: Union[Path, str]
+        ) -> str:
         """
-        Computes all radiomic features for one patient/scan
+        Computes all radiomics features (Texture & Non-texture) for one patient/scan
+
+        Args:
+            name_patient(str): scan or patient full name. It has to respect the MEDimage naming convention:
+                PatientID__ImagingScanName.ImagingModality.npy
+            roi_name(str): name of the ROI that will  be used in computation.
+            im_params(Dict): Dict of parameters/settings that will be used in the processing and computation.
+            roi_type(str): Type of ROI used in the processing and computation (for identification purposes)
+            roi_type_label(str): Label of the ROI used, to make it identifiable from other ROIs.
+            log_file(Union[Path, str]): Path to the logging file.
+
+        Returns:
+            Union[Path, str]: Path to the updated logging file.
         """
         # Setting up logging settings
         logging.basicConfig(filename=log_file, level=logging.DEBUG)
@@ -108,7 +127,7 @@ class BatchExtractor(object):
         )
 
         start = time()
-        message = '--> Non-texture features pre-processing (interp + reSeg) for "Scale={}"'.\
+        message = '--> Non-texture features pre-processing (interp + re-seg) for "Scale={}"'.\
             format(str(MEDimg.params.process.scale_non_text[0]))
         logging.info(message)
 
@@ -153,7 +172,7 @@ class BatchExtractor(object):
             ),
             roi_obj_int.data
         ).astype(int)
-        logging.info("{}\n".format(time() - start))
+        logging.info(f"{time() - start}\n")
 
         # Reset timer
         start = time()
@@ -180,7 +199,6 @@ class BatchExtractor(object):
             mask_int=roi_obj_int.data, 
             mask_morph=roi_obj_morph.data,
             res=MEDimg.params.process.scale_non_text,
-            intensity=MEDimg.params.process.intensity
         )
 
         # Local intensity features extraction
@@ -197,7 +215,7 @@ class BatchExtractor(object):
             intensity=MEDimg.params.process.intensity
         )
 
-        # Intensity histogram equalisation of the imaging volume
+        # Intensity histogram equalization of the imaging volume
         vol_quant_re, _ = MEDimage.processing.discretisation(
             vol_re=vol_int_re,
             discr_type=MEDimg.params.process.ih['type'], 
@@ -205,12 +223,12 @@ class BatchExtractor(object):
             user_set_min_val=MEDimg.params.process.user_set_min_value
         )
         
-        # Intensity histogram feratures extraction
+        # Intensity histogram features extraction
         int_hist = MEDimage.biomarkers.intensity_histogram.extract_all(
             vol=vol_quant_re
         )
         
-        # Intensity histogram equalisation of the imaging volume
+        # Intensity histogram equalization of the imaging volume
         if 'type' in MEDimg.params.process.ivh and 'val' in MEDimg.params.process.ivh and MEDimg.params.process.ivh:
             vol_quant_re, wd = MEDimage.processing.discretisation(
                     vol_re=vol_int_re,
@@ -223,7 +241,7 @@ class BatchExtractor(object):
             vol_quant_re = vol_int_re
             wd = 1
 
-        # Intensity volume histogram feratures extraction
+        # Intensity volume histogram features extraction
         int_vol_hist = MEDimage.biomarkers.int_vol_hist.extract_all(
                     MEDimg=MEDimg,
                     vol=vol_quant_re,
@@ -232,7 +250,7 @@ class BatchExtractor(object):
         )
 
         # End of Non-Texture features extraction
-        logging.info("{}\n".format(time() - start))
+        logging.info(f"{time() - start}\n")
 
         # Computation of texture features
         logging.info("--> Computation of texture features:")
@@ -277,7 +295,7 @@ class BatchExtractor(object):
                 roi=roi_obj_int.data,
                 im_range=MEDimg.params.process.im_range
             )
-            # Outlier Re-Segmentation
+            # Intensity mask outlier re-segmentation
             roi_obj_int.data = np.logical_and(
                 MEDimage.processing.outlier_re_seg(
                     vol=vol_obj.data, 
@@ -291,7 +309,7 @@ class BatchExtractor(object):
             if MEDimg.params.process.filter:
                 vol_obj = MEDimage.filter.apply_filter(MEDimg, vol_obj)
 
-            logging.info("{}\n".format(time() - start))
+            logging.info(f"{time() - start}\n")
             
             # Compute features for each discretisation algorithm and for each grey-level  
             for a, n in product(range(MEDimg.params.process.n_algo), range(MEDimg.params.process.n_gl)):
@@ -325,12 +343,12 @@ class BatchExtractor(object):
                 # GLCM features extraction
                 glcm = MEDimage.biomarkers.glcm.extract_all(
                     vol=vol_quant_re, 
-                    distCorrection=MEDimg.params.radiomics.glcm.dist_correction)
+                    dist_correction=MEDimg.params.radiomics.glcm.dist_correction)
 
                 # GLRLM features extraction
                 glrlm = MEDimage.biomarkers.glrlm.extract_all(
                     vol=vol_quant_re,
-                    distCorrection=MEDimg.params.radiomics.glrlm.dist_correction)
+                    dist_correction=MEDimg.params.radiomics.glrlm.dist_correction)
 
                 # GLSZM features extraction
                 glszm = MEDimage.biomarkers.glszm.extract_all(
@@ -344,7 +362,7 @@ class BatchExtractor(object):
                 # NGTDM features extraction
                 ngtdm = MEDimage.biomarkers.ngtdm.extract_all(
                     vol=vol_quant_re, 
-                    distCorrection=MEDimg.params.radiomics.ngtdm.distance_norm)
+                    dist_correction=MEDimg.params.radiomics.ngtdm.distance_norm)
 
                 # NGLDM features extraction
                 ngldm = MEDimage.biomarkers.ngldm.extract_all(
@@ -366,31 +384,89 @@ class BatchExtractor(object):
                             )
                 
                 # End of texture features extraction
-                logging.info("{}\n".format(time() - start))
+                logging.info(f"{time() - start}\n")
 
                 # Saving radiomics results
-                if self._path_save:
-                    MEDimg.save_radiomics(
-                                    scan_file_name=name_patient,
-                                    path_save=self._path_save,
-                                    roi_type=roi_type,
-                                    roi_type_label=roi_type_label,
-                                )
+                MEDimg.save_radiomics(
+                                scan_file_name=name_patient,
+                                path_save=self._path_save,
+                                roi_type=roi_type,
+                                roi_type_label=roi_type_label,
+                            )
                 
-                logging.info("TOTAL TIME: {} seconds\n\n".format(time() - t_start))
+                logging.info(f"TOTAL TIME:{time() - t_start} seconds\n\n")
 
-                return  log_file
+        return log_file
 
-    def compute_radiomics(self) -> None:
+    @ray.remote
+    def __compute_radiomics_tables(
+            self,
+            table_tags: List,
+            name_save: str,
+            log_file: Union[str, Path]
+        ) -> None:
         """
-        Compute Radiomics_batchAllPatients.
+        Creates radiomic tables off of the saved dicts with the computed features and save it as CSV files
+
+        Args:
+            table_tags(List): Lists of information about scans, roi type and imaging space (or filter space)
+            name_save(str): Added at the end to the default name of each table to specify the processing 
+            used in extraction.
+            log_file(Union[str, Path]): Path to logging file.
+        
+        Returns:
+            None.
         """
-        # Initialize ray
-        ray.init(local_mode=True, include_dashboard=True)
+        n_tables = len(table_tags)
 
-        # Load and process computing parameters
-        im_params = self.__load_and_process_params()
+        for t in range(0, n_tables):
+            scan = table_tags[t][0]
+            roi_type = table_tags[t][1]
+            im_space = table_tags[t][2]
+            if name_save:
+                name_table = 'radiomics__' + scan + \
+                '(' + roi_type + ')__'  + name_save + '.npy'   
+            else:
+                name_table = 'radiomics__' + scan + \
+                '(' + roi_type + ')__' + im_space + '.npy'
 
+            # Start timer
+            start = time()
+            logging.info("\n --> Computing radiomics table: {name_table}...")
+
+            # Wildcard used to look only in the parent folder (save path),
+            # no need to recursively look into sub-folders using '**/'.
+            wildcard = '*' + scan + '(' + roi_type + ')*.json'
+
+            # Create radiomics table
+            radiomics_table_dict = MEDimage.utils.create_radiomics_table(
+                MEDimage.utils.get_file_paths(self._path_save, wildcard),
+                im_space, 
+                log_file
+            )
+            radiomics_table_dict['Properties']['Description'] = name_table
+
+            # Save radiomics table
+            save_path = self._path_save / name_table
+            np.save(save_path, [radiomics_table_dict])
+
+            # Create CSV table and Definitions
+            MEDimage.utils.write_radiomics_csv(save_path)
+
+            logging.info(f"DONE\n {time() - start}\n")
+
+        return log_file
+    
+    def __batch_all_patients(self, im_params: Dict) -> None:
+        """
+        Create batches of scans to process and compute radiomics features for every single scan.
+
+        Args: 
+            im_params(Dict): Dict of the processing & computation parameters.
+
+        Returns:
+            None
+        """
         # create a batch for each roi type
         n_roi_types = len(self.roi_type_labels)
         for r in range(0, n_roi_types):
@@ -413,13 +489,14 @@ class BatchExtractor(object):
             roi_names = tabel_roi.ROIname.tolist()
 
             # INITIALIZATION
+            os.chdir(self._path_save)
             name_bacth_log = 'batchLog_' + roi_type_label
             p = Path.cwd().glob('*')
             files = [x for x in p if x.is_dir()]
-            nfiles = len(files)
+            n_files = len(files)
             exist_file = name_bacth_log in [x.name for x in files]
-            if exist_file and (nfiles > 0):
-                for i in range(0, nfiles):
+            if exist_file and (n_files > 0):
+                for i in range(0, n_files):
                     if (files[i].name == name_bacth_log):
                         mod_timestamp = datetime.fromtimestamp(
                             Path(files[i]).stat().st_mtime)
@@ -442,8 +519,7 @@ class BatchExtractor(object):
                 n_batch = n_patients
 
             # Produce a list log_file path.
-            log_files = [path_batch / ('log_file_' + str(i) + '.log')
-                        for i in range(n_batch)]
+            log_files = [path_batch / ('log_file_' + str(i) + '.log') for i in range(n_batch)]
 
             # Distribute the first tasks to all workers
             ids = [self.__compute_radiomics_one_patient.remote(
@@ -476,6 +552,134 @@ class BatchExtractor(object):
                     nb_job_left -= 1
 
             print('DONE')
-    
-    def batch_all_tables():
-        raise NotImplementedError
+
+    def __batch_all_tables(self, name_save: str):
+        """
+        Create batches of tables of the extracted features for every imaging scan type (CT, PET...).
+
+        Args: 
+            name_save(str): Added at the end to the default name of each table to specify the processing 
+            used in extraction.
+
+        Returns:
+            None
+        """
+        # GETTING COMBINATIONS OF scan, roi_type and imageSpaces
+        n_roi_types = len(self.roi_type_labels)
+        table_tags = []
+        # Get all scan names present for the given roi_type_label
+        for r in range(0, n_roi_types):
+            label = self.roi_type_labels[r]
+            wildcard = '*' + label + '*'
+            file_paths = MEDimage.utils.get_file_paths(self._path_save, wildcard)
+            n_files = len(file_paths)
+            scans = [0] * n_files
+            for f in range(0, n_files):
+                rad_file_name = file_paths[f].stem
+                scans[f] = MEDimage.utils.get_scan_name_from_rad_name(rad_file_name)
+            scans = s = (np.unique(np.array(scans))).tolist()
+            n_scans = len(scans)
+            # Get all scan names present for the given roi_type_label and scans
+            for s in range(0, n_scans):
+                scan = scans[s]
+                wildcard = '*' + scan + '(' + label + ')*.json'
+                file_paths = MEDimage.utils.get_file_paths(self._path_save, wildcard)
+                n_files = len(file_paths)
+
+                # Finding the images spaces for a test file (assuming that all
+                # files for a given scan and roi_type_label have the same image spaces
+                radiomics = MEDimage.utils.json_utils.load_json(file_paths[0])
+                im_spaces = [key for key in radiomics.keys()]
+                im_spaces = im_spaces[:-1]
+                n_im_spaces = len(im_spaces)
+                # Constructing the table_tags variable
+                for i in range(0, n_im_spaces):
+                    im_space = im_spaces[i]
+                    table_tags = table_tags + [[scan, label, im_space]]
+
+        # INITIALIZATION
+        os.chdir(self._path_save)
+        name_batch_log = 'batchLog_tables'
+        p = Path.cwd().glob('*')
+        files = [x for x in p if x.is_dir()]
+        n_files = len(files)
+        exist_file = name_batch_log in [x.name for x in files]
+        if exist_file and (n_files > 0):
+            for i in range(0, n_files):
+                if files[i].name == name_batch_log:
+                    mod_timestamp = datetime.fromtimestamp(
+                        Path(files[i]).stat().st_mtime)
+                    date = mod_timestamp.strftime("%d-%b-%Y_%H:%M:%S")
+                    new_name = name_batch_log+'_'+date
+                    if sys.platform == 'win32':
+                        os.system('move ' + name_batch_log + ' ' + new_name)
+                    else:
+                        os.system('mv ' + name_batch_log + ' ' + new_name)
+
+        os.makedirs(name_batch_log, 0o777, True)
+        path_batch = Path.cwd()
+
+        # PRODUCE BATCH COMPUTATIONS
+        n_tables = len(table_tags)
+        self.n_bacth = self.n_bacth
+        if self.n_bacth is None or self.n_bacth < 0:
+            self.n_bacth = 1
+        elif n_tables < self.n_bacth:
+            self.n_bacth = n_tables
+
+        # Produce a list log_file path.
+        log_files = [path_batch / ('log_file_' + str(i) + '.txt') for i in range(self.n_bacth)]
+
+        # Distribute the first tasks to all workers
+        ids = [self.__compute_radiomics_tables.remote(
+                                self, 
+                                [table_tags[i]], 
+                                name_save, 
+                                log_files[i])
+                for i in range(self.n_bacth)]
+
+        nb_job_left = n_tables - self.n_bacth
+
+        for _ in trange(n_tables):
+            ready, not_ready = ray.wait(ids, num_returns=1)
+            ids = not_ready
+
+            # We verify if error has occur during the process
+            log_file = ray.get(ready)[0]
+
+            # Distribute the remaining tasks
+            if nb_job_left > 0:
+                idx = n_tables - nb_job_left
+                ids.extend([self.__compute_radiomics_tables.remote(
+                                self,
+                                [table_tags[idx]], 
+                                name_save, 
+                                log_file)])
+                nb_job_left -= 1
+
+        print('DONE')
+
+    def compute_radiomics(self, create_tables: bool = True) -> None:
+        """Compute all radiomic features for all scans in the CSV file (set in initialization) and organize it
+        in JSON and CSV files
+
+        Args:
+            create_tables(bool) : True to create CSV tables for the extracted features and not save it in JSON only.
+        
+        Returns:
+            None.
+        """
+        # Initialize ray
+        if ray.is_initialized():
+            ray.shutdown()
+        ray.init(local_mode=True, include_dashboard=True)
+
+        # Load and process computing parameters
+        im_params, name_save = self.__load_and_process_params()
+
+        # Batch all scans from CSV file and compute radiomics for each scan
+        self.__batch_all_patients(im_params)
+
+        # Create a CSV file off of the computed features for all the scans
+        if create_tables:
+            self.__batch_all_tables(name_save)

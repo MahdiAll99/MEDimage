@@ -7,7 +7,7 @@ from typing import Tuple
 
 import numpy as np
 
-from MEDimage.MEDimage import MEDimage
+from MEDimage import MEDimage
 
 from ..processing.compute_box import compute_box
 from ..utils.image_volume_obj import image_volume_obj
@@ -15,9 +15,11 @@ from ..utils.parse_contour_string import parse_contour_string
 from .get_sep_roi_names import get_sep_roi_names
 
 
-def get_roi_from_indexes(MEDimg: MEDimage, 
-                    name_roi: str, 
-                    box_string: str ) -> Tuple[image_volume_obj, image_volume_obj]:
+def get_roi_from_indexes(
+        MEDimg: MEDimage, 
+        name_roi: str, 
+        box_string: str
+    ) -> Tuple[image_volume_obj, image_volume_obj]:
     """Extracts the ROI box (+ smallest box containing the region of interest)
     and associated mask from the indexes saved in 'MEDimage' file.
     
