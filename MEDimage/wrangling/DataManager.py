@@ -520,11 +520,6 @@ class DataManager(object):
         self.__read_all_niftis()
         print('--> Reading all NIfTI objects (imaging volumes & masks) to create MEDimage classes')
         for file in tqdm(self.__nifti.stack_path_images):
-            # User cannot save over 10 instances in the class
-            if len(self.instances)>10 and not self.__warned:
-                warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
-                    the rest of the instances will/can be saved locally only.")
-                self.__warned = True
             # INITIALIZE MEDimage INSTANCE AND UPDATE ATTRIBUTES
             MEDimg = MEDimage()
             MEDimg.patientID = os.path.basename(file).split("_")[0]
@@ -541,14 +536,22 @@ class DataManager(object):
             self.__associate_spatialRef(file, MEDimg)
             # GET ROI
             MEDimage_instance = self.__associate_roi_to_image(file, MEDimg)
-            if self.keep_instances:
+            
+            # User cannot save over 10 instances in the class
+            if len(self.instances)>10 and not self.__warned:
+                warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
+                    the rest of the instances will/can be saved locally only.")
+                self.__warned = True
+            elif self.keep_instances:
                 self.instances.append(MEDimage_instance)
             if self.save and self.paths._path_save:
                 save_MEDimage(MEDimg, MEDimg.type.split('scan')[0], self.paths._path_save)
+            
             # Update the path to the created instances
             name_save = self.__get_MEDimage_name_save(MEDimage_instance)
             if self.paths._path_save:
                 self.path_to_objects.append(str(self.paths._path_save / name_save))
+            
             # Update processing summary
             if name_save.split('_')[0].count('-') >= 2:
                 scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
