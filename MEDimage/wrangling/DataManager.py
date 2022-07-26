@@ -529,6 +529,7 @@ class DataManager(object):
             MEDimg = MEDimage()
             MEDimg.patientID = os.path.basename(file).split("_")[0]
             MEDimg.type = os.path.basename(file).split(".")[-3]
+            MEDimg.series_description = file.name[file.name.find('__') + 2: file.name.find('(')]
             MEDimg.format = "nifti"
             MEDimg.scan.set_orientation(orientation="Axial")
             MEDimg.scan.set_patientPosition(patientPosition="HFS")
