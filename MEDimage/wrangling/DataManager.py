@@ -420,7 +420,7 @@ class DataManager(object):
             self.__nifti.stack_path_all = list(p.rglob(e_rglob1))
             self.__nifti.stack_path_all.extend(list(p.rglob(e_rglob2)))
         else:
-            raise TypeError("`_path_to_niftis` must be a path to a directory")
+            raise TypeError(f"{p} must be a path to a directory")
 
         all_niftis = list(self.__nifti.stack_path_all)
         for i in trange(0, len(all_niftis)):
