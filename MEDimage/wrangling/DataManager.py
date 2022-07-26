@@ -18,6 +18,7 @@ import pydicom.misc
 import ray
 from MEDimage.MEDimage import MEDimage
 from MEDimage.utils.imref import imref3d
+from numpyencoder import NumpyEncoder
 from tqdm import tqdm, trange
 
 from ..processing.compute_suv_map import compute_suv_map
@@ -769,8 +770,8 @@ class DataManager(object):
 
                 # Saving files using wildcard for name
                 wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
-                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim)
-                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim)
+                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim, cls=NumpyEncoder)
+                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim, cls=NumpyEncoder)
             else:
                 file_paths = get_file_paths(self.paths._path_save, wildcard)
                 n_files = len(file_paths)
@@ -806,8 +807,8 @@ class DataManager(object):
 
                 # Saving files using wildcard for name
                 wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
-                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim)
-                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim)
+                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim, cls=NumpyEncoder)
+                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim, cls=NumpyEncoder)
 
     def __pre_radiomics_checks_window(
             self, 
@@ -922,7 +923,7 @@ class DataManager(object):
 
         # save final checks
         wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
-        save_json(self.paths._path_save_checks / ('roi_data_' + wildcard), roi_data)
+        save_json(self.paths._path_save_checks / ('roi_data_' + wildcard), roi_data, cls=NumpyEncoder)
 
     def pre_radiomics_checks(self, 
                             wildcards_dimensions: List = [],
