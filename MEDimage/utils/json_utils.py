@@ -7,17 +7,18 @@ import pathlib
 from typing import Dict
 
 
-def _is_jsonable(data: any) -> bool:
+def _is_jsonable(data: any, cls: object) -> bool:
     """Checks if the given ``data`` is JSON serializable.
 
     Args:
         data (Any): ``Data`` that will be checked.
+        cls(object, optional): Costum JSONDecoder subclass. If not specified JSONDecoder is used. 
 
     Returns:
         bool: True if the given ``data`` is serializable, False if not.
     """
     try:
-        json.dumps(data)
+        json.dumps(data, cls=cls)
         return True
     except (TypeError, OverflowError):
         return False
@@ -67,7 +68,7 @@ def save_json(file_path: pathlib.Path, data: any, cls=None) -> None:
     Raises:
         TypeError: If ``data`` is not JSON serializable.
     """
-    if _is_jsonable(data):
+    if _is_jsonable(data, cls):
         with open(file_path, 'w') as fp:
             json.dump(data, fp, indent=4, cls=cls)
     else:
