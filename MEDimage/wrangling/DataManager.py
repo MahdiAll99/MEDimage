@@ -453,7 +453,7 @@ class DataManager(object):
                 roi_name = file.name[file.name.find("(") + 1 : file.name.find(")")]
                 name_set = file.name[file.name.find("_") + 2 : file.name.find("(")]
                 MEDimg.scan.ROI.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
-                MEDimg.scan.ROI.update_name_set(key=roi_index, nameSet=name_set)
+                MEDimg.scan.ROI.update_name_set(key=roi_index, name_set=name_set)
                 MEDimg.scan.ROI.update_roi_name(key=roi_index, roi_name=roi_name)
                 roi_index += 1
         return MEDimg
@@ -725,6 +725,8 @@ class DataManager(object):
             "p5": [],
             "p95": []
         }
+        if type(wildcards_dimensions) is str:
+            wildcards_dimensions = [wildcards_dimensions]
 
         if len(wildcards_dimensions) == 0 and not use_instances:
             print("Wildcard is empty and instances use is not allowed, the pre-checks will be aborted")
@@ -845,6 +847,8 @@ class DataManager(object):
             "p5": [],
             "p95": []
         }
+        if type(wildcards_window) is str:
+            wildcards_window = [wildcards_window]
 
         if len(wildcards_window) == 0:
             print("Wilcards is empty")
@@ -907,6 +911,7 @@ class DataManager(object):
                             roi_data["data"].append(np.zeros(shape=(len(self.instances), temp_val[i])))
                             roi_data["data"][i] = temp
                         except:
+                            print(f"Problem with patient {patient_name}, scan or roi not found")
                             roi_data["data"].append([])
                             roi_data["data"][i] = []
                     else:
@@ -956,34 +961,42 @@ class DataManager(object):
         path_study = Path.cwd()
 
         # Load params
-        settings = self.paths._path_pre_checks_settings
-        settings = load_json(settings)
-        settings = settings['pre_radiomics_checks']  
+        if not self.paths._path_pre_checks_settings:
+            if not wildcards_dimensions or not wildcards_window:
+                raise ValueError("path to pre-checks settings is None.\
+                    wildcards_dimensions and wildcards_window need to be specified")
+        else:
+            settings = self.paths._path_pre_checks_settings
+            settings = load_json(settings)
+            settings = settings['pre_radiomics_checks']  
 
-        # Setting up paths
-        if 'path_save_checks' in settings and settings['path_save_checks']:
-            self.paths._path_save_checks = Path(settings['path_save_checks']) 
-        if 'path_csv' in settings and settings['path_csv']:
-            self.paths._path_csv = Path(settings['path_csv']) 
+            # Setting up paths
+            if 'path_save_checks' in settings and settings['path_save_checks']:
+                self.paths._path_save_checks = Path(settings['path_save_checks']) 
+            if 'path_csv' in settings and settings['path_csv']:
+                self.paths._path_csv = Path(settings['path_csv']) 
 
-        # Wildcards of groups of files to analyze for dimensions in path_data.
-        # See for example: https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html
-        # Keep the cell empty if no dimension checks are to be performed.
-        if not wildcards_dimensions:
-            wildcards_dimensions = []
-            for i in range(len(settings['wildcards_dimensions'])):
-                wildcards_dimensions.append(settings['wildcards_dimensions'][i])
+            # Wildcards of groups of files to analyze for dimensions in path_data.
+            # See for example: https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html
+            # Keep the cell empty if no dimension checks are to be performed.
+            if not wildcards_dimensions:
+                wildcards_dimensions = []
+                for i in range(len(settings['wildcards_dimensions'])):
+                    wildcards_dimensions.append(settings['wildcards_dimensions'][i])
 
-        # ROI intensity window checks params
-        if not wildcards_window:
-            wildcards_window = []
-            for i in range(len(settings['wildcards_window'])):
-                wildcards_window.append(settings['wildcards_window'][i])
+            # ROI intensity window checks params
+            if not wildcards_window:
+                wildcards_window = []
+                for i in range(len(settings['wildcards_window'])):
+                    wildcards_window.append(settings['wildcards_window'][i])
 
         # PRE-RADIOMICS CHECKS
         if not self.paths._path_save_checks:
-            os.mkdir(path_study / 'checks')
-            self.paths._path_save_checks = Path(path_study / 'checks')
+            if (path_study / 'checks').exists():
+                self.paths._path_save_checks = Path(path_study / 'checks')
+            else:
+                os.mkdir(path_study / 'checks')
+                self.paths._path_save_checks = Path(path_study / 'checks')
         else:
             if self.paths._path_save_checks.name != 'checks' and (self.paths._path_save_checks / 'checks').exists():
                 self.paths._path_save_checks /= 'checks'

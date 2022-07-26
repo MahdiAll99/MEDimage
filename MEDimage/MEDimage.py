@@ -1584,6 +1584,6 @@ class MEDimage(object):
                         roi_name = file[file.find("(")+1 : file.find(")")]
                         name_set = file[file.find("_")+2 : file.find("(")]
                         self.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
-                        self.update_name_set(key=roi_index, nameSet=name_set)
+                        self.update_name_set(key=roi_index, name_set=name_set)
                         self.update_roi_name(key=roi_index, ROIname=roi_name)
                         roi_index += 1
