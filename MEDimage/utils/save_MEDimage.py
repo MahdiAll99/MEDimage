@@ -5,20 +5,18 @@ from MEDimage.MEDimage import MEDimage
 
 
 def save_MEDimage(MEDimg: MEDimage,
-                  series_description: str,
                   path_save: Path) -> None:
     """Saves MEDimage class instance in a pickle object
     
     Args:
         MEDimg (MEDimage): MEDimage instance
-        series_description (str): field of DICOM headers of imaging volume with TAG: (0008,103E). For ex: 'T1'
         path_save (Path): MEDimage instance saving paths
     
     Returns:
         None.
     """
 
-    series_description = series_description.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
+    series_description = MEDimg.series_description.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
     name_id = MEDimg.patientID
     name_id = name_id.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
 

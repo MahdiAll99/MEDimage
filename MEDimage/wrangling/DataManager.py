@@ -188,15 +188,7 @@ class DataManager(object):
         Returns:
             str: String of the name save.
         """
-        if MEDimg.format == 'nifti':
-            series_description = MEDimg.type.split('scan')[0]
-        elif MEDimg.format == 'dicom':
-            try:
-                series_description = MEDimg.dicomH[0].SeriesDescription.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
-            except:
-                series_description = MEDimg.dicomH[0].Modality.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
-        else:
-            raise ValueError("Invalid format in the given MEDimage instance, must be 'dicom' or 'nifti'")
+        series_description = MEDimg.series_description.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
         name_id = MEDimg.patientID.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
         # final saving name
         name_complete = name_id + '__' + series_description + '.' + MEDimg.type + '.npy'
@@ -877,7 +869,7 @@ class DataManager(object):
                     patient_name = filename + ext
                     try:
                         MEDimg = np.load(file, allow_pickle=True)
-                        if re.search('PTscan', wildcard):
+                        if re.search('PTscan', wildcard) and MEDimg.type != 'nifti':
                             MEDimg.scan.volume.data = compute_suv_map(
                                                         np.double(MEDimg.scan.volume.data), 
                                                         MEDimg.dicomH[2])

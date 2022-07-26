@@ -213,13 +213,14 @@ def process_dicom_scan_files(
         MEDimg.scan.patientPosition = dicom_h[0].PatientPosition
         MEDimg.patientID = str(dicom_h[0].PatientID)
         MEDimg.format = "dicom"
+        if 'SeriesDescription' in dicom_h[0]:
+            MEDimg.series_description = dicom_h[0].SeriesDescription
+        else:
+            MEDimg.series_description = dicom_h[0].Modality
 
         # save MEDimage class instance as a pickle object
         if save and path_save:
-            try:
-                save_MEDimage(MEDimg, dicom_h[0].SeriesDescription, path_save)
-            except:
-                save_MEDimage(MEDimg, dicom_h[0].Modality, path_save)
+            save_MEDimage(MEDimg, path_save)
 
     except Exception as e:
         print('patientID: ' + dicom_hi[0].PatientID + ' error: ' + str(e))
