@@ -1,31 +1,47 @@
 {
+  "pre_radiomics_checks" : {
+    "pathDATA" : "",
+    "wildcards_dimensions" : [
+      "Glioma*.MRscan.npy"
+    ],
+    "path_csv" : "",
+    "wildcards_window" : [
+      "Glioma*.MRscan.npy"
+    ],
+    "path_save_checks" : ""
+  },
+  "n_batch" : 16,
+  "roi_type_labels" : [
+    "GTV"
+  ],
+  "roi_types" : [
+    "GTVp"
+  ],
   "imParamMR" : {
-    "image":{
-      "interp" : {
-        "scaleNonText" : [2, 2, 2],
-        "scaleText" : [[2, 2, 2]],
-        "volInterp" : "linear",
-        "glRound" : [],
-        "roiInterp" : "linear",
-        "roiPV" : 0.5
+    "interp" : {
+      "scale_non_text" : [2, 2, 3],
+      "scale_text" : [[2, 2, 3]],
+      "vol_interp" : "linear",
+      "gl_round" : 1,
+      "roi_interp" : "linear",
+      "roi_pv" : 0.5
+    },
+    "reSeg" : {
+      "range" : [-500,400],
+      "outliers" : ""
+    },
+    "discretisation" : {
+      "IH" : {
+        "type" : "FBS",
+        "val" : 25
       },
-      "reSeg" : {
-        "range" : [],
-        "outliers" : "Collewet"
+      "IVH" : {
+
       },
-      "discretisation" : {
-        "IH" : {
-          "type" : "FBN",
-          "val" : 64
-        },
-        "IVH" : {
-          "type" : "FBN",
-          "val" : 1000
-        },
-        "texture" : {
-          "type" : ["FBN"],
-          "val" : [[32]]
-        }
+      "texture" : {
+        "type" : ["FBS"],
+        "val" : [[25]]
+      }
       },
       "morph" : {
         "method" : "ISO",
@@ -40,7 +56,7 @@
         },
         "distCorrection" : false
       },
-      "extract_all" : {
+      "glrlm" : {
         "distCorrection" : false},
       "gldzm" : {
         "distanceNorm" : {
@@ -65,36 +81,37 @@
         },
         "coarseness" : 0
       },
+      "filter": false,
       "intensity" : "arbitrary",
       "units" : "",
       "type" : "MRscan"
     },
-    "imParamFilter" : {}
-  },
   "imParamCT" : {
-    "image":{
-      "interp" : {
-        "scaleNonText" : [2, 2, 2],
-        "scaleText" : [[2, 2, 2], [3, 3, 3]],
-        "volInterp" : "linear",
-        "glRound" : 1,
-        "roiInterp" : "linear",
-        "roiPV" : 0.5
+    "interp" : {
+      "scale_non_text" : [2, 2, 2],
+      "scale_text" : [[2, 2, 2]],
+      "vol_interp" : "linear",
+      "gl_round" : 1,
+      "roi_interp" : "linear",
+      "roi_pv" : 0.5
+    },
+    "reSeg" : {
+      "range" : [-1000,400],
+      "outliers" : ""
+    },
+    "discretisation" : {
+      "IH" : {
+        "type" : "FBS",
+        "val" : 25
       },
-      "reSeg" :  {
-        "range" : [-700, 300],
-        "outliers" : ""
+      "IVH" : {
+        "type" : "FBS",
+        "val" : 2.5
       },
-      "discretisation" : {
-        "IH" : {
-          "type" : "FBN",
-          "val" : 64
-        },
-        "IVH" : [],
-        "texture" : {
-          "type" : ["FBS", "FBSequal"],
-          "val" : [[25, 50], [25, 50]]
-        }
+      "texture" : {
+        "type" : ["FBS"],
+        "val" : [[25]]
+      }
       },
       "morph" : {
         "method" : "ISO",
@@ -109,7 +126,7 @@
         },
         "distCorrection" : false
       },
-      "extract_all" : {
+      "glrlm" : {
         "distCorrection" : false
       },
       "gldzm" : {
@@ -135,14 +152,12 @@
         },
         "coarseness" : 0
       },
+      "filter": false,
       "intensity" : "definite",
       "units" : "HU",
       "type" : "CTscan"
     },
-    "imParamFilter" : {}
-  },
   "imParamPET" : {
-    "image":{
       "compute_suv_map" : true,
       "interp" :  {
         "scaleNonText" : [4, 4, 4],
@@ -183,7 +198,7 @@
         },
         "distCorrection" : false
       },
-      "extract_all" : {
+      "glrlm" : {
         "distCorrection" : false
       },
       "gldzm" : {
@@ -209,13 +224,55 @@
         },
         "coarseness" : 0
       },
+      "filter": false,
       "intensity" : "definite",
       "units" : "SUV",
       "type" : "PTscan"
-    },
-    "imParamFilter" : {}
   },
-
+  "imParamFilter" : {
+    "filter_type": "",
+    "mean" : {
+      "ndims" : 3,
+      "size" : 5,
+      "padding" : "symmetric",
+      "name_save" : ""
+    },
+    "log" : {
+      "ndims" : 3,
+      "sigma" : 1.5,
+      "orthogonal_rot" : false,
+      "padding" : "symmetric",
+      "name_save" : ""
+    },
+    "laws" : {
+      "config" : ["L5", "E5", "E5"],
+      "energy_distance" : 7,
+      "rot_invariance" : true,
+      "orthogonal_rot" : false,
+      "energy_image" : true,
+      "padding" : "symmetric",
+      "name_save" : ""
+    },
+    "gabor" : {
+      "sigma" : 5,
+      "_lambda" : 2,
+      "gamma" : 1.5,
+      "theta" : "Pi/8",
+      "rot_invariance" : true,
+      "orthogonal_rot" : true,
+      "padding" : "symmetric",
+      "name_save" : ""
+    },
+    "wavelet" : {
+      "ndims" : 3,
+      "basis_function" : "db3",
+      "subband" : "LLH",
+      "level" : 1,
+      "rot_invariance" : true,
+      "padding" : "symmetric",
+      "name_save" : "Wavelet_db3_LLH"
+    }
+  },
   "computeWavelet" : false,
   "waveletName" : "coif1",
   "segmentationMethod" : "InPolygon",
