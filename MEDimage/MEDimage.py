@@ -47,6 +47,10 @@ class MEDimage(object):
         except:
             self.type = ""
         try:
+            self.series_description = MEDimg.series_description
+        except:
+            self.series_description = ""
+        try:
             self.format = MEDimg.format
         except:
             self.format = ""
