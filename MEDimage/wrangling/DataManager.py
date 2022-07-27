@@ -332,7 +332,8 @@ class DataManager(object):
                     self.__scans.append(scan_type)
                 if scan_type not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]]:
                     self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type] = []
-                self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
+                if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
             else:
                 logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
                     "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
@@ -347,6 +348,8 @@ class DataManager(object):
             self.__warned = True
         elif self.keep_instances:
             self.instances.extend(ray.get(ids))
+            if len(self.instances) > 10:
+                self.instances = self.instances[:10]
 
         # Distribute the remaining tasks
         for _ in trange(n_scans):
@@ -360,38 +363,41 @@ class DataManager(object):
                                         self.save)])
                 nb_job_left -= 1
 
-        # Update the path to the created instances
-        for instance in ray.get(ids):
-            name_save = self.__get_MEDimage_name_save(instance)
-            if self.paths._path_save:
-                self.path_to_objects.extend(str(self.paths._path_save / name_save))
-            # Update processing summary
-            if name_save.split('_')[0].count('-') >= 2:
-                scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
-                if name_save.split('-')[0] not in self.__studies:
-                    self.__studies.append(name_save.split('-')[0])  # add new study
-                if name_save.split('-')[1] not in self.__institutions:
-                    self.__institutions.append(name_save.split('-')[1])  # add new study
-                if name_save.split('-')[0] not in self.summary:
-                    self.summary[name_save.split('-')[0]] = {}
-                if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
-                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = {}  # add new institution
-                if scan_type not in self.__scans:
-                    self.__scans.append(scan_type)
-                if scan_type not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]]:
-                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type] = []
-                self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
-            else:
-                logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
-                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
+            # Update the path to the created instances
+            for instance in ray.get(ids):
+                name_save = self.__get_MEDimage_name_save(instance)
+                if self.paths._path_save:
+                    self.path_to_objects.extend(str(self.paths._path_save / name_save))
+                # Update processing summary
+                if name_save.split('_')[0].count('-') >= 2:
+                    scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
+                    if name_save.split('-')[0] not in self.__studies:
+                        self.__studies.append(name_save.split('-')[0])  # add new study
+                    if name_save.split('-')[1] not in self.__institutions:
+                        self.__institutions.append(name_save.split('-')[1])  # add new study
+                    if name_save.split('-')[0] not in self.summary:
+                        self.summary[name_save.split('-')[0]] = {}
+                    if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
+                        self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = {}  # add new institution
+                    if scan_type not in self.__scans:
+                        self.__scans.append(scan_type)
+                    if scan_type not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]]:
+                        self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type] = []
+                    if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
+                        self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
+                else:
+                    logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                        "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
 
-        # Get MEDimage instances
-        if len(self.instances)>10 and not self.__warned:
-            warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
-                the rest of the instances will/can be saved locally only.")
-            self.__warned = True
-        else:
-            self.instances.extend(ray.get(ids))
+                # Get MEDimage instances
+                if len(self.instances)>10 and not self.__warned:
+                    warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
+                        the rest of the instances will/can be saved locally only.")
+                    self.__warned = True
+                elif self.keep_instances:
+                    self.instances.extend(ray.get(ids))
+                    if len(self.instances) > 10:
+                        self.instances = self.instances[:10]
         print('DONE')
 
         return self.instances
@@ -567,7 +573,8 @@ class DataManager(object):
                     self.__scans.append(scan_type)
                 if scan_type not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]]:
                     self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type] = []
-                self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
+                if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
             else:
                 logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
                     "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
@@ -618,9 +625,19 @@ class DataManager(object):
         """
         def count_scans(summary):
             count = 0
-            for study in summary:
-                for institution in summary[study]:
-                    count += len(summary[study][institution])
+            if type(summary) == dict:
+                for study in summary:
+                    if type(summary[study]) == dict:
+                        for institution in summary[study]:
+                            if type(summary[study][institution]) == dict:
+                                for scan in self.summary[study][institution]:
+                                    count += len(summary[study][institution][scan])
+                            else:
+                                count += len(summary[study][institution])
+                    else:
+                        count += len(summary[study])
+            elif type(summary) == list:
+                count = len(summary)
             return count
 
         summary_df = pd.DataFrame(columns=['study', 'institution', 'scan_type', 'roi_type', 'count'])
@@ -639,7 +656,7 @@ class DataManager(object):
                                             'institution': institution,
                                             'scan_type': "",
                                             'roi_type': "",
-                                            'count' : len(self.summary[study][institution])
+                                            'count' : count_scans(self.summary[study][institution])
                                             }, ignore_index=True)
                 for scan in self.summary[study][institution]:
                     summary_df = summary_df.append({
@@ -647,7 +664,7 @@ class DataManager(object):
                                                 'institution': institution,
                                                 'scan_type': scan,
                                                 'roi_type': "",
-                                                'count' : len(self.summary[study][institution][scan])
+                                                'count' : count_scans(self.summary[study][institution][scan])
                                                 }, ignore_index=True)
                     if self.csv_data:
                         patient_id = scan.split('_')[0]
