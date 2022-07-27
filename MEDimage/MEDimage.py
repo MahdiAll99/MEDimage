@@ -523,7 +523,11 @@ class MEDimage(object):
         Returns:
             None.
         """
-        path_save = Path(path_save)
+        if not (path_save / "features").exists():
+            (path_save / "features").mkdir()
+            path_save = Path(path_save / "features")
+        else:
+            path_save = Path(path_save)
         params = {}
         params['roi_type'] = roi_type
         params['patientID'] = self.patientID
