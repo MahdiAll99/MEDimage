@@ -82,24 +82,16 @@ class MEDimage(object):
         Returns:
             None.
         """
-        # MRI parameters
-        if(im_params['imParamMR']['reSeg']['range'] and im_params['imParamMR']['reSeg']['range'][1] == "inf"):
-            im_params['imParamMR']['reSeg']['range'][1] = np.inf
-
-        # CT parameters
-        if(im_params['imParamCT']['reSeg']['range'] and im_params['imParamCT']['reSeg']['range'][1] == "inf"):
-            im_params['imParamCT']['reSeg']['range'][1] = np.inf
-
-        # PET parameters
-        if(im_params['imParamPET']['reSeg']['range'] and im_params['imParamPET']['reSeg']['range'][1] == "inf"):
-            im_params['imParamPET']['reSeg']['range'][1] = np.inf
-        
         if self.type == 'CTscan' and 'imParamCT' in im_params:
             im_params = im_params['imParamCT']
         elif self.type == 'MRscan' and 'imParamMR' in im_params:
             im_params = im_params['imParamMR']
         elif self.type == 'PTscan' and 'imParamPET' in im_params:
             im_params = im_params['imParamPET']
+        
+        # re-segmentation range processing
+        if(im_params['reSeg']['range'] and im_params['reSeg']['range'][1] == "inf"):
+            im_params['reSeg']['range'][1] = np.inf
 
         # 10 voxels in all three dimensions are added to the smallest
         # bounding box. This setting is used to speed up interpolation
@@ -324,7 +316,7 @@ class MEDimage(object):
                             })
 
         except Exception as e:
-            message = f"\n PROBLEM WITH PRE-PROCESSING OF FEATURES IN init_NTF_Calculation(): \n {e}"
+            message = f"\n PROBLEM WITH PRE-PROCESSING OF FEATURES IN init_ntf_calculation(): \n {e}"
             logging.error(message)
             print(message)
             self.radiomics.image.update(
