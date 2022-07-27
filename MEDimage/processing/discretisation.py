@@ -12,8 +12,8 @@ from ..processing.equalization import equalization
 
 def discretisation(vol_re: np.ndarray,
                    discr_type: str,
-                   n_q=None,
-                   user_set_min_val=None,
+                   n_q: float=None,
+                   user_set_min_val: float=None,
                    ivh=False) -> Tuple[np.ndarray, float]:
     """Quantisizes the image intensities inside the ROI.
 
