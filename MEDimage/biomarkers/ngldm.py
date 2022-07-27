@@ -32,7 +32,7 @@ def extract_all(vol: np.ndarray,
         ngldm = get_ngldm_features_deprecated(vol=vol)
 
     elif method == "new":
-        ngldm = get_ngldm_features(vol=vol, intensity_range=[np.nan, np.nan])
+        ngldm = get_ngldm_features(vol=vol)
 
     else:
         raise ValueError("ngldm should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
@@ -41,7 +41,6 @@ def extract_all(vol: np.ndarray,
 
 
 def get_ngldm_features(vol: np.ndarray,
-                       intensity_range: np.ndarray,
                        ngldm_spatial_method: str="3d",
                        ngldm_diff_lvl: float=0.0,
                        ngldm_dist: float=1.0) -> Dict:
@@ -130,7 +129,7 @@ def get_ngldm_features(vol: np.ndarray,
                 # Calculate features
                 feat_run_list = []
                 for ngldm in upd_list:
-                    feat_run_list += [ngldm.compute_ngldm_features(intensity_range=intensity_range)]
+                    feat_run_list += [ngldm.compute_ngldm_features()]
 
                 # Average feature values
                 feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
