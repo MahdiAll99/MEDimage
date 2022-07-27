@@ -217,14 +217,15 @@ class BatchExtractor(object):
         )
         
         # Intensity histogram equalization of the imaging volume
-        if 'type' in MEDimg.params.process.ivh and 'val' in MEDimg.params.process.ivh and MEDimg.params.process.ivh:
-            vol_quant_re, wd = MEDimage.processing.discretisation(
-                    vol_re=vol_int_re,
-                    discr_type=MEDimg.params.process.ivh['type'], 
-                    n_q=MEDimg.params.process.ivh['val'], 
-                    user_set_min_val=MEDimg.params.process.user_set_min_value,
-                    ivh=True
-            )
+        if MEDimg.params.process.ivh and 'type' in MEDimg.params.process.ivh and 'val' in MEDimg.params.process.ivh:
+            if MEDimg.params.process.ivh['type'] and MEDimg.params.process.ivh['val']:
+                vol_quant_re, wd = MEDimage.processing.discretisation(
+                        vol_re=vol_int_re,
+                        discr_type=MEDimg.params.process.ivh['type'], 
+                        n_q=MEDimg.params.process.ivh['val'], 
+                        user_set_min_val=MEDimg.params.process.user_set_min_value,
+                        ivh=True
+                )
         else:
             vol_quant_re = vol_int_re
             wd = 1
