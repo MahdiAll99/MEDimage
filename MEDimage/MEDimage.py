@@ -163,23 +163,29 @@ class MEDimage(object):
         if 'imParamFilter' in filter_params:
             filter_params = filter_params['imParamFilter']
         
-        # ser filter type
-        self.params.filter.filter_type = filter_params['filter_type']
+        # set filter type
+        if 'filter_type' in filter_params:
+            self.params.filter.filter_type = filter_params['filter_type']
 
         # mean filter params
-        self.params.filter.mean.init_from_json(filter_params['mean'])
+        if 'mean' in filter_params:
+            self.params.filter.mean.init_from_json(filter_params['mean'])
 
         # log filter params
-        self.params.filter.log.init_from_json(filter_params['log'])
+        if 'log' in filter_params:
+            self.params.filter.log.init_from_json(filter_params['log'])
 
         # laws filter params
-        self.params.filter.laws.init_from_json(filter_params['laws'])
+        if 'laws' in filter_params:
+            self.params.filter.laws.init_from_json(filter_params['laws'])
 
         # gabor filter params
-        self.params.filter.gabor.init_from_json(filter_params['gabor'])
+        if 'gabor' in filter_params:
+            self.params.filter.gabor.init_from_json(filter_params['gabor'])
 
         # wavelet filter params
-        self.params.filter.wavelet.init_from_json(filter_params['wavelet'])
+        if 'wavelet' in filter_params:
+            self.params.filter.wavelet.init_from_json(filter_params['wavelet'])
 
     def init_params(self, im_param_scan: Dict) -> None:
         """Initializes the Params class from a dictionary.
