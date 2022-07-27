@@ -50,18 +50,6 @@ class BatchExtractor(object):
         self.roi_type_labels.extend(im_params['roi_type_labels'])
         self.n_bacth = im_params['n_batch'] if 'n_batch' in im_params else self.n_bacth
 
-        # MRI parameters
-        if(im_params['imParamMR']['reSeg']['range'] and im_params['imParamMR']['reSeg']['range'][1] == "inf"):
-            im_params['imParamMR']['reSeg']['range'][1] = np.inf
-
-        # CT parameters
-        if(im_params['imParamCT']['reSeg']['range'] and im_params['imParamCT']['reSeg']['range'][1] == "inf"):
-            im_params['imParamCT']['reSeg']['range'][1] = np.inf
-
-        # PET parameters
-        if(im_params['imParamPET']['reSeg']['range'] and im_params['imParamPET']['reSeg']['range'][1] == "inf"):
-            im_params['imParamPET']['reSeg']['range'][1] = np.inf
-
         # Get name save (for filtering purposes only)
         try:
             filter_type = im_params['imParamFilter']['filter_type']

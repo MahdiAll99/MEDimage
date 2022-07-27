@@ -82,6 +82,18 @@ class MEDimage(object):
         Returns:
             None.
         """
+        # MRI parameters
+        if(im_params['imParamMR']['reSeg']['range'] and im_params['imParamMR']['reSeg']['range'][1] == "inf"):
+            im_params['imParamMR']['reSeg']['range'][1] = np.inf
+
+        # CT parameters
+        if(im_params['imParamCT']['reSeg']['range'] and im_params['imParamCT']['reSeg']['range'][1] == "inf"):
+            im_params['imParamCT']['reSeg']['range'][1] = np.inf
+
+        # PET parameters
+        if(im_params['imParamPET']['reSeg']['range'] and im_params['imParamPET']['reSeg']['range'][1] == "inf"):
+            im_params['imParamPET']['reSeg']['range'][1] = np.inf
+        
         if self.type == 'CTscan' and 'imParamCT' in im_params:
             im_params = im_params['imParamCT']
         elif self.type == 'MRscan' and 'imParamMR' in im_params:
