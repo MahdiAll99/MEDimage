@@ -221,7 +221,7 @@ class BatchExtractor(object):
             vol_quant_re, wd = MEDimage.processing.discretisation(
                     vol_re=vol_int_re,
                     discr_type=MEDimg.params.process.ivh['type'], 
-                    nq=MEDimg.params.process.ivh['val'], 
+                    n_q=MEDimg.params.process.ivh['val'], 
                     user_set_min_val=MEDimg.params.process.user_set_min_value,
                     ivh=True
             )
