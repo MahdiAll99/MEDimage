@@ -12,7 +12,7 @@
   },
   "n_batch" : 16,
   "roi_type_labels" : [
-    "GTV"
+    "tumorAuto"
   ],
   "roi_types" : [
     "GTVp"
