@@ -45,7 +45,7 @@ class BatchExtractor(object):
         # Load json parameters
         im_params = MEDimage.utils.json_utils.load_json(self._path_params)
         
-        # Update class aattributes
+        # Update class attributes
         self.roi_types.extend(im_params['roi_types'])
         self.roi_type_labels.extend(im_params['roi_type_labels'])
         self.n_bacth = im_params['n_batch'] if 'n_batch' in im_params else self.n_bacth
