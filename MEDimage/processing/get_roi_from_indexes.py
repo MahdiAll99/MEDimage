@@ -6,13 +6,11 @@ import logging
 from typing import Tuple
 
 import numpy as np
+from MEDimage.MEDimage import MEDimage
+from MEDimage.processing.segmentation import compute_box, get_sep_roi_names
 
-from MEDimage import MEDimage
-
-from ..processing.compute_box import compute_box
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.parse_contour_string import parse_contour_string
-from .get_sep_roi_names import get_sep_roi_names
 
 
 def get_roi_from_indexes(

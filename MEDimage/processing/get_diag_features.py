@@ -6,7 +6,7 @@ from typing import Dict
 
 import numpy as np
 
-from .compute_bounding_box import compute_bounding_box
+from ..processing.segmentation import compute_bounding_box
 
 
 def get_diag_features(vol_obj: np.ndarray,

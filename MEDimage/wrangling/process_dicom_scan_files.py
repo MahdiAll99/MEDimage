@@ -14,7 +14,7 @@ from pathlib import Path
 
 from MEDimage.MEDimage import MEDimage
 
-from ..processing.get_roi import get_roi
+from ..processing.segmentation import get_roi
 from ..utils.save_MEDimage import save_MEDimage
 
 

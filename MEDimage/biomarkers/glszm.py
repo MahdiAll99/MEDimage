@@ -1,12 +1,74 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Dict
+from typing import Dict, List, Union
 
 import numpy as np
+import skimage.measure as skim
 
-from ..biomarkers.get_glszm_matrix import get_glszm_matrix
 
+def get_matrix(roi_only: np.ndarray, 
+                     levels: Union[np.ndarray, List]) -> Dict:
+    r"""
+    This function computes the Gray-Level Size Zone Matrix (GLSZM) of the
+    region of interest (ROI) of an input volume. The input volume is assumed
+    to be isotropically resampled. The zones of different sizes are computed
+    using 26-voxel connectivity.
+    This matrix refers to "Grey level size zone based features" (ID = 9SAK)  
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_. 
+
+    Note:
+        This function is compatible with 2D analysis (language not adapted in the text).
+
+    Args:
+        roi_only_int (ndarray): Smallest box containing the ROI, with the imaging data ready
+            for texture analysis computations. Voxels outside the ROI are
+            set to NaNs.
+        levels (ndarray or List): Vector containing the quantized gray-levels
+            in the tumor region (or reconstruction ``levels`` of quantization).
+
+    Returns:
+        ndarray: Array of Gray-Level Size Zone Matrix of ``roi_only``.
+
+    REFERENCES:
+        [1] Thibault, G., Fertil, B., Navarro, C., Pereira, S., Cau, P., Levy,
+        N., Mari, J.-L. (2009). Texture Indexes and Gray Level Size Zone
+        Matrix. Application to Cell Nuclei Classification. In Pattern
+        Recognition and Information Processing (PRIP) (pp. 140–145).
+    """
+
+    # PRELIMINARY
+    roi_only = roi_only.copy()
+    n_max = np.sum(~np.isnan(roi_only))
+    level_temp = np.max(levels) + 1
+    roi_only[np.isnan(roi_only)] = level_temp
+    levels = np.append(levels, level_temp)
+
+    # QUANTIZATION EFFECTS CORRECTION
+    # In case (for example) we initially wanted to have 64 levels, but due to
+    # quantization, only 60 resulted.
+    unique_vect = levels
+    n_l = np.size(levels) - 1
+
+    # INITIALIZATION
+    # THIS NEEDS TO BE CHANGED. THE ARRAY INITIALIZED COULD BE TOO BIG!
+    glszm = np.zeros((n_l, n_max))
+
+    # COMPUTATION OF glszm
+    temp = roi_only.copy().astype('int')
+    for i in range(1, n_l+1):
+        temp[roi_only != unique_vect[i-1]] = 0
+        temp[roi_only == unique_vect[i-1]] = 1
+        conn_objects, n_zone = skim.label(temp, return_num=True)
+        for j in range(1, n_zone+1):
+            col = np.sum(conn_objects == j)
+            glszm[i-1, col-1] = glszm[i-1, col-1] + 1
+
+    # REMOVE UNECESSARY COLUMNS
+    stop = np.nonzero(np.sum(glszm, 0))[0][-1]
+    glszm = np.delete(glszm, range(stop+1, np.shape(glszm)[1]), 1)
+
+    return glszm
 
 def extract_all(vol: np.ndarray,
                 glszm: np.ndarray = None) -> Dict:
@@ -40,12 +102,12 @@ def extract_all(vol: np.ndarray,
                       'Fszm_zs_var': [],
                       'Fszm_zs_entr': []}
 
-    # GET THE glszm MATRIX
+    # GET THE GLSZM MATRIX
     # Correct definition, without any assumption
     vol = vol.copy()
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
     if glszm is None:
-        glszm = get_glszm_matrix(vol, levels)
+        glszm = get_matrix(vol, levels)
     n_s = np.sum(glszm)
     glszm = glszm/np.sum(glszm)  # Normalization of glszm
     sz = np.shape(glszm)  # Size of glszm
@@ -118,8 +180,8 @@ def extract_all(vol: np.ndarray,
 
     return glszm_features
 
-def get_matrix(vol: np.ndarray) -> np.ndarray:
-    """Computes gray level size zone matrix.
+def get_single_matrix(vol: np.ndarray) -> np.ndarray:
+    """Computes gray level size zone matrix in order to compute the single features.
 
     Args:
         vol_int: 3D volume, isotropically resampled, 
@@ -137,7 +199,7 @@ def get_matrix(vol: np.ndarray) -> np.ndarray:
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
 
     # GET THE gldzm MATRIX
-    glszm = get_glszm_matrix(vol, levels)
+    glszm = get_matrix(vol, levels)
 
     return glszm
 

@@ -9,15 +9,13 @@ import numpy as np
 import pandas as pd
 from deprecated import deprecated
 
-from ..biomarkers.get_glrlm_matrix import get_glrlm_matrix
 from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   is_list_all_none)
 
 
 def extract_all(vol: np.ndarray,
                 dist_correction: typing.Union[bool, str]=None,
-                glrlm_merge_method: str="vol_merge",
-                method: str="new") -> Dict:
+                glrlm_merge_method: str="vol_merge") -> Dict:
     """Computes glrlm features.
     This features refer to Grey Level Run Length Matrix family in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
@@ -53,17 +51,11 @@ def extract_all(vol: np.ndarray,
         * Provide the range of discretised intensities from a calling function and pass to get_rlm_features.
         * Test if dist_correction works as expected.
     """
-    if method == "old":
-        rlm_features = get_rlm_features_deprecated(vol=vol, dist_correction=dist_correction)
 
-    elif method == "new":
-        rlm_features = get_rlm_features(vol=vol, 
-                                        glrlm_merge_method=glrlm_merge_method, 
-                                        dist_weight_norm=dist_correction)
 
-    else:
-        raise ValueError(
-            "glrlm should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
+    rlm_features = get_rlm_features(vol=vol, 
+                                    glrlm_merge_method=glrlm_merge_method, 
+                                    dist_weight_norm=dist_correction)
 
     return rlm_features
 
@@ -183,7 +175,7 @@ def get_rlm_features(vol: np.ndarray,
 
     return df_feat
 
-def get_rlm_matrix(vol: np.ndarray, 
+def get_matrix(vol: np.ndarray, 
                    glrlm_spatial_method: str="3d", 
                    glrlm_merge_method: str="vol_merge", 
                    dist_weight_norm: typing.Union[bool, str]=None) -> np.ndarray:
@@ -846,130 +838,6 @@ class RunLengthMatrix:
                 parse_str += "_v_mrg"
 
         return parse_str
-
-@deprecated(reason="Use the new and the faster method get_rlm_features()")
-def get_rlm_features_deprecated(vol: np.ndarray,
-                                dist_correction: typing.Union[bool, str]) -> Dict:
-    """Calculates grey level run length matrix features.
-
-    Note:
-        Deprecated code. Calculates grey level run length features, but slowly.
-        A newer and faster method is available : ``get_rlm_features()``
-
-    Args:
-        vol (ndarray): 3D input volume.
-        dist_correction (Union[bool, str], optional): Set this variable to true in order to use
-                                                      discretization length difference corrections as used
-                                                      by the `Institute of Physics and Engineering in
-                                                      Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
-                                                      Set this variable to false to replicate IBSI results.
-                                                      Or use string and specify the norm for distance weighting.
-                                                      Weighting is only performed if this argument is
-                                                      "manhattan", "euclidean" or "chebyshev".
-
-    Returns:
-        Dict: Dict of GLCM features.
-    """
-
-    extract_all = {'Frlm_sre': [],
-                    'Frlm_lre': [],
-                    'Frlm_lgre': [],
-                    'Frlm_hgre': [],
-                    'Frlm_srlge': [],
-                    'Frlm_srhge': [],
-                    'Frlm_lrlge': [],
-                    'Frlm_lrhge': [],
-                    'Frlm_glnu': [],
-                    'Frlm_glnu_norm': [],
-                    'Frlm_rlnu': [],
-                    'Frlm_rlnu_norm': [],
-                    'Frlm_r_perc': [],
-                    'Frlm_gl_var': [],
-                    'Frlm_rl_var': [],
-                    'Frlm_rl_entr': []}
-
-    # GET THE glrlm MATRIX
-    vol = vol.copy()
-    # Correct definition, without any assumption
-    levels = np.arange(1, np.max(vol[~np.isnan(vol[:])])+1)
-
-    if dist_correction is None:
-        glrlm = get_glrlm_matrix(vol, levels)
-    else:
-        glrlm = (get_glrlm_matrix(vol, levels, dist_correction))
-
-    n_s = np.sum(glrlm)
-    glrlm = glrlm/n_s  # Normalization of glrlm
-    s_z = np.shape(glrlm)  # Size of glrlm
-    c_vect = range(1, s_z[1]+1)  # Row vectors
-    r_vect = range(1, s_z[0]+1)  # Column vectors
-    # Column and row indicators for each entry of the glrlm
-    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
-    p_g = np.transpose(np.sum(glrlm, 1))  # Gray-Level Run-Number Vector
-    p_r = np.sum(glrlm, 0)  # Run-Length Run-Number Vector
-
-    ##############################################
-    ######          glrlm features          ######
-    ##############################################
-    # Short runs emphasis
-    extract_all['Frlm_sre'] = (np.matmul(p_r, np.transpose(np.power(1.0/np.array(c_vect), 2))))
-
-    # Long runs emphasis
-    extract_all['Frlm_lre'] = np.matmul(p_r, np.transpose(np.power(np.array(c_vect), 2)))
-
-    # Low grey level run emphasis
-    extract_all['Frlm_lgre'] = np.matmul(p_g, np.transpose(np.power(1.0/np.array(r_vect), 2)))
-
-    # High grey level run emphasis
-    extract_all['Frlm_hgre'] = np.matmul(p_g, np.transpose(np.power(np.array(r_vect), 2)))
-
-    # Short run low grey level emphasis
-    extract_all['Frlm_srlge'] = np.sum(np.sum(glrlm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
-
-    # Short run high grey level emphasis
-    extract_all['Frlm_srhge'] = np.sum(np.sum(glrlm*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
-
-    # Long run low grey levels emphasis
-    extract_all['Frlm_lrlge'] = np.sum(np.sum(glrlm*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
-
-    # Long run high grey level emphasis
-    extract_all['Frlm_lrhge'] = np.sum(np.sum(glrlm*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
-
-    # Gray level non-uniformity
-    temp = np.sum(np.power(p_g, 2))
-    extract_all['Frlm_glnu'] = temp * n_s
-
-    # Gray level non-uniformity normalised
-    extract_all['Frlm_glnu_norm'] = temp
-
-    # Run length non-uniformity
-    temp = np.sum(np.power(p_r, 2))
-    extract_all['Frlm_rlnu'] = temp * n_s
-
-    # Run length non-uniformity normalised
-    extract_all['Frlm_rlnu_norm'] = temp
-
-    # Run percentage
-    extract_all['Frlm_r_perc'] = np.sum(p_g)/(np.matmul(p_r, np.transpose(c_vect)))
-
-    # Grey level variance
-    temp = r_mat * glrlm
-    u = np.sum(temp)
-    temp = (np.power(r_mat - u, 2)) * glrlm
-    extract_all['Frlm_gl_var'] = np.sum(temp)
-
-    # Run length variance
-    temp = c_mat * glrlm
-    u = np.sum(temp)
-    temp = (np.power(c_mat - u, 2)) * glrlm
-    extract_all['Frlm_rl_var'] = np.sum(temp)
-
-    # Run entropy
-    val_pos = glrlm[np.nonzero(glrlm)]
-    temp = val_pos * np.log2(val_pos)
-    extract_all['Frlm_rl_entr'] = -np.sum(temp)
-
-    return extract_all
 
 def sre(upd_list: np.ndarray) -> float:
     """Compute Short runs emphasis feature from the run length matrices list.

@@ -7,12 +7,12 @@ import logging
 
 import numpy as np
 
-from MEDimage import MEDimage
+from MEDimage.MEDimage import MEDimage
+from MEDimage.processing.segmentation import compute_box
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
 from ..utils.interp3 import interp3
 
-from ..processing.compute_box import compute_box
 
 _logger = logging.getLogger(__name__)
 
