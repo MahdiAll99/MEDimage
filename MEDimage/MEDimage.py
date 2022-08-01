@@ -203,7 +203,7 @@ class MEDimage(object):
 
             # compute suv map for PT scans
             if self.type == 'PTscan':
-                _compute_suv_map = im_param_scan['computeSUVmap']
+                _compute_suv_map = im_param_scan['compute_suv_map']
             else :
                 _compute_suv_map = False
             
