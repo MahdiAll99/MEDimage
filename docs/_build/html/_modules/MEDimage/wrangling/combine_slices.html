@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEDimage.wrangling.combine_slices &mdash; MEDimage  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> MEDimage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDimage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../FAQs.html">FAQs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MEDimage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>MEDimage.wrangling.combine_slices</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MEDimage.wrangling.combine_slices</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">AUTHOR(S): This code DICOM-Numpy belongs to Copyright (c) 2017 Innolitics, LLC.</span>
+<span class="sd">           The original code has been adapted by MEDomicsLab consortium with</span>
+<span class="sd">           small modifications for customized use. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<div class="viewcode-block" id="combine_slices"><a class="viewcode-back" href="../../../wrangling.html#MEDimage.wrangling.combine_slices.combine_slices">[docs]</a><span class="k">def</span> <span class="nf">combine_slices</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a list of pydicom datasets for an image series, stitch them together into a</span>
+<span class="sd">    three-dimensional numpy array.  Also calculate a 4x4 affine transformation</span>
+<span class="sd">    matrix that converts the ijk-pixel-indices into the xyz-coordinates in the</span>
+<span class="sd">    DICOM patient&#39;s coordinate system.</span>
+<span class="sd">    Returns a two-tuple containing the 3D-ndarray and the affine matrix.</span>
+<span class="sd">    If `rescale` is set to `None` (the default), then the image array dtype</span>
+<span class="sd">    will be preserved, unless any of the DICOM images contain either the</span>
+<span class="sd">    `Rescale Slope</span>
+<span class="sd">    &lt;https://dicom.innolitics.com/ciods/ct-image/ct-image/00281053&gt;`_ or the</span>
+<span class="sd">    `Rescale Intercept &lt;https://dicom.innolitics.com/ciods/ct-image/ct-image/00281052&gt;`_</span>
+<span class="sd">    attributes.  If either of these attributes are present, they will be</span>
+<span class="sd">    applied to each slice individually.</span>
+<span class="sd">    If `rescale` is `True` the voxels will be cast to `float32`, if set to</span>
+<span class="sd">    `False`, the original dtype will be preserved even if DICOM rescaling information is present.</span>
+<span class="sd">    The returned array has the column-major byte-order.</span>
+<span class="sd">    This function requires that the datasets:</span>
+
+<span class="sd">    - Be in same series (have the same</span>
+<span class="sd">      `Series Instance UID &lt;https://dicom.innolitics.com/ciods/ct-image/general-series/0020000e&gt;`_,</span>
+<span class="sd">      `Modality &lt;https://dicom.innolitics.com/ciods/ct-image/general-series/00080060&gt;`_,</span>
+<span class="sd">      and `SOP Class UID &lt;https://dicom.innolitics.com/ciods/ct-image/sop-common/00080016&gt;`_).</span>
+<span class="sd">    - The binary storage of each slice must be the same (have the same</span>
+<span class="sd">      `Bits Allocated &lt;https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280100&gt;`_,</span>
+<span class="sd">      `Bits Stored &lt;https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280101&gt;`_,</span>
+<span class="sd">      `High Bit &lt;https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280102&gt;`_, and</span>
+<span class="sd">      `Pixel Representation &lt;https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280103&gt;`_).</span>
+<span class="sd">    - The image slice must approximately form a grid. This means there can not</span>
+<span class="sd">      be any missing internal slices (missing slices on the ends of the dataset</span>
+<span class="sd">      are not detected).</span>
+<span class="sd">    - It also means that  each slice must have the same</span>
+<span class="sd">      `Rows &lt;https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280010&gt;`_,</span>
+<span class="sd">      `Columns &lt;https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280011&gt;`_,</span>
+<span class="sd">      `Pixel Spacing &lt;https://dicom.innolitics.com/ciods/ct-image/image-plane/00280030&gt;`_, and</span>
+<span class="sd">      `Image Orientation (Patient) &lt;https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037&gt;`_</span>
+<span class="sd">      attribute values.</span>
+<span class="sd">    - The direction cosines derived from the</span>
+<span class="sd">      `Image Orientation (Patient) &lt;https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037&gt;`_</span>
+<span class="sd">      attribute must, within 1e-4, have a magnitude of 1.  The cosines must</span>
+<span class="sd">      also be approximately perpendicular (their dot-product must be within</span>
+<span class="sd">      1e-4 of 0).  Warnings are displayed if any of theseapproximations are</span>
+<span class="sd">      below 1e-8, however, since we have seen real datasets with values up to</span>
+<span class="sd">      1e-4, we let them pass.</span>
+<span class="sd">    - The `Image Position (Patient) &lt;https://dicom.innolitics.com/ciods/ct-image/image-plane/00200032&gt;`_</span>
+<span class="sd">      values must approximately form a line.</span>
+<span class="sd">      </span>
+<span class="sd">    If any of these conditions are not met, a `dicom_numpy.DicomImportException` is raised.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">slice_datasets</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must provide at least one DICOM dataset&quot;</span><span class="p">)</span>
+
+    <span class="n">_validate_slices_form_uniform_grid</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)</span>
+
+    <span class="n">voxels</span> <span class="o">=</span> <span class="n">_merge_slice_pixel_arrays</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)</span>
+    <span class="n">transform</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">scaling</span> <span class="o">=</span> <span class="n">_ijk_to_patient_xyz_transform_matrix</span><span class="p">(</span>
+        <span class="n">slice_datasets</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">voxels</span><span class="p">,</span> <span class="n">transform</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">scaling</span></div>
+
+
+<span class="k">def</span> <span class="nf">_merge_slice_pixel_arrays</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">):</span>
+    <span class="n">first_dataset</span> <span class="o">=</span> <span class="n">slice_datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">num_rows</span> <span class="o">=</span> <span class="n">first_dataset</span><span class="o">.</span><span class="n">Rows</span>
+    <span class="n">num_columns</span> <span class="o">=</span> <span class="n">first_dataset</span><span class="o">.</span><span class="n">Columns</span>
+    <span class="n">num_slices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)</span>
+
+    <span class="n">sorted_slice_datasets</span> <span class="o">=</span> <span class="n">_sort_by_slice_spacing</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">_requires_rescaling</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sorted_slice_datasets</span><span class="p">):</span>
+        <span class="n">voxels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">num_columns</span><span class="p">,</span> <span class="n">num_rows</span><span class="p">,</span> <span class="n">num_slices</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sorted_slice_datasets</span><span class="p">):</span>
+            <span class="n">slope</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;RescaleSlope&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">intercept</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;RescaleIntercept&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">voxels</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">pixel_array</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">*</span><span class="n">slope</span> <span class="o">+</span> <span class="n">intercept</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">first_dataset</span><span class="o">.</span><span class="n">pixel_array</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">voxels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">num_columns</span><span class="p">,</span> <span class="n">num_rows</span><span class="p">,</span> <span class="n">num_slices</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sorted_slice_datasets</span><span class="p">):</span>
+            <span class="n">voxels</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">pixel_array</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">return</span> <span class="n">voxels</span>
+
+
+<span class="k">def</span> <span class="nf">_requires_rescaling</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;RescaleSlope&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;RescaleIntercept&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_ijk_to_patient_xyz_transform_matrix</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">):</span>
+    <span class="n">first_dataset</span> <span class="o">=</span> <span class="n">_sort_by_slice_spacing</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">image_orientation</span> <span class="o">=</span> <span class="n">first_dataset</span><span class="o">.</span><span class="n">ImageOrientationPatient</span>
+    <span class="n">row_cosine</span><span class="p">,</span> <span class="n">column_cosine</span><span class="p">,</span> <span class="n">slice_cosine</span> <span class="o">=</span> <span class="n">_extract_cosines</span><span class="p">(</span>
+        <span class="n">image_orientation</span><span class="p">)</span>
+
+    <span class="n">row_spacing</span><span class="p">,</span> <span class="n">column_spacing</span> <span class="o">=</span> <span class="n">first_dataset</span><span class="o">.</span><span class="n">PixelSpacing</span>
+    <span class="n">slice_spacing</span> <span class="o">=</span> <span class="n">_slice_spacing</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)</span>
+
+    <span class="n">transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">rotation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">scaling</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">transform</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">row_cosine</span><span class="o">*</span><span class="n">column_spacing</span>
+    <span class="n">transform</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">column_cosine</span><span class="o">*</span><span class="n">row_spacing</span>
+    <span class="n">transform</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">slice_cosine</span><span class="o">*</span><span class="n">slice_spacing</span>
+
+    <span class="n">transform</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">first_dataset</span><span class="o">.</span><span class="n">ImagePositionPatient</span>
+
+    <span class="n">rotation</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">row_cosine</span>
+    <span class="n">rotation</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">column_cosine</span>
+    <span class="n">rotation</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">slice_cosine</span>
+
+    <span class="n">rotation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span>
+
+    <span class="n">scaling</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">column_spacing</span>
+    <span class="n">scaling</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">row_spacing</span>
+    <span class="n">scaling</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">slice_spacing</span>
+
+    <span class="k">return</span> <span class="n">transform</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">scaling</span>
+
+
+<div class="viewcode-block" id="_validate_slices_form_uniform_grid"><a class="viewcode-back" href="../../../wrangling.html#MEDimage.wrangling.combine_slices._validate_slices_form_uniform_grid">[docs]</a><span class="k">def</span> <span class="nf">_validate_slices_form_uniform_grid</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform various data checks to ensure that the list of slices form a</span>
+<span class="sd">    evenly-spaced grid of data.</span>
+<span class="sd">    Some of these checks are probably not required if the data follows the</span>
+<span class="sd">    DICOM specification, however it seems pertinent to check anyway.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">invariant_properties</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;Modality&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;SOPClassUID&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;SeriesInstanceUID&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Rows&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;Columns&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;ImageOrientationPatient&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PixelSpacing&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PixelRepresentation&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;BitsAllocated&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;BitsStored&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HighBit&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">property_name</span> <span class="ow">in</span> <span class="n">invariant_properties</span><span class="p">:</span>
+        <span class="n">_slice_attribute_equal</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">,</span> <span class="n">property_name</span><span class="p">)</span>
+
+    <span class="n">_validate_image_orientation</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ImageOrientationPatient</span><span class="p">)</span>
+
+    <span class="n">slice_positions</span> <span class="o">=</span> <span class="n">_slice_positions</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)</span>
+    <span class="n">_check_for_missing_slices</span><span class="p">(</span><span class="n">slice_positions</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="_validate_image_orientation"><a class="viewcode-back" href="../../../wrangling.html#MEDimage.wrangling.combine_slices._validate_image_orientation">[docs]</a><span class="k">def</span> <span class="nf">_validate_image_orientation</span><span class="p">(</span><span class="n">image_orientation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ensure that the image orientation is supported</span>
+<span class="sd">    - The direction cosines have magnitudes of 1 (just in case)</span>
+<span class="sd">    - The direction cosines are perpendicular</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">row_cosine</span><span class="p">,</span> <span class="n">column_cosine</span><span class="p">,</span> <span class="n">slice_cosine</span> <span class="o">=</span> <span class="n">_extract_cosines</span><span class="p">(</span>
+        <span class="n">image_orientation</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_almost_zero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">row_cosine</span><span class="p">,</span> <span class="n">column_cosine</span><span class="p">),</span> <span class="mf">1e-4</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Non-orthogonal direction cosines: </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row_cosine</span><span class="p">,</span> <span class="n">column_cosine</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">_almost_zero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">row_cosine</span><span class="p">,</span> <span class="n">column_cosine</span><span class="p">),</span> <span class="mf">1e-8</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Direction cosines aren&#39;t quite orthogonal: </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">row_cosine</span><span class="p">,</span> <span class="n">column_cosine</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_almost_one</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">row_cosine</span><span class="p">),</span> <span class="mf">1e-4</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The row direction cosine&#39;s magnitude is not 1: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row_cosine</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">_almost_one</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">row_cosine</span><span class="p">),</span> <span class="mf">1e-8</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;The row direction cosine&#39;s magnitude is not quite 1: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">row_cosine</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_almost_one</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">column_cosine</span><span class="p">),</span> <span class="mf">1e-4</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;The column direction cosine&#39;s magnitude is not 1: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column_cosine</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">_almost_one</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">column_cosine</span><span class="p">),</span> <span class="mf">1e-8</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;The column direction cosine&#39;s magnitude is not quite 1: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">column_cosine</span><span class="p">))</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="is_close"><a class="viewcode-back" href="../../../wrangling.html#MEDimage.wrangling.combine_slices.is_close">[docs]</a><span class="k">def</span> <span class="nf">is_close</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">a</span><span class="o">-</span><span class="n">b</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">max</span><span class="p">(</span><span class="n">rel_tol</span><span class="o">*</span><span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">b</span><span class="p">)),</span> <span class="n">abs_tol</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_almost_zero</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">abs_tol</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">is_close</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="n">abs_tol</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_almost_one</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">abs_tol</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">is_close</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="n">abs_tol</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_extract_cosines</span><span class="p">(</span><span class="n">image_orientation</span><span class="p">):</span>
+    <span class="n">row_cosine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">image_orientation</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">column_cosine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">image_orientation</span><span class="p">[</span><span class="mi">3</span><span class="p">:])</span>
+    <span class="n">slice_cosine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">row_cosine</span><span class="p">,</span> <span class="n">column_cosine</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">row_cosine</span><span class="p">,</span> <span class="n">column_cosine</span><span class="p">,</span> <span class="n">slice_cosine</span>
+
+
+<span class="k">def</span> <span class="nf">_slice_attribute_equal</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">,</span> <span class="n">property_name</span><span class="p">):</span>
+    <span class="n">initial_value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">property_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">slice_datasets</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">property_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">initial_value</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;All slices must have the same value for &quot;</span><span class="si">{}</span><span class="s1">&quot;: </span><span class="si">{}</span><span class="s1"> != </span><span class="si">{}</span><span class="s1">&#39;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">property_name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">initial_value</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_slice_positions</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">):</span>
+    <span class="n">image_orientation</span> <span class="o">=</span> <span class="n">slice_datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ImageOrientationPatient</span>
+    <span class="n">row_cosine</span><span class="p">,</span> <span class="n">column_cosine</span><span class="p">,</span> <span class="n">slice_cosine</span> <span class="o">=</span> <span class="n">_extract_cosines</span><span class="p">(</span>
+        <span class="n">image_orientation</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">slice_cosine</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">ImagePositionPatient</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">slice_datasets</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_check_for_missing_slices</span><span class="p">(</span><span class="n">slice_positions</span><span class="p">):</span>
+    <span class="n">slice_positions_diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">slice_positions</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">slice_positions_diffs</span><span class="p">,</span> <span class="n">slice_positions_diffs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The slice spacing is non-uniform. Slice spacings:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">slice_positions_diffs</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">slice_positions_diffs</span><span class="p">,</span> <span class="n">slice_positions_diffs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;It appears there are missing slices&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_slice_spacing</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">slice_positions</span> <span class="o">=</span> <span class="n">_slice_positions</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)</span>
+        <span class="n">slice_positions_diffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">slice_positions</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">slice_positions_diffs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="mf">0.0</span>
+
+
+<span class="k">def</span> <span class="nf">_sort_by_slice_spacing</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">):</span>
+    <span class="n">slice_spacing</span> <span class="o">=</span> <span class="n">_slice_positions</span><span class="p">(</span><span class="n">slice_datasets</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">slice_spacing</span><span class="p">,</span> <span class="n">slice_datasets</span><span class="p">))]</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MEDimage.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

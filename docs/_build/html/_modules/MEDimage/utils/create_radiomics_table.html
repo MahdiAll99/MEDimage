@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEDimage.utils.create_radiomics_table &mdash; MEDimage  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> MEDimage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDimage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../FAQs.html">FAQs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MEDimage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>MEDimage.utils.create_radiomics_table</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MEDimage.utils.create_radiomics_table</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">load</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">..utils.get_patient_id_from_scan_name</span> <span class="kn">import</span> <span class="n">get_patient_id_from_scan_name</span>
+<span class="kn">from</span> <span class="nn">..utils.initialize_features_names</span> <span class="kn">import</span> <span class="n">initialize_features_names</span>
+
+
+<div class="viewcode-block" id="create_radiomics_table"><a class="viewcode-back" href="../../../MEDimage.utils.html#MEDimage.utils.create_radiomics_table.create_radiomics_table">[docs]</a><span class="k">def</span> <span class="nf">create_radiomics_table</span><span class="p">(</span><span class="n">radiomics_files_paths</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">image_space</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">log_file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a dictionary with a csv and other information</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        radiomics_files_paths(List): List of paths to the radiomics JSON files.</span>
+<span class="sd">        image_space(str): String of the image space that contains the extracted features</span>
+<span class="sd">        log_file(Union[str, Path]): Path to logging file.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict: Dictionary containing the extracted radiomics and other info (patientID, feature names...)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">log_file</span><span class="p">:</span>
+        <span class="c1"># Setting up logging settings</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">log_file</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+    
+    <span class="c1"># INITIALIZATIONS OF RADIOMICS STRUCTURES</span>
+    <span class="n">n_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">radiomics_files_paths</span><span class="p">)</span>
+    <span class="n">patientID</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_files</span>
+    <span class="n">rad_structs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_files</span>
+    <span class="n">file_open</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_files</span>
+
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_files</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">radiomics_files_paths</span><span class="p">[</span><span class="n">f</span><span class="p">],</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span> 
+            <span class="n">radStruct</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+        <span class="n">rad_structs</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">radStruct</span>
+        <span class="n">file_open</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">patientID</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_patient_id_from_scan_name</span><span class="p">(</span><span class="n">radiomics_files_paths</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+
+    <span class="c1"># INITIALIZE FEATURE NAMES</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">nFiles: </span><span class="si">{</span><span class="n">n_files</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">rand_patient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">n_files</span> <span class="o">*</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">radiomics_files_paths</span><span class="p">[</span><span class="n">rand_patient</span><span class="p">],</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span> 
+        <span class="n">radiomics_struct</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+
+    <span class="c1"># IMAGE SPACE STRUCTURE --&gt; .morph, .locInt, ...,  .texture</span>
+    <span class="n">image_space_struct</span> <span class="o">=</span> <span class="n">radiomics_struct</span><span class="p">[</span><span class="n">image_space</span><span class="p">]</span>
+    <span class="n">non_text_cell</span><span class="p">,</span> <span class="n">text_cell</span> <span class="o">=</span> <span class="n">initialize_features_names</span><span class="p">(</span><span class="n">image_space_struct</span><span class="p">)</span>
+
+    <span class="c1"># CREATE TABLE DATA</span>
+    <span class="n">features_name_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">str_table</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">str_names</span> <span class="o">=</span> <span class="s1">&#39;||&#39;</span>
+    <span class="n">count_var</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Non-texture features</span>
+    <span class="k">for</span> <span class="n">im_type</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">non_text_cell</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">non_text_cell</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">im_type</span><span class="p">])):</span>
+            <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">non_text_cell</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">im_type</span><span class="p">])):</span>
+                <span class="n">count_var</span> <span class="o">=</span> <span class="n">count_var</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">feature_name</span> <span class="o">=</span> <span class="s1">&#39;radVar&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_var</span><span class="p">)</span>
+                <span class="n">features_name_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">feature_name</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_files</span><span class="p">})</span>
+                <span class="n">real_name_feature</span> <span class="o">=</span> <span class="n">non_text_cell</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">im_type</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;__&#39;</span> <span class="o">+</span> \
+                    <span class="n">non_text_cell</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">im_type</span><span class="p">][</span><span class="n">feat</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;__&#39;</span> <span class="o">+</span> \
+                    <span class="n">non_text_cell</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">im_type</span><span class="p">][</span><span class="n">param</span><span class="p">]</span>
+                <span class="n">str_table</span> <span class="o">=</span> <span class="n">str_table</span> <span class="o">+</span> <span class="n">feature_name</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span>
+                <span class="n">str_names</span> <span class="o">=</span> <span class="n">str_names</span> <span class="o">+</span> <span class="n">feature_name</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">real_name_feature</span> <span class="o">+</span> <span class="s1">&#39;||&#39;</span>
+
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_files</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">file_open</span><span class="p">[</span><span class="n">f</span><span class="p">]:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">rad_structs</span><span class="p">[</span><span class="n">f</span><span class="p">][</span><span class="n">image_space</span><span class="p">][</span>
+                                <span class="n">non_text_cell</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">im_type</span><span class="p">]][</span>
+                                <span class="n">non_text_cell</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">im_type</span><span class="p">][</span><span class="n">param</span><span class="p">]][</span>
+                                <span class="n">non_text_cell</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">im_type</span><span class="p">][</span><span class="n">feat</span><span class="p">]]</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
+                        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
+                    <span class="n">features_name_dict</span><span class="p">[</span><span class="n">feature_name</span><span class="p">][</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="c1"># Texture features</span>
+    <span class="k">for</span> <span class="n">im_type</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text_cell</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text_cell</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">im_type</span><span class="p">])):</span>
+            <span class="k">for</span> <span class="n">feat</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">text_cell</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">im_type</span><span class="p">])):</span>
+                <span class="n">count_var</span> <span class="o">=</span> <span class="n">count_var</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">feature_name</span> <span class="o">=</span> <span class="s1">&#39;radVar&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count_var</span><span class="p">)</span>
+                <span class="n">features_name_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">feature_name</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_files</span><span class="p">})</span>
+                <span class="n">real_name_feature</span> <span class="o">=</span> <span class="n">text_cell</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">im_type</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;__&#39;</span> <span class="o">+</span> \
+                    <span class="n">text_cell</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">im_type</span><span class="p">][</span><span class="n">feat</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;__&#39;</span> <span class="o">+</span> \
+                    <span class="n">text_cell</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">im_type</span><span class="p">][</span><span class="n">param</span><span class="p">]</span>
+                <span class="n">str_table</span> <span class="o">=</span> <span class="n">str_table</span> <span class="o">+</span> <span class="n">feature_name</span> <span class="o">+</span> <span class="s1">&#39;,&#39;</span>
+                <span class="n">str_names</span> <span class="o">=</span> <span class="n">str_names</span> <span class="o">+</span> <span class="n">feature_name</span> <span class="o">+</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">real_name_feature</span> <span class="o">+</span> <span class="s1">&#39;||&#39;</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_files</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">file_open</span><span class="p">[</span><span class="n">f</span><span class="p">]:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">rad_structs</span><span class="p">[</span><span class="n">f</span><span class="p">][</span><span class="n">image_space</span><span class="p">][</span><span class="s1">&#39;texture&#39;</span><span class="p">][</span>
+                                <span class="n">text_cell</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">im_type</span><span class="p">]][</span>
+                                <span class="n">text_cell</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">im_type</span><span class="p">][</span><span class="n">param</span><span class="p">]][</span>
+                                <span class="n">text_cell</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">im_type</span><span class="p">][</span><span class="n">feat</span><span class="p">]]</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
+                        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
+                    <span class="n">features_name_dict</span><span class="p">[</span><span class="n">feature_name</span><span class="p">][</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="n">radiomics_table_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Table&#39;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">features_name_dict</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">patientID</span><span class="p">),</span>
+        <span class="s1">&#39;Properties&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;UserData&#39;</span><span class="p">:</span> <span class="n">str_names</span><span class="p">,</span>
+                       <span class="s1">&#39;RowNames&#39;</span><span class="p">:</span> <span class="n">patientID</span><span class="p">,</span>
+                       <span class="s1">&#39;DimensionNames&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;PatientID&#39;</span><span class="p">,</span> <span class="s1">&#39;Variables&#39;</span><span class="p">],</span>
+                       <span class="s1">&#39;VariableNames&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">features_name_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+                       <span class="p">}}</span>
+
+    <span class="k">return</span> <span class="n">radiomics_table_dict</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MEDimage.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

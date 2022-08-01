@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEDimage.processing.discretisation &mdash; MEDimage  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> MEDimage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDimage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../FAQs.html">FAQs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MEDimage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>MEDimage.processing.discretisation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MEDimage.processing.discretisation</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">skimage.exposure</span> <span class="kn">import</span> <span class="n">equalize_hist</span>
+
+
+<div class="viewcode-block" id="equalization"><a class="viewcode-back" href="../../../MEDimage.processing.html#MEDimage.processing.discretisation.equalization">[docs]</a><span class="k">def</span> <span class="nf">equalization</span><span class="p">(</span><span class="n">vol_re</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Performs histogram equalisation of the ROI imaging intensities.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        This is a pure &quot;what is contained within the roi&quot; equalization. this is</span>
+<span class="sd">        not influenced by the :func:`user_set_min_val()` used for FBS discretisation.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vol_re (ndarray): 3D array of the image volume that will be studied with</span>
+<span class="sd">                          NaN value for the excluded voxels (voxels outside the ROI mask).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: Same input image volume but with redistributed intensities.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># AZ: This was made part of the function call</span>
+    <span class="c1"># n_g = 64</span>
+    <span class="c1"># This is the default we will use. It means that when using &#39;FBS&#39;,</span>
+    <span class="c1"># n_q should be chosen wisely such</span>
+    <span class="c1"># that the total number of grey levels does not exceed 64, for all</span>
+    <span class="c1"># patients (recommended).</span>
+    <span class="c1"># This choice was amde by considering that the best equalization</span>
+    <span class="c1"># performance for &quot;histeq.m&quot; is obtained with low n_g.</span>
+    <span class="c1"># WARNING: The effective number of grey levels coming out of &quot;histeq.m&quot;</span>
+    <span class="c1"># may be lower than n_g.</span>
+
+    <span class="c1"># CONSERVE THE INDICES OF THE ROI</span>
+    <span class="n">x_gl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">vol_re</span><span class="p">)</span>
+    <span class="n">ind_roi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">vol_re</span><span class="p">))</span>
+    <span class="n">x_gl</span> <span class="o">=</span> <span class="n">x_gl</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x_gl</span><span class="p">)]</span>
+
+    <span class="c1"># ADJUST RANGE BETWEEN 0 and 1</span>
+    <span class="n">min_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">x_gl</span><span class="p">)</span>
+    <span class="n">max_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x_gl</span><span class="p">)</span>
+    <span class="n">x_gl_01</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_gl</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">max_val</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span>
+
+    <span class="c1"># EQUALIZATION</span>
+    <span class="c1"># x_gl_equal = equalize_hist(x_gl_01, nbins=n_g)</span>
+    <span class="c1"># AT THE MOMENT, WE CHOOSE TO USE THE DEFAULT NUMBER OF BINS OF</span>
+    <span class="c1"># equalize_hist.py (256)</span>
+    <span class="n">x_gl_equal</span> <span class="o">=</span> <span class="n">equalize_hist</span><span class="p">(</span><span class="n">x_gl_01</span><span class="p">)</span>
+    <span class="c1"># RE-ADJUST TO CORRECT RANGE</span>
+    <span class="n">x_gl_equal</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_gl_equal</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">x_gl_equal</span><span class="p">))</span> <span class="o">/</span> \
+        <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x_gl_equal</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">x_gl_equal</span><span class="p">))</span>
+    <span class="n">x_gl_equal</span> <span class="o">=</span> <span class="n">x_gl_equal</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_val</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span>
+    <span class="n">x_gl_equal</span> <span class="o">=</span> <span class="n">x_gl_equal</span> <span class="o">+</span> <span class="n">min_val</span>
+
+    <span class="c1"># RECONSTRUCT THE VOLUME WITH EQUALIZED VALUES</span>
+    <span class="n">vol_equal_re</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">vol_re</span><span class="p">)</span>
+
+    <span class="n">vol_equal_re</span><span class="p">[</span><span class="n">ind_roi</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_gl_equal</span>
+
+    <span class="k">return</span> <span class="n">vol_equal_re</span></div>
+
+<div class="viewcode-block" id="discretize"><a class="viewcode-back" href="../../../MEDimage.processing.html#MEDimage.processing.discretisation.discretize">[docs]</a><span class="k">def</span> <span class="nf">discretize</span><span class="p">(</span><span class="n">vol_re</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                   <span class="n">discr_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                   <span class="n">n_q</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">user_set_min_val</span><span class="p">:</span> <span class="nb">float</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">ivh</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Quantisizes the image intensities inside the ROI.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        For &#39;FBS&#39; type, it is assumed that re-segmentation with</span>
+<span class="sd">        proper range was already performed</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vol_re (ndarray): 3D array of the image volume that will be studied with</span>
+<span class="sd">                          NaN value for the excluded voxels (voxels outside the ROI mask).</span>
+<span class="sd">        discr_type (str): Discretisaion approach/type must be: &quot;FBS&quot;, &quot;FBN&quot;, &quot;FBSequal&quot;</span>
+<span class="sd">                          or &quot;FBNequal&quot;.</span>
+<span class="sd">        n_q (float): Number of bins for FBS algorithm and bin width for FBN algorithm.</span>
+<span class="sd">        user_set_min_val (float): Minimum of range re-segmentation for FBS discretisation,</span>
+<span class="sd">                                  for FBN discretisation, this value has no importance as an argument</span>
+<span class="sd">                                  and will not be used.</span>
+<span class="sd">        ivh (bool): Must be set to True for IVH (Intensity-Volume histogram) features.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        2-element tuple containing</span>
+
+<span class="sd">        - ndarray: Same input image volume but with discretised intensities.</span>
+<span class="sd">        - float: bin width.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># AZ: NOTE: the &quot;type&quot; variable that appeared in the MATLAB source code</span>
+    <span class="c1"># matches the name of a standard python function. I have therefore renamed</span>
+    <span class="c1"># this variable &quot;discr_type&quot;</span>
+
+    <span class="c1"># PARSING ARGUMENTS</span>
+    <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">vol_re</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">n_q</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_q</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="n">n_q</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_q</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">discr_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;FBS&quot;</span><span class="p">,</span> <span class="s2">&quot;FBN&quot;</span><span class="p">,</span> <span class="s2">&quot;FBSequal&quot;</span><span class="p">,</span> <span class="s2">&quot;FBNequal&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;discr_type must either be </span><span class="se">\&quot;</span><span class="s2">FBS</span><span class="se">\&quot;</span><span class="s2">, </span><span class="se">\&quot;</span><span class="s2">FBN</span><span class="se">\&quot;</span><span class="s2">, </span><span class="se">\&quot;</span><span class="s2">FBSequal</span><span class="se">\&quot;</span><span class="s2"> or </span><span class="se">\&quot;</span><span class="s2">FBNequal</span><span class="se">\&quot;</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># DISCRETISATION</span>
+    <span class="k">if</span> <span class="n">discr_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;FBS&quot;</span><span class="p">,</span> <span class="s2">&quot;FBSequal&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">user_set_min_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">min_val</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">user_set_min_val</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">min_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">vol_quant_re</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">min_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">vol_quant_re</span><span class="p">)</span>
+
+    <span class="n">max_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">vol_quant_re</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">discr_type</span> <span class="o">==</span> <span class="s2">&quot;FBS&quot;</span><span class="p">:</span>
+        <span class="n">w_b</span> <span class="o">=</span> <span class="n">n_q</span>
+        <span class="n">w_d</span> <span class="o">=</span> <span class="n">w_b</span>
+        <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">vol_quant_re</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span> <span class="o">/</span> <span class="n">w_b</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">discr_type</span> <span class="o">==</span> <span class="s2">&quot;FBN&quot;</span><span class="p">:</span>
+        <span class="n">w_b</span> <span class="o">=</span> <span class="p">(</span><span class="n">max_val</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_q</span>
+        <span class="n">w_d</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
+            <span class="n">n_q</span> <span class="o">*</span> <span class="p">((</span><span class="n">vol_quant_re</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">max_val</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)))</span> <span class="o">+</span> <span class="mf">1.0</span>
+        <span class="n">vol_quant_re</span><span class="p">[</span><span class="n">vol_quant_re</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">vol_quant_re</span><span class="p">)]</span> <span class="o">=</span> <span class="n">n_q</span>
+    <span class="k">elif</span> <span class="n">discr_type</span> <span class="o">==</span> <span class="s2">&quot;FBSequal&quot;</span><span class="p">:</span>
+        <span class="n">w_b</span> <span class="o">=</span> <span class="n">n_q</span>
+        <span class="n">w_d</span> <span class="o">=</span> <span class="n">w_b</span>
+        <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">equalization</span><span class="p">(</span><span class="n">vol_quant_re</span><span class="p">)</span>
+        <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">vol_quant_re</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span> <span class="o">/</span> <span class="n">w_b</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">discr_type</span> <span class="o">==</span> <span class="s2">&quot;FBNequal&quot;</span><span class="p">:</span>
+        <span class="n">w_b</span> <span class="o">=</span> <span class="p">(</span><span class="n">max_val</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_q</span>
+        <span class="n">w_d</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">vol_quant_re</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">equalization</span><span class="p">(</span><span class="n">vol_quant_re</span><span class="p">)</span>
+        <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
+            <span class="n">n_q</span> <span class="o">*</span> <span class="p">((</span><span class="n">vol_quant_re</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">max_val</span> <span class="o">-</span> <span class="n">min_val</span><span class="p">)))</span> <span class="o">+</span> <span class="mf">1.0</span>
+        <span class="n">vol_quant_re</span><span class="p">[</span><span class="n">vol_quant_re</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">vol_quant_re</span><span class="p">)]</span> <span class="o">=</span> <span class="n">n_q</span>
+    <span class="k">if</span> <span class="n">ivh</span> <span class="ow">and</span> <span class="n">discr_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;FBS&quot;</span><span class="p">,</span> <span class="s2">&quot;FBSequal&quot;</span><span class="p">]:</span>
+        <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">min_val</span> <span class="o">+</span> <span class="p">(</span><span class="n">vol_quant_re</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">w_b</span>
+
+    <span class="k">return</span> <span class="n">vol_quant_re</span><span class="p">,</span> <span class="n">w_d</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MEDimage.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

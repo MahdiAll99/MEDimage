@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEDimage.biomarkers.local_intensity &mdash; MEDimage  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> MEDimage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDimage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../FAQs.html">FAQs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MEDimage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>MEDimage.biomarkers.local_intensity</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MEDimage.biomarkers.local_intensity</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
+
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">ndarray</span>
+
+<span class="kn">from</span> <span class="nn">..biomarkers.utils</span> <span class="kn">import</span> <span class="n">get_glob_peak</span><span class="p">,</span> <span class="n">get_loc_peak</span>
+
+
+<div class="viewcode-block" id="extract_all"><a class="viewcode-back" href="../../../MEDimage.biomarkers.html#MEDimage.biomarkers.local_intensity.extract_all">[docs]</a><span class="k">def</span> <span class="nf">extract_all</span><span class="p">(</span><span class="n">img_obj</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+                <span class="n">roi_obj</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+                <span class="n">res</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+                <span class="n">intensity</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Compute Local Intensity Features.</span>
+<span class="sd">    This features refer to Local Intensity family in </span>
+<span class="sd">    the `IBSI1 reference manual &lt;https://arxiv.org/pdf/1612.07003.pdf&gt;`_.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img_obj (ndarray): Continuous image intensity distribution, with no NaNs</span>
+<span class="sd">            outside the ROI.</span>
+<span class="sd">        roi_obj (ndarray): Array of the mask defining the ROI.</span>
+<span class="sd">        res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.</span>
+<span class="sd">            XYZ resolution (world), or JIK resolution (intrinsic matlab).</span>
+<span class="sd">        intensity (str, optional): If &#39;arbitrary&#39;, some feature will not be computed.</span>
+<span class="sd">            If &#39;definite&#39;, all feature will be computed. If not present as an</span>
+<span class="sd">            argument, all features will be computed. Here, &#39;filter&#39; is the same as</span>
+<span class="sd">            &#39;arbitrary&#39;.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict: Dict of the Local Intensity Features.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If `intensity` is not &quot;arbitrary&quot;, &quot;definite&quot; or &quot;filter&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># INITIALIZATION</span>
+    <span class="k">if</span> <span class="n">intensity</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">intensity</span> <span class="o">==</span> <span class="s1">&#39;definite&#39;</span><span class="p">:</span>
+        <span class="n">definite</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">intensity</span> <span class="o">==</span> <span class="s1">&#39;arbitrary&#39;</span> <span class="ow">or</span> <span class="n">intensity</span> <span class="o">==</span> <span class="s1">&#39;filter&#39;</span><span class="p">:</span>
+        <span class="n">definite</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Fourth argument must either be &quot;arbitrary&quot; or </span><span class="se">\</span>
+<span class="s1">                         &quot;definite&quot; or &quot;filter&quot; or None&#39;</span><span class="p">)</span>
+
+    <span class="n">loc_int</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Floc_peak_local&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;Floc_peak_global&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+    <span class="c1"># Local grey level peak</span>
+    <span class="k">if</span> <span class="n">definite</span><span class="p">:</span>
+        <span class="n">loc_int</span><span class="p">[</span><span class="s1">&#39;Floc_peak_local&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">get_loc_peak</span><span class="p">(</span><span class="n">img_obj</span><span class="p">,</span> <span class="n">roi_obj</span><span class="p">,</span> <span class="n">res</span><span class="p">))</span>
+
+        <span class="c1"># NEEDS TO BE VECTORIZED FOR FASTER CALCULATION! OR</span>
+        <span class="c1"># SIMPLY JUST CONVOLUTE A 3D AVERAGING FILTER!</span>
+        <span class="c1"># loc_int[&#39;Floc_peak_global&#39;] = (getGlobPeak(img_obj,roi_obj,res))</span>
+
+    <span class="k">return</span> <span class="n">loc_int</span></div>
+
+<div class="viewcode-block" id="peak_local"><a class="viewcode-back" href="../../../MEDimage.biomarkers.html#MEDimage.biomarkers.local_intensity.peak_local">[docs]</a><span class="k">def</span> <span class="nf">peak_local</span><span class="p">(</span><span class="n">img_obj</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+               <span class="n">roi_obj</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+               <span class="n">res</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Computes local intensity peak.</span>
+<span class="sd">    This feature refers to &quot;Floc_peak_local&quot; (ID = VJGA) in </span>
+<span class="sd">    the `IBSI1 reference manual &lt;https://arxiv.org/pdf/1612.07003.pdf&gt;`_.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img_obj (ndarray): Continuous image intensity distribution, with no NaNs</span>
+<span class="sd">            outside the ROI.</span>
+<span class="sd">        roi_obj (ndarray): Array of the mask defining the ROI.</span>
+<span class="sd">        res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.</span>
+<span class="sd">            XYZ resolution (world), or JIK resolution (intrinsic matlab).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: Local intensity peak.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">get_loc_peak</span><span class="p">(</span><span class="n">img_obj</span><span class="p">,</span> <span class="n">roi_obj</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="peak_global"><a class="viewcode-back" href="../../../MEDimage.biomarkers.html#MEDimage.biomarkers.local_intensity.peak_global">[docs]</a><span class="k">def</span> <span class="nf">peak_global</span><span class="p">(</span><span class="n">img_obj</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+                <span class="n">roi_obj</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+                <span class="n">res</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Computes global intensity peak.</span>
+<span class="sd">    This feature refers to &quot;Floc_peak_global&quot; (ID = 0F91) in </span>
+<span class="sd">    the `IBSI1 reference manual &lt;https://arxiv.org/pdf/1612.07003.pdf&gt;`_.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        img_obj (ndarray): Continuous image intensity distribution, with no NaNs</span>
+<span class="sd">            outside the ROI.</span>
+<span class="sd">        roi_obj (ndarray): Array of the mask defining the ROI.</span>
+<span class="sd">        res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.</span>
+<span class="sd">            XYZ resolution (world), or JIK resolution (intrinsic matlab).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: Global intensity peak.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">get_glob_peak</span><span class="p">(</span><span class="n">img_obj</span><span class="p">,</span> <span class="n">roi_obj</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MEDimage.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

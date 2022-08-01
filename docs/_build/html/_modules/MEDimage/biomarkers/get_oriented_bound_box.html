@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEDimage.biomarkers.get_oriented_bound_box &mdash; MEDimage  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> MEDimage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDimage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../FAQs.html">FAQs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MEDimage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>MEDimage.biomarkers.get_oriented_bound_box</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MEDimage.biomarkers.get_oriented_bound_box</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+
+<div class="viewcode-block" id="rot_matrix"><a class="viewcode-back" href="../../../MEDimage.biomarkers.html#MEDimage.biomarkers.get_oriented_bound_box.rot_matrix">[docs]</a><span class="k">def</span> <span class="nf">rot_matrix</span><span class="p">(</span><span class="n">theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+               <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+               <span class="n">rot_axis</span><span class="p">:</span> <span class="nb">int</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Creates a 2d or 3d rotation matrix</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        theta (float): angle in radian</span>
+<span class="sd">        dim (int, optional): dimension size. Defaults to 2.</span>
+<span class="sd">        rot_axis (int, optional): rotation axis value. Defaults to -1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: rotation matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">rot_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)],</span>
+                            <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)]])</span>
+
+    <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">rot_axis</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">rot_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)],</span>
+                                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)]])</span>
+        <span class="k">elif</span> <span class="n">rot_axis</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">rot_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)],</span>
+                                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                                <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)]])</span>
+        <span class="k">elif</span> <span class="n">rot_axis</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">rot_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">],</span>
+                                <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">],</span>
+                                <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rot_mat</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rot_mat</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">rot_mat</span></div>
+
+
+<div class="viewcode-block" id="sig_proc_segmentise"><a class="viewcode-back" href="../../../MEDimage.biomarkers.html#MEDimage.biomarkers.get_oriented_bound_box.sig_proc_segmentise">[docs]</a><span class="k">def</span> <span class="nf">sig_proc_segmentise</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">List</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Produces a list of segments from input x with values (0,1)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (List): list of values</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List: list of segments from input x with values (0,1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Create a difference vector</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="c1"># Find start and end indices of sections with value 1</span>
+    <span class="n">ind_1_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ind_1_start</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ind_1_start</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">ind_1_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="c1"># Check for boundary effects</span>
+    <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">ind_1_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">ind_1_start</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">ind_1_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_1_end</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Generate segment df for segments with value 1</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ind_1_start</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">df_one</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;i&quot;</span><span class="p">:</span>   <span class="p">[],</span>
+                               <span class="s2">&quot;j&quot;</span><span class="p">:</span>   <span class="p">[],</span>
+                               <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="p">[]})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">df_one</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;i&quot;</span><span class="p">:</span>   <span class="n">ind_1_start</span><span class="p">,</span>
+                               <span class="s2">&quot;j&quot;</span><span class="p">:</span>   <span class="n">ind_1_end</span><span class="p">,</span>
+                               <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ind_1_start</span><span class="p">)[</span><span class="mi">0</span><span class="p">])})</span>
+
+    <span class="c1"># Find start and end indices for section with value 0</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ind_1_start</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">ind_0_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">ind_0_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ind_0_end</span> <span class="o">=</span> <span class="n">ind_1_start</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">ind_0_start</span> <span class="o">=</span> <span class="n">ind_1_end</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="c1"># Check for boundary effect</span>
+        <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ind_0_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">ind_0_start</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ind_0_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_0_end</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Check for out-of-range boundary effects</span>
+        <span class="k">if</span> <span class="n">ind_0_end</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ind_0_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">ind_0_end</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ind_0_start</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">ind_0_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">ind_0_start</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Generate segment df for segments with value 0</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ind_0_start</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">df_zero</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;i&quot;</span><span class="p">:</span>   <span class="p">[],</span>
+                                <span class="s2">&quot;j&quot;</span><span class="p">:</span>   <span class="p">[],</span>
+                                <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="p">[]})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">df_zero</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;i&quot;</span><span class="p">:</span>    <span class="n">ind_0_start</span><span class="p">,</span>
+                                <span class="s2">&quot;j&quot;</span><span class="p">:</span>    <span class="n">ind_0_end</span><span class="p">,</span>
+                                <span class="s2">&quot;val&quot;</span><span class="p">:</span>  <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ind_0_start</span><span class="p">)[</span><span class="mi">0</span><span class="p">])})</span>
+
+    <span class="n">df_segm</span> <span class="o">=</span> <span class="n">df_one</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_zero</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df_segm</span></div>
+
+
+<div class="viewcode-block" id="sig_proc_find_peaks"><a class="viewcode-back" href="../../../MEDimage.biomarkers.html#MEDimage.biomarkers.get_oriented_bound_box.sig_proc_find_peaks">[docs]</a><span class="k">def</span> <span class="nf">sig_proc_find_peaks</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                        <span class="n">ddir</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;pos&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Determines peak positions in array of values</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (float): value</span>
+<span class="sd">        ddir (str, optional): positive or negative value. Defaults to &quot;pos&quot;.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: peak positions in array of values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Invert when looking for local minima</span>
+    <span class="k">if</span> <span class="n">ddir</span> <span class="o">==</span> <span class="s2">&quot;neg&quot;</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="o">-</span><span class="n">x</span>
+
+    <span class="c1"># Generate segments where slope is negative</span>
+
+    <span class="n">df_segm</span> <span class="o">=</span> <span class="n">sig_proc_segmentise</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">*</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Start of slope coincides with position of peak (due to index shift induced by np.diff)</span>
+    <span class="n">ind_peak</span> <span class="o">=</span> <span class="n">df_segm</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_segm</span><span class="o">.</span><span class="n">val</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="c1"># Check right boundary</span>
+    <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]:</span>
+        <span class="n">ind_peak</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ind_peak</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Construct dataframe with index and corresponding value</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">ind_peak</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">df_peak</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;ind&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                                <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="p">[]})</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ddir</span> <span class="o">==</span> <span class="s2">&quot;pos&quot;</span><span class="p">:</span>
+            <span class="n">df_peak</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;ind&quot;</span><span class="p">:</span> <span class="n">ind_peak</span><span class="p">,</span>
+                                    <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">ind_peak</span><span class="p">]})</span>
+        <span class="k">if</span> <span class="n">ddir</span> <span class="o">==</span> <span class="s2">&quot;neg&quot;</span><span class="p">:</span>
+            <span class="n">df_peak</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;ind&quot;</span><span class="p">:</span>  <span class="n">ind_peak</span><span class="p">,</span>
+                                    <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="n">ind_peak</span><span class="p">]})</span>
+    <span class="k">return</span> <span class="n">df_peak</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MEDimage.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

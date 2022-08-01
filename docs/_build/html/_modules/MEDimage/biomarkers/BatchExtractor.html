@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEDimage.biomarkers.BatchExtractor &mdash; MEDimage  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> MEDimage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDimage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../FAQs.html">FAQs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MEDimage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>MEDimage.biomarkers.BatchExtractor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MEDimage.biomarkers.BatchExtractor</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">MEDimage</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">ray</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">trange</span>
+
+
+<div class="viewcode-block" id="BatchExtractor"><a class="viewcode-back" href="../../../MEDimage.biomarkers.html#MEDimage.biomarkers.BatchExtractor.BatchExtractor">[docs]</a><span class="k">class</span> <span class="nc">BatchExtractor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Organizes all the patients/scans in batches to extract all the radiomic features</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BatchExtractor.__init__"><a class="viewcode-back" href="../../../MEDimage.biomarkers.html#MEDimage.biomarkers.BatchExtractor.BatchExtractor.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> 
+            <span class="n">path_read</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
+            <span class="n">path_csv</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
+            <span class="n">path_params</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
+            <span class="n">path_save</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
+            <span class="n">n_batch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        constructor of the BatchExtractor class </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path_csv</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path_csv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path_params</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path_read</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path_read</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path_save</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path_save</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roi_types</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roi_type_labels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span> <span class="o">=</span> <span class="n">n_batch</span></div>
+
+    <span class="k">def</span> <span class="nf">__load_and_process_params</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Load and process the computing &amp; batch parameters from JSON file&quot;&quot;&quot;</span>
+        <span class="c1"># Load json parameters</span>
+        <span class="n">im_params</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">json_utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_params</span><span class="p">)</span>
+        
+        <span class="c1"># Update class attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roi_types</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">im_params</span><span class="p">[</span><span class="s1">&#39;roi_types&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roi_type_labels</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">im_params</span><span class="p">[</span><span class="s1">&#39;roi_type_labels&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span> <span class="o">=</span> <span class="n">im_params</span><span class="p">[</span><span class="s1">&#39;n_batch&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;n_batch&#39;</span> <span class="ow">in</span> <span class="n">im_params</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span>
+
+        <span class="c1"># Get name save (for filtering purposes only)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">filter_type</span> <span class="o">=</span> <span class="n">im_params</span><span class="p">[</span><span class="s1">&#39;imParamFilter&#39;</span><span class="p">][</span><span class="s1">&#39;filter_type&#39;</span><span class="p">]</span>
+            <span class="n">name_save</span> <span class="o">=</span> <span class="n">im_params</span><span class="p">[</span><span class="s1">&#39;imParamFilter&#39;</span><span class="p">][</span><span class="n">filter_type</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">name_save</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="k">return</span> <span class="n">im_params</span><span class="p">,</span> <span class="n">name_save</span>
+
+    <span class="nd">@ray</span><span class="o">.</span><span class="n">remote</span>
+    <span class="k">def</span> <span class="nf">__compute_radiomics_one_patient</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">name_patient</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">roi_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">im_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+            <span class="n">roi_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">roi_type_label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes all radiomics features (Texture &amp; Non-texture) for one patient/scan</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name_patient(str): scan or patient full name. It has to respect the MEDimage naming convention:</span>
+<span class="sd">                PatientID__ImagingScanName.ImagingModality.npy</span>
+<span class="sd">            roi_name(str): name of the ROI that will  be used in computation.</span>
+<span class="sd">            im_params(Dict): Dict of parameters/settings that will be used in the processing and computation.</span>
+<span class="sd">            roi_type(str): Type of ROI used in the processing and computation (for identification purposes)</span>
+<span class="sd">            roi_type_label(str): Label of the ROI used, to make it identifiable from other ROIs.</span>
+<span class="sd">            log_file(Union[Path, str]): Path to the logging file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Union[Path, str]: Path to the updated logging file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Setting up logging settings</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">log_file</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+
+        <span class="c1"># start timer</span>
+        <span class="n">t_start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
+        <span class="c1"># Initialization</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">***************** COMPUTING FEATURES: </span><span class="si">{</span><span class="n">name_patient</span><span class="si">}</span><span class="s2"> *****************&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="c1"># Load MEDimage instance</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_read</span> <span class="o">/</span> <span class="n">name_patient</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span> <span class="n">MEDimg</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">MEDimg</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">MEDimage</span><span class="p">(</span><span class="n">MEDimg</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> ERROR LOADING PATIENT </span><span class="si">{</span><span class="n">name_patient</span><span class="si">}</span><span class="s2">:</span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Init processing &amp; computation parameters</span>
+        <span class="n">MEDimg</span><span class="o">.</span><span class="n">init_params</span><span class="p">(</span><span class="n">im_params</span><span class="p">)</span>
+        <span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">box_string</span> <span class="o">=</span> <span class="s2">&quot;full&quot;</span>
+
+        <span class="c1"># Get ROI (region of interest)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--&gt; Extraction of ROI mask:&quot;</span><span class="p">)</span>
+        <span class="n">vol_obj_init</span><span class="p">,</span> <span class="n">roi_obj_init</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">get_roi_from_indexes</span><span class="p">(</span>
+            <span class="n">MEDimg</span><span class="p">,</span>
+            <span class="n">name_roi</span><span class="o">=</span><span class="n">roi_name</span><span class="p">,</span>
+            <span class="n">box_string</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">box_string</span>
+        <span class="p">)</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;--&gt; Non-texture features pre-processing (interp + re-seg) for &quot;Scale=</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span>\
+            <span class="nb">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">scale_non_text</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+        <span class="c1"># Interpolation</span>
+        <span class="c1"># Intensity Mask</span>
+        <span class="n">vol_obj</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">interp_volume</span><span class="p">(</span>
+            <span class="n">MEDimage</span><span class="o">=</span><span class="n">MEDimg</span><span class="p">,</span>
+            <span class="n">vol_obj_s</span><span class="o">=</span><span class="n">vol_obj_init</span><span class="p">,</span>
+            <span class="n">vox_dim</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">scale_non_text</span><span class="p">,</span>
+            <span class="n">interp_met</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">vol_interp</span><span class="p">,</span>
+            <span class="n">round_val</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">gl_round</span><span class="p">,</span>
+            <span class="n">image_type</span><span class="o">=</span><span class="s1">&#39;image&#39;</span><span class="p">,</span>
+            <span class="n">roi_obj_s</span><span class="o">=</span><span class="n">roi_obj_init</span><span class="p">,</span>
+            <span class="n">box_string</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">box_string</span>
+        <span class="p">)</span>
+        <span class="c1"># Morphological Mask</span>
+        <span class="n">roi_obj_morph</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">interp_volume</span><span class="p">(</span>
+            <span class="n">MEDimage</span><span class="o">=</span><span class="n">MEDimg</span><span class="p">,</span>
+            <span class="n">vol_obj_s</span><span class="o">=</span><span class="n">roi_obj_init</span><span class="p">,</span>
+            <span class="n">vox_dim</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">scale_non_text</span><span class="p">,</span>
+            <span class="n">interp_met</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">roi_interp</span><span class="p">,</span>
+            <span class="n">round_val</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">roi_pv</span><span class="p">,</span>
+            <span class="n">image_type</span><span class="o">=</span><span class="s1">&#39;roi&#39;</span><span class="p">,</span> 
+            <span class="n">roi_obj_s</span><span class="o">=</span><span class="n">roi_obj_init</span><span class="p">,</span>
+            <span class="n">box_string</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">box_string</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Re-segmentation</span>
+        <span class="c1"># Intensity mask range re-segmentation</span>
+        <span class="n">roi_obj_int</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">roi_obj_morph</span><span class="p">)</span>
+        <span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">range_re_seg</span><span class="p">(</span>
+            <span class="n">vol</span><span class="o">=</span><span class="n">vol_obj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+            <span class="n">roi</span><span class="o">=</span><span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">im_range</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">im_range</span>
+        <span class="p">)</span>
+        <span class="c1"># Intensity mask outlier re-segmentation</span>
+        <span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+            <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">outlier_re_seg</span><span class="p">(</span>
+                <span class="n">vol</span><span class="o">=</span><span class="n">vol_obj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+                <span class="n">roi</span><span class="o">=</span><span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+                <span class="n">outliers</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">outliers</span>
+            <span class="p">),</span>
+            <span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Reset timer</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+
+        <span class="c1"># Preparation of computation :</span>
+        <span class="n">MEDimg</span><span class="o">.</span><span class="n">init_ntf_calculation</span><span class="p">(</span><span class="n">vol_obj</span><span class="p">)</span>
+
+        <span class="c1"># Image filtering</span>
+        <span class="k">if</span> <span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">filter</span><span class="p">:</span>
+            <span class="n">vol_obj</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">filter</span><span class="o">.</span><span class="n">apply_mean</span><span class="p">(</span><span class="n">MEDimg</span><span class="p">,</span> <span class="n">vol_obj</span><span class="p">)</span>
+
+        <span class="c1"># ROI Extraction :</span>
+        <span class="n">vol_int_re</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">roi_extract</span><span class="p">(</span>
+            <span class="n">vol</span><span class="o">=</span><span class="n">vol_obj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+            <span class="n">roi</span><span class="o">=</span><span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Computation of non-texture features</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--&gt; Computation of non-texture features:&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Morphological features extraction</span>
+        <span class="n">morph</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">morph</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+            <span class="n">vol</span><span class="o">=</span><span class="n">vol_obj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+            <span class="n">mask_int</span><span class="o">=</span><span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+            <span class="n">mask_morph</span><span class="o">=</span><span class="n">roi_obj_morph</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">res</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">scale_non_text</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Local intensity features extraction</span>
+        <span class="n">local_intensity</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">local_intensity</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+            <span class="n">img_obj</span><span class="o">=</span><span class="n">vol_obj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">roi_obj</span><span class="o">=</span><span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">res</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">scale_non_text</span><span class="p">,</span>
+            <span class="n">intensity</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">intensity</span>
+        <span class="p">)</span>
+
+        <span class="c1"># statistical features extraction</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+            <span class="n">vol</span><span class="o">=</span><span class="n">vol_int_re</span><span class="p">,</span>
+            <span class="n">intensity</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">intensity</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Intensity histogram equalization of the imaging volume</span>
+        <span class="n">vol_quant_re</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">discretisation</span><span class="p">(</span>
+            <span class="n">vol_re</span><span class="o">=</span><span class="n">vol_int_re</span><span class="p">,</span>
+            <span class="n">discr_type</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">ih</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> 
+            <span class="n">n_q</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">ih</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">],</span> 
+            <span class="n">user_set_min_val</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">user_set_min_value</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Intensity histogram features extraction</span>
+        <span class="n">int_hist</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">intensity_histogram</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+            <span class="n">vol</span><span class="o">=</span><span class="n">vol_quant_re</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># Intensity histogram equalization of the imaging volume</span>
+        <span class="k">if</span> <span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">ivh</span> <span class="ow">and</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">ivh</span> <span class="ow">and</span> <span class="s1">&#39;val&#39;</span> <span class="ow">in</span> <span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">ivh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">ivh</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">ivh</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">]:</span>
+                <span class="n">vol_quant_re</span><span class="p">,</span> <span class="n">wd</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">discretisation</span><span class="p">(</span>
+                        <span class="n">vol_re</span><span class="o">=</span><span class="n">vol_int_re</span><span class="p">,</span>
+                        <span class="n">discr_type</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">ivh</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> 
+                        <span class="n">n_q</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">ivh</span><span class="p">[</span><span class="s1">&#39;val&#39;</span><span class="p">],</span> 
+                        <span class="n">user_set_min_val</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">user_set_min_value</span><span class="p">,</span>
+                        <span class="n">ivh</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vol_quant_re</span> <span class="o">=</span> <span class="n">vol_int_re</span>
+            <span class="n">wd</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># Intensity volume histogram features extraction</span>
+        <span class="n">int_vol_hist</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">int_vol_hist</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+                    <span class="n">MEDimg</span><span class="o">=</span><span class="n">MEDimg</span><span class="p">,</span>
+                    <span class="n">vol</span><span class="o">=</span><span class="n">vol_quant_re</span><span class="p">,</span>
+                    <span class="n">vol_int_re</span><span class="o">=</span><span class="n">vol_int_re</span><span class="p">,</span> 
+                    <span class="n">wd</span><span class="o">=</span><span class="n">wd</span>
+        <span class="p">)</span>
+
+        <span class="c1"># End of Non-Texture features extraction</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Computation of texture features</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--&gt; Computation of texture features:&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Compute radiomics features for each scale text</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">n_scale</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;--&gt; Texture features: pre-processing (interp + &#39;</span> \
+                    <span class="sa">f</span><span class="s1">&#39;reSeg) for &quot;Scale=</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">scale_text</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s1">&quot;: &#39;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+            <span class="c1"># Interpolation</span>
+            <span class="c1"># Intensity Mask</span>
+            <span class="n">vol_obj</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">interp_volume</span><span class="p">(</span>
+                <span class="n">MEDimage</span><span class="o">=</span><span class="n">MEDimg</span><span class="p">,</span>
+                <span class="n">vol_obj_s</span><span class="o">=</span><span class="n">vol_obj_init</span><span class="p">,</span>
+                <span class="n">vox_dim</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">scale_text</span><span class="p">[</span><span class="n">s</span><span class="p">],</span>
+                <span class="n">interp_met</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">vol_interp</span><span class="p">,</span>
+                <span class="n">round_val</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">gl_round</span><span class="p">,</span>
+                <span class="n">image_type</span><span class="o">=</span><span class="s1">&#39;image&#39;</span><span class="p">,</span> 
+                <span class="n">roi_obj_s</span><span class="o">=</span><span class="n">roi_obj_init</span><span class="p">,</span>
+                <span class="n">box_string</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">box_string</span>
+            <span class="p">)</span>
+            <span class="c1"># Morphological Mask</span>
+            <span class="n">roi_obj_morph</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">interp_volume</span><span class="p">(</span>
+                <span class="n">MEDimage</span><span class="o">=</span><span class="n">MEDimg</span><span class="p">,</span>
+                <span class="n">vol_obj_s</span><span class="o">=</span><span class="n">roi_obj_init</span><span class="p">,</span>
+                <span class="n">vox_dim</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">scale_text</span><span class="p">[</span><span class="n">s</span><span class="p">],</span>
+                <span class="n">interp_met</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">roi_interp</span><span class="p">,</span>
+                <span class="n">round_val</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">roi_pv</span><span class="p">,</span> 
+                <span class="n">image_type</span><span class="o">=</span><span class="s1">&#39;roi&#39;</span><span class="p">,</span> 
+                <span class="n">roi_obj_s</span><span class="o">=</span><span class="n">roi_obj_init</span><span class="p">,</span>
+                <span class="n">box_string</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">box_string</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Re-segmentation</span>
+            <span class="c1"># Intensity mask range re-segmentation</span>
+            <span class="n">roi_obj_int</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">roi_obj_morph</span><span class="p">)</span>
+            <span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">range_re_seg</span><span class="p">(</span>
+                <span class="n">vol</span><span class="o">=</span><span class="n">vol_obj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+                <span class="n">roi</span><span class="o">=</span><span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">im_range</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">im_range</span>
+            <span class="p">)</span>
+            <span class="c1"># Intensity mask outlier re-segmentation</span>
+            <span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">outlier_re_seg</span><span class="p">(</span>
+                    <span class="n">vol</span><span class="o">=</span><span class="n">vol_obj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+                    <span class="n">roi</span><span class="o">=</span><span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+                    <span class="n">outliers</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">outliers</span>
+                <span class="p">),</span>
+                <span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+            <span class="c1"># Image filtering</span>
+            <span class="k">if</span> <span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">filter</span><span class="p">:</span>
+                <span class="n">vol_obj</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">filter</span><span class="o">.</span><span class="n">apply_filter</span><span class="p">(</span><span class="n">MEDimg</span><span class="p">,</span> <span class="n">vol_obj</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Compute features for each discretisation algorithm and for each grey-level  </span>
+            <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">n_algo</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">n_gl</span><span class="p">)):</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span> 
+                <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;--&gt; Computation of texture features in image &#39;</span> \
+                        <span class="s1">&#39;space for &quot;Scale= </span><span class="si">{}</span><span class="s1">&quot;, &quot;Algo=</span><span class="si">{}</span><span class="s1">&quot;, &quot;GL=</span><span class="si">{}</span><span class="s1">&quot; (</span><span class="si">{}</span><span class="s1">):&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">scale_text</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span>
+                            <span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">algo</span><span class="p">[</span><span class="n">a</span><span class="p">],</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">gray_levels</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="n">n</span><span class="p">]),</span>
+                            <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">n_exp</span><span class="p">)</span>
+                            <span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+                <span class="c1"># Preparation of computation :</span>
+                <span class="n">MEDimg</span><span class="o">.</span><span class="n">init_tf_calculation</span><span class="p">(</span><span class="n">algo</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">gl</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+
+                <span class="c1"># ROI Extraction :</span>
+                <span class="n">vol_int_re</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">roi_extract</span><span class="p">(</span>
+                    <span class="n">vol</span><span class="o">=</span><span class="n">vol_obj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> 
+                    <span class="n">roi</span><span class="o">=</span><span class="n">roi_obj_int</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+                <span class="c1"># Discretisation :</span>
+                <span class="n">vol_quant_re</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">processing</span><span class="o">.</span><span class="n">discretisation</span><span class="p">(</span>
+                    <span class="n">vol_re</span><span class="o">=</span><span class="n">vol_int_re</span><span class="p">,</span>
+                    <span class="n">discr_type</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">algo</span><span class="p">[</span><span class="n">a</span><span class="p">],</span> 
+                    <span class="n">n_q</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">gray_levels</span><span class="p">[</span><span class="n">a</span><span class="p">][</span><span class="n">n</span><span class="p">],</span> 
+                    <span class="n">user_set_min_val</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">process</span><span class="o">.</span><span class="n">user_set_min_value</span>
+                <span class="p">)</span>
+
+                <span class="c1"># GLCM features extraction</span>
+                <span class="n">glcm</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">glcm</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+                    <span class="n">vol</span><span class="o">=</span><span class="n">vol_quant_re</span><span class="p">,</span> 
+                    <span class="n">dist_correction</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">radiomics</span><span class="o">.</span><span class="n">glcm</span><span class="o">.</span><span class="n">dist_correction</span><span class="p">)</span>
+
+                <span class="c1"># GLRLM features extraction</span>
+                <span class="n">glrlm</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">glrlm</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+                    <span class="n">vol</span><span class="o">=</span><span class="n">vol_quant_re</span><span class="p">,</span>
+                    <span class="n">dist_correction</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">radiomics</span><span class="o">.</span><span class="n">glrlm</span><span class="o">.</span><span class="n">dist_correction</span><span class="p">)</span>
+
+                <span class="c1"># GLSZM features extraction</span>
+                <span class="n">glszm</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">glszm</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+                    <span class="n">vol</span><span class="o">=</span><span class="n">vol_quant_re</span><span class="p">)</span>
+
+                <span class="c1"># GLDZM features extraction</span>
+                <span class="n">gldzm</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">gldzm</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+                    <span class="n">vol_int</span><span class="o">=</span><span class="n">vol_quant_re</span><span class="p">,</span> 
+                    <span class="n">mask_morph</span><span class="o">=</span><span class="n">roi_obj_morph</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+                <span class="c1"># NGTDM features extraction</span>
+                <span class="n">ngtdm</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">ngtdm</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+                    <span class="n">vol</span><span class="o">=</span><span class="n">vol_quant_re</span><span class="p">,</span> 
+                    <span class="n">dist_correction</span><span class="o">=</span><span class="n">MEDimg</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">radiomics</span><span class="o">.</span><span class="n">ngtdm</span><span class="o">.</span><span class="n">distance_norm</span><span class="p">)</span>
+
+                <span class="c1"># NGLDM features extraction</span>
+                <span class="n">ngldm</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">biomarkers</span><span class="o">.</span><span class="n">ngldm</span><span class="o">.</span><span class="n">extract_all</span><span class="p">(</span>
+                    <span class="n">vol</span><span class="o">=</span><span class="n">vol_quant_re</span><span class="p">)</span>
+                
+                <span class="c1"># Update radiomics results class</span>
+                <span class="n">MEDimg</span><span class="o">.</span><span class="n">update_radiomics</span><span class="p">(</span>
+                                <span class="n">int_vol_hist_features</span><span class="o">=</span><span class="n">int_vol_hist</span><span class="p">,</span> 
+                                <span class="n">morph_features</span><span class="o">=</span><span class="n">morph</span><span class="p">,</span>
+                                <span class="n">loc_int_features</span><span class="o">=</span><span class="n">local_intensity</span><span class="p">,</span> 
+                                <span class="n">stats_features</span><span class="o">=</span><span class="n">stats</span><span class="p">,</span> 
+                                <span class="n">int_hist_features</span><span class="o">=</span><span class="n">int_hist</span><span class="p">,</span>
+                                <span class="n">glcm_features</span><span class="o">=</span><span class="n">glcm</span><span class="p">,</span> 
+                                <span class="n">glrlm_features</span><span class="o">=</span><span class="n">glrlm</span><span class="p">,</span> 
+                                <span class="n">glszm_features</span><span class="o">=</span><span class="n">glszm</span><span class="p">,</span> 
+                                <span class="n">gldzm_features</span><span class="o">=</span><span class="n">gldzm</span><span class="p">,</span> 
+                                <span class="n">ngtdm_features</span><span class="o">=</span><span class="n">ngtdm</span><span class="p">,</span> 
+                                <span class="n">ngldm_features</span><span class="o">=</span><span class="n">ngldm</span>
+                            <span class="p">)</span>
+                
+                <span class="c1"># End of texture features extraction</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Saving radiomics results</span>
+                <span class="n">MEDimg</span><span class="o">.</span><span class="n">save_radiomics</span><span class="p">(</span>
+                                <span class="n">scan_file_name</span><span class="o">=</span><span class="n">name_patient</span><span class="p">,</span>
+                                <span class="n">path_save</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_save</span><span class="p">,</span>
+                                <span class="n">roi_type</span><span class="o">=</span><span class="n">roi_type</span><span class="p">,</span>
+                                <span class="n">roi_type_label</span><span class="o">=</span><span class="n">roi_type_label</span><span class="p">,</span>
+                            <span class="p">)</span>
+                
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TOTAL TIME:</span><span class="si">{</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t_start</span><span class="si">}</span><span class="s2"> seconds</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">log_file</span>
+
+    <span class="nd">@ray</span><span class="o">.</span><span class="n">remote</span>
+    <span class="k">def</span> <span class="nf">__compute_radiomics_tables</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">table_tags</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+            <span class="n">name_save</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">log_file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates radiomic tables off of the saved dicts with the computed features and save it as CSV files</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            table_tags(List): Lists of information about scans, roi type and imaging space (or filter space)</span>
+<span class="sd">            name_save(str): Added at the end to the default name of each table to specify the processing </span>
+<span class="sd">            used in extraction.</span>
+<span class="sd">            log_file(Union[str, Path]): Path to logging file.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_tables</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_tags</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_tables</span><span class="p">):</span>
+            <span class="n">scan</span> <span class="o">=</span> <span class="n">table_tags</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">roi_type</span> <span class="o">=</span> <span class="n">table_tags</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">im_space</span> <span class="o">=</span> <span class="n">table_tags</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">name_save</span><span class="p">:</span>
+                <span class="n">name_table</span> <span class="o">=</span> <span class="s1">&#39;radiomics__&#39;</span> <span class="o">+</span> <span class="n">scan</span> <span class="o">+</span> \
+                <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="n">roi_type</span> <span class="o">+</span> <span class="s1">&#39;)__&#39;</span>  <span class="o">+</span> <span class="n">name_save</span> <span class="o">+</span> <span class="s1">&#39;.npy&#39;</span>   
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">name_table</span> <span class="o">=</span> <span class="s1">&#39;radiomics__&#39;</span> <span class="o">+</span> <span class="n">scan</span> <span class="o">+</span> \
+                <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="n">roi_type</span> <span class="o">+</span> <span class="s1">&#39;)__&#39;</span> <span class="o">+</span> <span class="n">im_space</span> <span class="o">+</span> <span class="s1">&#39;.npy&#39;</span>
+
+            <span class="c1"># Start timer</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> --&gt; Computing radiomics table: </span><span class="si">{name_table}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Wildcard used to look only in the parent folder (save path),</span>
+            <span class="c1"># no need to recursively look into sub-folders using &#39;**/&#39;.</span>
+            <span class="n">wildcard</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">scan</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="n">roi_type</span> <span class="o">+</span> <span class="s1">&#39;)*.json&#39;</span>
+
+            <span class="c1"># Create radiomics table</span>
+            <span class="n">radiomics_table_dict</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">create_radiomics_table</span><span class="p">(</span>
+                <span class="n">MEDimage</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">get_file_paths</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_save</span><span class="p">,</span> <span class="n">wildcard</span><span class="p">),</span>
+                <span class="n">im_space</span><span class="p">,</span> 
+                <span class="n">log_file</span>
+            <span class="p">)</span>
+            <span class="n">radiomics_table_dict</span><span class="p">[</span><span class="s1">&#39;Properties&#39;</span><span class="p">][</span><span class="s1">&#39;Description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name_table</span>
+
+            <span class="c1"># Save radiomics table</span>
+            <span class="n">save_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_save</span> <span class="o">/</span> <span class="n">name_table</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="p">[</span><span class="n">radiomics_table_dict</span><span class="p">])</span>
+
+            <span class="c1"># Create CSV table and Definitions</span>
+            <span class="n">MEDimage</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">write_radiomics_csv</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DONE</span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">log_file</span>
+    
+    <span class="k">def</span> <span class="nf">__batch_all_patients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">im_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create batches of scans to process and compute radiomics features for every single scan.</span>
+
+<span class="sd">        Args: </span>
+<span class="sd">            im_params(Dict): Dict of the processing &amp; computation parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># create a batch for each roi type</span>
+        <span class="n">n_roi_types</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">roi_type_labels</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_roi_types</span><span class="p">):</span>
+            <span class="n">roi_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi_types</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+            <span class="n">roi_type_label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi_type_labels</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> --&gt; Computing features for the &quot;</span><span class="si">{</span><span class="n">roi_type_label</span><span class="si">}</span><span class="s1">&quot; roi type ...&#39;</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+            <span class="c1"># READING CSV EXPERIMENT TABLE</span>
+            <span class="n">tabel_roi</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_csv</span> <span class="o">/</span> <span class="p">(</span><span class="s1">&#39;roiNames_&#39;</span> <span class="o">+</span> <span class="n">roi_type_label</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span><span class="p">))</span>
+            <span class="n">tabel_roi</span><span class="p">[</span><span class="s1">&#39;under&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span>
+            <span class="n">tabel_roi</span><span class="p">[</span><span class="s1">&#39;dot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span>
+            <span class="n">tabel_roi</span><span class="p">[</span><span class="s1">&#39;npy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;.npy&#39;</span>
+            <span class="n">name_patients</span> <span class="o">=</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+                <span class="n">tabel_roi</span><span class="p">[[</span><span class="s1">&#39;PatientID&#39;</span><span class="p">,</span> <span class="s1">&#39;under&#39;</span><span class="p">,</span> <span class="s1">&#39;under&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;ImagingScanName&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;dot&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;ImagingModality&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;npy&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">tabel_roi</span> <span class="o">=</span> <span class="n">tabel_roi</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;under&#39;</span><span class="p">,</span> <span class="s1">&#39;under&#39;</span><span class="p">,</span> <span class="s1">&#39;dot&#39;</span><span class="p">,</span> <span class="s1">&#39;npy&#39;</span><span class="p">])</span>
+            <span class="n">roi_names</span> <span class="o">=</span> <span class="n">tabel_roi</span><span class="o">.</span><span class="n">ROIname</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+            <span class="c1"># INITIALIZATION</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_save</span><span class="p">)</span>
+            <span class="n">name_bacth_log</span> <span class="o">=</span> <span class="s1">&#39;batchLog_&#39;</span> <span class="o">+</span> <span class="n">roi_type_label</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+            <span class="n">n_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+            <span class="n">exist_file</span> <span class="o">=</span> <span class="n">name_bacth_log</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">exist_file</span> <span class="ow">and</span> <span class="p">(</span><span class="n">n_files</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_files</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name_bacth_log</span><span class="p">):</span>
+                        <span class="n">mod_timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span>
+                            <span class="n">Path</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
+                        <span class="n">date</span> <span class="o">=</span> <span class="n">mod_timestamp</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-%b-%Y_%HH%MM%SS&quot;</span><span class="p">)</span>
+                        <span class="n">new_name</span> <span class="o">=</span> <span class="n">name_bacth_log</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">date</span>
+                        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;move &#39;</span> <span class="o">+</span> <span class="n">name_bacth_log</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">new_name</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;mv &#39;</span> <span class="o">+</span> <span class="n">name_bacth_log</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">new_name</span><span class="p">)</span>
+
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">name_bacth_log</span><span class="p">,</span> <span class="mo">0o777</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">path_batch</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="n">name_bacth_log</span>
+
+            <span class="c1"># PRODUCE BATCH COMPUTATIONS</span>
+            <span class="n">n_patients</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">name_patients</span><span class="p">)</span>
+            <span class="n">n_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span>
+            <span class="k">if</span> <span class="n">n_batch</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">n_batch</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">n_batch</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">n_patients</span> <span class="o">&lt;</span> <span class="n">n_batch</span><span class="p">:</span>
+                <span class="n">n_batch</span> <span class="o">=</span> <span class="n">n_patients</span>
+
+            <span class="c1"># Produce a list log_file path.</span>
+            <span class="n">log_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">path_batch</span> <span class="o">/</span> <span class="p">(</span><span class="s1">&#39;log_file_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.log&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_batch</span><span class="p">)]</span>
+
+            <span class="c1"># Distribute the first tasks to all workers</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__compute_radiomics_one_patient</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="p">,</span>
+                        <span class="n">name_patient</span><span class="o">=</span><span class="n">name_patients</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">roi_name</span><span class="o">=</span><span class="n">roi_names</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> 
+                        <span class="n">im_params</span><span class="o">=</span><span class="n">im_params</span><span class="p">,</span>
+                        <span class="n">roi_type</span><span class="o">=</span><span class="n">roi_type</span><span class="p">,</span>
+                        <span class="n">roi_type_label</span><span class="o">=</span><span class="n">roi_type_label</span><span class="p">,</span>
+                        <span class="n">log_file</span><span class="o">=</span><span class="n">log_files</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_batch</span><span class="p">)]</span>
+
+            <span class="c1"># Distribute the remaining tasks</span>
+            <span class="n">nb_job_left</span> <span class="o">=</span> <span class="n">n_patients</span> <span class="o">-</span> <span class="n">n_batch</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">trange</span><span class="p">(</span><span class="n">n_patients</span><span class="p">):</span>
+                <span class="n">ready</span><span class="p">,</span> <span class="n">not_ready</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">num_returns</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">ids</span> <span class="o">=</span> <span class="n">not_ready</span>
+                <span class="n">log_file</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ready</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">nb_job_left</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">n_patients</span> <span class="o">-</span> <span class="n">nb_job_left</span>
+                    <span class="n">ids</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">__compute_radiomics_one_patient</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span>
+                                    <span class="bp">self</span><span class="p">,</span>
+                                    <span class="n">name_patients</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                                    <span class="n">roi_names</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> 
+                                    <span class="n">im_params</span><span class="p">,</span>
+                                    <span class="n">roi_type</span><span class="p">,</span>
+                                    <span class="n">roi_type_label</span><span class="p">,</span>
+                                    <span class="n">log_file</span><span class="p">)</span>
+                                <span class="p">])</span>
+                    <span class="n">nb_job_left</span> <span class="o">-=</span> <span class="mi">1</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DONE&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__batch_all_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_save</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create batches of tables of the extracted features for every imaging scan type (CT, PET...).</span>
+
+<span class="sd">        Args: </span>
+<span class="sd">            name_save(str): Added at the end to the default name of each table to specify the processing </span>
+<span class="sd">            used in extraction.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># GETTING COMBINATIONS OF scan, roi_type and imageSpaces</span>
+        <span class="n">n_roi_types</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">roi_type_labels</span><span class="p">)</span>
+        <span class="n">table_tags</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Get all scan names present for the given roi_type_label</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_roi_types</span><span class="p">):</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi_type_labels</span><span class="p">[</span><span class="n">r</span><span class="p">]</span>
+            <span class="n">wildcard</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">label</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span>
+            <span class="n">file_paths</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">get_file_paths</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_save</span><span class="p">,</span> <span class="n">wildcard</span><span class="p">)</span>
+            <span class="n">n_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_paths</span><span class="p">)</span>
+            <span class="n">scans</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_files</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_files</span><span class="p">):</span>
+                <span class="n">rad_file_name</span> <span class="o">=</span> <span class="n">file_paths</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">stem</span>
+                <span class="n">scans</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">get_scan_name_from_rad_name</span><span class="p">(</span><span class="n">rad_file_name</span><span class="p">)</span>
+            <span class="n">scans</span> <span class="o">=</span> <span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scans</span><span class="p">)))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">n_scans</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">scans</span><span class="p">)</span>
+            <span class="c1"># Get all scan names present for the given roi_type_label and scans</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_scans</span><span class="p">):</span>
+                <span class="n">scan</span> <span class="o">=</span> <span class="n">scans</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+                <span class="n">wildcard</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span> <span class="o">+</span> <span class="n">scan</span> <span class="o">+</span> <span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="n">label</span> <span class="o">+</span> <span class="s1">&#39;)*.json&#39;</span>
+                <span class="n">file_paths</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">get_file_paths</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_save</span><span class="p">,</span> <span class="n">wildcard</span><span class="p">)</span>
+                <span class="n">n_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_paths</span><span class="p">)</span>
+
+                <span class="c1"># Finding the images spaces for a test file (assuming that all</span>
+                <span class="c1"># files for a given scan and roi_type_label have the same image spaces</span>
+                <span class="n">radiomics</span> <span class="o">=</span> <span class="n">MEDimage</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">json_utils</span><span class="o">.</span><span class="n">load_json</span><span class="p">(</span><span class="n">file_paths</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">im_spaces</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">radiomics</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+                <span class="n">im_spaces</span> <span class="o">=</span> <span class="n">im_spaces</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">n_im_spaces</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">im_spaces</span><span class="p">)</span>
+                <span class="c1"># Constructing the table_tags variable</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_im_spaces</span><span class="p">):</span>
+                    <span class="n">im_space</span> <span class="o">=</span> <span class="n">im_spaces</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">table_tags</span> <span class="o">=</span> <span class="n">table_tags</span> <span class="o">+</span> <span class="p">[[</span><span class="n">scan</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">im_space</span><span class="p">]]</span>
+
+        <span class="c1"># INITIALIZATION</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_save</span><span class="p">)</span>
+        <span class="n">name_batch_log</span> <span class="o">=</span> <span class="s1">&#39;batchLog_tables&#39;</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+        <span class="n">n_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+        <span class="n">exist_file</span> <span class="o">=</span> <span class="n">name_batch_log</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">exist_file</span> <span class="ow">and</span> <span class="p">(</span><span class="n">n_files</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_files</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name_batch_log</span><span class="p">:</span>
+                    <span class="n">mod_timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span>
+                        <span class="n">Path</span><span class="p">(</span><span class="n">files</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">)</span>
+                    <span class="n">date</span> <span class="o">=</span> <span class="n">mod_timestamp</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-%b-%Y_%H:%M:%S&quot;</span><span class="p">)</span>
+                    <span class="n">new_name</span> <span class="o">=</span> <span class="n">name_batch_log</span><span class="o">+</span><span class="s1">&#39;_&#39;</span><span class="o">+</span><span class="n">date</span>
+                    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span> <span class="o">==</span> <span class="s1">&#39;win32&#39;</span><span class="p">:</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;move &#39;</span> <span class="o">+</span> <span class="n">name_batch_log</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">new_name</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;mv &#39;</span> <span class="o">+</span> <span class="n">name_batch_log</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">new_name</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">name_batch_log</span><span class="p">,</span> <span class="mo">0o777</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">path_batch</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
+
+        <span class="c1"># PRODUCE BATCH COMPUTATIONS</span>
+        <span class="n">n_tables</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_tags</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">n_tables</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span> <span class="o">=</span> <span class="n">n_tables</span>
+
+        <span class="c1"># Produce a list log_file path.</span>
+        <span class="n">log_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">path_batch</span> <span class="o">/</span> <span class="p">(</span><span class="s1">&#39;log_file_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.txt&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span><span class="p">)]</span>
+
+        <span class="c1"># Distribute the first tasks to all workers</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__compute_radiomics_tables</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="p">,</span> 
+                                <span class="p">[</span><span class="n">table_tags</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span> 
+                                <span class="n">name_save</span><span class="p">,</span> 
+                                <span class="n">log_files</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span><span class="p">)]</span>
+
+        <span class="n">nb_job_left</span> <span class="o">=</span> <span class="n">n_tables</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_bacth</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">trange</span><span class="p">(</span><span class="n">n_tables</span><span class="p">):</span>
+            <span class="n">ready</span><span class="p">,</span> <span class="n">not_ready</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">num_returns</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">ids</span> <span class="o">=</span> <span class="n">not_ready</span>
+
+            <span class="c1"># We verify if error has occur during the process</span>
+            <span class="n">log_file</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ready</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># Distribute the remaining tasks</span>
+            <span class="k">if</span> <span class="n">nb_job_left</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">n_tables</span> <span class="o">-</span> <span class="n">nb_job_left</span>
+                <span class="n">ids</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">__compute_radiomics_tables</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="p">,</span>
+                                <span class="p">[</span><span class="n">table_tags</span><span class="p">[</span><span class="n">idx</span><span class="p">]],</span> 
+                                <span class="n">name_save</span><span class="p">,</span> 
+                                <span class="n">log_file</span><span class="p">)])</span>
+                <span class="n">nb_job_left</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DONE&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BatchExtractor.compute_radiomics"><a class="viewcode-back" href="../../../MEDimage.biomarkers.html#MEDimage.biomarkers.BatchExtractor.BatchExtractor.compute_radiomics">[docs]</a>    <span class="k">def</span> <span class="nf">compute_radiomics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">create_tables</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute all radiomic features for all scans in the CSV file (set in initialization) and organize it</span>
+<span class="sd">        in JSON and CSV files</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            create_tables(bool) : True to create CSV tables for the extracted features and not save it in JSON only.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Initialize ray</span>
+        <span class="k">if</span> <span class="n">ray</span><span class="o">.</span><span class="n">is_initialized</span><span class="p">():</span>
+            <span class="n">ray</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+        <span class="n">ray</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">local_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_dashboard</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Load and process computing parameters</span>
+        <span class="n">im_params</span><span class="p">,</span> <span class="n">name_save</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__load_and_process_params</span><span class="p">()</span>
+
+        <span class="c1"># Batch all scans from CSV file and compute radiomics for each scan</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__batch_all_patients</span><span class="p">(</span><span class="n">im_params</span><span class="p">)</span>
+
+        <span class="c1"># Create a CSV file off of the computed features for all the scans</span>
+        <span class="k">if</span> <span class="n">create_tables</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__batch_all_tables</span><span class="p">(</span><span class="n">name_save</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MEDimage.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

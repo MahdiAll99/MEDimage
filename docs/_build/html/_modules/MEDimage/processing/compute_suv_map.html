@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEDimage.processing.compute_suv_map &mdash; MEDimage  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> MEDimage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDimage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../FAQs.html">FAQs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MEDimage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>MEDimage.processing.compute_suv_map</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MEDimage.processing.compute_suv_map</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pydicom</span>
+
+
+<div class="viewcode-block" id="compute_suv_map"><a class="viewcode-back" href="../../../processing.html#MEDimage.processing.compute_suv_map.compute_suv_map">[docs]</a><span class="k">def</span> <span class="nf">compute_suv_map</span><span class="p">(</span><span class="n">raw_pet</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                    <span class="n">dicom_h</span><span class="p">:</span> <span class="n">pydicom</span><span class="o">.</span><span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Computes the suv_map of a raw input PET volume. It is assumed that</span>
+<span class="sd">    the calibration factor was applied beforehand to the PET volume.</span>
+<span class="sd">    **E.g: raw_pet = raw_pet*RescaleSlope + RescaleIntercept.**</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        raw_pet (ndarray):3D array representing the PET volume in raw format.</span>
+<span class="sd">        dicom_h (pydicom.dataset.FileDataset): DICOM header of one of the</span>
+<span class="sd">            corresponding slice of ``raw_pet``.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ndarray: ``raw_pet`` converted to SUVs (standard uptake values).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">dcm_hhmmss</span><span class="p">(</span><span class="n">date_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;&quot;Converts to seconds</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            date_str (str): date string</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: total seconds</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Converts to seconds</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">date_str</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">date_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">date_str</span><span class="p">)</span>
+        <span class="n">hh</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">date_str</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">mm</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">date_str</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">ss</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">date_str</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">])</span>
+        <span class="n">tot_sec</span> <span class="o">=</span> <span class="n">hh</span><span class="o">*</span><span class="mf">60.0</span><span class="o">*</span><span class="mf">60.0</span> <span class="o">+</span> <span class="n">mm</span><span class="o">*</span><span class="mf">60.0</span> <span class="o">+</span> <span class="n">ss</span>
+        <span class="k">return</span> <span class="n">tot_sec</span>
+
+    <span class="k">def</span> <span class="nf">pydicom_has_tag</span><span class="p">(</span><span class="n">dcm_seq</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+        <span class="c1"># Checks if tag exists</span>
+        <span class="k">return</span> <span class="n">get_pydicom_meta_tag</span><span class="p">(</span><span class="n">dcm_seq</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">test_tag</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_pydicom_meta_tag</span><span class="p">(</span><span class="n">dcm_seq</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">tag_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">test_tag</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># Reads dicom tag</span>
+        <span class="c1"># Initialise with default</span>
+        <span class="n">tag_value</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="c1"># Read from header using simple itk</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tag_value</span> <span class="o">=</span> <span class="n">dcm_seq</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">test_tag</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">test_tag</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="c1"># Find empty entries</span>
+        <span class="k">if</span> <span class="n">tag_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tag_value</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">tag_value</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="c1"># Cast to correct type (meta tags are usually passed as strings)</span>
+        <span class="k">if</span> <span class="n">tag_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># String</span>
+            <span class="k">if</span> <span class="n">tag_type</span> <span class="o">==</span> <span class="s2">&quot;str&quot;</span><span class="p">:</span>
+                <span class="n">tag_value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">tag_value</span><span class="p">)</span>
+            <span class="c1"># Float</span>
+            <span class="k">elif</span> <span class="n">tag_type</span> <span class="o">==</span> <span class="s2">&quot;float&quot;</span><span class="p">:</span>
+                <span class="n">tag_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tag_value</span><span class="p">)</span>
+            <span class="c1"># Multiple floats</span>
+            <span class="k">elif</span> <span class="n">tag_type</span> <span class="o">==</span> <span class="s2">&quot;mult_float&quot;</span><span class="p">:</span>
+                <span class="n">tag_value</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">str_num</span><span class="p">)</span> <span class="k">for</span> <span class="n">str_num</span> <span class="ow">in</span> <span class="n">tag_value</span><span class="p">]</span>
+            <span class="c1"># Integer</span>
+            <span class="k">elif</span> <span class="n">tag_type</span> <span class="o">==</span> <span class="s2">&quot;int&quot;</span><span class="p">:</span>
+                <span class="n">tag_value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tag_value</span><span class="p">)</span>
+            <span class="c1"># Multiple floats</span>
+            <span class="k">elif</span> <span class="n">tag_type</span> <span class="o">==</span> <span class="s2">&quot;mult_int&quot;</span><span class="p">:</span>
+                <span class="n">tag_value</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">str_num</span><span class="p">)</span> <span class="k">for</span> <span class="n">str_num</span> <span class="ow">in</span> <span class="n">tag_value</span><span class="p">]</span>
+            <span class="c1"># Boolean</span>
+            <span class="k">elif</span> <span class="n">tag_type</span> <span class="o">==</span> <span class="s2">&quot;bool&quot;</span><span class="p">:</span>
+                <span class="n">tag_value</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">tag_value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tag_value</span>
+
+    <span class="c1"># Get patient weight</span>
+    <span class="k">if</span> <span class="n">pydicom_has_tag</span><span class="p">(</span><span class="n">dcm_seq</span><span class="o">=</span><span class="n">dicom_h</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="p">(</span><span class="mh">0x0010</span><span class="p">,</span> <span class="mh">0x1030</span><span class="p">)):</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="n">get_pydicom_meta_tag</span><span class="p">(</span><span class="n">dcm_seq</span><span class="o">=</span><span class="n">dicom_h</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="p">(</span><span class="mh">0x0010</span><span class="p">,</span> <span class="mh">0x1030</span><span class="p">),</span>
+                                      <span class="n">tag_type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1000.0</span>  <span class="c1"># in grams</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">weight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="mf">75000.0</span>  <span class="c1"># estimation</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Get Scan time</span>
+        <span class="n">scantime</span> <span class="o">=</span> <span class="n">dcm_hhmmss</span><span class="p">(</span><span class="n">date_str</span><span class="o">=</span><span class="n">get_pydicom_meta_tag</span><span class="p">(</span>
+            <span class="n">dcm_seq</span><span class="o">=</span><span class="n">dicom_h</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="p">(</span><span class="mh">0x0008</span><span class="p">,</span> <span class="mh">0x0032</span><span class="p">),</span> <span class="n">tag_type</span><span class="o">=</span><span class="s2">&quot;str&quot;</span><span class="p">))</span>
+        <span class="c1"># Start Time for the Radiopharmaceutical Injection</span>
+        <span class="n">injection_time</span> <span class="o">=</span> <span class="n">dcm_hhmmss</span><span class="p">(</span><span class="n">date_str</span><span class="o">=</span><span class="n">get_pydicom_meta_tag</span><span class="p">(</span>
+            <span class="n">dcm_seq</span><span class="o">=</span><span class="n">dicom_h</span><span class="p">[</span><span class="mh">0x0054</span><span class="p">,</span> <span class="mh">0x0016</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">tag</span><span class="o">=</span><span class="p">(</span><span class="mh">0x0018</span><span class="p">,</span> <span class="mh">0x1072</span><span class="p">),</span> <span class="n">tag_type</span><span class="o">=</span><span class="s2">&quot;str&quot;</span><span class="p">))</span>
+        <span class="c1"># Half Life for Radionuclide</span>
+        <span class="n">half_life</span> <span class="o">=</span> <span class="n">get_pydicom_meta_tag</span><span class="p">(</span>
+            <span class="n">dcm_seq</span><span class="o">=</span><span class="n">dicom_h</span><span class="p">[</span><span class="mh">0x0054</span><span class="p">,</span> <span class="mh">0x0016</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">tag</span><span class="o">=</span><span class="p">(</span><span class="mh">0x0018</span><span class="p">,</span> <span class="mh">0x1075</span><span class="p">),</span> <span class="n">tag_type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+        <span class="c1"># Total dose injected for Radionuclide</span>
+        <span class="n">injected_dose</span> <span class="o">=</span> <span class="n">get_pydicom_meta_tag</span><span class="p">(</span>
+            <span class="n">dcm_seq</span><span class="o">=</span><span class="n">dicom_h</span><span class="p">[</span><span class="mh">0x0054</span><span class="p">,</span> <span class="mh">0x0016</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">tag</span><span class="o">=</span><span class="p">(</span><span class="mh">0x0018</span><span class="p">,</span> <span class="mh">0x1074</span><span class="p">),</span> <span class="n">tag_type</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
+        <span class="c1"># Calculate decay</span>
+        <span class="n">decay</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">scantime</span><span class="o">-</span><span class="n">injection_time</span><span class="p">)</span><span class="o">/</span><span class="n">half_life</span><span class="p">)</span>
+        <span class="c1"># Calculate the dose decayed during procedure</span>
+        <span class="n">injected_dose_decay</span> <span class="o">=</span> <span class="n">injected_dose</span><span class="o">*</span><span class="n">decay</span>  <span class="c1"># in Bq</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="c1"># 90 min waiting time, 15 min preparation</span>
+        <span class="n">decay</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">1.75</span><span class="o">*</span><span class="mi">3600</span><span class="p">)</span><span class="o">/</span><span class="mi">6588</span><span class="p">)</span>
+        <span class="n">injected_dose_decay</span> <span class="o">=</span> <span class="mi">420000000</span> <span class="o">*</span> <span class="n">decay</span>  <span class="c1"># 420 MBq</span>
+
+    <span class="c1"># Calculate SUV</span>
+    <span class="n">suv_map</span> <span class="o">=</span> <span class="n">raw_pet</span> <span class="o">*</span> <span class="n">weight</span> <span class="o">/</span> <span class="n">injected_dose_decay</span>
+
+    <span class="k">return</span> <span class="n">suv_map</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MEDimage.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

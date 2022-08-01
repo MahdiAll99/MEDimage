@@ -1,0 +1,205 @@
+utils
+======================
+
+Submodules
+----------
+
+MEDimage.utils.batch\_patients module
+-------------------------------------
+
+.. automodule:: MEDimage.utils.batch_patients
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.create\_radiomics\_table module
+----------------------------------------------
+
+.. automodule:: MEDimage.utils.create_radiomics_table
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.data\_frame\_export module
+-----------------------------------------
+
+.. automodule:: MEDimage.utils.data_frame_export
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.find\_process\_names module
+------------------------------------------
+
+.. automodule:: MEDimage.utils.find_process_names
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.get\_file\_paths module
+--------------------------------------
+
+.. automodule:: MEDimage.utils.get_file_paths
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.get\_institutions\_from\_ids module
+--------------------------------------------------
+
+.. automodule:: MEDimage.utils.get_institutions_from_ids
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.get\_patient\_id\_from\_scan\_name module
+--------------------------------------------------------
+
+.. automodule:: MEDimage.utils.get_patient_id_from_scan_name
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.get\_patient\_names module
+-----------------------------------------
+
+.. automodule:: MEDimage.utils.get_patient_names
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.get\_radiomic\_names module
+------------------------------------------
+
+.. automodule:: MEDimage.utils.get_radiomic_names
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.get\_scan\_name\_from\_rad\_name module
+------------------------------------------------------
+
+.. automodule:: MEDimage.utils.get_scan_name_from_rad_name
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.image\_reader\_SITK module
+-----------------------------------------
+
+.. automodule:: MEDimage.utils.image_reader_SITK
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.image\_volume\_obj module
+----------------------------------------
+
+.. automodule:: MEDimage.utils.image_volume_obj
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.imref module
+---------------------------
+
+.. automodule:: MEDimage.utils.imref
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.initMEDimage module
+----------------------------------
+
+.. automodule:: MEDimage.utils.initMEDimage
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.initialize\_features\_names module
+-------------------------------------------------
+
+.. automodule:: MEDimage.utils.initialize_features_names
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.inpolygon module
+-------------------------------
+
+.. automodule:: MEDimage.utils.inpolygon
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.interp3 module
+-----------------------------
+
+.. automodule:: MEDimage.utils.interp3
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.json\_utils module
+---------------------------------
+
+.. automodule:: MEDimage.utils.json_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.mode module
+--------------------------
+
+.. automodule:: MEDimage.utils.mode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.parse\_contour\_string module
+--------------------------------------------
+
+.. automodule:: MEDimage.utils.parse_contour_string
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.save\_MEDimage module
+------------------------------------
+
+.. automodule:: MEDimage.utils.save_MEDimage
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.strfind module
+-----------------------------
+
+.. automodule:: MEDimage.utils.strfind
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.textureTools module
+----------------------------------
+
+.. automodule:: MEDimage.utils.textureTools
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+MEDimage.utils.write\_radiomics\_csv module
+-------------------------------------------
+
+.. automodule:: MEDimage.utils.write_radiomics_csv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: MEDimage.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
