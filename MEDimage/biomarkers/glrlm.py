@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from copy import deepcopy
-from typing import Dict, List
+import math
 import typing
+from copy import deepcopy
+from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
-from deprecated import deprecated
 
 from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   is_list_all_none)
@@ -51,7 +51,6 @@ def extract_all(vol: np.ndarray,
         * Provide the range of discretised intensities from a calling function and pass to get_rlm_features.
         * Test if dist_correction works as expected.
     """
-
 
     rlm_features = get_rlm_features(vol=vol, 
                                     glrlm_merge_method=glrlm_merge_method, 

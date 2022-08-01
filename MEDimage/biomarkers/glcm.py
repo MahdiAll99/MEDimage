@@ -27,7 +27,11 @@ def get_matrix(roi_only: np.ndarray,
     the GLCM by a value of :math:`\sqrt{2}`, and neighbors at a distance of 1 voxels
     around a center voxel increment the GLCM by a value of 1.
     This matrix refers to "Grey level co-occurrence based features" (ID = LFYI) 
+<<<<<<< HEAD
     in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
+=======
+    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+>>>>>>> Merged files
 
     Args:
         roi_only (ndarray): Smallest box containing the ROI, with the imaging data
@@ -37,15 +41,25 @@ def get_matrix(roi_only: np.ndarray,
                                   (or reconstruction ``levels`` of quantization).
         dist_correction (bool, optional): Set this variable to true in order to use
                                 discretization length difference corrections as used by the `Institute of Physics and
+<<<<<<< HEAD
                                 Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
+=======
+                                Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`__.
+>>>>>>> Merged files
                                 Set this variable to false to replicate IBSI results.
 
     Returns:
         ndarray: Gray-Level Co-occurence Matrix of ``roi_only``.
 
     References:
+<<<<<<< HEAD
         [1] Haralick, R. M., Shanmugam, K., & Dinstein, I. (1973). Textural \
         features for image classification. IEEE Transactions on Systems, \
+=======
+
+        [1] Haralick, R. M., Shanmugam, K., & Dinstein, I. (1973). Textural
+        features for image classification. IEEE Transactions on Systems,
+>>>>>>> Merged files
         Man and Cybernetics, smc 3(6), 610–621.
     """
     # PARSING "dist_correction" ARGUMENT
