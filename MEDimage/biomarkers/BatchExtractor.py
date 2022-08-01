@@ -15,6 +15,7 @@ import pandas as pd
 import ray
 from tqdm import trange
 
+
 class BatchExtractor(object):
     """
     Organizes all the patients/scans in batches to extract all the radiomic features
@@ -145,7 +146,7 @@ class BatchExtractor(object):
         # Re-segmentation
         # Intensity mask range re-segmentation
         roi_obj_int = deepcopy(roi_obj_morph)
-        roi_obj_int.data = MEDimage.processing.resegmentation.range_re_seg(
+        roi_obj_int.data = MEDimage.processing.range_re_seg(
             vol=vol_obj.data, 
             roi=roi_obj_int.data,
             im_range=MEDimg.params.process.im_range

@@ -9,8 +9,9 @@ import pydicom
 def compute_suv_map(raw_pet: np.ndarray,
                     dicom_h: pydicom.Dataset) -> np.ndarray:
     """Computes the suv_map of a raw input PET volume. It is assumed that
-    the calibration factor was applied beforehand to the PET volume.
-    **E.g: raw_pet = raw_pet*RescaleSlope + RescaleIntercept.**
+    the calibration factor was applied beforehand to the PET volume
+    
+    E.g: raw_pet = raw_pet*RescaleSlope + RescaleIntercept.
 
     Args:
         raw_pet (ndarray):3D array representing the PET volume in raw format.
