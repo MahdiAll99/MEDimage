@@ -3,90 +3,16 @@
 
 
 from copy import deepcopy
+from lib2to3.pgen2.pgen import DFAState
 from typing import Dict, List
 
 import numpy as np
 import pandas as pd
 
+from ..biomarkers.get_ngldm_matrix import get_ngldm_matrix
 from ..utils.textureTools import (coord2index, get_neighbour_direction,
                                   get_value, is_list_all_none)
 
-
-def get_matrix(roi_only: np.array,
-                     levels: np.ndarray) -> float:
-    """Computes Neighbouring grey level dependence matrix.
-    This matrix refers to "Neighbouring grey level dependence based features" (ID = REK0)  
-    in the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
-
-    Args:
-        roi_only_int (ndarray): Smallest box containing the ROI, with the imaging data ready
-            for texture analysis computations. Voxels outside the ROI are
-            set to NaNs.
-        levels (ndarray or List): Vector containing the quantized gray-levels
-            in the tumor region (or reconstruction ``levels`` of quantization).
-
-    Returns:
-        ndarray: Array of neighbouring grey level dependence matrix of ``roi_only``.
-
-    """
-    roi_only = roi_only.copy()
-
-    # PRELIMINARY
-    level_temp = np.max(levels)+1
-    roi_only[np.isnan(roi_only)] = level_temp
-    levels = np.append(levels, level_temp)
-    dim = np.shape(roi_only)
-    if np.size(dim) == 2:
-        np.append(dim, 1)
-
-    q_2 = np.reshape(roi_only, np.prod(dim), order='F').astype("int")
-
-    # QUANTIZATION EFFECTS CORRECTION (M. Vallieres)
-    # In case (for example) we initially wanted to have 64 levels, but due to
-    # quantization, only 60 resulted.
-    # q_s = round(levels*adjust)/adjust;
-    # q_2 = round(q_2*adjust)/adjust;
-    q_s = levels.copy()
-
-    # EL NAQA CODE
-    q_3 = q_2*0
-    lqs = np.size(q_s)
-    for k in range(1, lqs+1):
-        q_3[q_2 == q_s[k-1]] = k
-
-    q_3 = np.reshape(q_3, dim, order='F')
-
-    # Min dependence = 0, Max dependence = 26; So 27 columns
-    ngldm = np.zeros((lqs, 27))
-    for i in range(1, dim[0]+1):
-        i_min = max(1, i-1)
-        i_max = min(i+1, dim[0])
-        for j in range(1, dim[1]+1):
-            j_min = max(1, j-1)
-            j_max = min(j+1, dim[1])
-            for k in range(1, dim[2]+1):
-                k_min = max(1, k-1)
-                k_max = min(k+1, dim[2])
-                val_q3 = q_3[i-1, j-1, k-1]
-                count = 0
-                for I2 in range(i_min, i_max+1):
-                    for J2 in range(j_min, j_max+1):
-                        for K2 in range(k_min, k_max+1):
-                            if (I2 == i) & (J2 == j) & (K2 == k):
-                                continue
-                            else:
-                                # a = 0
-                                if (val_q3 - q_3[I2-1, J2-1, K2-1] == 0):
-                                    count += 1
-
-                ngldm[val_q3-1, count] = ngldm[val_q3-1, count] + 1
-
-    # Last column was for the NaN voxels, to be removed
-    ngldm = np.delete(ngldm, -1, 0)
-    stop = np.nonzero(np.sum(ngldm, 0))[0][-1]
-    ngldm = np.delete(ngldm, range(stop+1, np.shape(ngldm)[1]+1), 1)
-
-    return ngldm
 
 def extract_all(vol: np.ndarray,
                 method: str="new") -> Dict :
@@ -120,7 +46,7 @@ def get_ngldm_features(vol: np.ndarray,
                        ngldm_dist: float=1.0) -> Dict:
     """Extract neighbouring grey level dependence matrix-based features from the intensity roi mask.
     These features refer to "Neighbouring grey level dependence based features" (ID = REK0) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
 
@@ -563,7 +489,7 @@ def get_ngldm_features_deprecated(vol: np.ndarray) ->Dict:
     # GET THE ngldm MATRIX
     # Correct definition, without any assumption
     levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
-    ngldm = get_matrix(vol, levels)
+    ngldm = get_ngldm_matrix(vol, levels)
     n_s = np.sum(ngldm)
     # Normalization of ngldm
     ngldm = ngldm/n_s
@@ -657,7 +583,7 @@ def lde(ngldm_dict: np.ndarray)-> float:
     """
     Computes low dependence emphasis feature.
     This feature refers to "Fngl_lde" (ID = SODN) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -672,7 +598,7 @@ def hde(ngldm_dict: np.ndarray)-> float:
     """
     Computes high dependence emphasis feature.
     This feature refers to "Fngl_hde" (ID = IMOQ) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -687,7 +613,7 @@ def lgce(ngldm_dict: np.ndarray)-> float:
     """
     Computes low grey level count emphasis feature.
     This feature refers to "Fngl_lgce" (ID = TL9H) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -702,7 +628,7 @@ def hgce(ngldm_dict: np.ndarray)-> float:
     """
     Computes high grey level count emphasis feature.
     This feature refers to "Fngl_hgce" (ID = OAE7) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -717,7 +643,7 @@ def ldlge(ngldm_dict: np.ndarray)-> float:
     """
     Computes low dependence low grey level emphasis feature.
     This feature refers to "Fngl_ldlge" (ID = EQ3F) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -732,7 +658,7 @@ def ldhge(ngldm_dict: np.ndarray)-> float:
     """
     Computes low dependence high grey level emphasis feature.
     This feature refers to "Fngl_ldhge" (ID = JA6D) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -747,7 +673,7 @@ def hdlge(ngldm_dict: np.ndarray)-> float:
     """
     Computes high dependence low grey level emphasis feature.
     This feature refers to "Fngl_hdlge" (ID = NBZI) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -762,7 +688,7 @@ def hdhge(ngldm_dict: np.ndarray)-> float:
     """
     Computes high dependence high grey level emphasis feature.
     This feature refers to "Fngl_hdhge" (ID = 9QMG) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -777,7 +703,7 @@ def glnu(ngldm_dict: np.ndarray)-> float:
     """
     Computes grey level non-uniformity feature.
     This feature refers to "Fngl_glnu" (ID = FP8K) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -792,7 +718,7 @@ def glnu_norm(ngldm_dict: np.ndarray)-> float:
     """
     Computes grey level non-uniformity normalised feature.
     This feature refers to "Fngl_glnu_norm" (ID = 5SPA) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -807,7 +733,7 @@ def dcnu(ngldm_dict: np.ndarray)-> float:
     """
     Computes dependence count non-uniformity feature.
     This feature refers to "Fngl_dcnu" (ID = Z87G) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -822,7 +748,7 @@ def dcnu_norm(ngldm_dict: np.ndarray)-> float:
     """
     Computes dependence count non-uniformity normalised feature.
     This feature refers to "Fngl_dcnu_norm" (ID = OKJI) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -837,7 +763,7 @@ def gl_var(ngldm_dict: np.ndarray)-> float:
     """
     Computes grey level variance feature.
     This feature refers to "Fngl_gl_var" (ID = 1PFV) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -852,7 +778,7 @@ def dc_var(ngldm_dict: np.ndarray)-> float:
     """
     Computes dependence count variance feature.
     This feature refers to "Fngl_dc_var" (ID = DNX2) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -867,7 +793,7 @@ def dc_entr(ngldm_dict: np.ndarray)-> float:
     """
     Computes dependence count entropy feature.
     This feature refers to "Fngl_dc_entr" (ID = FCBV) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix
@@ -882,7 +808,7 @@ def dc_energy(ngldm_dict: np.ndarray)-> float:
     """
     Computes dependence count energy feature.
     This feature refers to "Fngl_dc_energy" (ID = CAS9) in 
-    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
+    the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         ngldm (ndarray): array of neighbouring grey level dependence matrix

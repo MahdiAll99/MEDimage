@@ -17,12 +17,12 @@ import pydicom.errors
 import pydicom.misc
 import ray
 from MEDimage.MEDimage import MEDimage
-from MEDimage.processing.segmentation import get_roi_from_indexes
 from MEDimage.utils.imref import imref3d
 from numpyencoder import NumpyEncoder
 from tqdm import tqdm, trange
 
 from ..processing.compute_suv_map import compute_suv_map
+from ..processing.get_roi_from_indexes import get_roi_from_indexes
 from ..utils.get_file_paths import get_file_paths
 from ..utils.get_patient_names import get_patient_names
 from ..utils.json_utils import load_json, save_json
