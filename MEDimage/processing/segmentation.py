@@ -3,6 +3,7 @@
 
 
 import logging
+from copy import deepcopy
 from typing import List, Sequence, Tuple, Union
 
 import numpy as np
@@ -20,33 +21,29 @@ from ..utils.strfind import strfind
 
 _logger = logging.getLogger(__name__)
 
+
 def get_sep_roi_names(name_roi_in: str,
                       delimiters: List) -> Tuple[List[int],
                                                  np.ndarray]:
     """Seperated ROI names present in the given ROI name. An ROI name can
     have multiple ROI names seperated with curly brackets and delimeters.
-
     Note:
         Works only for delimiters "+" and "-".
-
     Args:
         name_roi_in (str): Name of ROIs that will be extracted from the imagign volume. \
                            Separated with curly brackets and delimeters. Ex: '{ED}+{ET}'.
         delimiters (List): List of delimeters of "+" and "-".
-
     Returns:
         2-element tuple containing 
         
         - List[int]: List of ROI names seperated and excluding curly brackets.
         - ndarray: array of 1's and -1's that defines the regions that will \
                  included and/or excluded in/from the imaging data.
-
     Examples:
         >>> get_sep_roi_names('{ED}+{ET}', ['+', '-'])
         ['ED', 'ET'], [1]
         >>> get_sep_roi_names('{ED}-{ET}', ['+', '-'])
         ['ED', 'ET'], [-1]
-
     """
     # EX:
     #name_roi_in = '{GTV-1}'
@@ -91,6 +88,24 @@ def get_sep_roi_names(name_roi_in: str,
         name_roi_out += [name_roi_in[(ind[-1]+2):-1]]
 
     return name_roi_out, vect_plus_minus
+    
+def roi_extract(vol: np.ndarray,
+                roi: np.ndarray) -> np.ndarray:
+    """Replaces volume intensities outside the ROI with NaN.
+
+    Args:
+        vol (ndarray): Imaging data.
+        roi (ndarray): ROI mask with values of 0's and 1's.
+
+    Returns:
+        ndarray: Imaging data with original intensities in the ROI \
+            and NaN for intensities outside the ROI.
+    """
+
+    vol_re = deepcopy(vol)
+    vol_re[roi == 0] = np.nan
+
+    return vol_re
 
 def get_polygon_mask(roi_xyz: np.ndarray,
                      spatial_ref: imref3d,

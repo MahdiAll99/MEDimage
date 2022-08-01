@@ -7,7 +7,8 @@ from typing import Tuple
 
 import numpy as np
 from MEDimage.MEDimage import MEDimage
-from MEDimage.processing.segmentation import compute_box, get_sep_roi_names
+from MEDimage.processing import get_sep_roi_names
+from MEDimage.processing.segmentation import compute_box
 
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.parse_contour_string import parse_contour_string
