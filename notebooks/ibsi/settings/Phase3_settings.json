@@ -1,0 +1,344 @@
+{
+  "Extraction3_ComputeRadiomicsReduced" : {
+    "pathDATA" : "",
+    "pathCSV" : "",  
+    "FEATURESred" : "",
+    "n_batch" : 16,
+    "roi_type_labels" : [
+      "stsNIFTIGTV"
+    ],
+    "roi_types" : [
+      "GTVp"
+    ],
+
+    "imParamMR" : {
+      "interp" : {
+        "scaleNonText" : [1, 1, 1],      
+        "scaleText" : [[1, 1, 1]],
+        "volInterp" : "cubic",
+        "glRound" : [],
+        "roiInterp" : "linear",
+        "roiPV" : 0.5
+      },
+      "reSeg" : {
+        "range" : [0, "inf"],
+        "outliers" : ""
+      },
+      "discretisation" : {
+        "IH" : {
+          "type" : "FBS",
+          "val" : 10
+        },
+        "IVH" : {
+          "type" : "FBS",
+          "val" : 1
+        },
+        "texture" : {
+          "type" : ["FBS"],    
+          "val" : [[10]]
+        }
+      },  
+      "morph" : {
+        "method" : "ISO",
+        "value" : 0.5
+      },
+      "glcm" : {
+        "symmetry" : "SYM",
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "distCorrection" : false
+      },
+      "extract_all" : {
+        "distCorrection" : false},
+      "gldzm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        }
+      },
+      "ngtdm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "distCorrection" : false
+      },
+      "ngldm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "coarseness" : 0
+      },
+      "intensity" : "definite",
+      "units" : "",
+      "type" : "MRscan"
+    },
+
+    "imParamCT" : {
+      "interp" : {
+        "scaleNonText" : [1, 1, 1],               
+        "scaleText" : [[1, 1, 1]],     
+        "volInterp" : "cubic",
+        "glRound" : 1,
+        "roiInterp" : "linear",
+        "roiPV" : 0.5
+      },
+      "reSeg" :  {
+        "range" : [-200, 200],                     
+        "outliers" : ""
+      },
+      "discretisation" : {
+        "IH" : {
+          "type" : "FBS",
+          "val" : 10
+        },
+        "IVH" : {
+
+        },
+        "texture" : {
+          "type" : ["FBS"],     
+          "val" : [[10]]
+        }
+      }, 
+      "morph" : {
+        "method" : "ISO",
+        "value" : 0.5
+      },
+      "glcm" : {
+        "symmetry" : "SYM",
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "distCorrection" : false
+      },
+      "extract_all" : {
+        "distCorrection" : false
+      },
+      "gldzm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        }
+      },
+      "ngtdm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "distCorrection" : false
+      },
+      "ngldm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "coarseness" : 0
+      },
+      "intensity" : "definite",
+      "units" : "HU",
+      "type" : "CTscan"
+    },
+
+    "imParamPET" : {
+      "compute_suv_map" : false,
+      "interp" :  {
+        "scaleNonText" : [3, 3, 3],     
+        "scaleText" : [[3, 3, 3]],   
+        "volInterp" : "cubic",
+        "glRound" : [],
+        "roiInterp" : "linear",
+        "roiPV" : 0.5
+      },
+      "reSeg" :  {
+        "range" : [0, "inf"],
+        "outliers" : ""
+      },
+      "discretisation" :  {
+        "IH" : {
+          "type" : "FBS",
+          "val" : 0.25
+        },
+        "IVH" : {
+          "type" : "FBS",
+          "val" : 0.1
+        },
+        "texture" : {
+          "type" : ["FBS"],     
+          "val" : [[0.25]]
+        }
+      },
+      "morph" : {
+        "method" : "ISO",
+        "value" : 0.5
+      },
+      "glcm" : {
+        "symmetry" : "SYM",
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "distCorrection" : false
+      },
+      "extract_all" : {
+        "distCorrection" : false
+      },
+      "gldzm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        }
+      },
+      "ngtdm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "distCorrection" : false
+      },
+      "ngldm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "coarseness" : 0
+      },
+      "intensity" : "definite",
+      "units" : "SUV",
+      "type" : "PTscan"
+    },
+
+    "imParamFilter" : {
+      "discretisation" : {
+        "IH" : {
+          "type" : "FBN",
+          "val" : 64
+        },
+        "IVH" : {
+          "type" : "FBN",
+          "val" : 1000
+        },
+        "texture" : {
+          "type" : ["FBN", "FBNequal"],
+          "val" : [[16, 32], [16, 32]]
+        }
+      },
+      "morph" : {
+        "method" : "ISO",
+        "value" : 0.5
+      },
+      "glcm" : {
+        "symmetry" : "SYM",
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "distanceWeightingFunction" : "Inverse"
+      },
+      "extract_all" : {
+        "distanceWeightingFunction" : "Inverse"
+      },
+      "gldzm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value": 1,
+          "unit": ""
+        }
+      },
+      "ngtdm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit" : ""
+        },
+        "distanceWeightingFunction" : "Inverse"
+      },
+      "ngldm" : {
+        "distanceNorm" : {
+          "method" : "Chebyshev",
+          "value" : 1,
+          "unit": ""
+        },
+        "coarseness" : 0
+      },
+      "intensity" : "filter",
+      "units" : "",
+      "type" : "filter",
+      "filterType" : "Mean",
+      "Mean" : {
+        "ndims" : 3,
+        "size" : 5,
+        "padding" : "symmetric",
+        "name_save" : "mean5"
+      },
+      "LoG" : {
+        "ndims" : 3,
+        "sigma" : 1.5,
+        "orthogonal_rot" : false,
+        "padding" : "symmetric",
+        "name_save" : ""
+      },
+      "Laws" : {
+        "config" : ["L5", "E5", "E5"],
+        "energy_distance" : 7,
+        "rot_invariance" : true,
+        "orthogonal_rot" : false,
+        "energy_image" : true,
+        "padding" : "symmetric",
+        "name_save" : ""
+      },
+      "Gabor" : {
+        "sigma" : 5,
+        "lambda" : 2,
+        "gamma" : 1.5,
+        "theta" : -22.5,
+        "rot_invariance" : true,
+        "orthogonal_rot" : true,
+        "padding" : "symmetric",
+        "name_save" : ""
+      },
+      "Wavelet" : {
+        "ndims" : 3,
+        "basis_function" : "db3",
+        "subband" : "LLH",
+        "level" : 1,
+        "rot_invariance" : true,
+        "padding" : "symmetric",
+        "name_save" : ""
+      }
+    },
+    
+    "computeWavelet" : false,
+    "waveletName" : "coif1",
+    "segmentationMethod" : "InPolygon",
+    "softwareLabel" : "MEDomicsLab",
+    "softwareVersion" : "0.1",
+    "programmingLanguage" : "python3.8",
+    "institution" : "MEDomics",
+    "partialVolumeEffectCorrection_MR" : "",
+    "partialVolumeEffectCorrection_CT" : "",
+    "partialVolumeEffectCorrection_PET" : "",
+    "noiseReduction_MR" : "",
+    "noiseReduction_CT" : "",
+    "noiseReduction_PET" : "",
+    "imageNonUniformityCorrection_MR" : "",
+    "imageNonUniformityCorrection_CT" : "",
+    "imageNonUniformityCorrection_PET" : ""
+  }
+}

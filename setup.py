@@ -6,8 +6,8 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="medimage",
     version="0.0.1",
-    author="MEDomicsLab consortium",
-    author_email="",
+    author="MEDomics consortium",
+    author_email="medomics.info@gmail.com",
     description="MEDimage package",
     long_description=long_description,
     long_description_content_type="text/markdown",

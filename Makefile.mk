@@ -14,7 +14,7 @@ python_version := $(wordlist 2,4,$(subst ., ,$(shell python --version 2>&1)))
 .PHONY: create_environment
 create_environment:
 	conda update --yes --name base --channel defaults conda
-	conda env create --file environment.yml
+	conda env create --name medimage --file environment.yml
 
 .PHONY: clean
 clean:

@@ -1,29 +1,7 @@
-"""
--------------------------------------------------------------------------
-AUTHOR(S): MEDomicsLab consortium
--------------------------------------------------------------------------
-STATEMENT:
-This file is part of <https://github.com/MEDomics/MEDomicsLab/>,
-a package providing PYTHON programming tools for radiomics analysis.
---> Copyright (C) MEDomicsLab consortium.
-
-This package is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This package is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this package.  If not, see <http://www.gnu.org/licenses/>.
--------------------------------------------------------------------------
-"""
 import logging
 
-from .utils import *
+from . import biomarkers, filter, processing, utils, wrangling
+from .MEDimage import *
 
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)
@@ -34,4 +12,4 @@ __version__ = "0.2.0"
 __copyright__ = "Copyright (C) MEDomicsLab consortium"
 __license__ = "GNU General Public License 3.0"
 __maintainer__ = "MAHDI AIT LHAJ LOUTFI"
-__email__ = "Mahdi.Ait.Lhaj.Loutfi@USherbrooke.ca"
+__email__ = "medomics.info@gmail.com"
