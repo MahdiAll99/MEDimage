@@ -85,7 +85,7 @@ class BatchExtractor(object):
             Union[Path, str]: Path to the updated logging file.
         """
         # Setting up logging settings
-        logging.basicConfig(filename=log_file, level=logging.DEBUG)
+        logging.basicConfig(filename=log_file, level=logging.DEBUG, force=True)
 
         # start timer
         t_start = time()
@@ -548,7 +548,7 @@ class BatchExtractor(object):
 
         Args: 
             name_save(str): Added at the end to the default name of each table to specify the processing 
-            used in extraction.
+                used in extraction.
 
         Returns:
             None
@@ -559,7 +559,7 @@ class BatchExtractor(object):
         # Get all scan names present for the given roi_type_label
         for r in range(0, n_roi_types):
             label = self.roi_type_labels[r]
-            wildcard = '*' + label + '*'
+            wildcard = '*' + label + '*.json'
             file_paths = MEDimage.utils.get_file_paths(self._path_save, wildcard)
             n_files = len(file_paths)
             scans = [0] * n_files
