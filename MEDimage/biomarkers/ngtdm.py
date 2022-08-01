@@ -11,9 +11,7 @@ import numpy as np
 def get_matrix(roi_only:np.ndarray,
                      levels:np.ndarray,
                      dist_correction: bool=False) -> Tuple[np.ndarray, np.ndarray]:
-    """Computes ngtdm matrix.
-
-    This function computes the Neighborhood Gray-Tone Difference Matrix
+    """This function computes the Neighborhood Gray-Tone Difference Matrix
     (NGTDM) of the region of interest (ROI) of an input volume. The input
     volume is assumed to be isotropically resampled. The ngtdm is computed
     using 26-voxel connectivity. To account for discretization length
@@ -42,7 +40,7 @@ def get_matrix(roi_only:np.ndarray,
             - ngtdm: Neighborhood Gray-Tone Difference Matrix of ``roi_only'``.
             - count_valid: Array of number of valid voxels used in the ngtdm computation.
 
-    REFERENCE:
+    REFERENCES:
         [1] Amadasun, M., & King, R. (1989). Textural Features Corresponding to
         Textural Properties. IEEE Transactions on Systems Man and Cybernetics,
         19(5), 1264–1274.

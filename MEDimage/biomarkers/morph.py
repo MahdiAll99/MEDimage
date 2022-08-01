@@ -592,7 +592,7 @@ def min_vol_ellipse(P: np.ndarray,
     Finds the minimum volume enclsing ellipsoid (MVEE) of a set of data
     points stored in matrix P. The following optimization problem is solved:
 
-        minimize log(det(A)) subject to (P_i - c)' * A * (P_i - c) <= 1
+        minimize $$log(det(A))$$ subject to $$(P_i - c)' * A * (P_i - c) <= 1$$
 
     in variables A and c, where `P_i` is the `i-th` column of the matrix `P`.
     The solver is based on Khachiyan Algorithm, and the final solution
@@ -608,23 +608,29 @@ def min_vol_ellipse(P: np.ndarray,
         tolerance (ndarray): error in the solution with respect to the optimal value.
     
     Returns:
-        Tuple[np.ndarray, np.ndarray]: 
-            - A: (d x d) matrix of the ellipse equation in the 'center form':
-                $$(x-c)' * A * (x-c) = 1$$
-                where d is shape of `P` along 0-axis.
-            - c: d-dimensional vector as the center of the ellipse.
+        2-element tuple containing
+    
+        - A: (d x d) matrix of the ellipse equation in the 'center form': \
+        $$(x-c)' * A * (x-c) = 1$$ \
+        where d is shape of `P` along 0-axis. 
+        
+        - c: d-dimensional vector as the center of the ellipse. 
 
-    examples:
+    Examples:
 
-        >>>P = rand(5,100);
-        >>>[A, c] = min_vol_ellipse(P, .01)
+        >>>P = rand(5,100)
 
-        #To reduce the computation time, work with the boundary points only:
-        >>>K = convhulln(P)
-        >>>K = unique(K(:))
-        >>>Q = P(:,K)
-        >>>[A, c] = min_vol_ellipse(Q, .01)
+        >>>[A, c] = :func:`min_vol_ellipse(P, .01)`
 
+        To reduce the computation time, work with the boundary points only:
+
+        >>>K = :func:`convhulln(P)`
+
+        >>>K = :func:`unique(K(:))`
+
+        >>>Q = :func:`P(:,K)`
+
+        >>>[A, c] = :func:`min_vol_ellipse(Q, .01)`
     """
 
     # Solving the Dual problem
@@ -1428,7 +1434,6 @@ def a_dens_ombb(vol: np.ndarray,
     Implementation of Chan and Tan's algorithm (C.K. Chan, S.T. Tan.
     Determination of the minimum bounding box of an
     arbitrary solid: an iterative approach.
-    Comp Struc 79 (2001) 1433-1449
     This feature refers to "Fmorph_a_dens_ombb" (ID = IQYR) in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 

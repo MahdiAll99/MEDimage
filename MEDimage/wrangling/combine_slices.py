@@ -29,6 +29,7 @@ def combine_slices(slice_datasets):
     `False`, the original dtype will be preserved even if DICOM rescaling information is present.
     The returned array has the column-major byte-order.
     This function requires that the datasets:
+
     - Be in same series (have the same
       `Series Instance UID <https://dicom.innolitics.com/ciods/ct-image/general-series/0020000e>`_,
       `Modality <https://dicom.innolitics.com/ciods/ct-image/general-series/00080060>`_,
@@ -56,6 +57,7 @@ def combine_slices(slice_datasets):
       1e-4, we let them pass.
     - The `Image Position (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200032>`_
       values must approximately form a line.
+      
     If any of these conditions are not met, a `dicom_numpy.DicomImportException` is raised.
     """
 

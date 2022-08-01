@@ -22,8 +22,9 @@ def init_ivh(MEDimg: MEDimage,
 
     Note:
         For the input volume:
+
         - Naturally discretised volume can be kept as it is (e.g. HU values of CT scans) 
-        - All other volumes with continuous intensity distribution should be
+        - All other volumes with continuous intensity distribution should be \
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     Args:
@@ -469,8 +470,9 @@ def auc(MEDimg: MEDimage,
 
     Note:
         For the input volume:
+
             * Naturally discretised volume can be kept as it is (e.g. HU values of CT scans)
-            * All other volumes with continuous intensity distribution should be
+            * All other volumes with continuous intensity distribution should be \
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     Args:

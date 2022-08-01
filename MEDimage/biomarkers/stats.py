@@ -7,13 +7,13 @@ from scipy.stats import iqr, kurtosis, skew, scoreatpercentile, variation
 
 def extract_all(vol: np.ndarray,
                 intensity: str = None) -> dict:
-    """Compute Intensity-based statistical features.
+    """Computes Intensity-based statistical features.
     These features refer to "Intensity-based statistical features" (ID = UHIW) in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-            --> vol: continuos imaging intensity distribution
+            (continuous imaging intensity distribution)
         intensity(optional str): If 'arbitrary', some feature will not be computed.
             If 'definite', all feature will be computed. If not present as an argument,
             all features will be computed. Here, 'filter' is the same as
@@ -81,13 +81,13 @@ def extract_all(vol: np.ndarray,
     return stats
 
 def mean(vol: np.ndarray) -> float:
-    """Compute statistical mean feature of the input dataset (3D Array).
+    """Computes statistical mean feature of the input dataset (3D Array).
     This feature refers to "Fstat_mean" (ID = Q4LE)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: Statistical mean feature
@@ -97,13 +97,13 @@ def mean(vol: np.ndarray) -> float:
     return np.mean(x)  # Mean
 
 def var(vol: np.ndarray) -> float:
-    """Compute statistical variance feature of the input dataset (3D Array).
+    """Computes statistical variance feature of the input dataset (3D Array).
     This feature refers to "Fstat_var" (ID = ECT3)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: Statistical variance feature
@@ -113,13 +113,13 @@ def var(vol: np.ndarray) -> float:
     return np.var(x)  # Variance
 
 def skewness(vol: np.ndarray) -> float:
-    """Compute the sample skewness feature of the input dataset (3D Array).
+    """Computes the sample skewness feature of the input dataset (3D Array).
     This feature refers to "Fstat_skew" (ID = KE2A)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: The skewness feature of values along an axis. Returning 0 where all values are
@@ -130,13 +130,13 @@ def skewness(vol: np.ndarray) -> float:
     return skew(x)  # Skewness
 
 def kurt(vol: np.ndarray) -> float:
-    """Compute the kurtosis (Fisher or Pearson) feature of the input dataset (3D Array).
+    """Computes the kurtosis (Fisher or Pearson) feature of the input dataset (3D Array).
     This feature refers to "Fstat_kurt" (ID = IPH6)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: The kurtosis feature of values along an axis. If all values are equal,
@@ -147,13 +147,13 @@ def kurt(vol: np.ndarray) -> float:
     return kurtosis(x)  # Kurtosis
 
 def median(vol: np.ndarray) -> float:
-    """Compute the median feature along the specified axis of the input dataset (3D Array).
+    """Computes the median feature along the specified axis of the input dataset (3D Array).
     This feature refers to "Fstat_median" (ID = Y12H)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: The median feature of the array elements.
@@ -163,13 +163,13 @@ def median(vol: np.ndarray) -> float:
     return np.median(x)  # Median
 
 def min(vol: np.ndarray) -> float:
-    """Compute the minimum grey level feature of the input dataset (3D Array).
+    """Computes the minimum grey level feature of the input dataset (3D Array).
     This feature refers to "Fstat_min" (ID = 1GSF)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: The minimum grey level feature of the array elements.
@@ -179,13 +179,13 @@ def min(vol: np.ndarray) -> float:
     return np.min(x)  # Minimum grey level
 
 def p10(vol: np.ndarray) -> float:
-    """Calculate the score at the 10th percentile feature of the input dataset (3D Array).
+    """Computes the score at the 10th percentile feature of the input dataset (3D Array).
     This feature refers to "Fstat_P10" (ID = QG58)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: Score at 10th percentil.
@@ -195,13 +195,13 @@ def p10(vol: np.ndarray) -> float:
     return scoreatpercentile(x, 10)  # 10th percentile
 
 def p90(vol: np.ndarray) -> float:
-    """Calculate the score at the 90th percentile feature of the input dataset (3D Array).
+    """Computes the score at the 90th percentile feature of the input dataset (3D Array).
     This feature refers to "Fstat_P90" (ID = 8DWT)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: Score at 90th percentil.
@@ -211,13 +211,13 @@ def p90(vol: np.ndarray) -> float:
     return scoreatpercentile(x, 90)  # 90th percentile
 
 def max(vol: np.ndarray) -> float:
-    """Compute the maximum grey level feature of the input dataset (3D Array).
+    """Computes the maximum grey level feature of the input dataset (3D Array).
     This feature refers to "Fstat_max" (ID = 84IY)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: The maximum grey level feature of the array elements.
@@ -227,13 +227,13 @@ def max(vol: np.ndarray) -> float:
     return np.max(x)  # Maximum grey level
 
 def iqrange(vol: np.ndarray) -> float:
-    """Compute the interquartile range feature of the input dataset (3D Array).
+    """Computes the interquartile range feature of the input dataset (3D Array).
     This feature refers to "Fstat_iqr" (ID = SALO)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: Interquartile range. If axis != None, the output data-type is the same as that of the input.
@@ -249,11 +249,11 @@ def range(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: A new array holding the range of values, unless out was specified,
-               in which case a reference to out is returned.
+        in which case a reference to out is returned.
     """
     x = vol[~np.isnan(vol[:])]  # Initialization
 
@@ -266,7 +266,7 @@ def mad(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float : A new array holding mean absolute deviation feature.
@@ -282,7 +282,7 @@ def rmad(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
         P10(ndarray): Score at 10th percentil.
         P90(ndarray): Score at 90th percentil.
 
@@ -304,7 +304,7 @@ def medad(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: A new array holding the median absolute deviation feature.
@@ -314,13 +314,13 @@ def medad(vol: np.ndarray) -> float:
     return np.mean(np.absolute(x - np.median(x)))  # Median absolute deviation
 
 def cov(vol: np.ndarray) -> float:
-    """Compute the coefficient of variation feature of the input dataset (3D Array).
+    """Computes the coefficient of variation feature of the input dataset (3D Array).
     This feature refers to "Fstat_cov" (ID = 7TET)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: A new array holding the coefficient of variation feature.
@@ -330,13 +330,13 @@ def cov(vol: np.ndarray) -> float:
     return variation(x)  # Coefficient of variation
 
 def qcod(vol: np.ndarray) -> float:
-    """Compute the quartile coefficient of dispersion feature of the input dataset (3D Array).
+    """Computes the quartile coefficient of dispersion feature of the input dataset (3D Array).
     This feature refers to "Fstat_qcod" (ID = 9S40)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: A new array holding the quartile coefficient of dispersion feature.
@@ -347,13 +347,13 @@ def qcod(vol: np.ndarray) -> float:
     return iqr(x) / x_75_25  # Quartile coefficient of dispersion
 
 def energy(vol: np.ndarray) -> float:
-    """Compute the energy feature of the input dataset (3D Array).
+    """Computes the energy feature of the input dataset (3D Array).
     This feature refers to "Fstat_energy" (ID = N8CA)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: A new array holding the energy feature.
@@ -363,13 +363,13 @@ def energy(vol: np.ndarray) -> float:
     return np.sum(np.power(x, 2))  # Energy
 
 def rms(vol: np.ndarray) -> float:
-    """Compute the root mean square feature of the input dataset (3D Array).
+    """Computes the root mean square feature of the input dataset (3D Array).
     This feature refers to "Fstat_rms" (ID = 5ZWQ)  in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
 
     Returns:
         float: A new array holding the root mean square feature.

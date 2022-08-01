@@ -198,7 +198,7 @@ def mean(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram mean
@@ -214,7 +214,7 @@ def var(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram variance
@@ -231,7 +231,7 @@ def skewness(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram skewness.
@@ -251,7 +251,7 @@ def kurt(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: The Intensity histogram kurtosis feature
@@ -271,7 +271,7 @@ def median(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram median feature.
@@ -287,7 +287,7 @@ def min(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram minimum grey level feature.
@@ -303,7 +303,7 @@ def p10(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram 10th percentile feature.
@@ -319,7 +319,7 @@ def p90(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     Returns:
         float: Intensity histogram 90th percentile feature.
     """
@@ -334,7 +334,7 @@ def max(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram maximum grey level feature.
@@ -350,7 +350,7 @@ def mode(vol: np.ndarray) -> np.integer:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         integer: Intensity histogram mode. 
@@ -377,7 +377,7 @@ def iqrange(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Interquartile range. If :math:`axis ≠ None` , the output data-type is the same as that of the input.
@@ -394,7 +394,7 @@ def range(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram range.
@@ -410,7 +410,7 @@ def mad(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float : Intensity histogram mean absolute deviation feature.
@@ -427,7 +427,7 @@ def rmad(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
         P10(ndarray): Score at 10th percentil.
         P90(ndarray): Score at 90th percentil.
     
@@ -449,7 +449,7 @@ def medad(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram median absolute deviation feature.
@@ -465,7 +465,7 @@ def cov(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram coefficient of variation feature.
@@ -481,7 +481,7 @@ def qcod(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         ndarray: A new array holding the quartile coefficient of dispersion feature.
@@ -498,7 +498,7 @@ def entropy(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram entropy feature.
@@ -515,7 +515,7 @@ def uniformity(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Intensity histogram uniformity feature.
@@ -532,7 +532,7 @@ def hist_grad_calc(vol: np.ndarray) -> np.ndarray:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         ndarray: Histogram gradient
@@ -553,7 +553,7 @@ def max_grad(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Maximum histogram gradient feature.
@@ -569,7 +569,7 @@ def max_grad_gl(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Maximum histogram gradient grey level feature.
@@ -587,7 +587,7 @@ def min_grad(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Minimum histogram gradient feature.
@@ -603,7 +603,7 @@ def min_grad_gl(vol: np.ndarray) -> float:
 
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
-             --> vol: continuous imaging intensity distribution
+            (continuous imaging intensity distribution)
     
     Returns:
         float: Minimum histogram gradient grey level feature.

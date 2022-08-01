@@ -7,7 +7,7 @@ import numpy as np
 
 
 def intrinsicToWorld(R, xIntrinsic: float, yIntrinsic: float, zIntrinsic:float) -> Tuple[float, float, float]:
-    """Convert from intrinsic to world coordinates.
+    """Converts from intrinsic to world coordinates.
 
     Args:
         R (imref3d): imref3d object (same functionality of MATLAB imref3d class)
@@ -16,13 +16,15 @@ def intrinsicToWorld(R, xIntrinsic: float, yIntrinsic: float, zIntrinsic:float) 
         zIntrinsic (float):  Coordinates along the z-dimension in the intrinsic coordinate system
 
     Returns:
+        3-element tuple containing 
+        
         float: world coordinates
     """
     return R.intrinsicToWorld(xIntrinsic=xIntrinsic, yIntrinsic=yIntrinsic, zIntrinsic=zIntrinsic)
 
 
 def worldToIntrinsic(R, xWorld: float, yWorld: float, zWorld: float) -> Tuple[float, float, float] :
-    """Convert from world coordinates to intrinsic.
+    """Converts from world coordinates to intrinsic.
 
     Args:
         R (imref3d): imref3d object (same functionality of MATLAB imref3d class)
@@ -31,7 +33,9 @@ def worldToIntrinsic(R, xWorld: float, yWorld: float, zWorld: float) -> Tuple[fl
         zWorld (float): Coordinates along the z-dimension in the intrinsic coordinate system
 
     Returns:
-        _type_: intrinsic coordinates
+        3-element tuple containing 
+        
+        float: intrinsic coordinates
     """
     return R.worldToIntrinsic(xWorld=xWorld, yWorld=yWorld, zWorld=zWorld)
 

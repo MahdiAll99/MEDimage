@@ -43,9 +43,9 @@ def get_matrix(roi_only: np.ndarray,
     Returns:
         ndarray: Gray-Level Co-occurence Matrix of ``roi_only``.
 
-    REFERENCE:
-        [1] Haralick, R. M., Shanmugam, K., & Dinstein, I. (1973). Textural
-        features for image classification. IEEE Transactions on Systems,
+    References:
+        [1] Haralick, R. M., Shanmugam, K., & Dinstein, I. (1973). Textural \
+        features for image classification. IEEE Transactions on Systems, \
         Man and Cybernetics, smc 3(6), 610–621.
     """
     # PARSING "dist_correction" ARGUMENT
