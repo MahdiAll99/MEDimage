@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEDimage.utils.imref &mdash; MEDimage  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> MEDimage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">MEDimage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../FAQs.html">FAQs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">MEDimage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      <li>MEDimage.utils.imref</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for MEDimage.utils.imref</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="intrinsicToWorld"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.intrinsicToWorld">[docs]</a><span class="k">def</span> <span class="nf">intrinsicToWorld</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">xIntrinsic</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">yIntrinsic</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">zIntrinsic</span><span class="p">:</span><span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Converts from intrinsic to world coordinates.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        R (imref3d): imref3d object (same functionality of MATLAB imref3d class)</span>
+<span class="sd">        xIntrinsic (float):  Coordinates along the x-dimension in the intrinsic coordinate system</span>
+<span class="sd">        yIntrinsic (float):  Coordinates along the y-dimension in the intrinsic coordinate system</span>
+<span class="sd">        zIntrinsic (float):  Coordinates along the z-dimension in the intrinsic coordinate system</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        3-element tuple containing </span>
+<span class="sd">        </span>
+<span class="sd">        float: world coordinates</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">R</span><span class="o">.</span><span class="n">intrinsicToWorld</span><span class="p">(</span><span class="n">xIntrinsic</span><span class="o">=</span><span class="n">xIntrinsic</span><span class="p">,</span> <span class="n">yIntrinsic</span><span class="o">=</span><span class="n">yIntrinsic</span><span class="p">,</span> <span class="n">zIntrinsic</span><span class="o">=</span><span class="n">zIntrinsic</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="worldToIntrinsic"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.worldToIntrinsic">[docs]</a><span class="k">def</span> <span class="nf">worldToIntrinsic</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">xWorld</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">yWorld</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">zWorld</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Converts from world coordinates to intrinsic.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        R (imref3d): imref3d object (same functionality of MATLAB imref3d class)</span>
+<span class="sd">        xWorld (float): Coordinates along the x-dimension in the intrinsic coordinate system</span>
+<span class="sd">        yWorld (float): Coordinates along the y-dimension in the intrinsic coordinate system</span>
+<span class="sd">        zWorld (float): Coordinates along the z-dimension in the intrinsic coordinate system</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        3-element tuple containing </span>
+<span class="sd">        </span>
+<span class="sd">        float: intrinsic coordinates</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">R</span><span class="o">.</span><span class="n">worldToIntrinsic</span><span class="p">(</span><span class="n">xWorld</span><span class="o">=</span><span class="n">xWorld</span><span class="p">,</span> <span class="n">yWorld</span><span class="o">=</span><span class="n">yWorld</span><span class="p">,</span> <span class="n">zWorld</span><span class="o">=</span><span class="n">zWorld</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="sizes_match"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.sizes_match">[docs]</a><span class="k">def</span> <span class="nf">sizes_match</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">A</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compares whether the two imref3d objects have the same size.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        R (imref3d): First imref3d object.</span>
+<span class="sd">        A (imref3d): Second imref3d object.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if ``R`` and ``A`` have the same size, and false if not.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">imageSize</span> <span class="o">==</span> <span class="n">A</span><span class="o">.</span><span class="n">imageSize</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="imref3d"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.imref3d">[docs]</a><span class="k">class</span> <span class="nc">imref3d</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;This class mirrors the functionality of the matlab imref3d class</span>
+
+<span class="sd">    An `imref3d object &lt;https://www.mathworks.com/help/images/ref/imref3d.html&gt;`_ </span>
+<span class="sd">    stores the relationship between the intrinsic coordinates </span>
+<span class="sd">    anchored to the columns,  rows, and planes of a 3-D image and the spatial </span>
+<span class="sd">    location of the same column, row, and plane locations in a world coordinate system.</span>
+
+<span class="sd">    The image is sampled regularly in the planar world-x, world-y, and world-z coordinates </span>
+<span class="sd">    of the coordinate system such that intrinsic-x, -y and -z values align with world-x, -y </span>
+<span class="sd">    and -z values, respectively. The resolution in each dimension can be different.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ImageSize (ndarray, optional): Number of elements in each spatial dimension, </span>
+<span class="sd">                                       specified as a 3-element positive row vector.</span>
+<span class="sd">        PixelExtentInWorldX (float, optional): Size of a single pixel in the x-dimension </span>
+<span class="sd">                                               measured in the world coordinate system.</span>
+<span class="sd">        PixelExtentInWorldY (float, optional): Size of a single pixel in the y-dimension </span>
+<span class="sd">                                               measured in the world coordinate system.</span>
+<span class="sd">        PixelExtentInWorldZ (float, optional): Size of a single pixel in the z-dimension </span>
+<span class="sd">                                               measured in the world coordinate system.</span>
+<span class="sd">        xWorldLimits (ndarray, optional): Limits of image in world x, specified as a 2-element row vector, </span>
+<span class="sd">                                          [xMin xMax].</span>
+<span class="sd">        yWorldLimits (ndarray, optional): Limits of image in world y, specified as a 2-element row vector, </span>
+<span class="sd">                                          [yMin yMax].</span>
+<span class="sd">        zWorldLimits (ndarray, optional): Limits of image in world z, specified as a 2-element row vector, </span>
+<span class="sd">                                          [zMin zMax].</span>
+<span class="sd">        </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        ImageSize (ndarray): Number of elements in each spatial dimension, </span>
+<span class="sd">                             specified as a 3-element positive row vector.</span>
+<span class="sd">        PixelExtentInWorldX (float): Size of a single pixel in the x-dimension </span>
+<span class="sd">                                     measured in the world coordinate system.</span>
+<span class="sd">        PixelExtentInWorldY (float): Size of a single pixel in the y-dimension </span>
+<span class="sd">                                     measured in the world coordinate system.</span>
+<span class="sd">        PixelExtentInWorldZ (float): Size of a single pixel in the z-dimension </span>
+<span class="sd">                                     measured in the world coordinate system.</span>
+<span class="sd">        XIntrinsicLimits (ndarray): Limits of image in intrinsic units in the x-dimension, </span>
+<span class="sd">                                    specified as a 2-element row vector [xMin xMax].</span>
+<span class="sd">        YIntrinsicLimits (ndarray): Limits of image in intrinsic units in the y-dimension, </span>
+<span class="sd">                                    specified as a 2-element row vector [yMin yMax].</span>
+<span class="sd">        ZIntrinsicLimits (ndarray): Limits of image in intrinsic units in the z-dimension, </span>
+<span class="sd">                                    specified as a 2-element row vector [zMin zMax].</span>
+<span class="sd">        ImageExtentInWorldX (float): Span of image in the x-dimension in </span>
+<span class="sd">                                     the world coordinate system.</span>
+<span class="sd">        ImageExtentInWorldY (float): Span of image in the y-dimension in </span>
+<span class="sd">                                     the world coordinate system.</span>
+<span class="sd">        ImageExtentInWorldZ (float): Span of image in the z-dimension in </span>
+<span class="sd">                                     the world coordinate system.</span>
+<span class="sd">        xWorldLimits (ndarray): Limits of image in world x, specified as a 2-element row vector, </span>
+<span class="sd">                                [xMin xMax].</span>
+<span class="sd">        yWorldLimits (ndarray): Limits of image in world y, specified as a 2-element row vector, </span>
+<span class="sd">                                [yMin yMax].</span>
+<span class="sd">        zWorldLimits (ndarray): Limits of image in world z, specified as a 2-element row vector, </span>
+<span class="sd">                                [zMin zMax].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                <span class="n">imageSize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                <span class="n">pixelExtentInWorldX</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">pixelExtentInWorldY</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> 
+                <span class="n">pixelExtentInWorldZ</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">xWorldLimits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                <span class="n">yWorldLimits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                <span class="n">zWorldLimits</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="c1"># Check if imageSize is an ndarray, and cast to ndarray otherwise</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ImageSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_to_ndarray</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">imageSize</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># Size of single voxels along axis in world coordinate system.</span>
+        <span class="c1"># Equivalent to voxel spacing.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldX</span> <span class="o">=</span> <span class="n">pixelExtentInWorldX</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldY</span> <span class="o">=</span> <span class="n">pixelExtentInWorldY</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldZ</span> <span class="o">=</span> <span class="n">pixelExtentInWorldZ</span>
+
+        <span class="c1"># Limits of the image in intrinsic coordinates</span>
+        <span class="c1"># AZ: this differs from DICOM, which assumes that the origin lies</span>
+        <span class="c1"># at the center of the first voxel.</span>
+        <span class="k">if</span> <span class="n">imageSize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">XIntrinsicLimits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">imageSize</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mf">0.5</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">YIntrinsicLimits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">imageSize</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mf">0.5</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ZIntrinsicLimits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">imageSize</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="mf">0.5</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">XIntrinsicLimits</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">YIntrinsicLimits</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ZIntrinsicLimits</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Size of the image in world coordinates</span>
+        <span class="k">if</span> <span class="n">imageSize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldX</span> <span class="o">=</span> <span class="n">imageSize</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">pixelExtentInWorldX</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldY</span> <span class="o">=</span> <span class="n">imageSize</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">pixelExtentInWorldY</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldZ</span> <span class="o">=</span> <span class="n">imageSize</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">pixelExtentInWorldZ</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldX</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldY</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldZ</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Limits of the image in the world coordinates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">XWorldLimits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_to_ndarray</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">xWorldLimits</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">YWorldLimits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_to_ndarray</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">yWorldLimits</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ZWorldLimits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_to_ndarray</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">zWorldLimits</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">xWorldLimits</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">imageSize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">XWorldLimits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldX</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">yWorldLimits</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">imageSize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">YWorldLimits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldY</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">zWorldLimits</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">imageSize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ZWorldLimits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldZ</span><span class="p">])</span>
+
+<div class="viewcode-block" id="imref3d._parse_to_ndarray"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.imref3d._parse_to_ndarray">[docs]</a>    <span class="k">def</span> <span class="nf">_parse_to_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                          <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">iterable</span><span class="p">,</span>
+                          <span class="n">n</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Internal function to cast input to a numpy array.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (iterable): Object that supports __iter__.</span>
+<span class="sd">            n (int, optional): expected length.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: iterable input as a numpy array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Cast to ndarray</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+            <span class="c1"># Check length</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;Length of array does not meet the expected length.&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">n</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span></div>
+
+<div class="viewcode-block" id="imref3d.intrinsicToWorld"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.imref3d.intrinsicToWorld">[docs]</a>    <span class="k">def</span> <span class="nf">intrinsicToWorld</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                         <span class="n">xIntrinsic</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                         <span class="n">yIntrinsic</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                         <span class="n">zIntrinsic</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Convert from intrinsic to world coordinates.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            xIntrinsic (ndarray): Coordinates along the x-dimension in the intrinsic coordinate system.</span>
+<span class="sd">            yIntrinsic (ndarray): Coordinates along the y-dimension in the intrinsic coordinate system.</span>
+<span class="sd">            zIntrinsic (ndarray): Coordinates along the z-dimension in the intrinsic coordinate system.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple[np.ndarray, np.ndarray, np.ndarray]: [xWorld, yWorld, zWorld] in world coordinate system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xWorld</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">XWorldLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldX</span><span class="p">)</span> <span class="o">+</span> \
+            <span class="n">xIntrinsic</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldX</span>
+        <span class="n">yWorld</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">YWorldLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldY</span><span class="p">)</span> <span class="o">+</span> \
+            <span class="n">yIntrinsic</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldY</span>
+        <span class="n">zWorld</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ZWorldLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldZ</span><span class="p">)</span> <span class="o">+</span> \
+            <span class="n">zIntrinsic</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldZ</span>
+
+        <span class="k">return</span> <span class="n">xWorld</span><span class="p">,</span> <span class="n">yWorld</span><span class="p">,</span> <span class="n">zWorld</span></div>
+
+<div class="viewcode-block" id="imref3d.worldToIntrinsic"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.imref3d.worldToIntrinsic">[docs]</a>    <span class="k">def</span> <span class="nf">worldToIntrinsic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                         <span class="n">xWorld</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                         <span class="n">yWorld</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+                         <span class="n">zWorld</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                                                     <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                                                     <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Converts from world coordinates to intrinsic coordinates.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            xWorld (ndarray): Coordinates along the x-dimension in the world coordinate system.</span>
+<span class="sd">            yWorld (ndarray): Coordinates along the y-dimension in the world coordinate system.</span>
+<span class="sd">            zWorld (ndarray): Coordinates along the z-dimension in the world coordinate system.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: [xIntrinsic,yIntrinsic,zIntrinsic] in intrinsic coordinate system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">xIntrinsic</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">xWorld</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">XWorldLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldX</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldX</span>
+        <span class="n">yIntrinsic</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">yWorld</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">YWorldLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldY</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldY</span>
+        <span class="n">zIntrinsic</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">zWorld</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ZWorldLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldZ</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldZ</span>
+
+        <span class="k">return</span> <span class="n">xIntrinsic</span><span class="p">,</span> <span class="n">yIntrinsic</span><span class="p">,</span> <span class="n">zIntrinsic</span></div>
+
+<div class="viewcode-block" id="imref3d.contains_point"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.imref3d.contains_point">[docs]</a>    <span class="k">def</span> <span class="nf">contains_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">xWorld</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                       <span class="n">yWorld</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                       <span class="n">zWorld</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Determines which points defined by ``xWorld``, ``yWorld`` and ``zWorld``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            xWorld (ndarray): Coordinates along the x-dimension in the world coordinate system.</span>
+<span class="sd">            yWorld (ndarray): Coordinates along the y-dimension in the world coordinate system.</span>
+<span class="sd">            zWorld (ndarray): Coordinates along the z-dimension in the world coordinate system.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: boolean array for coordinate sets that are within the bounds of the image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xInside</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+            <span class="n">xWorld</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">XWorldLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xWorld</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">XWorldLimits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">yInside</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+            <span class="n">yWorld</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">YWorldLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">yWorld</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">YWorldLimits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">zInside</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+            <span class="n">zWorld</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ZWorldLimits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">zWorld</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ZWorldLimits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">xInside</span> <span class="o">+</span> <span class="n">yInside</span> <span class="o">+</span> <span class="n">zInside</span> <span class="o">==</span> <span class="mi">3</span></div>
+
+<div class="viewcode-block" id="imref3d.WorldLimits"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.imref3d.WorldLimits">[docs]</a>    <span class="k">def</span> <span class="nf">WorldLimits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                    <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">newValue</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Sets the WorldLimits to the new value for the given ``axis``.</span>
+<span class="sd">        If the newValue is None, the method returns the attribute value.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            axis (str, optional): Specify the dimension, must be &#39;X&#39;, &#39;Y&#39; or &#39;Z&#39;.</span>
+<span class="sd">            newValue (iterable, optional): New value for the WorldLimits attribute.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: Limits of image in world along the axis-dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">newValue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Get value</span>
+            <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">XWorldLimits</span>
+            <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Y&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">YWorldLimits</span>
+            <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Z&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ZWorldLimits</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Set value</span>
+            <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">XWorldLimits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_to_ndarray</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">newValue</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Y&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">YWorldLimits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_to_ndarray</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">newValue</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Z&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ZWorldLimits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_to_ndarray</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">newValue</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="imref3d.PixelExtentInWorld"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.imref3d.PixelExtentInWorld">[docs]</a>    <span class="k">def</span> <span class="nf">PixelExtentInWorld</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the PixelExtentInWorld attribute value for the given ``axis``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            axis (str, optional): Specify the dimension, must be &#39;X&#39;, &#39;Y&#39; or &#39;Z&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Size of a single pixel in the axis-dimension measured in the world coordinate system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldX</span>
+        <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Y&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldY</span>
+        <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Z&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">PixelExtentInWorldZ</span></div>
+
+<div class="viewcode-block" id="imref3d.IntrinsicLimits"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.imref3d.IntrinsicLimits">[docs]</a>    <span class="k">def</span> <span class="nf">IntrinsicLimits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                        <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                                            <span class="kc">None</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the IntrinsicLimits attribute value for the given ``axis``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            axis (str, optional): Specify the dimension, must be &#39;X&#39;, &#39;Y&#39; or &#39;Z&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: Limits of image in intrinsic units in the axis-dimension, specified as a 2-element row vector [xMin xMax].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">XIntrinsicLimits</span>
+        <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Y&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">YIntrinsicLimits</span>
+        <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Z&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ZIntrinsicLimits</span></div>
+
+<div class="viewcode-block" id="imref3d.ImageExtentInWorld"><a class="viewcode-back" href="../../../utils.html#MEDimage.utils.imref.imref3d.ImageExtentInWorld">[docs]</a>    <span class="k">def</span> <span class="nf">ImageExtentInWorld</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                           <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span>
+                                               <span class="kc">None</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the ImageExtentInWorld attribute value for the given ``axis``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            axis (str, optional): Specify the dimension, must be &#39;X&#39;, &#39;Y&#39; or &#39;Z&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ndarray: Span of image in the axis-dimension in the world coordinate system.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldX</span>
+        <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Y&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldY</span>
+        <span class="k">elif</span> <span class="n">axis</span> <span class="o">==</span> <span class="s2">&quot;Z&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ImageExtentInWorldZ</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MEDimage.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

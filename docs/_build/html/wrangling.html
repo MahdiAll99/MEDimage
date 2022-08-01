@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wrangling &mdash; MEDimage  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="FAQs" href="FAQs.html" />
+    <link rel="prev" title="Utils" href="utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> MEDimage
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">MEDimage</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="MEDimage.html">MEDimage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="biomarkers.html">Biomarkers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter.html">Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processing.html">Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Wrangling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-MEDimage.wrangling.DataManager">DataManager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-MEDimage.wrangling.combine_slices">combine_slices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-MEDimage.wrangling.process_dicom_scan_files">process_dicom_scan_files</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="FAQs.html">FAQs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MEDimage</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">MEDimage</a> &raquo;</li>
+      <li>Wrangling</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/wrangling.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wrangling">
+<h1>Wrangling<a class="headerlink" href="#wrangling" title="Permalink to this headline"></a></h1>
+<section id="module-MEDimage.wrangling.DataManager">
+<span id="datamanager"></span><h2>DataManager<a class="headerlink" href="#module-MEDimage.wrangling.DataManager" title="Permalink to this headline"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">MEDimage.wrangling.DataManager.</span></span><span class="sig-name descname"><span class="pre">DataManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_dicoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_to_niftis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_csv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_save_checks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_pre_checks_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_instances</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Reads all the raw data (DICOM, NIfTI) content and organizes it in instances of the MEDimage class.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.DICOM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DICOM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack_series_rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_path_rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_frame_rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_series_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_path_rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_path_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_frame_rs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_frame_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.DICOM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.DICOM" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>DICOM data management class that will organize data during the conversion to MEDimage class process</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.DICOM.cell_frame_id">
+<span class="sig-name descname"><span class="pre">cell_frame_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.DICOM.cell_frame_id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.DICOM.cell_frame_rs">
+<span class="sig-name descname"><span class="pre">cell_frame_rs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.DICOM.cell_frame_rs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.DICOM.cell_path_images">
+<span class="sig-name descname"><span class="pre">cell_path_images</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.DICOM.cell_path_images" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.DICOM.cell_path_rs">
+<span class="sig-name descname"><span class="pre">cell_path_rs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.DICOM.cell_path_rs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.DICOM.cell_series_id">
+<span class="sig-name descname"><span class="pre">cell_series_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.DICOM.cell_series_id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.DICOM.stack_frame_rs">
+<span class="sig-name descname"><span class="pre">stack_frame_rs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.DICOM.stack_frame_rs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.DICOM.stack_path_rs">
+<span class="sig-name descname"><span class="pre">stack_path_rs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.DICOM.stack_path_rs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.DICOM.stack_series_rs">
+<span class="sig-name descname"><span class="pre">stack_series_rs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.DICOM.stack_series_rs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.NIfTI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">NIfTI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stack_path_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_path_roi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stack_path_all</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.NIfTI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.NIfTI" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>NIfTI data management class that will organize data during the conversion to MEDimage class process</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.NIfTI.stack_path_all">
+<span class="sig-name descname"><span class="pre">stack_path_all</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.NIfTI.stack_path_all" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.NIfTI.stack_path_images">
+<span class="sig-name descname"><span class="pre">stack_path_images</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.NIfTI.stack_path_images" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.NIfTI.stack_path_roi">
+<span class="sig-name descname"><span class="pre">stack_path_roi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.NIfTI.stack_path_roi" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.Paths">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_path_to_dicoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_path_to_niftis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_path_csv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_path_save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_path_save_checks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_path_pre_checks_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.Paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.Paths" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Paths management class that will organize the paths used in the processing</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_dicoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_to_niftis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_csv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_save_checks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_pre_checks_settings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_instances</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor of the class DataManager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_dicoms</strong> (<em>Union</em><em>[</em><em>Path</em><em>, </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Full path to the starting directory
+where the DICOM data is located.</p></li>
+<li><p><strong>path_to_niftis</strong> (<em>Union</em><em>[</em><em>Path</em><em>, </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Full path to the starting directory
+where the NIfTI is located.</p></li>
+<li><p><strong>path_csv</strong> (<em>Union</em><em>[</em><em>Path</em><em>, </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Full path to the CSV file containing the scans info list.</p></li>
+<li><p><strong>path_save</strong> (<em>Union</em><em>[</em><em>Path</em><em>, </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Full path to the directory where to save all the MEDimage classes.</p></li>
+<li><p><strong>path_save_checks</strong> (<em>Union</em><em>[</em><em>Path</em><em>, </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Full path to the directory where to save all
+the pre-radiomics checks analysis results.</p></li>
+<li><p><strong>path_pre_checks_settings</strong> (<em>Union</em><em>[</em><em>Path</em><em>, </em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Full path to the JSON file of the pre-checks analysis
+parameters.</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – True to save the MEDimage classes in <cite>path_save</cite>.</p></li>
+<li><p><strong>keep_instances</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, will keep the created MEDimage instances in the class instance.</p></li>
+<li><p><strong>n_batch</strong> (<em>int</em><em>, </em><em>optional</em>) – Numerical value specifying the number of batch to use in the
+parallel computations (use 0 for serial computation).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.pre_checks_init">
+<span class="sig-name descname"><span class="pre">pre_checks_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_save_checks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_csv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.pre_checks_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.pre_checks_init" title="Permalink to this definition"></a></dt>
+<dd><p>Initializes all the class attributes needed to run pre-radiomics check methods.</p>
+<p>This method is useful to make sure all the important attributes are ready before running
+radiomics pre-checks, in case these attributes were not specified during the class initialization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_save_checks</strong> (<em>Union</em><em>[</em><em>Path</em><em>, </em><em>str</em><em>]</em>) – Path to where the radiomics checks are gonna be saved.</p></li>
+<li><p><strong>path_csv</strong> (<em>Union</em><em>[</em><em>Path</em><em>, </em><em>str</em><em>]</em>) – Path to the csv file that will be used to read scans.</p></li>
+<li><p><strong>force</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, will replace the values of the existing attributes and
+will skip (keep the originals) if false.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.pre_radiomics_checks">
+<span class="sig-name descname"><span class="pre">pre_radiomics_checks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wildcards_dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wildcards_window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_instances</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_csv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.pre_radiomics_checks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.pre_radiomics_checks" title="Permalink to this definition"></a></dt>
+<dd><p>Finds proper dimension and re-segmentation ranges options for radiomics analyses.</p>
+<p>The resulting files from this method can then be analyzed and used to set up radiomics
+parameters options in computation methods.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wildcards_dimensions</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of wildcards that determines the scans
+that will be analyzed. You can learn more about wildcards in
+<span class="xref std std-ref">this link</span>.</p></li>
+<li><p><strong>wildcards_window</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of wildcards that determines the scans
+that will be analyzed. You can learn more about wildcards in
+<span class="xref std std-ref">this link</span>.</p></li>
+<li><p><strong>use_instances</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True will use the instances of the MEDimage class saved in DataManager
+for the analysis. If False, will analyze scans in the path where the instances were saved.</p></li>
+<li><p><strong>path_csv</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>Path</em><em>]</em><em>, </em><em>optional</em>) – Path to a csv file containing a list of the scans that will be
+analyzed (a CSV file for a single ROI type).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.process_all">
+<span class="sig-name descname"><span class="pre">process_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.process_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.process_all" title="Permalink to this definition"></a></dt>
+<dd><p>Processes both DICOM &amp; NIfTI content to create MEDimage classes</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.process_all_dicoms">
+<span class="sig-name descname"><span class="pre">process_all_dicoms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">MEDimage.MEDimage.MEDimage</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.process_all_dicoms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.process_all_dicoms" title="Permalink to this definition"></a></dt>
+<dd><p>This function reads the DICOM content of all the sub-folder tree of a starting directory defined by
+<cite>path_to_dicoms</cite>. It then organizes the data (files throughout the starting directory are associated by
+‘SeriesInstanceUID’) in the MEDimage class including the region of  interest (ROI) defined by an
+associated RTstruct. All MEDimage classes hereby created are saved in <cite>path_save</cite> with a name
+varying with every scan.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of MEDimage instances.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[MEDimage]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.process_all_niftis">
+<span class="sig-name descname"><span class="pre">process_all_niftis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">MEDimage.MEDimage.MEDimage</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.process_all_niftis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.process_all_niftis" title="Permalink to this definition"></a></dt>
+<dd><p>This function reads the NIfTI content of all the sub-folder tree of a starting directory.
+It then organizes the data in the MEDimage class including the region of  interest (ROI)
+defined by an associated mask file. All MEDimage classes hereby created are saved in a specific path
+with a name specific name varying with every scan.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None.</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of MEDimage instances.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[MEDimage]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.summarize">
+<span class="sig-name descname"><span class="pre">summarize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.summarize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.summarize" title="Permalink to this definition"></a></dt>
+<dd><p>Creates and shows a summary of processed scans organized by study, institution, scan type and roi type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="MEDimage.wrangling.DataManager.DataManager.update_from_csv">
+<span class="sig-name descname"><span class="pre">update_from_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_csv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/MEDimage/wrangling/DataManager.html#DataManager.update_from_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.DataManager.DataManager.update_from_csv" title="Permalink to this definition"></a></dt>
+<dd><p>Updates the class from a given CSV and summarizes the processed scans again according to it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path_csv</strong> (<em>optional</em><em>, </em><em>Union</em><em>[</em><em>str</em><em>, </em><em>Path</em><em>]</em>) – Path to a csv file, if not given, will check
+for csv info in the class attributes.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-MEDimage.wrangling.combine_slices">
+<span id="combine-slices"></span><h2>combine_slices<a class="headerlink" href="#module-MEDimage.wrangling.combine_slices" title="Permalink to this headline"></a></h2>
+<dl class="simple">
+<dt>AUTHOR(S): This code DICOM-Numpy belongs to Copyright (c) 2017 Innolitics, LLC.</dt><dd><p>The original code has been adapted by MEDomicsLab consortium with
+small modifications for customized use.</p>
+</dd>
+</dl>
+<dl class="py function">
+<dt class="sig sig-object py" id="MEDimage.wrangling.combine_slices._validate_image_orientation">
+<span class="sig-prename descclassname"><span class="pre">MEDimage.wrangling.combine_slices.</span></span><span class="sig-name descname"><span class="pre">_validate_image_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_orientation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDimage/wrangling/combine_slices.html#_validate_image_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.combine_slices._validate_image_orientation" title="Permalink to this definition"></a></dt>
+<dd><p>Ensure that the image orientation is supported
+- The direction cosines have magnitudes of 1 (just in case)
+- The direction cosines are perpendicular</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MEDimage.wrangling.combine_slices._validate_slices_form_uniform_grid">
+<span class="sig-prename descclassname"><span class="pre">MEDimage.wrangling.combine_slices.</span></span><span class="sig-name descname"><span class="pre">_validate_slices_form_uniform_grid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slice_datasets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDimage/wrangling/combine_slices.html#_validate_slices_form_uniform_grid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.combine_slices._validate_slices_form_uniform_grid" title="Permalink to this definition"></a></dt>
+<dd><p>Perform various data checks to ensure that the list of slices form a
+evenly-spaced grid of data.
+Some of these checks are probably not required if the data follows the
+DICOM specification, however it seems pertinent to check anyway.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MEDimage.wrangling.combine_slices.combine_slices">
+<span class="sig-prename descclassname"><span class="pre">MEDimage.wrangling.combine_slices.</span></span><span class="sig-name descname"><span class="pre">combine_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slice_datasets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDimage/wrangling/combine_slices.html#combine_slices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.combine_slices.combine_slices" title="Permalink to this definition"></a></dt>
+<dd><p>Given a list of pydicom datasets for an image series, stitch them together into a
+three-dimensional numpy array.  Also calculate a 4x4 affine transformation
+matrix that converts the ijk-pixel-indices into the xyz-coordinates in the
+DICOM patient’s coordinate system.
+Returns a two-tuple containing the 3D-ndarray and the affine matrix.
+If <cite>rescale</cite> is set to <cite>None</cite> (the default), then the image array dtype
+will be preserved, unless any of the DICOM images contain either the
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/ct-image/00281053">Rescale Slope</a> or the
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/ct-image/00281052">Rescale Intercept</a>
+attributes.  If either of these attributes are present, they will be
+applied to each slice individually.
+If <cite>rescale</cite> is <cite>True</cite> the voxels will be cast to <cite>float32</cite>, if set to
+<cite>False</cite>, the original dtype will be preserved even if DICOM rescaling information is present.
+The returned array has the column-major byte-order.
+This function requires that the datasets:</p>
+<ul class="simple">
+<li><p>Be in same series (have the same
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/general-series/0020000e">Series Instance UID</a>,
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/general-series/00080060">Modality</a>,
+and <a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/sop-common/00080016">SOP Class UID</a>).</p></li>
+<li><p>The binary storage of each slice must be the same (have the same
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280100">Bits Allocated</a>,
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280101">Bits Stored</a>,
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280102">High Bit</a>, and
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280103">Pixel Representation</a>).</p></li>
+<li><p>The image slice must approximately form a grid. This means there can not
+be any missing internal slices (missing slices on the ends of the dataset
+are not detected).</p></li>
+<li><p>It also means that  each slice must have the same
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280010">Rows</a>,
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280011">Columns</a>,
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-plane/00280030">Pixel Spacing</a>, and
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037">Image Orientation (Patient)</a>
+attribute values.</p></li>
+<li><p>The direction cosines derived from the
+<a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037">Image Orientation (Patient)</a>
+attribute must, within 1e-4, have a magnitude of 1.  The cosines must
+also be approximately perpendicular (their dot-product must be within
+1e-4 of 0).  Warnings are displayed if any of theseapproximations are
+below 1e-8, however, since we have seen real datasets with values up to
+1e-4, we let them pass.</p></li>
+<li><p>The <a class="reference external" href="https://dicom.innolitics.com/ciods/ct-image/image-plane/00200032">Image Position (Patient)</a>
+values must approximately form a line.</p></li>
+</ul>
+<p>If any of these conditions are not met, a <cite>dicom_numpy.DicomImportException</cite> is raised.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="MEDimage.wrangling.combine_slices.is_close">
+<span class="sig-prename descclassname"><span class="pre">MEDimage.wrangling.combine_slices.</span></span><span class="sig-name descname"><span class="pre">is_close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-09</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abs_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MEDimage/wrangling/combine_slices.html#is_close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#MEDimage.wrangling.combine_slices.is_close" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-MEDimage.wrangling.process_dicom_scan_files">
+<span id="process-dicom-scan-files"></span><h2>process_dicom_scan_files<a class="headerlink" href="#module-MEDimage.wrangling.process_dicom_scan_files" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="utils.html" class="btn btn-neutral float-left" title="Utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="FAQs.html" class="btn btn-neutral float-right" title="FAQs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, MEDimage.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

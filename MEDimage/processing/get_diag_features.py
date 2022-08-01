@@ -6,23 +6,21 @@ from typing import Dict
 
 import numpy as np
 
-from .compute_bounding_box import compute_bounding_box
+from ..processing.segmentation import compute_bounding_box
 
 
 def get_diag_features(vol_obj: np.ndarray,
                       roi_obj_int: np.ndarray,
                       roi_obj_morph: np.ndarray,
                       im_type: str) -> Dict:
-    """Computes diagnostic features
-
-    The diagnostic features help identify issues with
+    """Computes diagnostic features, it helps to identify issues with
     the implementation of the image processing sequence.
 
     Args:
         vol_obj (ndarray): Imaging data.
         roi_obj_int (ndarray): Intensity mask data.
         roi_obj_morph (ndarray): Morphological mask data.
-        im_type (str): Image processing step.
+        im_type (str): Image processing step:
 
             - 'reSeg': Computes Diagnostic features right after the re-segmentaion step.
             - 'interp' or any other arg: Computes Diagnostic features for any processing step other than re-segmentation.
