@@ -12,7 +12,7 @@
   },
   "n_batch" : 16,
   "roi_type_labels" : [
-    "tumorAuto"
+    "GTV"
   ],
   "roi_types" : [
     "GTVp"
@@ -160,12 +160,12 @@
   "imParamPET" : {
       "compute_suv_map" : true,
       "interp" :  {
-        "scaleNonText" : [4, 4, 4],
-        "scaleText" : [[3, 3, 3], [4, 4, 4]],
-        "volInterp" : "linear",
-        "glRound" : [],
-        "roiInterp" : "linear",
-        "roiPV" : 0.5
+        "scale_non_text" : [4, 4, 4],
+        "scale_text" : [[3, 3, 3], [4, 4, 4]],
+        "vol_interp" : "linear",
+        "gl_round" : [],
+        "roi_interp" : "linear",
+        "roi_pv" : 0.5
       },
       "reSeg" :  {
         "range" : [0, "inf"],

@@ -1,12 +1,12 @@
 {
-  "image" : {
+  "imParamCT" : {
     "interp" : {
-      "scaleNonText" : [2, 2, 2],      
-      "scaleText" : [[2, 2, 2]],
-      "volInterp" : "cubic",
-      "glRound" : 1,
-      "roiInterp" : "linear",
-      "roiPV" : 0.5
+      "scale_non_text" : [2, 2, 2],
+      "scale_text" : [[2, 2, 2]],
+      "vol_interp" : "cubic",
+      "gl_round" : 1,
+      "roi_interp" : "linear",
+      "roi_pv" : 0.5
     },
     "reSeg" : {
       "range" : [-1000,400],
@@ -14,18 +14,18 @@
     },
     "discretisation" : {
       "IH" : {
-        "type" : "FBN",    
+        "type" : "FBN",
         "val" : 32
       },
       "IVH" : {
-        "type" : "FBN",    
+        "type" : "FBN",
         "val" : 1000
       },
       "texture" : {
-        "type" : ["FBN"],    
+        "type" : ["FBN"],
         "val" : [[32]]
       }
-    },  
+    },
     "morph" : {
       "method" : "ISO",
       "value" : 0.5
@@ -64,6 +64,7 @@
       },
       "coarseness" : 1
     },
+    "filter": false,
     "intensity" : "definite",
     "units" : "",
     "type" : "CTscan"
