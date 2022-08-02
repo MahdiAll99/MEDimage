@@ -1,3 +1,4 @@
+from . import *
 from .BatchExtractor import *
 from .diagnostics import *
 from .get_oriented_bound_box import *
