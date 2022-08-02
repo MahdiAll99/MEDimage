@@ -1,3 +1,4 @@
+Cython
 isort==5.10.1
 matplotlib==3.4.2
 nibabel==3.2.2
