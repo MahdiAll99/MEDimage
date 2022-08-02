@@ -2,17 +2,16 @@
 # -*- coding: utf-8 -*-
 
 
-from copy import deepcopy
 import logging
+from copy import deepcopy
 
 import numpy as np
-
 from MEDimage.MEDimage import MEDimage
-from MEDimage.processing.segmentation import compute_box
+
+from ..processing.segmentation import compute_box
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
 from ..utils.interp3 import interp3
-
 
 _logger = logging.getLogger(__name__)
 

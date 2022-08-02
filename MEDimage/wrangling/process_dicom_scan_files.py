@@ -6,7 +6,8 @@ import warnings
 import numpy as np
 import pydicom
 import ray
-from MEDimage.utils.imref import imref3d
+
+from ..utils.imref import imref3d
 
 warnings.simplefilter("ignore")
 
