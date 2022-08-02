@@ -18,7 +18,7 @@ from MEDimage.MEDimage import MEDimage
 from ..processing.segmentation import get_roi
 from ..utils.save_MEDimage import save_MEDimage
 
-
+@ray.remote
 def process_dicom_scan_files(
                             path_images: Path, 
                             path_rs: Path = None,
