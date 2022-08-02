@@ -959,10 +959,10 @@ class DataManager(object):
         Args:
             wildcards_dimensions(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
-                :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
+                `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
             wildcards_window(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
-                :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
+                `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
             use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
                 for the analysis. If False, will analyze scans in the path where the instances were saved.
             path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be

@@ -31,15 +31,17 @@ def process_dicom_scan_files(
     
     Args:
         path_save (Path): String specifying the full path to the directory where to
-            save all the MEDimage class created by the current
-            function.
-        path_images (Path): Cell of strings, where each string specifies the full path
+            save all the MEDimage class created by the current function.
+        path_images (Path): Cell of strings, where each string specifies the full path \
             to a DICOM image of single volume.
-        path_rs: (Path, optional). Cell of strings, where each string specifies the
+        path_rs: (Path, optional). Cell of strings, where each string specifies the \
             full path to a DICOM RTstruct of a single volume.
-                --> Options:- cell_path_rs{1} from readAllDICOM.m
-                            - Empty array or cell ([],{})
-                            - No argument
+            Options:
+
+                - cell_path_rs{1} from readAllDICOM.m
+                - Empty array or cell ([],{})
+                - No argument
+
     Returns:
         MEDimg (MEDimage): Instance of a MEDimage class.
     """
