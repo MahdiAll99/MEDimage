@@ -3,9 +3,10 @@ from .BatchExtractor import *
 from .get_oriented_bound_box import *
 from .glcm import *
 from .gldzm import *
+from .glrlm import *
 from .glszm import *
-from .stats import *
 from .int_vol_hist import *
 from .intensity_histogram import *
 from .local_intensity import *
 from .morph import *
+from .stats import *
