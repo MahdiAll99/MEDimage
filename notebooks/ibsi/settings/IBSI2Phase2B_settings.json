@@ -1,5 +1,5 @@
 {
-  "image" : {
+  "imParamCT" : {
     "interp" : {
       "scale_non_text" : [1, 1, 1],
       "scale_text" : [[1, 1, 1]],
@@ -64,30 +64,31 @@
       },
       "coarseness" : 1
     },
+    "filter": true,
     "intensity" : "definite",
     "units" : "",
     "type" : "CTscan"
   },
 
   "imParamFilter" : {
+    "filter_type" : "mean",
     "intensity" : "filter",
     "units" : "",
     "type" : "filter",
-    "filterType" : "",
-    "Mean" : {
+    "mean" : {
       "ndims" : 3,
       "size" : 5,
       "padding" : "symmetric",
       "name_save" : ""
     },
-    "LoG" : {
+    "log" : {
       "ndims" : 3,
       "sigma" : 1.5,
       "orthogonal_rot" : false,
       "padding" : "symmetric",
       "name_save" : ""
     },
-    "Laws" : {
+    "laws" : {
       "config" : ["L5", "E5", "E5"],
       "energy_distance" : 7,
       "rot_invariance" : true,
@@ -96,7 +97,7 @@
       "padding" : "symmetric",
       "name_save" : ""
     },
-    "Gabor" : {
+    "gabor" : {
       "sigma" : 5,
       "lambda" : 2,
       "gamma" : 1.5,
@@ -106,7 +107,7 @@
       "padding" : "symmetric",
       "name_save" : ""
     },
-    "Wavelet_db3_LLH" : {
+    "wavelet" : {
       "ndims" : 3,
       "basis_function" : "db3",
       "subband" : "LLH",
@@ -114,15 +115,6 @@
       "rot_invariance" : true,
       "padding" : "symmetric",
       "name_save" : "Wavelet_db3_LLH"
-    },
-    "Wavelet_db3_HHH" : {
-      "ndims" : 3,
-      "basis_function" : "db3",
-      "subband" : "HHH",
-      "level" : 2,
-      "rot_invariance" : true,
-      "padding" : "symmetric",
-      "name_save" : "Wavelet_db3_HHH"
     }
   },
   "computeWavelet" : false,

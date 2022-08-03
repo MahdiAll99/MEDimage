@@ -1,7 +1,12 @@
 import logging
 
-from . import biomarkers, filter, processing, utils, wrangling
-from .MEDimage import *
+from .MEDimage import MEDimage
+from . import utils
+from . import processing
+from . import biomarkers
+from . import filter
+from . import wrangling
+
 
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)

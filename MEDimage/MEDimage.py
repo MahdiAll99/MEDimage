@@ -10,9 +10,10 @@ import numpy as np
 from numpyencoder import NumpyEncoder
 from PIL import Image
 
-from MEDimage.processing.compute_suv_map import compute_suv_map
-from MEDimage.utils.image_volume_obj import image_volume_obj
+import MEDimage.MEDimage
 
+from .processing.compute_suv_map import compute_suv_map
+from .utils.image_volume_obj import image_volume_obj
 from .utils.imref import imref3d
 from .utils.json_utils import load_json
 
@@ -777,7 +778,7 @@ class MEDimage(object):
                     Returns:
                         None.
                     """
-                    self._lambda = params['_lambda']
+                    self._lambda = params['lambda']
                     self.gamma = params['gamma']
                     self.name_save = params['name_save']
                     self.orthogonal_rot = params['orthogonal_rot']

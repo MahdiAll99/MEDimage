@@ -1,3 +1,4 @@
+from . import *
 from .batch_patients import *
 from .create_radiomics_table import *
 from .data_frame_export import *
@@ -12,7 +13,6 @@ from .image_reader_SITK import *
 from .image_volume_obj import *
 from .imref import *
 from .initialize_features_names import *
-from .initMEDimage import *
 from .inpolygon import *
 from .interp3 import *
 from .json_utils import *
