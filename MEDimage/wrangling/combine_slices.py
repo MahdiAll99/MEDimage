@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""
-AUTHOR(S): This code DICOM-Numpy belongs to Copyright (c) 2017 Innolitics, LLC.
-           The original code has been adapted by MEDomicsLab consortium with
-           small modifications for customized use. 
-"""
 
-import numpy as np
 import sys
 import warnings
+
+import numpy as np
+
 
 def combine_slices(slice_datasets):
     """

@@ -17,14 +17,14 @@ import pydicom.errors
 import pydicom.misc
 import ray
 from MEDimage.MEDimage import MEDimage
-from MEDimage.utils.imref import imref3d
 from numpyencoder import NumpyEncoder
 from tqdm import tqdm, trange
 
 from ..processing.compute_suv_map import compute_suv_map
-from ..processing.get_roi_from_indexes import get_roi_from_indexes
+from ..processing.segmentation import get_roi_from_indexes
 from ..utils.get_file_paths import get_file_paths
 from ..utils.get_patient_names import get_patient_names
+from ..utils.imref import imref3d
 from ..utils.json_utils import load_json, save_json
 from ..utils.save_MEDimage import save_MEDimage
 from .process_dicom_scan_files import process_dicom_scan_files as pdsf
@@ -959,10 +959,10 @@ class DataManager(object):
         Args:
             wildcards_dimensions(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
-                :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
+                `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
             wildcards_window(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
-                :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
+                `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
             use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
                 for the analysis. If False, will analyze scans in the path where the instances were saved.
             path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be
