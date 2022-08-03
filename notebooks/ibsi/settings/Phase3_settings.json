@@ -1,7 +1,7 @@
 {
   "Extraction3_ComputeRadiomicsReduced" : {
     "pathDATA" : "",
-    "pathCSV" : "",  
+    "pathCSV" : "",
     "FEATURESred" : "",
     "n_batch" : 16,
     "roi_type_labels" : [
@@ -13,7 +13,7 @@
 
     "imParamMR" : {
       "interp" : {
-        "scaleNonText" : [1, 1, 1],      
+        "scaleNonText" : [1, 1, 1],
         "scaleText" : [[1, 1, 1]],
         "volInterp" : "cubic",
         "glRound" : [],
@@ -34,10 +34,10 @@
           "val" : 1
         },
         "texture" : {
-          "type" : ["FBS"],    
+          "type" : ["FBS"],
           "val" : [[10]]
         }
-      },  
+      },
       "morph" : {
         "method" : "ISO",
         "value" : 0.5
@@ -83,15 +83,15 @@
 
     "imParamCT" : {
       "interp" : {
-        "scaleNonText" : [1, 1, 1],               
-        "scaleText" : [[1, 1, 1]],     
+        "scaleNonText" : [1, 1, 1],
+        "scaleText" : [[1, 1, 1]],
         "volInterp" : "cubic",
         "glRound" : 1,
         "roiInterp" : "linear",
         "roiPV" : 0.5
       },
       "reSeg" :  {
-        "range" : [-200, 200],                     
+        "range" : [-200, 200],
         "outliers" : ""
       },
       "discretisation" : {
@@ -103,10 +103,10 @@
 
         },
         "texture" : {
-          "type" : ["FBS"],     
+          "type" : ["FBS"],
           "val" : [[10]]
         }
-      }, 
+      },
       "morph" : {
         "method" : "ISO",
         "value" : 0.5
@@ -154,8 +154,8 @@
     "imParamPET" : {
       "compute_suv_map" : false,
       "interp" :  {
-        "scaleNonText" : [3, 3, 3],     
-        "scaleText" : [[3, 3, 3]],   
+        "scaleNonText" : [3, 3, 3],
+        "scaleText" : [[3, 3, 3]],
         "volInterp" : "cubic",
         "glRound" : [],
         "roiInterp" : "linear",
@@ -175,7 +175,7 @@
           "val" : 0.1
         },
         "texture" : {
-          "type" : ["FBS"],     
+          "type" : ["FBS"],
           "val" : [[0.25]]
         }
       },
@@ -323,7 +323,7 @@
         "name_save" : ""
       }
     },
-    
+
     "computeWavelet" : false,
     "waveletName" : "coif1",
     "segmentationMethod" : "InPolygon",
