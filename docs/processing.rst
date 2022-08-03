@@ -18,14 +18,6 @@ discretisation
    :undoc-members:
    :show-inheritance:
 
-get\_diag\_features 
-----------------------------------------------
-
-.. automodule:: MEDimage.processing.get_diag_features
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 interpolation 
 -----------------------------------------
 
