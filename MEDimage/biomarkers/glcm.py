@@ -813,7 +813,7 @@ def get_glcm_matrices(vol,
             performed if this argument is either "manhattan","euclidean", "chebyshev" or bool.
 
     Returns:
-        Dict: Dict of the glcm features.
+        Dict: Dict of co-occurrence matrices.
 
     Raises:
         ValueError: If `glcm_spatial_method` is not "2d", "2.5d" or "3d".
