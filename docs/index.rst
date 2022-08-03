@@ -11,6 +11,7 @@ and filter images and compute all types of radiomic features. This package has b
 
    Installation
    modules
+   License
    FAQs
 
 Indices and tables
