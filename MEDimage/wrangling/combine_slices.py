@@ -17,42 +17,43 @@ def combine_slices(slice_datasets):
     Returns a two-tuple containing the 3D-ndarray and the affine matrix.
     If `rescale` is set to `None` (the default), then the image array dtype
     will be preserved, unless any of the DICOM images contain either the
-    `Rescale Slope
-    <https://dicom.innolitics.com/ciods/ct-image/ct-image/00281053>`_ or the
-    `Rescale Intercept <https://dicom.innolitics.com/ciods/ct-image/ct-image/00281052>`_
+    `Rescale Slope <https://dicom.innolitics.com/ciods/ct-image/ct-image/00281053>`__ or the
+    `Rescale Intercept <https://dicom.innolitics.com/ciods/ct-image/ct-image/00281052>`__
     attributes.  If either of these attributes are present, they will be
     applied to each slice individually.
     If `rescale` is `True` the voxels will be cast to `float32`, if set to
     `False`, the original dtype will be preserved even if DICOM rescaling information is present.
     The returned array has the column-major byte-order.
     This function requires that the datasets:
+
     - Be in same series (have the same
-      `Series Instance UID <https://dicom.innolitics.com/ciods/ct-image/general-series/0020000e>`_,
-      `Modality <https://dicom.innolitics.com/ciods/ct-image/general-series/00080060>`_,
-      and `SOP Class UID <https://dicom.innolitics.com/ciods/ct-image/sop-common/00080016>`_).
+      `Series Instance UID <https://dicom.innolitics.com/ciods/ct-image/general-series/0020000e>`__,
+      `Modality <https://dicom.innolitics.com/ciods/ct-image/general-series/00080060>`__,
+      and `SOP Class UID <https://dicom.innolitics.com/ciods/ct-image/sop-common/00080016>`__).
     - The binary storage of each slice must be the same (have the same
-      `Bits Allocated <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280100>`_,
-      `Bits Stored <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280101>`_,
-      `High Bit <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280102>`_, and
-      `Pixel Representation <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280103>`_).
+      `Bits Allocated <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280100>`__,
+      `Bits Stored <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280101>`__,
+      `High Bit <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280102>`__, and
+      `Pixel Representation <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280103>`__).
     - The image slice must approximately form a grid. This means there can not
       be any missing internal slices (missing slices on the ends of the dataset
       are not detected).
     - It also means that  each slice must have the same
-      `Rows <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280010>`_,
-      `Columns <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280011>`_,
-      `Pixel Spacing <https://dicom.innolitics.com/ciods/ct-image/image-plane/00280030>`_, and
-      `Image Orientation (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037>`_
+      `Rows <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280010>`__,
+      `Columns <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280011>`__,
+      `Pixel Spacing <https://dicom.innolitics.com/ciods/ct-image/image-plane/00280030>`__, and
+      `Image Orientation (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037>`__
       attribute values.
     - The direction cosines derived from the
-      `Image Orientation (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037>`_
+      `Image Orientation (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037>`__
       attribute must, within 1e-4, have a magnitude of 1.  The cosines must
       also be approximately perpendicular (their dot-product must be within
       1e-4 of 0).  Warnings are displayed if any of theseapproximations are
       below 1e-8, however, since we have seen real datasets with values up to
       1e-4, we let them pass.
-    - The `Image Position (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200032>`_
+    - The `Image Position (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200032>`__
       values must approximately form a line.
+      
     If any of these conditions are not met, a `dicom_numpy.DicomImportException` is raised.
     """
 
