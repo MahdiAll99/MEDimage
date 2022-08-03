@@ -7,19 +7,19 @@ and filter images and compute all types of radiomic features. This package has b
 
 .. toctree::
    :maxdepth: 1
-   :caption: Getting started:
+   :caption: Getting started
 
    Installation
 
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
+   :caption: Contents
 
    modules
 
 .. toctree::
    :maxdepth: 1
-   :caption: Developer section:
+   :caption: Developer section
 
    License
    FAQs
