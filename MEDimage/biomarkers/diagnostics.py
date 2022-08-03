@@ -1,8 +1,7 @@
 from typing import Dict
 
 import numpy as np
-
-from processing.segmentation import compute_bounding_box
+from MEDimage.processing.segmentation import compute_bounding_box
 
 
 def extract_all(vol_obj: np.ndarray,

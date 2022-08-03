@@ -9,6 +9,14 @@ BatchExtractor
    :undoc-members:
    :show-inheritance:
 
+diagnostics 
+-----------------------------------------
+
+.. automodule:: MEDimage.biomarkers.diagnostics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 get\_oriented\_bound\_box 
 ----------------------------------------------------
 
