@@ -1012,11 +1012,12 @@ class DataManager(object):
                 os.mkdir(path_study / 'checks')
                 self.paths._path_save_checks = Path(path_study / 'checks')
         else:
-            if self.paths._path_save_checks.name != 'checks' and (self.paths._path_save_checks / 'checks').exists():
-                self.paths._path_save_checks /= 'checks'
-            else:
-                self.paths._path_save_checks /= 'checks'
-                os.mkdir(self.paths._path_save_checks)
+            if self.paths._path_save_checks.name != 'checks':
+                if (self.paths._path_save_checks / 'checks').exists():
+                    self.paths._path_save_checks /= 'checks'
+                else:
+                    os.mkdir(self.paths._path_save_checks / 'checks')
+                    self.paths._path_save_checks = Path(self.paths._path_save_checks / 'checks')
 
         start = time()
         print('\n\n************************* PRE-RADIOMICS CHECKS *************************', end='')
