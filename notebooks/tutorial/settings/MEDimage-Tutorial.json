@@ -18,6 +18,7 @@
     "GTVp"
   ],
   "imParamMR" : {
+    "box_string": "box10",
     "interp" : {
       "scale_non_text" : [2, 2, 3],
       "scale_text" : [[2, 2, 3]],

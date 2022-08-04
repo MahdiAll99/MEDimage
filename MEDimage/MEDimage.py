@@ -94,16 +94,18 @@ class MEDimage(object):
         if(im_params['reSeg']['range'] and im_params['reSeg']['range'][1] == "inf"):
             im_params['reSeg']['range'][1] = np.inf
 
-        # 10 voxels in all three dimensions are added to the smallest
-        # bounding box. This setting is used to speed up interpolation
-        # processes (mostly) prior to the computation of radiomics
-        # features. Optional argument in the function computeRadiomics.
-        box_string = 'box10'
+        if 'box_string' in im_params:
+            box_string = im_params['box_string']
+        else:
+            # By default, we add 10 voxels in all three dimensions are added to the smallest
+            # bounding box. This setting is used to speed up interpolation
+            # processes (mostly) prior to the computation of radiomics
+            # features. Optional argument in the function computeRadiomics.
+            box_string = 'box10'
         if 'compute_diag_features' in im_params:
             compute_diag_features = im_params['compute_diag_features']
         else:
             compute_diag_features = False
-
         if compute_diag_features:  # If compute_diag_features is true.
             box_string = 'full'  # This is required for proper comparison.
 
