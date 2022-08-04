@@ -255,7 +255,7 @@
     },
     "gabor" : {
       "sigma" : 5,
-      "_lambda" : 2,
+      "lambda" : 2,
       "gamma" : 1.5,
       "theta" : "Pi/8",
       "rot_invariance" : true,
