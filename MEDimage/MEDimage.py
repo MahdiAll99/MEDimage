@@ -204,11 +204,11 @@ class MEDimage(object):
 
             # compute suv map for PT scans
             if self.type == 'PTscan':
-                _compute_suv_map = im_param_scan['compute_suv_map']
+                _compute_suv_map = im_param_scan['imParamPET']['compute_suv_map']
             else :
                 _compute_suv_map = False
             
-            if self.type == 'PTscan' and _compute_suv_map:
+            if self.type == 'PTscan' and _compute_suv_map and self.format != 'nifti':
                 try:
                     self.scan.volume.data = compute_suv_map(self.scan.volume.data, self.dicomH[0])
                 except Exception as e :
@@ -524,9 +524,12 @@ class MEDimage(object):
         Returns:
             None.
         """
-        if not (path_save / "features").exists():
-            (path_save / "features").mkdir()
-            path_save = Path(path_save / "features")
+        if path_save.name != 'features':
+            if not (path_save / "features").exists():
+                (path_save / "features").mkdir()
+                path_save = Path(path_save / "features")
+            else:
+                path_save = Path(path_save) / "features"
         else:
             path_save = Path(path_save)
         params = {}
