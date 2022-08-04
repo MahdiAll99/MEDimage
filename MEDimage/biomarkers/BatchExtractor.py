@@ -104,7 +104,6 @@ class BatchExtractor(object):
 
         # Init processing & computation parameters
         MEDimg.init_params(im_params)
-        MEDimg.params.process.box_string = "full"
 
         # Get ROI (region of interest)
         logging.info("\n--> Extraction of ROI mask:")
@@ -170,7 +169,7 @@ class BatchExtractor(object):
 
         # Image filtering
         if MEDimg.params.process.filter:
-            vol_obj = MEDimage.filter.apply_mean(MEDimg, vol_obj)
+            vol_obj = MEDimage.filter.apply_filter(MEDimg, vol_obj)
 
         # ROI Extraction :
         vol_int_re = MEDimage.processing.roi_extract(
