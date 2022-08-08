@@ -1150,7 +1150,7 @@ class MEDimage(object):
             j = np.arange(0, size_m[1])
             k = np.arange(0, size_m[2])
             ind_mask = np.nonzero(self.get_roi_from_indexes(0))
-            J, I, K = np.meshgrid(j, i, k, indexing='ij')
+            J, I, K = np.meshgrid(i, j, k, indexing='ij')
             I = I[ind_mask]
             J = J[ind_mask]
             K = K[ind_mask]
