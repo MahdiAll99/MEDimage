@@ -2,6 +2,7 @@ Welcome to the MEDimage documentation!
 =======================================
 
 .. image:: https://github.com/MahdiAll99/MEDimage/blob/user-doc/docs/figures/pakcage-overview.png?raw=true
+  :scale: 200 %
   :alt: Alternative text
 
 
