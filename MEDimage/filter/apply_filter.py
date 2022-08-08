@@ -1,6 +1,6 @@
 import numpy as np
 from MEDimage.MEDimage import MEDimage
-from MEDimage.utils.image_volume_obj import image_volume_obj
+from ..utils.image_volume_obj import image_volume_obj
 
 from .MEDimageFilter import *
 
