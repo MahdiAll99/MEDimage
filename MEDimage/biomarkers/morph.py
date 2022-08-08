@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import copy
+import logging
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
@@ -948,6 +949,7 @@ def extract_all(vol: np.ndarray,
             morph['Fmorph_geary_c'] = get_geary_c(vol_mor, res)
     except Exception as e:
             print(f'PROBLEM WITH COMPUTATION OF MORPHOLOGICAL FEATURES {e}')
+            logging.error(f'PROBLEM WITH COMPUTATION OF MORPHOLOGICAL FEATURES {e}')
             return None
     return morph
 
