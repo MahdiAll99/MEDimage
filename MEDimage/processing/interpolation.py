@@ -13,8 +13,6 @@ from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
 from ..utils.interp3 import interp3
 
-_logger = logging.getLogger(__name__)
-
 
 def interp_volume(MEDimage: MEDimage, 
                   vol_obj_s: np.ndarray,
@@ -239,18 +237,15 @@ def interp_volume(MEDimage: MEDimage,
             vol_obj_q.data[vol_obj_q.data < round_val] = 0.0
 
     except Exception as e:
-        if MEDimage.__dict__['scaleName'] != '':
-            message = f"\n PROBLEM WITH PRE-PROCESSING OF TEXTURE FEATURES:\n {e}"
-            _logger.error(message)
-
-            MEDimage.Params['radiomics']['image'].update(
-                {( MEDimage.__dict__['scaleName'] ): 'ERROR_PROCESSING'})
-
+        if MEDimage.params.radiomics.scale_name:
+            message = f"\n PROBLEM WITH INTERPOLATION:\n {e}"
+            logging.error(message)
+            MEDimage.radiomics.image.update(
+                {(MEDimage.params.radiomics.scale_name ): 'ERROR_PROCESSING'})
         else:
-            message = f"\n PROBLEM WITH PRE-PROCESSING OF TEXTURE FEATURES:\n {e}"
-            _logger.error(message)
-
-            MEDimage.Params['radiomics']['image'].update(
-                {('scale'+(str(MEDimage.Params['scaleNonText'][0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
+            message = f"\n PROBLEM WITH INTERPOLATION:\n {e}"
+            logging.error(message)
+            MEDimage.radiomics.image.update(
+                {('scale'+(str(MEDimage.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
 
     return vol_obj_q

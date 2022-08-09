@@ -104,6 +104,7 @@ class BatchExtractor(object):
 
         # Init processing & computation parameters
         MEDimg.init_params(im_params)
+        logging.debug('Parameters parsed, json file is valid.')
 
         # Get ROI (region of interest)
         logging.info("\n--> Extraction of ROI mask:")
@@ -181,26 +182,38 @@ class BatchExtractor(object):
         logging.info("--> Computation of non-texture features:")
 
         # Morphological features extraction
-        morph = MEDimage.biomarkers.morph.extract_all(
-            vol=vol_obj.data, 
-            mask_int=roi_obj_int.data, 
-            mask_morph=roi_obj_morph.data,
-            res=MEDimg.params.process.scale_non_text,
-        )
+        try:
+            morph = MEDimage.biomarkers.morph.extract_all(
+                vol=vol_obj.data, 
+                mask_int=roi_obj_int.data, 
+                mask_morph=roi_obj_morph.data,
+                res=MEDimg.params.process.scale_non_text,
+            )
+        except Exception as e:
+            logging.error(f'PROBLEM WITH COMPUTATION OF MORPHOLOGICAL FEATURES {e}')
+            morph = None
 
         # Local intensity features extraction
-        local_intensity = MEDimage.biomarkers.local_intensity.extract_all(
-            img_obj=vol_obj.data,
-            roi_obj=roi_obj_int.data,
-            res=MEDimg.params.process.scale_non_text,
-            intensity=MEDimg.params.process.intensity
-        )
+        try:
+            local_intensity = MEDimage.biomarkers.local_intensity.extract_all(
+                img_obj=vol_obj.data,
+                roi_obj=roi_obj_int.data,
+                res=MEDimg.params.process.scale_non_text,
+                intensity=MEDimg.params.process.intensity
+            )
+        except Exception as e:
+            logging.error(f'PROBLEM WITH COMPUTATION OF LOCAL INTENSITY FEATURES {e}')
+            local_intensity = None
 
         # statistical features extraction
-        stats = MEDimage.biomarkers.stats.extract_all(
-            vol=vol_int_re,
-            intensity=MEDimg.params.process.intensity
-        )
+        try:
+            stats = MEDimage.biomarkers.stats.extract_all(
+                vol=vol_int_re,
+                intensity=MEDimg.params.process.intensity
+            )
+        except Exception as e:
+            logging.error(f'PROBLEM WITH COMPUTATION OF STATISTICAL FEATURES {e}')
+            stats = None
 
         # Intensity histogram equalization of the imaging volume
         vol_quant_re, _ = MEDimage.processing.discretize(
@@ -211,9 +224,13 @@ class BatchExtractor(object):
         )
         
         # Intensity histogram features extraction
-        int_hist = MEDimage.biomarkers.intensity_histogram.extract_all(
-            vol=vol_quant_re
-        )
+        try:
+            int_hist = MEDimage.biomarkers.intensity_histogram.extract_all(
+                vol=vol_quant_re
+            )
+        except Exception as e:
+            logging.error(f'PROBLEM WITH COMPUTATION OF INTENSITY HISTOGRAM FEATURES {e}')
+            int_hist = None
         
         # Intensity histogram equalization of the imaging volume
         if MEDimg.params.process.ivh and 'type' in MEDimg.params.process.ivh and 'val' in MEDimg.params.process.ivh:
@@ -230,15 +247,19 @@ class BatchExtractor(object):
             wd = 1
 
         # Intensity volume histogram features extraction
-        int_vol_hist = MEDimage.biomarkers.int_vol_hist.extract_all(
-                    MEDimg=MEDimg,
-                    vol=vol_quant_re,
-                    vol_int_re=vol_int_re, 
-                    wd=wd
-        )
+        try:
+            int_vol_hist = MEDimage.biomarkers.int_vol_hist.extract_all(
+                        MEDimg=MEDimg,
+                        vol=vol_quant_re,
+                        vol_int_re=vol_int_re, 
+                        wd=wd
+            )
+        except Exception as e:
+            logging.error(f'PROBLEM WITH COMPUTATION OF INTENSITY VOLUME HISTOGRAM FEATURES {e}')
+            int_vol_hist = None
 
         # End of Non-Texture features extraction
-        logging.info(f"{time() - start}\n")
+        logging.info(f"End of non-texture features extraction: {time() - start}\n")
 
         # Computation of texture features
         logging.info("--> Computation of texture features:")
@@ -329,32 +350,56 @@ class BatchExtractor(object):
                 )
 
                 # GLCM features extraction
-                glcm = MEDimage.biomarkers.glcm.extract_all(
-                    vol=vol_quant_re, 
-                    dist_correction=MEDimg.params.radiomics.glcm.dist_correction)
+                try:
+                    glcm = MEDimage.biomarkers.glcm.extract_all(
+                        vol=vol_quant_re, 
+                        dist_correction=MEDimg.params.radiomics.glcm.dist_correction)
+                except Exception as e:
+                    logging.error(f'PROBLEM WITH COMPUTATION OF GLCM FEATURES {e}')
+                    glcm = None
 
                 # GLRLM features extraction
-                glrlm = MEDimage.biomarkers.glrlm.extract_all(
-                    vol=vol_quant_re,
-                    dist_correction=MEDimg.params.radiomics.glrlm.dist_correction)
+                try:
+                    glrlm = MEDimage.biomarkers.glrlm.extract_all(
+                        vol=vol_quant_re,
+                        dist_correction=MEDimg.params.radiomics.glrlm.dist_correction)
+                except Exception as e:
+                    logging.error(f'PROBLEM WITH COMPUTATION OF GLRLM FEATURES {e}')
+                    glrlm = None
 
                 # GLSZM features extraction
-                glszm = MEDimage.biomarkers.glszm.extract_all(
-                    vol=vol_quant_re)
+                try:
+                    glszm = MEDimage.biomarkers.glszm.extract_all(
+                        vol=vol_quant_re)
+                except Exception as e:
+                    logging.error(f'PROBLEM WITH COMPUTATION OF GLSZM FEATURES {e}')
+                    glszm = None
 
                 # GLDZM features extraction
-                gldzm = MEDimage.biomarkers.gldzm.extract_all(
-                    vol_int=vol_quant_re, 
-                    mask_morph=roi_obj_morph.data)
+                try:
+                    gldzm = MEDimage.biomarkers.gldzm.extract_all(
+                        vol_int=vol_quant_re, 
+                        mask_morph=roi_obj_morph.data)
+                except Exception as e:
+                    logging.error(f'PROBLEM WITH COMPUTATION OF GLDZM FEATURES {e}')
+                    gldzm = None
 
                 # NGTDM features extraction
-                ngtdm = MEDimage.biomarkers.ngtdm.extract_all(
-                    vol=vol_quant_re, 
-                    dist_correction=MEDimg.params.radiomics.ngtdm.distance_norm)
+                try:
+                    ngtdm = MEDimage.biomarkers.ngtdm.extract_all(
+                        vol=vol_quant_re, 
+                        dist_correction=MEDimg.params.radiomics.ngtdm.distance_norm)
+                except Exception as e:
+                    logging.error(f'PROBLEM WITH COMPUTATION OF NGTDM FEATURES {e}')
+                    ngtdm = None
 
                 # NGLDM features extraction
-                ngldm = MEDimage.biomarkers.ngldm.extract_all(
-                    vol=vol_quant_re)
+                try:
+                    ngldm = MEDimage.biomarkers.ngldm.extract_all(
+                        vol=vol_quant_re)
+                except Exception as e:
+                    logging.error(f'PROBLEM WITH COMPUTATION OF NGLDM FEATURES {e}')
+                    ngldm = None
                 
                 # Update radiomics results class
                 MEDimg.update_radiomics(
@@ -372,7 +417,7 @@ class BatchExtractor(object):
                             )
                 
                 # End of texture features extraction
-                logging.info(f"{time() - start}\n")
+                logging.info(f"End of texture features extraction: {time() - start}\n")
 
                 # Saving radiomics results
                 MEDimg.save_radiomics(

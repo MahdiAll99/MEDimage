@@ -749,8 +749,8 @@ def get_roi(MEDimage: MEDimage,
         message = f"\n PROBLEM WITH PRE-PROCESSING OF FEATURES IN get_roi(): \n {e}"
         _logger.error(message)
 
-        MEDimage.Params['radiomics']['image'].update(
-            {('scale'+(str(MEDimage.Params['scaleNonText'][0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
+        MEDimage.radiomics.image.update(
+            {('scale'+(str(MEDimage.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
 
     return vol_obj, roi_obj
 
