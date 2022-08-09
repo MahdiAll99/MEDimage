@@ -523,12 +523,12 @@ class MEDimage(object):
         Returns:
             None.
         """
-        if path_save.name != 'features':
-            if not (path_save / "features").exists():
-                (path_save / "features").mkdir()
-                path_save = Path(path_save / "features")
+        if path_save.name != f'features({roi_type_label})':
+            if not (path_save / f'features({roi_type_label})').exists():
+                (path_save / f'features({roi_type_label})').mkdir()
+                path_save = Path(path_save / f'features({roi_type_label})')
             else:
-                path_save = Path(path_save) / "features"
+                path_save = Path(path_save) / f'features({roi_type_label})'
         else:
             path_save = Path(path_save)
         params = {}
@@ -553,7 +553,7 @@ class MEDimage(object):
                         '(' + roi_type_label + ')' + \
                         scan_file_name[patient_num][index_dot : ext]
         else:
-            raise ValueError("`patient_num` must be speicifed or `scan_file_name` msut be str")
+            raise ValueError("`patient_num` must be specified or `scan_file_name` must be str")
 
         with open(path_save / f"{name_save}.json", "w") as fp:   
             dump(self.radiomics.to_json(), fp, indent=4, cls=NumpyEncoder)
@@ -807,7 +807,7 @@ class MEDimage(object):
                     Args:
                         config(List): Configuration of the Laws filter, for ex: ['E5', 'L5', 'E5'].
                         energy_distance(int): Chebyshev distance.
-                        energy_image(bool): If True will compute the Laws terxture energy image.
+                        energy_image(bool): If True will compute the Laws texture energy image.
                         rot_invariance(bool): If True the filter will be rotation invariant.
                         orthogonal_rot(bool): If True will compute average response over orthogonal planes.
                         name_save(str): Specific name added to final extraction results file.
