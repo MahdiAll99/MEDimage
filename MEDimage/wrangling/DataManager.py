@@ -1,4 +1,5 @@
 import csv
+from importlib.resources import path
 import json
 import logging
 import os
@@ -594,24 +595,15 @@ class DataManager(object):
         if not (path_csv or self.paths._path_csv):
             print('No csv provided, no updates will be made')
         else:
+            if path_csv:
+                self.paths._path_csv = path_csv
             # Extract roi type label from csv file name
             name_csv = self.paths._path_csv.name
             roi_type_label = name_csv[name_csv.find('_')+1 : name_csv.find('.')]
 
             # Create a dictionary
             csv_data = {}
-            csv_data[roi_type_label] = {}
-            # Open a csv reader using DictReader
-            with open(self.paths._path_csv, encoding='utf-8') as csvf:
-                csv_reader = csv.DictReader(csvf)
-                # Convert each row into a dictionary
-                # and add it to data
-                for rows in csv_reader:
-                    # Assuming a column named 'No' to
-                    # be the primary key
-                    key = rows['PatientID']
-                    csv_data[roi_type_label][key] = rows
-            
+            csv_data[roi_type_label] = pd.read_csv(self.paths._path_csv)
             self.csv_data = csv_data
             self.summarize()
 
@@ -667,16 +659,27 @@ class DataManager(object):
                                                 'count' : count_scans(self.summary[study][institution][scan])
                                                 }, ignore_index=True)
                     if self.csv_data:
-                        patient_id = scan.split('_')[0]
+                        roi_count = 0
                         for roi_type in self.csv_data:
-                            if patient_id in self.csv_data[roi_type]:
-                                break
+                            csv_table = pd.DataFrame(self.csv_data[roi_type])
+                            csv_table['under'] = '_'
+                            csv_table['dot'] = '.'
+                            csv_table['npy'] = '.npy'
+                            name_patients = (pd.Series(
+                                csv_table[['PatientID', 'under', 'under',
+                                        'ImagingScanName',
+                                        'dot',
+                                        'ImagingModality',
+                                        'npy']].fillna('').values.tolist()).str.join('')).tolist()
+                            for patient_id in self.summary[study][institution][scan]:
+                                if patient_id in name_patients:
+                                    roi_count += 1
                             summary_df = summary_df.append({
                                                 'study': study,
                                                 'institution': institution,
                                                 'scan_type': scan,
                                                 'roi_type': roi_type,
-                                                'count' : 1
+                                                'count' : roi_count
                                                 }, ignore_index=True)
         print(summary_df.to_markdown(index=False))
 
