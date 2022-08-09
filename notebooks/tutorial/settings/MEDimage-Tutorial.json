@@ -84,7 +84,6 @@
       },
       "filter": false,
       "intensity" : "arbitrary",
-      "units" : "",
       "type" : "MRscan"
     },
   "imParamCT" : {
@@ -154,7 +153,6 @@
         "coarseness" : 0
       },
       "filter": false,
-      "intensity" : "definite",
       "units" : "HU",
       "type" : "CTscan"
     },
@@ -226,7 +224,6 @@
         "coarseness" : 0
       },
       "filter": false,
-      "intensity" : "definite",
       "units" : "SUV",
       "type" : "PTscan"
   },

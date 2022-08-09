@@ -209,7 +209,6 @@ class BatchExtractor(object):
         try:
             stats = MEDimage.biomarkers.stats.extract_all(
                 vol=vol_int_re,
-                intensity=MEDimg.params.process.intensity
             )
         except Exception as e:
             logging.error(f'PROBLEM WITH COMPUTATION OF STATISTICAL FEATURES {e}')
@@ -247,16 +246,12 @@ class BatchExtractor(object):
             wd = 1
 
         # Intensity volume histogram features extraction
-        try:
-            int_vol_hist = MEDimage.biomarkers.int_vol_hist.extract_all(
-                        MEDimg=MEDimg,
-                        vol=vol_quant_re,
-                        vol_int_re=vol_int_re, 
-                        wd=wd
-            )
-        except Exception as e:
-            logging.error(f'PROBLEM WITH COMPUTATION OF INTENSITY VOLUME HISTOGRAM FEATURES {e}')
-            int_vol_hist = None
+        int_vol_hist = MEDimage.biomarkers.int_vol_hist.extract_all(
+                    MEDimg=MEDimg,
+                    vol=vol_quant_re,
+                    vol_int_re=vol_int_re, 
+                    wd=wd
+        )
 
         # End of Non-Texture features extraction
         logging.info(f"End of non-texture features extraction: {time() - start}\n")

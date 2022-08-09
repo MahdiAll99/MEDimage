@@ -127,9 +127,6 @@ class MEDimage(object):
         self.params.process.gray_levels = im_params['discretisation']['texture']['val']
         self.params.process.im_type = im_params['type']
 
-        # Variable used to determine if there is 'arbitrary' (e.g., MRI)
-        # or 'definite' (e.g., CT) intensities.
-        self.params.process.intensity = im_params['intensity']
         # Voxels dimension
         self.params.process.n_scale = len(self.params.process.scale_text)
         # Setting up discretisation params
@@ -588,7 +585,6 @@ class MEDimage(object):
                 self.ih = kwargs['ih'] if 'ih' in kwargs else None
                 self.im_range = kwargs['im_range'] if 'im_range' in kwargs else None
                 self.im_type = kwargs['im_type'] if 'im_type' in kwargs else None
-                self.intensity = kwargs['intensity'] if 'intensity' in kwargs else None
                 self.ivh = kwargs['ivh'] if 'ivh' in kwargs else None
                 self.n_algo = kwargs['n_algo'] if 'n_algo' in kwargs else None
                 self.n_exp = kwargs['n_exp'] if 'n_exp' in kwargs else None
@@ -622,7 +618,6 @@ class MEDimage(object):
                 self.ih = __params['ih'] if 'ih' in __params else self.ih
                 self.im_range = __params['im_range'] if 'im_range' in __params else self.im_range
                 self.im_type = __params['im_type'] if 'im_type' in __params else self.im_type
-                self.intensity = __params['intensity'] if 'intensity' in __params else self.intensity
                 self.ivh = __params['ivh'] if 'ivh' in __params else self.ivh
                 self.n_algo = __params['n_algo'] if 'n_algo' in __params else self.n_algo
                 self.n_exp = __params['n_exp'] if 'n_exp' in __params else self.n_exp
