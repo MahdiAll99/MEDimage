@@ -28,7 +28,7 @@
       "roi_pv" : 0.5
     },
     "reSeg" : {
-      "range" : [-500,400],
+      "range" : [-500, "inf"],
       "outliers" : ""
     },
     "discretisation" : {
