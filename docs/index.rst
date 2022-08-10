@@ -2,7 +2,6 @@ Welcome to the MEDimage documentation!
 =======================================
 
 .. image:: https://github.com/MahdiAll99/MEDimage/blob/user-doc/docs/figures/pakcage-overview.png?raw=true
-  :scale: 200 %
   :alt: Alternative text
 
 
@@ -15,6 +14,12 @@ and filter images and compute all types of radiomic features. This package has b
    :caption: Getting started
 
    Installation
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
+   tutorials
 
 .. toctree::
    :maxdepth: 1
