@@ -59,10 +59,10 @@ Single-scan demo
     
     The demo is an interactive Colab notebook and is directly accessible here: |Glioma_demo_image_badge|
 
-    You can also find this demo on the repository ``MEDimage/notebooks/demo/Glioma-demo.ipynb``.
+    You can also find this demo on the repository ``MEDimage/notebooks/demo/Glioma-Demo.ipynb``.
 
 .. |Glioma_demo_image_badge| image:: https://colab.research.google.com/assets/colab-badge.png
-    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/demo/Glioma-demo.ipynb
+    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/demo/Glioma-Demo.ipynb
 
 BatchExtractor
 --------------
