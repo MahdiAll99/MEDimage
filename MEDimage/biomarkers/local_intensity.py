@@ -10,7 +10,8 @@ from ..biomarkers.utils import get_glob_peak, get_loc_peak
 
 def extract_all(img_obj: ndarray,
                 roi_obj: ndarray,
-                res: ndarray) -> Dict:
+                res: ndarray,
+                compute_global: bool = False) -> Dict:
     """Compute Local Intensity Features.
     This features refer to Local Intensity family in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
@@ -21,6 +22,9 @@ def extract_all(img_obj: ndarray,
         roi_obj (ndarray): Array of the mask defining the ROI.
         res (List[float]): [a,b,c] vector specifying the resolution of the volume in mm.
             XYZ resolution (world), or JIK resolution (intrinsic matlab).
+        compute_global (bool, optional): If True, will compute global intensity peak, we
+            recommend you don't set it to True if not necessary in your study or analysis as it
+            takes too much time for calculation. Default: False.
 
     Returns:
         Dict: Dict of the Local Intensity Features.
@@ -34,7 +38,8 @@ def extract_all(img_obj: ndarray,
 
     # NEEDS TO BE VECTORIZED FOR FASTER CALCULATION! OR
     # SIMPLY JUST CONVOLUTE A 3D AVERAGING FILTER!
-    loc_int['Floc_peak_global'] = (get_glob_peak(img_obj,roi_obj,res))
+    if compute_global:
+        loc_int['Floc_peak_global'] = (get_glob_peak(img_obj,roi_obj, res))
 
     return loc_int
 
