@@ -108,11 +108,15 @@ class BatchExtractor(object):
 
         # Get ROI (region of interest)
         logging.info("\n--> Extraction of ROI mask:")
-        vol_obj_init, roi_obj_init = MEDimage.processing.get_roi_from_indexes(
-            MEDimg,
-            name_roi=roi_name,
-            box_string=MEDimg.params.process.box_string
-        )
+        try:
+            vol_obj_init, roi_obj_init = MEDimage.processing.get_roi_from_indexes(
+                MEDimg,
+                name_roi=roi_name,
+                box_string=MEDimg.params.process.box_string
+            )
+        except:
+            # if for the current scan ROI is not found, computation is aborted. 
+            return log_file
 
         start = time()
         message = '--> Non-texture features pre-processing (interp + re-seg) for "Scale={}"'.\
