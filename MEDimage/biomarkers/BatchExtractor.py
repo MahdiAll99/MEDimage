@@ -198,8 +198,7 @@ class BatchExtractor(object):
             local_intensity = MEDimage.biomarkers.local_intensity.extract_all(
                 img_obj=vol_obj.data,
                 roi_obj=roi_obj_int.data,
-                res=MEDimg.params.process.scale_non_text,
-                intensity=MEDimg.params.process.intensity
+                res=MEDimg.params.process.scale_non_text
             )
         except Exception as e:
             logging.error(f'PROBLEM WITH COMPUTATION OF LOCAL INTENSITY FEATURES {e}')
