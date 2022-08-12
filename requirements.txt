@@ -15,4 +15,5 @@ setuptools==62.2.0
 SimpleITK==2.1.1.2
 scikit-image
 Sphinx==4.5.0
+sphinx-jsonschema==1.19.1
 tqdm==4.64.0
