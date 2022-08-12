@@ -98,7 +98,7 @@ dictionary as follows:
 
     {
         "pre_radiomics_checks" : {
-            "path_csv" : "home/user/medimage/data/csv/sts_GTV.csv",
+            "path_csv" : "home/user/medimage/data/csv/roiNames_GTV.csv",
             }
     }
 
