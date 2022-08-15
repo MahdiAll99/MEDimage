@@ -15,7 +15,7 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
 
 def extract_all(vol: np.ndarray,
                 dist_correction: typing.Union[bool, str]=None,
-                glrlm_merge_method: str="vol_merge") -> Dict:
+                merge_method: str="vol_merge") -> Dict:
     """Computes glrlm features.
     This features refer to Grey Level Run Length Matrix family in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
@@ -32,7 +32,7 @@ def extract_all(vol: np.ndarray,
                                                       Or use string and specify the norm for distance weighting.
                                                       Weighting is only performed if this argument is
                                                       "manhattan", "euclidean" or "chebyshev".
-        glrlm_merge_method (str, optional): merging method which determines how features are
+        merge_method (str, optional): merging method which determines how features are
                                             calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
                                             Note that not all combinations of spatial and merge method are valid.
         method (str, optional): Either 'old' (deprecated) or 'new' (faster) method.
@@ -53,14 +53,14 @@ def extract_all(vol: np.ndarray,
     """
 
     rlm_features = get_rlm_features(vol=vol, 
-                                    glrlm_merge_method=glrlm_merge_method, 
+                                    merge_method=merge_method, 
                                     dist_weight_norm=dist_correction)
 
     return rlm_features
 
 def get_rlm_features(vol: np.ndarray, 
                      glrlm_spatial_method: str="3d",
-                     glrlm_merge_method: str="vol_merge",
+                     merge_method: str="vol_merge",
                      dist_weight_norm: typing.Union[bool, str]=None) -> Dict:
     """Extract run length matrix-based features from the intensity roi mask.
 
@@ -73,7 +73,7 @@ def get_rlm_features(vol: np.ndarray,
         glrlm_spatial_method (str, optional): spatial method which determines the way
                                               co-occurrence matrices are calculated and how features are determined.
                                               must be "2d", "2.5d" or "3d".
-        glrlm_merge_method (str, optional): merging method which determines how features are
+        merge_method (str, optional): merging method which determines how features are
                                             calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
                                             Note that not all combinations of spatial and merge method are valid.
         dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
@@ -86,8 +86,8 @@ def get_rlm_features(vol: np.ndarray,
     if type(glrlm_spatial_method) is not list:
         glrlm_spatial_method = [glrlm_spatial_method]
 
-    if type(glrlm_merge_method) is not list:
-        glrlm_merge_method = [glrlm_merge_method]
+    if type(merge_method) is not list:
+        merge_method = [merge_method]
 
     if type(dist_weight_norm) is bool:
         if dist_weight_norm:
@@ -152,7 +152,7 @@ def get_rlm_features(vol: np.ndarray,
                                      dist_weight_norm=dist_weight_norm)
 
         # Merge matrices according to the given method
-        for merge_method in glrlm_merge_method:
+        for merge_method in merge_method:
             upd_list = combine_rlm_matrices(rlm_list=rlm_list,
                                             merge_method=merge_method,
                                             spatial_method=ii_spatial.lower())
@@ -176,7 +176,7 @@ def get_rlm_features(vol: np.ndarray,
 
 def get_matrix(vol: np.ndarray, 
                    glrlm_spatial_method: str="3d", 
-                   glrlm_merge_method: str="vol_merge", 
+                   merge_method: str="vol_merge", 
                    dist_weight_norm: typing.Union[bool, str]=None) -> np.ndarray:
     """Extract run length matrix-based features from the intensity roi mask.
 
@@ -189,7 +189,7 @@ def get_matrix(vol: np.ndarray,
         glrlm_spatial_method (str, optional): spatial method which determines the way
                                               co-occurrence matrices are calculated and how features are determined.
                                               must be "2d", "2.5d" or "3d".
-        glrlm_merge_method (str, optional): merging method which determines how features are
+        merge_method (str, optional): merging method which determines how features are
                                             calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
                                             Note that not all combinations of spatial and merge method are valid.
         dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
@@ -202,8 +202,8 @@ def get_matrix(vol: np.ndarray,
     if type(glrlm_spatial_method) is not list:
         glrlm_spatial_method = [glrlm_spatial_method]
 
-    if type(glrlm_merge_method) is not list:
-        glrlm_merge_method = [glrlm_merge_method]
+    if type(merge_method) is not list:
+        merge_method = [merge_method]
 
     if type(dist_weight_norm) is bool:
         if dist_weight_norm:
@@ -265,7 +265,7 @@ def get_matrix(vol: np.ndarray,
                                      dist_weight_norm=dist_weight_norm)
 
         # Merge matrices according to the given method
-        for merge_method in glrlm_merge_method:
+        for merge_method in merge_method:
             upd_list = combine_rlm_matrices(rlm_list=rlm_list,
                                             merge_method=merge_method,
                                             spatial_method=ii_spatial.lower())  
