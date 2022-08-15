@@ -2,6 +2,7 @@ import logging
 import os
 from json import dump
 from pathlib import Path
+from pickle import FALSE
 from typing import Dict, List, Union
 
 import matplotlib.pyplot as plt
@@ -175,15 +176,42 @@ class MEDimage(object):
             raise ValueError(f"The given parameters dict is not valid, no params found for {self.type} modality")
         
         # glcm features extraction params
-        self.params.radiomics.glcm.dist_correction = im_params["glcm"]["dist_correction"]
-        self.params.radiomics.glcm.merge_method = im_params["glcm"]["merge_method"]
+        if 'glcm' in im_params:
+            if 'dist_correction' in im_params['glcm']:
+                self.params.radiomics.glcm.dist_correction = im_params['glcm']['dist_correction']
+            else:
+                self.params.radiomics.glcm.dist_correction = False
+            if 'merge_method' in im_params['glcm']:
+                self.params.radiomics.glcm.merge_method = im_params['glcm']['merge_method']
+            else:
+                self.params.radiomics.glcm.merge_method = "vol_merge"
+        else:
+            self.params.radiomics.glcm.dist_correction = False
+            self.params.radiomics.glcm.merge_method = "vol_merge"
 
         # glrlm features extraction params
-        self.params.radiomics.glrlm.dist_correction = im_params["glrlm"]["dist_correction"]
-        self.params.radiomics.glrlm.merge_method = im_params["glrlm"]["merge_method"]
+        if 'glrlm' in im_params:
+            if 'dist_correction' in im_params['glrlm']:
+                self.params.radiomics.glrlm.dist_correction = im_params['glrlm']['dist_correction']
+            else:
+                self.params.radiomics.glrlm.dist_correction = False
+            if 'merge_method' in im_params['glrlm']:
+                self.params.radiomics.glrlm.merge_method = im_params['glrlm']['merge_method']
+            else:
+                self.params.radiomics.glrlm.merge_method = "vol_merge"
+        else:
+            self.params.radiomics.glrlm.dist_correction = False
+            self.params.radiomics.glrlm.merge_method = "vol_merge"
+
 
         # ngtdm features extraction params
-        self.params.radiomics.ngtdm.dist_correction = im_params["ngtdm"]["dist_correction"]        
+        if 'ngtdm' in im_params:
+            if 'dist_correction' in im_params['ngtdm']:
+                self.params.radiomics.ngtdm.dist_correction = im_params['ngtdm']['dist_correction']
+            else:
+                self.params.radiomics.ngtdm.dist_correction = False
+        else:
+            self.params.radiomics.ngtdm.dist_correction = False
 
     def __init_filter_params(self, filter_params: Dict) -> None:
         """Initializes the filtering params from a given Dict.
