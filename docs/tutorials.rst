@@ -1,5 +1,5 @@
-Download dataset
-----------------
+Instructions
+============
 
     In all the tutorials, an open-access dataset will be used. It consists of medical images for different type of cancers (Glioma, sarcoma...)
     and with different imaging modalities (MR, CT...). This dataset has been pre-processed in order to be compliant with the package norms.
@@ -8,16 +8,27 @@ Download dataset
     
        python download_organize_data.py
 
+CSV file
+--------
+
+    In most tutorials (:ref:`BatchExtractor tutorial <BatchExtractor>` for example) that use multiple scans, you will notice 
+    the use of different csv files depending on the datasets. ``MEDimage`` requires that every dataset must have a csv file along with it, 
+    we recommend taking a look into the documentation in :doc:`../csv_file`. You can also check some examples in 
+    ``MEDimage/notebooks/tutorial/csv``.
+
+    .. note::
+        Future works of ``MEDimage`` will aim to automate the creation of these csv files for each datasets.
+
 Configuration file
 ------------------
 
     In order to use ``MEDimage``, you will always need a configuration file, you can find examples of these files in the GitHub repository
     (``MEDimage/notebooks/tutorial/settings/MEDimage-Tutorial.json``) and the documentation is available in :doc:`../configuration_file`.
     And for each case, we will use a different JSON configuration file. For example every `IBSI <https://theibsi.github.io/>`__
-    test requires specific JSON configurations that you can find in ``MEDimage/notebooks/ibsi/settings``.
+    test requires specific JSON configuration and you can find all of them in: ``MEDimage/notebooks/ibsi/settings``.
 
 DataManager
------------
+===========
 
     The ``DataManager`` plays an important role in ``MEDimage``. The class is capable of processing raw `DICOM <https://en.wikipedia.org/wiki/DICOM>`__ 
     and `NIfTI <https://brainder.org/2012/09/23/the-nifti-file-format/>`__ and converting in into ``MEDimage`` class objects. This class also offers
@@ -32,7 +43,7 @@ DataManager
     :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/DataManager-Tutorial.ipynb
 
 MEDimage Class
---------------
+==============
 
     In ``MEDimage``, we have the package ``MEDimage`` and  the ``MEDimage`` class which is a Python object with the following structure:
 
@@ -50,7 +61,7 @@ MEDimage Class
     :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/MEDimage-Tutorial.ipynb
 
 Single-scan demo
-----------------
+================
 
     This demo is a step by step guide to process and extract features for a single scan using ``MEDimage``. We try in this demo to cover all the possible
     use cases of the package and its subpackages from the first steps of processing until the last steps of features extraction. we process the scan,
@@ -65,7 +76,7 @@ Single-scan demo
     :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/demo/Glioma-Demo.ipynb
 
 BatchExtractor
---------------
+==============
 
     ``MEDimage`` allows batch features extraction, using the class ``BatchExtractor`` which is a Python class with that has the following simple structure:
 
