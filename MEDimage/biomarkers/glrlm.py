@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import math
-import typing
+
 from copy import deepcopy
 from typing import Dict, List, Union
 
@@ -14,7 +13,7 @@ from ..utils.textureTools import (coord2index, get_neighbour_direction,
 
 
 def extract_all(vol: np.ndarray,
-                dist_correction: typing.Union[bool, str]=None,
+                dist_correction: Union[bool, str]=None,
                 merge_method: str="vol_merge") -> Dict:
     """Computes glrlm features.
     This features refer to Grey Level Run Length Matrix family in 
@@ -61,7 +60,7 @@ def extract_all(vol: np.ndarray,
 def get_rlm_features(vol: np.ndarray, 
                      glrlm_spatial_method: str="3d",
                      merge_method: str="vol_merge",
-                     dist_weight_norm: typing.Union[bool, str]=None) -> Dict:
+                     dist_weight_norm: Union[bool, str]=None) -> Dict:
     """Extract run length matrix-based features from the intensity roi mask.
 
     Note:
@@ -177,7 +176,7 @@ def get_rlm_features(vol: np.ndarray,
 def get_matrix(vol: np.ndarray, 
                    glrlm_spatial_method: str="3d", 
                    merge_method: str="vol_merge", 
-                   dist_weight_norm: typing.Union[bool, str]=None) -> np.ndarray:
+                   dist_weight_norm: Union[bool, str]=None) -> np.ndarray:
     """Extract run length matrix-based features from the intensity roi mask.
 
     Note:
