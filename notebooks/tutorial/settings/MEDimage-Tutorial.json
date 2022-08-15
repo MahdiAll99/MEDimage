@@ -86,17 +86,17 @@
       }
       },
       "glcm" : {
-        "dist_correction" : "Chebyshev",
+        "dist_correction" : false,
         "merge_method": "vol_merge"
       },
       "glrlm" : {
-        "dist_correction" : false
+        "dist_correction" : false,
+        "merge_method": "vol_merge"
       },
       "ngtdm" : {
         "dist_correction" : false
       },
       "filter_type": "",
-      "units" : "HU",
       "type" : "CTscan"
     },
   "imParamPET" : {
@@ -132,13 +132,13 @@
         "merge_method": "vol_merge"
       },
       "glrlm" : {
-        "dist_correction" : false
+        "dist_correction" : false,
+        "merge_method": "vol_merge"
       },
       "ngtdm" : {
         "dist_correction" : false
       },
       "filter_type": "",
-      "units" : "SUV",
       "type" : "PTscan"
   },
   "imParamFilter" : {

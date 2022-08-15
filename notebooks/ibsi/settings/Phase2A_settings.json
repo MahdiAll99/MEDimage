@@ -25,64 +25,19 @@
         "val" : [[25]]
       }
     },
-    "morph" : {
-      "method" : "ISO",
-      "value" : 0.5
-    },
     "glcm" : {
-      "symmetry" : "SYM",
-      "distanceNorm" : {
-        "method" : "Chebyshev",
-        "value" : 1,
-        "unit" : ""
-      },
-      "distCorrection" : false
+      "dist_correction" : false,
+      "merge_method": "vol_merge"
     },
-    "extract_all" : {
-      "distCorrection" : false},
-    "gldzm" : {
-      "distanceNorm" : {
-        "method" : "Chebyshev",
-        "value" : 1,
-        "unit" : ""
-      }
+    "glrlm" : {
+      "dist_correction" : false,
+      "merge_method": "vol_merge"
     },
     "ngtdm" : {
-      "distanceNorm" : {
-        "method" : "Chebyshev",
-        "value" : 1,
-        "unit" : ""
-      },
-      "distCorrection" : false
+      "dist_correction" : false
     },
-    "ngldm" : {
-      "distanceNorm" : {
-        "method" : "Chebyshev",
-        "value" : 1,
-        "unit" : ""
-      },
-      "coarseness" : 1
-    },
-    "filter": false,
-    "intensity" : "definite",
-    "units" : "",
+    "filter_type": "",
     "type" : "CTscan"
   },
-  "imParamFilter" : {},
-  "computeWavelet" : false,
-  "waveletName" : "coif1",
-  "segmentationMethod" : "InPolygon",
-  "softwareLabel" : "MEDomicsLab",
-  "softwareVersion" : "0.1",
-  "programmingLanguage" : "python3.8",
-  "institution" : "MEDomics",
-  "partialVolumeEffectCorrection_MR" : "",
-  "partialVolumeEffectCorrection_CT" : "",
-  "partialVolumeEffectCorrection_PET" : "",
-  "noiseReduction_MR" : "",
-  "noiseReduction_CT" : "",
-  "noiseReduction_PET" : "",
-  "imageNonUniformityCorrection_MR" : "",
-  "imageNonUniformityCorrection_CT" : "",
-  "imageNonUniformityCorrection_PET" : ""
+  "imParamFilter" : {}
 }
