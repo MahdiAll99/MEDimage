@@ -393,9 +393,53 @@ Each imaging modality should have its own params dict inside the JSON file and s
     }
 
 .. note::
-   ``MEDimage`` only computes suv map for DICOM scans, since the computation relies on DICOM headers for computation
-   and assumes it's already computed for NIfTI scans.
+   This parameter concern PET scans only. ``MEDimage`` only computes suv map for DICOM scans, since the computation relies on 
+   DICOM headers for computation and assumes it's already computed for NIfTI scans.
 
+.. jsonschema::
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "filter_type",
+        "description": "Name of the filter to use on the scan. Empty string by default.",
+        "type": "string",
+        "options": {
+            "mean": {
+                "description": "Filter images using ``mean`` filter.",
+                "type": "string"
+            },
+            "log": {
+                "description": "Filter images using ``log`` filter.",
+                "type": "string"
+            },
+            "gabor": {
+                "description": "Filter images using ``gabor`` filter.",
+                "type": "string"
+            },
+            "laws": {
+                "description": "Filter images using ``laws`` filter.",
+                "type": "string"
+            },
+            "wavelet": {
+                "description": "Filter images using ``wavelet`` filter.",
+                "type": "string"
+            }
+        }
+    }
+
+.. code-block:: JSON
+
+    {
+        "imParamPET" : {
+            "filter_type" : "mean"
+            },
+        "imParamMR" : {
+            "filter_type" : "laws"
+            },
+        "imParamCT" : {
+            "filter_type" : "log"
+            },
+    }
 
 Extraction Parameters
 ---------------------
@@ -414,9 +458,9 @@ Extraction parameters are organized in the same wat as the processing parameters
 
     {
         "$schema": "http://json-schema.org/draft-04/schema#",
-        "description": "GLCM features distance norm option. by default ``False``",
-        "title": "glcm distance_norm",
-        "type": "dict",
+        "description": "glcm features weighting norm. by default ``False``",
+        "title": "glcm dist_correction",
+        "type": "Union[bool, str]",
         "options": {
                     "manhattan": {
                         "description": "Will use ``\"manhattan\"`` weighting norm.",
@@ -431,9 +475,8 @@ Extraction parameters are organized in the same wat as the processing parameters
                         "type": "string"
                     },
                     "True": {
-                        "description": "``True`` in order to usediscretization length difference corrections as used by the 
-                            `Institute of Physics andEngineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`__.
-                            Set it to ``False`` to replicate IBSI results.",
+                        "description": "Will use discretization length difference corrections as used by the 
+                            `Institute of Physics and Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`__.",
                         "type": "bool"
                     },
                     "False": {
@@ -449,12 +492,12 @@ Extraction parameters are organized in the same wat as the processing parameters
         {
         "imParamCT" : {
             "glcm" : {
-                "distance_norm" : "chebyshev"
+                "dist_correction" : "chebyshev"
         },
         {
         "imParamMR" : {
             "glcm" : {
-                "distance_norm" : false
+                "dist_correction" : false
         },
     }
 
@@ -462,14 +505,69 @@ Extraction parameters are organized in the same wat as the processing parameters
 
     {
         "$schema": "http://json-schema.org/draft-04/schema#",
-        "description": "NGTDM features distance norm option. by default ``False``",
-        "title": "ngtdm distance_norm",
-        "type": "dict",
+        "description": "glcm features aggregation method. by default ``\"vol_merge\"``",
+        "title": "glcm merge_method",
+        "type": "string",
         "options": {
+                    "vol_merge": {
+                        "description": "Features are extracted from a single matrix after merging all 3D directional matrices.",
+                        "type": "string"
+                    },
+                    "slice_merge": {
+                        "description": "Features are extracted from a single matrix after merging 2D directional matrices per slice,
+                            and then averaged over slices.",
+                        "type": "string"
+                    },
+                    "dir_merge": {
+                        "description": "Features are extracted from a single matrix after merging 2D directional matrices per direction, 
+                            and then averaged over direction",
+                        "type": "string"
+                    },
+                    "average": {
+                        "description": "Features are extracted from each 3D directional matrix and averaged over the 3D directions",
+                        "type": "string"
+                    }
+        }
+    }
+
+.. code-block:: JSON
+
+    {
+        {
+        "imParamCT" : {
+            "glcm" : {
+                "merge_method" : "vol_merge"
+        },
+        {
+        "imParamMR" : {
+            "glcm" : {
+                "merge_method" : "average"
+        },
+    }
+
+.. jsonschema::
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "glrlm features weighting norm. by default ``False``",
+        "title": "glrlm dist_correction",
+        "type": "Union[bool, str]",
+        "options": {
+                    "manhattan": {
+                        "description": "Will use ``\"manhattan\"`` weighting norm.",
+                        "type": "string"
+                    },
+                    "euclidean": {
+                        "description": "Will use ``\"euclidean\"`` weighting norm.",
+                        "type": "string"
+                    },
+                    "chebyshev": {
+                        "description": "Will use ``\"chebyshev\"`` weighting norm.",
+                        "type": "string"
+                    },
                     "True": {
-                        "description": "``True`` in order to use discretization length difference corrections as used by the 
-                            `Institute of Physics andEngineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`__.
-                            Set it to ``False`` to replicate IBSI results.",
+                        "description": "Will use discretization length difference corrections as used by the 
+                            `Institute of Physics and Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`__.",
                         "type": "bool"
                     },
                     "False": {
@@ -484,13 +582,92 @@ Extraction parameters are organized in the same wat as the processing parameters
     {
         {
         "imParamCT" : {
+            "glrlm" : {
+                "dist_correction" : "chebyshev"
+        },
+        {
+        "imParamMR" : {
+            "glrlm" : {
+                "dist_correction" : false
+        },
+    }
+
+.. jsonschema::
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "glrlm features aggregation method. by default ``\"vol_merge\"``",
+        "title": "glrlm merge_method",
+        "type": "string",
+        "options": {
+                    "vol_merge": {
+                        "description": "Features are extracted from a single matrix after merging all 3D directional matrices.",
+                        "type": "string"
+                    },
+                    "slice_merge": {
+                        "description": "Features are extracted from a single matrix after merging 2D directional matrices per slice,
+                            and then averaged over slices.",
+                        "type": "string"
+                    },
+                    "dir_merge": {
+                        "description": "Features are extracted from a single matrix after merging 2D directional matrices per direction, 
+                            and then averaged over direction",
+                        "type": "string"
+                    },
+                    "average": {
+                        "description": "Features are extracted from each 3D directional matrix and averaged over the 3D directions",
+                        "type": "string"
+                    }
+        }
+    }
+
+.. code-block:: JSON
+
+    {
+        {
+        "imParamCT" : {
+            "glrlm" : {
+                "merge_method" : "vol_merge"
+        },
+        {
+        "imParamMR" : {
+            "glrlm" : {
+                "merge_method" : "average"
+        },
+    }
+
+.. jsonschema::
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "description": "ngtdm features weighting norm. by default ``False``",
+        "title": "ngtdm dist_correction",
+        "type": "bool",
+        "options": {
+                    "True": {
+                        "description": "Will use discretization length difference corrections as used by the 
+                            `Institute of Physics and Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`__.",
+                        "type": "bool"
+                    },
+                    "False": {
+                        "description": "``False`` to replicate IBSI results.",
+                        "type": "bool"
+                    }
+        }
+    }
+
+.. code-block:: JSON
+
+    {
+        {
+        "imParamCT" : {
             "ngtdm" : {
-                "distance_norm" : true,
+                "dist_correction" : true,
         },
         {
         "imParamMR" : {
             "ngtdm" : {
-                "distance_norm" : false
+                "dist_correction" : false
         },
     }
 
@@ -505,49 +682,12 @@ parameters for every filter of the ``MEDimage``:
 
     {
         "imParamFilter": {
-            "filter_type": "name of the filter to use",
             "mean": {"mean filter params"},
             "log": {"log filter params"},
             "laws": {"laws filter params"},
             "gabor": {"gabor filter params"},
             "wavelet": {"wavelet filter params"},
         }
-    }
-
-.. jsonschema::
-
-    {
-        "$schema": "http://json-schema.org/draft-04/schema#",
-        "title": "filter_type",
-        "description": "Name of the filter that will be used. Leave empty for no filtering",
-        "type": "string",
-        "options": {
-            "mean": {
-                "description": "Use mean filter.",
-                "type": "string"
-            },
-            "log": {
-                "description": "Use log filter.",
-                "type": "string"
-            },
-            "laws": {
-                "description": "Use laws filter.",
-                "type": "string"
-            },
-            "gabor": {
-                "description": "Use gabor filter.",
-                "type": "string"
-            }
-        }
-    }
-
-.. code-block:: JSON
-
-    {
-        {
-        "imParamFilter" : {
-            "filter_type" : "laws"
-        },
     }
 
 .. jsonschema::
