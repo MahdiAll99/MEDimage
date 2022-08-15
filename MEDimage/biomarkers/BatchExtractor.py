@@ -173,7 +173,7 @@ class BatchExtractor(object):
         MEDimg.init_ntf_calculation(vol_obj)
 
         # Image filtering
-        if MEDimg.params.process.filter:
+        if MEDimg.params.filter.filter_type:
             vol_obj = MEDimage.filter.apply_filter(MEDimg, vol_obj)
 
         # ROI Extraction :
@@ -386,7 +386,7 @@ class BatchExtractor(object):
                 try:
                     ngtdm = MEDimage.biomarkers.ngtdm.extract_all(
                         vol=vol_quant_re, 
-                        dist_correction=MEDimg.params.radiomics.ngtdm.distance_norm)
+                        dist_correction=MEDimg.params.radiomics.ngtdm.dist_correction)
                 except Exception as e:
                     logging.error(f'PROBLEM WITH COMPUTATION OF NGTDM FEATURES {e}')
                     ngtdm = None

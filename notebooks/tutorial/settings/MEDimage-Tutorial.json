@@ -44,46 +44,18 @@
         "val" : [[25]]
       }
       },
-      "morph" : {
-        "method" : "ISO",
-        "value" : 0.5
-      },
       "glcm" : {
-        "symmetry" : "SYM",
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : "Chebyshev",
+        "merge_method": "vol_merge"
       },
       "glrlm" : {
-        "distCorrection" : false},
-      "gldzm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        }
+        "dist_correction" : false,
+        "merge_method": "vol_merge"
       },
       "ngtdm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : false
       },
-      "ngldm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "coarseness" : 0
-      },
-      "filter": false,
-      "intensity" : "arbitrary",
+      "filter_type": "",
       "type" : "MRscan"
     },
   "imParamCT" : {
@@ -113,46 +85,17 @@
         "val" : [[25]]
       }
       },
-      "morph" : {
-        "method" : "ISO",
-        "value" : 0.5
-      },
       "glcm" : {
-        "symmetry" : "SYM",
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : "Chebyshev",
+        "merge_method": "vol_merge"
       },
       "glrlm" : {
-        "distCorrection" : false
-      },
-      "gldzm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        }
+        "dist_correction" : false
       },
       "ngtdm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : false
       },
-      "ngldm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "coarseness" : 0
-      },
-      "filter": false,
+      "filter_type": "",
       "units" : "HU",
       "type" : "CTscan"
     },
@@ -184,51 +127,21 @@
           "val" : [[0.5, 1], [0.5, 1]]
         }
       },
-      "morph" : {
-        "method" : "ISO",
-        "value" : 0.5
-      },
       "glcm" : {
-        "symmetry" : "SYM",
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : "Chebyshev",
+        "merge_method": "vol_merge"
       },
       "glrlm" : {
-        "distCorrection" : false
-      },
-      "gldzm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        }
+        "dist_correction" : false
       },
       "ngtdm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : false
       },
-      "ngldm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "coarseness" : 0
-      },
-      "filter": false,
+      "filter_type": "",
       "units" : "SUV",
       "type" : "PTscan"
   },
   "imParamFilter" : {
-    "filter_type": "",
     "mean" : {
       "ndims" : 3,
       "size" : 5,
@@ -270,21 +183,5 @@
       "padding" : "symmetric",
       "name_save" : "Wavelet_db3_LLH"
     }
-  },
-  "computeWavelet" : false,
-  "waveletName" : "coif1",
-  "segmentationMethod" : "InPolygon",
-  "softwareLabel" : "MEDomicsLab",
-  "softwareVersion" : "0.1",
-  "programmingLanguage" : "python3.8",
-  "institution" : "MEDomics",
-  "partialVolumeEffectCorrection_MR" : "",
-  "partialVolumeEffectCorrection_CT" : "",
-  "partialVolumeEffectCorrection_PET" : "",
-  "noiseReduction_MR" : "",
-  "noiseReduction_CT" : "",
-  "noiseReduction_PET" : "",
-  "imageNonUniformityCorrection_MR" : "",
-  "imageNonUniformityCorrection_CT" : "",
-  "imageNonUniformityCorrection_PET" : ""
+  }
 }
