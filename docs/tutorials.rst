@@ -1,6 +1,8 @@
 Instructions
 ============
 
+Download dataset
+----------------
     In all the tutorials, an open-access dataset will be used. It consists of medical images for different type of cancers (Glioma, sarcoma...)
     and with different imaging modalities (MR, CT...). This dataset has been pre-processed in order to be compliant with the package norms.
 
