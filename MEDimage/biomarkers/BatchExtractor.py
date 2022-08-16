@@ -50,14 +50,7 @@ class BatchExtractor(object):
         self.roi_type_labels.extend(im_params['roi_type_labels'])
         self.n_bacth = im_params['n_batch'] if 'n_batch' in im_params else self.n_bacth
 
-        # Get name save (for filtering purposes only)
-        try:
-            filter_type = im_params['imParamFilter']['filter_type']
-            name_save = im_params['imParamFilter'][filter_type]
-        except:
-            name_save = ''
-
-        return im_params, name_save
+        return im_params
 
     @ray.remote
     def __compute_radiomics_one_patient(
@@ -433,17 +426,16 @@ class BatchExtractor(object):
     def __compute_radiomics_tables(
             self,
             table_tags: List,
-            name_save: str,
-            log_file: Union[str, Path]
+            log_file: Union[str, Path],
+            im_params: Dict
         ) -> None:
         """
         Creates radiomic tables off of the saved dicts with the computed features and save it as CSV files
 
         Args:
             table_tags(List): Lists of information about scans, roi type and imaging space (or filter space)
-            name_save(str): Added at the end to the default name of each table to specify the processing 
-            used in extraction.
             log_file(Union[str, Path]): Path to logging file.
+            im_params(Dict): Dictionary of parameters.
         
         Returns:
             None.
@@ -454,6 +446,26 @@ class BatchExtractor(object):
             scan = table_tags[t][0]
             roi_type = table_tags[t][1]
             im_space = table_tags[t][2]
+            modality = table_tags[t][3]
+
+            # extract parameters for the current modality
+            if modality == 'CTscan' and 'imParamCT' in im_params:
+                im_params_mod = im_params['imParamCT']
+            elif modality== 'MRscan' and 'imParamMR' in im_params:
+                im_params_mod = im_params['imParamMR']
+            elif modality == 'PTscan' and 'imParamPET' in im_params:
+                im_params_mod = im_params['imParamPET']
+            # extract name save of the used filter
+            if 'filter_type' in im_params_mod:
+                filter_type = im_params_mod['filter_type']
+                if filter_type in im_params['imParamFilter'] and 'name_save' in im_params['imParamFilter'][filter_type]:
+                    name_save = im_params['imParamFilter'][filter_type]['name_save']
+                else:
+                    name_save= ''
+            else:
+                name_save= ''
+            
+            # set up table name
             if name_save:
                 name_table = 'radiomics__' + scan + \
                 '(' + roi_type + ')__'  + name_save + '.npy'   
@@ -584,13 +596,12 @@ class BatchExtractor(object):
 
             print('DONE')
 
-    def __batch_all_tables(self, name_save: str):
+    def __batch_all_tables(self, im_params: Dict):
         """
         Create batches of tables of the extracted features for every imaging scan type (CT, PET...).
 
         Args: 
-            name_save(str): Added at the end to the default name of each table to specify the processing 
-                used in extraction.
+            im_params(Dict): Dictionary of parameters.
 
         Returns:
             None
@@ -605,14 +616,17 @@ class BatchExtractor(object):
             file_paths = MEDimage.utils.get_file_paths(self._path_save, wildcard)
             n_files = len(file_paths)
             scans = [0] * n_files
+            modalities = [0] * n_files
             for f in range(0, n_files):
                 rad_file_name = file_paths[f].stem
                 scans[f] = MEDimage.utils.get_scan_name_from_rad_name(rad_file_name)
+                modalities[f] = rad_file_name.split('.')[1]
             scans = s = (np.unique(np.array(scans))).tolist()
             n_scans = len(scans)
             # Get all scan names present for the given roi_type_label and scans
             for s in range(0, n_scans):
                 scan = scans[s]
+                modality = modalities[s]
                 wildcard = '*' + scan + '(' + label + ')*.json'
                 file_paths = MEDimage.utils.get_file_paths(self._path_save, wildcard)
                 n_files = len(file_paths)
@@ -626,7 +640,7 @@ class BatchExtractor(object):
                 # Constructing the table_tags variable
                 for i in range(0, n_im_spaces):
                     im_space = im_spaces[i]
-                    table_tags = table_tags + [[scan, label, im_space]]
+                    table_tags = table_tags + [[scan, label, im_space, modality]]
 
         # INITIALIZATION
         os.chdir(self._path_save)
@@ -665,8 +679,8 @@ class BatchExtractor(object):
         ids = [self.__compute_radiomics_tables.remote(
                                 self, 
                                 [table_tags[i]], 
-                                name_save, 
-                                log_files[i])
+                                log_files[i],
+                                im_params)
                 for i in range(self.n_bacth)]
 
         nb_job_left = n_tables - self.n_bacth
@@ -684,8 +698,8 @@ class BatchExtractor(object):
                 ids.extend([self.__compute_radiomics_tables.remote(
                                 self,
                                 [table_tags[idx]], 
-                                name_save, 
-                                log_file)])
+                                log_file,
+                                im_params)])
                 nb_job_left -= 1
 
         print('DONE')
@@ -706,11 +720,11 @@ class BatchExtractor(object):
         ray.init(local_mode=True, include_dashboard=True)
 
         # Load and process computing parameters
-        im_params, name_save = self.__load_and_process_params()
+        im_params = self.__load_and_process_params()
 
         # Batch all scans from CSV file and compute radiomics for each scan
         self.__batch_all_patients(im_params)
 
         # Create a CSV file off of the computed features for all the scans
         if create_tables:
-            self.__batch_all_tables(name_save)
+            self.__batch_all_tables(im_params)
