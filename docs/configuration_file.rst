@@ -926,7 +926,9 @@ parameters for every filter of the ``MEDimage``:
                 "type": "int"
             },
             "basis_function": {
-                "description": "Wavelet name used to create the kernel.",
+                "description": "Wavelet name used to create the kernel. The Wavelet families and built-ins can be 
+                    found `here <https://pywavelets.readthedocs.io/en/v0.3.0/ref/wavelets.html#wavelet-families>`__.
+                    Custom user wavelets are also supported.",
                 "type": "string"
             },
             "subband": {
