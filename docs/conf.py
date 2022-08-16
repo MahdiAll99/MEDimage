@@ -85,6 +85,20 @@ default_dark_mode = False
 #
 html_theme = 'sphinx_rtd_theme'
 
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+html_theme_options = {
+    "collapse_navigation": True,
+    "display_version": True,
+    "sticky_navigation": True,  # Set to False to disable the sticky nav while scrolling.
+    "logo_only": True,  # if we have a html_logo below, this shows /only/ the logo with no title text
+}
+
+# The name of an image file (relative to this directory) to place at the top
+# of the sidebar.
+html_logo = "figures/MEDimageLogo.png"
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
