@@ -1,4 +1,5 @@
 [![PyPI - Python Version](https://img.shields.io/badge/python-3.8-blue)](https://www.python.org/downloads/release/python-380/)
+[![Python application](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml)
 
 # MEDimage
 
