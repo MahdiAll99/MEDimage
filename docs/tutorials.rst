@@ -44,6 +44,10 @@ DataManager
 .. |DataManager_image_badge| image:: https://colab.research.google.com/assets/colab-badge.png
     :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/DataManager-Tutorial.ipynb
 
+.. image:: /figures/DataManager-overview.png
+    :width: 600
+    :align: center
+
 MEDimage Class
 ==============
 
@@ -80,11 +84,11 @@ Single-scan demo
 BatchExtractor
 ==============
 
-    ``MEDimage`` allows batch features extraction, using the class ``BatchExtractor`` which is a Python class with that has the following simple structure:
+    ``MEDimage`` allows batch features extraction through the class ``BatchExtractor`` which is a simple Python class with the following workflow:
 
-    .. image:: https://github.com/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/images/BatchExtractionClassDiagram.png?raw=true
-        :alt: MEDimage class diagram
-
+    .. image:: /figures/BatchExtractor-overview.png
+        :width: 800
+        :align: center
     
     It is capable of creating batches of scans with not so many arguments and running a full extraction of all the radiomics family features and saving
     it in tables and JSON files. In order to run a batch extraction using this class, you will only need to set the path to your dataset and to your 
