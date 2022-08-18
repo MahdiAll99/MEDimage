@@ -291,7 +291,7 @@ Each imaging modality should have its own params dict inside the JSON file and s
         "options": {
                     "type": {
                         "description": "Discretisation algorithm: ``\"FBS\"`` for fixed bin size and
-                            ``\"FBN\"`` for fixed bin number algorithm",
+                            ``\"FBN\"`` for fixed bin number algorithm. Other possible options: ``\"FBSequal\"`` and ``\"FBNequal\"``",
                         "type": "string"
                     },
                     "val": {
@@ -790,7 +790,7 @@ parameters for every filter of the ``MEDimage``:
         "type": "dict",
         "options": {
             "config": {
-                "description": "List of string of every 1D filter used to create the Laws kernel. Possible 1D filters:
+                "description": "List of string of every 1D filter to use for the Laws kernel creation. Possible 1D filters:
                     ``\"L3\"``, ``\"L5\"``, ``\"E3\"``, ``\"E5\"``, ``\"S3\"``, 
                     ``\"S5\"``, ``\"W5\"`` or ``\"R5\"``",
                 "type": "List[str]"
