@@ -1,15 +1,18 @@
 import csv
-from importlib.resources import path
 import json
 import logging
+from multiprocessing.sharedctypes import Value
 import os
+import pickle
 import re
 import warnings
 from dataclasses import dataclass
+from importlib.resources import path
 from pathlib import Path
 from time import time
 from typing import List, Union
 
+import matplotlib.pyplot as plt
 import nibabel as nib
 import numpy as np
 import pandas as pd
@@ -683,36 +686,17 @@ class DataManager(object):
                                                 }, ignore_index=True)
         print(summary_df.to_markdown(index=False))
 
-    def pre_checks_init(
-            self, 
-            path_save_checks: Union[Path, str], 
-            path_csv: Union[Path, str],
-            force: bool = False
-        ) -> None:
-        """Initializes all the class attributes needed to run pre-radiomics check methods.
-
-        This method is useful to make sure all the important attributes are ready before running
-        radiomics pre-checks, in case these attributes were not specified during the class initialization.
-
-        Args:
-            path_save_checks(Union[Path, str]): Path to where the radiomics checks are gonna be saved.
-            path_csv(Union[Path, str]): Path to the csv file that will be used to read scans.
-            force(bool, optional): If True, will replace the values of the existing attributes and
-                will skip (keep the originals) if false.
-        """
-        if self.paths._path_save_checks and force:
-            self.paths._path_save_checks = path_save_checks
-        if self.paths._path_csv and force:
-            self.paths._path_csv = path_csv
-
     def __pre_radiomics_checks_dimensions(
-                                        self, 
-                                        wildcards_dimensions: List[str] = [], 
+                                        self,
+                                        path_data: Union[Path, str] = None,
+                                        wildcards_dimensions: List[str] = [],
                                         use_instances: bool = True
                                         ) -> None:
-        """Finds proper dimensions options for radiomics analyses for a group of scans
+        """Finds proper voxels dimension options for radiomics analyses for a group of scans
 
         Args:
+            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+                inner-class ``Paths`` in the current instance.
             wildcards_dimensions(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
                 :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
@@ -773,31 +757,13 @@ class DataManager(object):
                             continue
                     except Exception as e:
                         print(e)
-                # Running analysis
-                xy_dim["data"] = np.concatenate(xy_dim["data"])
-                xy_dim["mean"] = np.mean(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["median"] = np.median(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["std"] = np.std(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["min"] = np.min(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["max"] = np.max(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["p5"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 5)
-                xy_dim["p95"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 95)
-                z_dim["mean"] = np.mean(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["median"] = np.median(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["std"] = np.std(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["min"] = np.min(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["max"] = np.max(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["p5"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 5)
-                z_dim["p95"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 95)
-                xy_dim["data"] = xy_dim["data"].tolist()
-                z_dim["data"] = z_dim["data"].tolist()
-
-                # Saving files using wildcard for name
-                wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
-                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim, cls=NumpyEncoder)
-                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim, cls=NumpyEncoder)
             else:
-                file_paths = get_file_paths(self.paths._path_save, wildcard)
+                if path_data:
+                    file_paths = get_file_paths(path_data, wildcard)
+                elif self.paths._path_save:
+                    file_paths = get_file_paths(self.paths._path_save, wildcard)
+                else:
+                    raise ValueError("Path data is invalid.")
                 n_files = len(file_paths)
                 xy_dim["data"] = np.zeros((n_files, 1))
                 xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
@@ -811,31 +777,59 @@ class DataManager(object):
                     except Exception as e:
                         print(e)
 
-                xy_dim["data"] = np.concatenate(xy_dim["data"])
-                xy_dim["mean"] = np.mean(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["median"] = np.median(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["std"] = np.std(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["min"] = np.min(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["max"] = np.max(xy_dim["data"][~np.isnan(xy_dim["data"])])
-                xy_dim["p5"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 5)
-                xy_dim["p95"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 95)
-                z_dim["mean"] = np.mean(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["median"] = np.median(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["std"] = np.std(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["min"] = np.min(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["max"] = np.max(z_dim["data"][~np.isnan(z_dim["data"])])
-                z_dim["p5"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 5)
-                z_dim["p95"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 95)
-                xy_dim["data"] = xy_dim["data"].tolist()
-                z_dim["data"] = z_dim["data"].tolist()
-
-                # Saving files using wildcard for name
-                wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
-                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim, cls=NumpyEncoder)
-                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim, cls=NumpyEncoder)
+            # Running analysis
+            xy_dim["data"] = np.concatenate(xy_dim["data"])
+            xy_dim["mean"] = np.mean(xy_dim["data"][~np.isnan(xy_dim["data"])])
+            xy_dim["median"] = np.median(xy_dim["data"][~np.isnan(xy_dim["data"])])
+            xy_dim["std"] = np.std(xy_dim["data"][~np.isnan(xy_dim["data"])])
+            xy_dim["min"] = np.min(xy_dim["data"][~np.isnan(xy_dim["data"])])
+            xy_dim["max"] = np.max(xy_dim["data"][~np.isnan(xy_dim["data"])])
+            xy_dim["p5"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 5)
+            xy_dim["p95"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 95)
+            z_dim["mean"] = np.mean(z_dim["data"][~np.isnan(z_dim["data"])])
+            z_dim["median"] = np.median(z_dim["data"][~np.isnan(z_dim["data"])])
+            z_dim["std"] = np.std(z_dim["data"][~np.isnan(z_dim["data"])])
+            z_dim["min"] = np.min(z_dim["data"][~np.isnan(z_dim["data"])])
+            z_dim["max"] = np.max(z_dim["data"][~np.isnan(z_dim["data"])])
+            z_dim["p5"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 5)
+            z_dim["p95"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 95)
+            xy_dim["data"] = xy_dim["data"].tolist()
+            z_dim["data"] = z_dim["data"].tolist()
+            
+            # Plotting xy-spacing data histogram
+            df_xy = pd.DataFrame(xy_dim["data"], columns=['data'])
+            del xy_dim["data"]  # no interest in keeping data (we only need statistics)
+            ax = df_xy.hist(column='data')
+            quant_05, quant_95= df_xy.quantile(0.05), df_xy.quantile(0.95)
+            for x in ax[0]:
+                x.axvline(quant_05.data, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
+                x.axvline(quant_95.data, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.grid(False)
+                plt.title(f"Voxels xy-spacing checks for {wildcard}")
+                plt.legend()
+                plt.show()
+            
+            # Plotting z-spacing data histogram
+            df_z = pd.DataFrame(z_dim["data"], columns=['data'])
+            del z_dim["data"]  # no interest in keeping data (we only need statistics)
+            ax = df_z.hist(column='data')
+            quant_05, quant_95= df_z.quantile(0.05), df_z.quantile(0.95)
+            for x in ax[0]:
+                x.axvline(quant_05.data, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
+                x.axvline(quant_95.data, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.grid(False)
+                plt.title(f"Voxels z-spacing checks for {wildcard}")
+                plt.legend()
+                plt.show()
+                
+            # Saving files using wildcard for name
+            wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
+            save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim, cls=NumpyEncoder)
+            save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim, cls=NumpyEncoder)
 
     def __pre_radiomics_checks_window(
-            self, 
+            self,
+            path_data: Union[str, Path] = None,
             wildcards_window: List = [], 
             use_instances: bool = True,
             path_csv: Union[str, Path] = None
@@ -843,8 +837,10 @@ class DataManager(object):
         """Finds proper re-segmentation ranges options for radiomics analyses for a group of scans
 
         Args:
+            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+                inner-class ``Paths`` in the current instance.
             wildcards_window(List[str], optional): List of wildcards that determines the scans 
-            that will be analyzed. You can learn more about wildcards in
+                that will be analyzed. You can learn more about wildcards in
                 :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
             use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
                 for the analysis. If False, will analyze scans in the path where the instances were saved.
@@ -885,7 +881,12 @@ class DataManager(object):
         for w in range(len(wildcards_window)):
             wildcard = wildcards_window[w]
             if not use_instances:
-                file_paths = get_file_paths(self.paths._path_save, wildcard)
+                if path_data:
+                    file_paths = get_file_paths(path_data, wildcard)
+                elif self.paths._path_save:
+                    file_paths = get_file_paths(self.paths._path_save, wildcard)
+                else:
+                    raise ValueError("Path data is invalid.")
                 n_files = len(file_paths)
                 for f in tqdm(range(n_files)):
                     file = file_paths[f]
@@ -916,7 +917,7 @@ class DataManager(object):
                     patient_name = self.__get_MEDimage_name_save(MEDimg)
                     if MEDimg.patientID.split('-')[0] == study and MEDimg.type == scan_type:
                         try:
-                            if re.search('PTscan', wildcard):
+                            if re.search('PTscan', wildcard) and MEDimg.type != 'nifti':
                                 MEDimg.scan.volume.data = compute_suv_map(np.double(MEDimg.scan.volume.data), 
                                                                             MEDimg.dicomH[2])
                             patient_names = pd.Index(patient_names)
@@ -934,22 +935,36 @@ class DataManager(object):
                     else:
                         roi_data["data"].append([])
                         continue
+            
+            roi_data["data"] = np.concatenate(roi_data["data"])
+            roi_data["mean"] = np.mean(roi_data["data"][~np.isnan(roi_data["data"])])
+            roi_data["median"] = np.median(roi_data["data"][~np.isnan(roi_data["data"])])
+            roi_data["std"] = np.std(roi_data["data"][~np.isnan(roi_data["data"])])
+            roi_data["min"] = np.min(roi_data["data"][~np.isnan(roi_data["data"])])
+            roi_data["max"] = np.max(roi_data["data"][~np.isnan(roi_data["data"])])
+            roi_data["p5"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 5)
+            roi_data["p95"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 95)
+            roi_data["data"] = roi_data["data"].tolist()
 
-        roi_data["data"] = np.concatenate(roi_data["data"])
-        roi_data["mean"] = np.mean(roi_data["data"][~np.isnan(roi_data["data"])])
-        roi_data["median"] = np.median(roi_data["data"][~np.isnan(roi_data["data"])])
-        roi_data["std"] = np.std(roi_data["data"][~np.isnan(roi_data["data"])])
-        roi_data["min"] = np.min(roi_data["data"][~np.isnan(roi_data["data"])])
-        roi_data["max"] = np.max(roi_data["data"][~np.isnan(roi_data["data"])])
-        roi_data["p5"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 5)
-        roi_data["p95"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 95)
-        roi_data["data"] = roi_data["data"].tolist()
+            # Plotting roi data histogram
+            df_data = pd.DataFrame(roi_data["data"], columns=['data'])
+            del roi_data["data"]  # no interest in keeping data (we only need statistics)
+            ax = df_data.hist(column='data')
+            quant_05, quant_95= df_data.quantile(0.05), df_data.quantile(0.95)
+            for x in ax[0]:
+                x.axvline(quant_05.data, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
+                x.axvline(quant_95.data, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.grid(False)
+                plt.title(f"Intensity range checks for {wildcard}")
+                plt.legend()
+                plt.show()
+            
+            # save final checks
+            wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
+            save_json(self.paths._path_save_checks / ('roi_data_' + wildcard), roi_data, cls=NumpyEncoder)
 
-        # save final checks
-        wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
-        save_json(self.paths._path_save_checks / ('roi_data_' + wildcard), roi_data, cls=NumpyEncoder)
-
-    def pre_radiomics_checks(self, 
+    def pre_radiomics_checks(self,
+                            path_data: Union[str, Path] = None,
                             wildcards_dimensions: List = [],
                             wildcards_window: List = [],
                             use_instances: bool = True,
@@ -960,6 +975,8 @@ class DataManager(object):
         parameters options in computation methods.
 
         Args:
+            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+                inner-class ``Paths`` in the current instance.
             wildcards_dimensions(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
                 `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
@@ -1028,7 +1045,7 @@ class DataManager(object):
         # 1. PRE-RADIOMICS CHECKS -- DIMENSIONS
         start1 = time()
         print('\n--> PRE-RADIOMICS CHECKS -- DIMENSIONS ... ', end='')
-        self.__pre_radiomics_checks_dimensions(wildcards_dimensions, use_instances)
+        self.__pre_radiomics_checks_dimensions(path_data, wildcards_dimensions, use_instances)
         print('DONE', end='')
         time1 = f"{time() - start1:.2f}"
         print(f'\nElapsed time: {time1} sec', end='')
@@ -1036,7 +1053,7 @@ class DataManager(object):
         # 2. PRE-RADIOMICS CHECKS - WINDOW
         start2 = time()
         print('\n\n--> PRE-RADIOMICS CHECKS -- WINDOW ... \n', end='')
-        self.__pre_radiomics_checks_window(wildcards_window, use_instances, path_csv)
+        self.__pre_radiomics_checks_window(path_data, wildcards_window, use_instances, path_csv)
         print('DONE', end='')
         time2 = f"{time() - start2:.2f}"
         print(f'\nElapsed time: {time2} sec', end='')
@@ -1044,3 +1061,497 @@ class DataManager(object):
         time_elapsed = f"{time() - start:.2f}"
         print(f'\n\n--> TOTAL TIME FOR PRE-RADIOMICS CHECKS: {time_elapsed} seconds')
         print('-------------------------------------------------------------------------------------')
+
+    def perform_mr_imaging_summary(self, 
+                                wildcards_scans: List[str],
+                                path_data: Path = None,
+                                path_save_checks: Path = None,
+                                ) -> None:
+        """
+        Summarizes MRI imaging acquisition parameters. Plots summary histograms
+        for different dimensions and saves all acquisition parameters locally in JSON files.
+
+        Args:
+            wildcards_scans (List[str]): List of wildcards that determines the scans 
+                that will be analyzed (Only MRI scans will be analyzed). You can learn more about wildcards in
+                `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
+                For example: ``[\"STS*.MRscan.npy\"]``.
+            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+                inner-class ``Paths`` in the current instance.
+            path_save_checks (Path, optional): Path where to save the checks, if not specified will use the one 
+                in the current instance.
+        
+        Returns:
+            None.
+        """
+        # Initializing data structures
+        class param:
+            dates = []
+            manufacturer = []
+            scanning_sequence = []
+            class years:
+                data = []
+
+            class fieldStrength:
+                data = []
+
+            class repetitionTime:
+                data = []
+
+            class echoTime:
+                data = []
+
+            class inversionTime:
+                data = []
+
+            class echoTrainLength:
+                data = []
+
+            class flipAngle:
+                data = []
+
+            class numberAverages:
+                data = []
+
+            class xyDim:
+                data = []
+
+            class zDim:
+                data = []
+        
+        if len(wildcards_scans) == 0:
+            print('wildcards_scans is empty')
+
+        # wildcards checks:
+        no_mr_scan = True
+        for wildcard in wildcards_scans:
+            if 'MRscan' in wildcard:
+                no_mr_scan = False
+        if no_mr_scan:
+            raise ValueError(f"wildcards: {wildcards_scans} does not include MR scans. (Only MR scans are supported)")
+        
+        # Initialization
+        if path_data is None:
+            if self.paths._path_save:
+                path_data = Path(self.paths._path_save)
+            else:
+                print("No path to data was given and path save is None.")
+                return 0
+        
+        if not path_save_checks:
+            if self.paths._path_save_checks:
+                path_save_checks = Path(self.paths._path_save_checks)
+            else:
+                if (Path(os.getcwd()) / "checks").exists():
+                    path_save_checks = Path(os.getcwd()) / "checks"
+                else:
+                    path_save_checks = (Path(os.getcwd()) / "checks").mkdir()
+        # Looping through all the different wildcards
+        for i in tqdm(range(len(wildcards_scans))):
+            wildcard = wildcards_scans[i]
+            file_paths = get_file_paths(path_data, wildcard)
+            n_files = len(file_paths)
+            param.dates = np.zeros(n_files)
+            param.years.data = np.zeros((n_files, 1))
+            param.years.data = np.multiply(param.years.data, np.NaN)
+            param.manufacturer = [None] * n_files
+            param.scanning_sequence = [None] * n_files
+            param.fieldStrength.data = np.zeros((n_files, 1))
+            param.fieldStrength.data = np.multiply(param.fieldStrength.data, np.NaN)
+            param.repetitionTime.data = np.zeros((n_files, 1))
+            param.repetitionTime.data = np.multiply(param.repetitionTime.data, np.NaN)
+            param.echoTime.data = np.zeros((n_files, 1))
+            param.echoTime.data = np.multiply(param.echoTime.data, np.NaN)
+            param.inversionTime.data = np.zeros((n_files, 1))
+            param.inversionTime.data = np.multiply(param.inversionTime.data, np.NaN)
+            param.echoTrainLength.data = np.zeros((n_files, 1))
+            param.echoTrainLength.data = np.multiply(param.echoTrainLength.data, np.NaN)
+            param.flipAngle.data = np.zeros((n_files, 1))
+            param.flipAngle.data = np.multiply(param.flipAngle.data, np.NaN)
+            param.numberAverages.data = np.zeros((n_files, 1))
+            param.numberAverages.data = np.multiply(param.numberAverages.data, np.NaN)
+            param.xyDim.data = np.zeros((n_files, 1))
+            param.xyDim.data = np.multiply(param.xyDim.data, np.NaN)
+            param.zDim.data = np.zeros((n_files, 1))
+            param.zDim.data = np.multiply(param.zDim.data, np.NaN)
+            
+            # Loading and recording data
+            for f in tqdm(range(n_files)):
+                file = file_paths[f]
+
+                #Open file for warning
+                try:
+                    warn_file = open(path_save_checks / 'imaging_summary_mr_warnings.txt', 'a')
+                except IOError:
+                    print("Could not open warning file")
+
+                # Loading Data
+                try:
+                    print(f'\nCurrently working on: {file}', file = warn_file)
+                    with open(path_data / file, 'rb') as fe: MEDimg = pickle.load(fe)
+
+                    # Example of DICOM header
+                    info = MEDimg.dicomH[1]
+                    # Recording dates (info.AcquistionDates)
+                    try:
+                        param.dates[f] = info.AcquisitionDate
+                    except AttributeError:
+                        param.dates[f] = info.StudyDate
+                    # Recording years
+                    try:
+                        y = str(param.dates[f])  # Only the first four characters represent the years
+                        param.years.data[f] = y[0:4]
+                    except Exception as e:
+                        print(f'Cannot read years of: {file}. Error: {e}', file = warn_file)
+                    # Recording manufacturers
+                    try:
+                        param.manufacturer[f] = info.Manufacturer
+                    except Exception as e:
+                        print(f'Cannot read manufacturer of: {file}. Error: {e}', file = warn_file)
+                    # Recording scanning sequence
+                    try:
+                        param.scanning_sequence[f] = info.scanning_sequence
+                    except Exception as e:
+                        print(f'Cannot read scanning sequence of: {file}. Error: {e}', file = warn_file)
+                    # Recording field strength
+                    try:
+                        param.fieldStrength.data[f] = info.MagneticFieldStrength
+                    except Exception as e:
+                        print(f'Cannot read field strength of: {file}. Error: {e}', file = warn_file)
+                    # Recording repetition time
+                    try:
+                        param.repetitionTime.data[f] = info.RepetitionTime
+                    except Exception as e:
+                        print(f'Cannot read repetition time of: {file}. Error: {e}', file = warn_file)
+                    # Recording echo time
+                    try:
+                        param.echoTime.data[f] = info.EchoTime
+                    except Exception as e:
+                        print(f'Cannot read echo time of: {file}. Error: {e}', file = warn_file)
+                    # Recording inversion time
+                    try:
+                        param.inversionTime.data[f] = info.InversionTime
+                    except Exception as e:
+                        print(f'Cannot read inversion time of: {file}. Error: {e}', file = warn_file)
+                    # Recording echo train length
+                    try:
+                        param.echoTrainLength.data[f] = info.EchoTrainLength
+                    except Exception as e:
+                        print(f'Cannot read echo train length of: {file}. Error: {e}', file = warn_file)
+                    # Recording flip angle
+                    try:
+                        param.flipAngle.data[f] = info.FlipAngle
+                    except Exception as e:
+                        print(f'Cannot read flip angle of: {file}. Error: {e}', file = warn_file)
+                    # Recording number of averages
+                    try:
+                        param.numberAverages.data[f] = info.NumberOfAverages
+                    except Exception as e:
+                        print(f'Cannot read number averages of: {file}. Error: {e}', file = warn_file)
+                    # Recording xy spacing
+                    try:
+                        param.xyDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
+                    except Exception as e:
+                        print(f'Cannot read x spacing of: {file}. Error: {e}', file = warn_file)
+                    # Recording z spacing
+                    try:
+                        param.zDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
+                    except Exception as e:
+                        print(f'Cannot read z spacing of: {file}', file = warn_file)
+                except Exception as e:
+                    print(f'Cannot read file: {file}. Error: {e}', file = warn_file)
+
+                warn_file.close()
+
+            # Summarize data
+                # Summarizing years
+            df_years = pd.DataFrame(param.years.data, columns=['years']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing field strength
+            df_fs = pd.DataFrame(param.fieldStrength.data, columns=['fieldStrength']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing  repetition time
+            df_rt = pd.DataFrame(param.repetitionTime.data, columns=['repetitionTime']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing echo time
+            df_et = pd.DataFrame(param.echoTime.data, columns=['echoTime']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing inversion time
+            df_it = pd.DataFrame(param.inversionTime.data, columns=['inversionTime']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing echo train length
+            df_etl = pd.DataFrame(param.echoTrainLength.data, columns=['echoTrainLength']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing flip  angle
+            df_fa = pd.DataFrame(param.flipAngle.data, columns=['flipAngle']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing number of  averages
+            df_na = pd.DataFrame(param.numberAverages.data, columns=['numberAverages']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing xy-spacing
+            df_xy = pd.DataFrame(param.xyDim.data, columns=['xyDim'])
+                # Summarizing z-spacing
+            df_z = pd.DataFrame(param.zDim.data, columns=['zDim'])
+
+            # Plotting xy-spacing histogram
+            ax = df_xy.hist(column='xyDim')
+            quant_05, quant_95= df_xy.quantile(0.05), df_xy.quantile(0.95)
+            for x in ax[0]:
+                x.axvline(quant_05.xyDim, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
+                x.axvline(quant_95.xyDim, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.grid(False)
+                plt.title(f"MR xy-spacing imaging summary for {wildcard}")
+                plt.legend()
+                plt.show()
+            
+            # Plotting z-spacing histogram
+            ax = df_z.hist(column='zDim')
+            quant_05, quant_95 = df_z.quantile(0.05), df_z.quantile(0.95)
+            for x in ax[0]:
+                x.axvline(quant_05.zDim, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
+                x.axvline(quant_95.zDim, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.grid(False)
+                plt.title(f"MR z-spacing imaging summary for {wildcard}")
+                plt.legend()
+                plt.show()
+            
+            # Summarizing xy-spacing
+            df_xy = df_xy.describe(percentiles=[0.05, 0.95], include='all')
+            # Summarizing  z-spacing
+            df_z = df_z.describe(percentiles=[0.05, 0.95], include='all')
+            
+            # Saving data
+            name_save = wildcard.replace('*', '').replace('.npy', '')
+            save_name = 'imagingSummary__' + name_save + ".json"
+            df_all = [df_years, df_fs, df_rt, df_et, df_it, df_etl, df_fa, df_na, df_xy, df_z]
+            df_all = df_all[0].join(df_all[1:])
+            df_all.to_json(path_save_checks / save_name, orient='columns', indent=4)
+
+    def perform_ct_imaging_summary(self, 
+                                wildcards_scans: List[str],
+                                path_data: Path = None,
+                                path_save_checks: Path = None,
+                                ) -> None:
+        """
+        Summarizes CT imaging acquisition parameters. Plots summary histograms
+        for different dimensions and saves all acquisition parameters locally in JSON files.
+
+        Args:
+            wildcards_scans (List[str]): List of wildcards that determines the scans 
+                that will be analyzed (Only MRI scans will be analyzed). You can learn more about wildcards in
+                `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
+                For example: ``[\"STS*.CTscan.npy\"]``.
+            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+                inner-class ``Paths`` in the current instance.
+            path_save_checks (Path, optional): Path where to save the checks, if not specified will use the one 
+                in the current instance.
+        
+        Returns:
+            None.
+        """
+
+        class param:
+            manufacturer = []
+            dates = []
+            kernel = []
+
+            class years:
+                data = []
+            class voltage:
+                data = []
+            class exposure:
+                data = []
+            class xyDim:
+                data = []
+            class zDim:
+                data = []
+
+        if len(wildcards_scans) == 0:
+            print('wildcards_scans is empty')
+
+        # wildcards checks:
+        no_mr_scan = True
+        for wildcard in wildcards_scans:
+            if 'CTscan' in wildcard:
+                no_mr_scan = False
+        if no_mr_scan:
+            raise ValueError(f"wildcards: {wildcards_scans} does not include CT scans. (Only CT scans are supported)")
+
+        # Initialization
+        if path_data is None:
+            if self.paths._path_save:
+                path_data = Path(self.paths._path_save)
+            else:
+                print("No path to data was given and path save is None.")
+                return 0
+        
+        if not path_save_checks:
+            if self.paths._path_save_checks:
+                path_save_checks = Path(self.paths._path_save_checks)
+            else:
+                if (Path(os.getcwd()) / "checks").exists():
+                    path_save_checks = Path(os.getcwd()) / "checks"
+                else:
+                    path_save_checks = (Path(os.getcwd()) / "checks").mkdir()
+
+        # Looping through all the different wildcards
+        for i in tqdm(range(len(wildcards_scans))):
+            wildcard = wildcards_scans[i]
+            file_paths = get_file_paths(path_data, wildcard)
+            n_files = len(file_paths)
+            param.dates = np.zeros(n_files)
+            param.years.data = np.zeros(n_files)
+            param.years.data = np.multiply(param.years.data, np.NaN)
+            param.manufacturer = [None] * n_files
+            param.voltage.data = np.zeros(n_files)
+            param.voltage.data = np.multiply(param.voltage.data, np.NaN)
+            param.exposure.data = np.zeros(n_files)
+            param.exposure.data = np.multiply(param.exposure.data, np.NaN)
+            param.kernel = [None] * n_files
+            param.xyDim.data = np.zeros(n_files)
+            param.xyDim.data = np.multiply(param.xyDim.data, np.NaN)
+            param.zDim.data = np.zeros(n_files)
+            param.zDim.data = np.multiply(param.zDim.data, np.NaN)
+        
+            # Loading and recording data
+            for f in tqdm(range(n_files)):
+                file = file_paths[f]
+
+                # Open file for warning
+                try:
+                    warn_file = open(path_save_checks / 'imaging_summary_ct_warnings.txt', 'a')
+                except IOError:
+                    print("Could not open file")
+
+                # Loading Data
+                try:
+                    with open(path_data / file, 'rb') as fe: MEDimg = pickle.load(fe)
+                    print(f'Currently working on: {file}', file=warn_file)
+                    
+                    # DICOM header
+                    info = MEDimg.dicomH[1]
+
+                    # Recording dates
+                    try:
+                        param.dates[f] = info.AcquisitionDate
+                    except AttributeError:
+                        param.dates[f] = info.StudyDate
+                        # Recording years
+                    try:
+                        years = str(param.dates[f])  # Only the first four characters represent the years
+                        param.years.data[f] = years[0:4]
+                    except Exception as e:
+                        print(f'Cannot read dates of : {file}. Error: {e}', file=warn_file)
+                        # Recording manufacturers
+                    try:
+                        param.manufacturer[f] = info.Manufacturer
+                    except Exception as e:
+                        print(f'Cannot read Manufacturer of: {file}. Error: {e}', file=warn_file)
+                        # Recording voltage
+                    try:
+                        param.voltage.data[f] = info.KVP
+                    except Exception as e:
+                        print(f'Cannot read voltage of: {file}. Error: {e}', file=warn_file)
+                        # Recording exposure
+                    try:
+                        param.exposure.data[f] = info.Exposure
+                    except Exception as e:
+                        print(f'Cannot read exposure of: {file}. Error: {e}', file=warn_file)
+                        # Recording reconstruction kernel
+                    try:
+                        param.kernel[f] = info.ConvolutionKernel
+                    except Exception as e:
+                        print(f'Cannot read Kernel of: {file}. Error: {e}', file=warn_file)
+                        # Recording xy spacing
+                    try:
+                        param.xyDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
+                    except Exception as e:
+                        print(f'Cannot read x spacing of: {file}. Error: {e}', file=warn_file)
+                        # Recording z spacing
+                    try:
+                        param.zDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
+                    except Exception as e:
+                        print(f'Cannot read z spacing of: {file}. Error: {e}', file=warn_file)
+                except Exception as e:
+                    print(f'Cannot load file: {file}', file=warn_file)
+
+                warn_file.close()
+
+            # Summarize data
+                # Summarizing years
+            df_years = pd.DataFrame(param.years.data, columns=['years']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing voltage
+            df_voltage = pd.DataFrame(param.voltage.data, columns=['voltage']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing exposure
+            df_exposure = pd.DataFrame(param.exposure.data, columns=['exposure']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing kernel
+            df_kernel = pd.DataFrame(param.kernel, columns=['kernel']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarize xy spacing
+            df_xy = pd.DataFrame(param.xyDim.data, columns=['xyDim']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarize z spacing
+            df_z = pd.DataFrame(param.zDim.data, columns=['zDim']).describe(percentiles=[0.05, 0.95], include='all')
+                # Summarizing xy-spacing
+            df_xy = pd.DataFrame(param.xyDim.data, columns=['xyDim'])
+                # Summarizing z-spacing
+            df_z = pd.DataFrame(param.zDim.data, columns=['zDim'])
+
+            # Plotting xy-spacing histogram
+            ax = df_xy.hist(column='xyDim')
+            quant_05, quant_95= df_xy.quantile(0.05), df_xy.quantile(0.95)
+            for x in ax[0]:
+                x.axvline(quant_05.xyDim, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
+                x.axvline(quant_95.xyDim, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.grid(False)
+                plt.title(f"CT xy-spacing imaging summary for {wildcard}")
+                plt.legend()
+                plt.show()
+            
+            # Plotting z-spacing histogram
+            ax = df_z.hist(column='zDim')
+            quant_05, quant_95 = df_z.quantile(0.05), df_z.quantile(0.95)
+            for x in ax[0]:
+                x.axvline(quant_05.zDim, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
+                x.axvline(quant_95.zDim, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.grid(False)
+                plt.title(f"CT z-spacing imaging summary for {wildcard}")
+                plt.legend()
+                plt.show()
+            
+            # Summarizing xy-spacing
+            df_xy = df_xy.describe(percentiles=[0.05, 0.95], include='all')
+            # Summarizing  z-spacing
+            df_z = df_z.describe(percentiles=[0.05, 0.95], include='all')
+
+            # Saving data
+            name_save = wildcard.replace('*', '').replace('.npy', '')
+            save_name = 'imagingSummary__' + name_save + ".json"
+            df_all = [df_years, df_voltage, df_exposure, df_kernel, df_xy, df_z]
+            df_all = df_all[0].join(df_all[1:])
+            df_all.to_json(path_save_checks / save_name, orient='columns', indent=4)
+
+    def perform_imaging_summary(self, 
+                                wildcards_scans: List[str],
+                                path_data: Path = None,
+                                path_save_checks: Path = None,
+                                ) -> None:
+        """
+        Summarizes CT and MR imaging acquisition parameters. Plots summary histograms
+        for different dimensions and saves all acquisition parameters locally in JSON files.
+
+        Args:
+            wildcards_scans (List[str]): List of wildcards that determines the scans 
+                that will be analyzed (CT and MRI scans will be analyzed). You can learn more about wildcards in
+                `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
+                For example: ``[\"STS*.CTscan.npy\", \"STS*.MRscan.npy\"]``.
+            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+                inner-class ``Paths`` in the current instance.
+            path_save_checks (Path, optional): Path where to save the checks, if not specified will use the one 
+                in the current instance.
+        
+        Returns:
+            None.
+        """
+        # MR imaging summary
+        wildcards_scans_mr = [wildcard for wildcard in wildcards_scans if 'MRscan' in wildcard]
+        if len(wildcards_scans_mr) == 0:
+            print("Cannot perform imaging summary for MR, no MR scan wildcard was given! ")
+        else:
+            self.perform_mr_imaging_summary(wildcards_scans_mr, path_data, path_save_checks)
+        # CT imaging summary
+        wildcards_scans_ct = [wildcard for wildcard in wildcards_scans if 'CTscan' in wildcard]
+        if len(wildcards_scans_ct) == 0:
+            print("Cannot perform imaging summary for CT, no CT scan wildcard was given! ")
+        else:
+            self.perform_ct_imaging_summary(wildcards_scans_ct, path_data, path_save_checks)
