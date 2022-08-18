@@ -45,7 +45,7 @@ DataManager
     :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/DataManager-Tutorial.ipynb
 
 .. image:: /figures/DataManager-overview.png
-    :width: 600
+    :width: 800
     :align: center
 
 MEDimage Class
