@@ -1,4 +1,4 @@
 FAQs
 ==========================
 
-Feel free to ask any question.
+If your question is not here, feel free to ask it on `GitHub <https://github.com/MahdiAll99/MEDimage/issues>`__
