@@ -24,7 +24,7 @@
 ## 1. Introduction
 *MEDimage* is an open-source python package for processing and extracting features from medical images. It facilitates the medical-images processing and computation of all types of radiomic features as well as the reproducibility of the different analysis. This package has been standardized with the [IBSI](https://theibsi.github.io/) norms.
 
-![MEDimage overview](https://github.com/MahdiAll99/MEDimage/blob/user-doc/docs/figures/pakcage-overview.png?raw=true)
+![MEDimage overview](/docs/figures/pakcage-overview.png)
 
 ## 2. Installation
 
