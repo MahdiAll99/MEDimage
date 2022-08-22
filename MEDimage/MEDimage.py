@@ -2,6 +2,7 @@ import logging
 import os
 from json import dump
 from pathlib import Path
+from pickle import FALSE
 from typing import Dict, List, Union
 
 import matplotlib.pyplot as plt
@@ -89,28 +90,31 @@ class MEDimage(object):
             im_params = im_params['imParamMR']
         elif self.type == 'PTscan' and 'imParamPET' in im_params:
             im_params = im_params['imParamPET']
+        else:
+            raise ValueError(f"The given parameters dict is not valid, no params found for {self.type} modality")
         
         # re-segmentation range processing
         if(im_params['reSeg']['range'] and im_params['reSeg']['range'][1] == "inf"):
             im_params['reSeg']['range'][1] = np.inf
 
-        # 10 voxels in all three dimensions are added to the smallest
-        # bounding box. This setting is used to speed up interpolation
-        # processes (mostly) prior to the computation of radiomics
-        # features. Optional argument in the function computeRadiomics.
-        box_string = 'box10'
+        if 'box_string' in im_params:
+            box_string = im_params['box_string']
+        else:
+            # By default, we add 10 voxels in all three dimensions are added to the smallest
+            # bounding box. This setting is used to speed up interpolation
+            # processes (mostly) prior to the computation of radiomics
+            # features. Optional argument in the function computeRadiomics.
+            box_string = 'box10'
         if 'compute_diag_features' in im_params:
             compute_diag_features = im_params['compute_diag_features']
         else:
             compute_diag_features = False
-
         if compute_diag_features:  # If compute_diag_features is true.
             box_string = 'full'  # This is required for proper comparison.
 
         self.params.process.box_string = box_string
 
         # get default scan parameters from im_param_scan
-        self.params.process.filter = im_params['filter']
         self.params.process.scale_non_text = im_params['interp']['scale_non_text']
         self.params.process.vol_interp  = im_params['interp']['vol_interp']
         self.params.process.roi_interp = im_params['interp']['roi_interp']
@@ -125,9 +129,6 @@ class MEDimage(object):
         self.params.process.gray_levels = im_params['discretisation']['texture']['val']
         self.params.process.im_type = im_params['type']
 
-        # Variable used to determine if there is 'arbitrary' (e.g., MRI)
-        # or 'definite' (e.g., CT) intensities.
-        self.params.process.intensity = im_params['intensity']
         # Voxels dimension
         self.params.process.n_scale = len(self.params.process.scale_text)
         # Setting up discretisation params
@@ -152,6 +153,66 @@ class MEDimage(object):
         if self.params.process.box_string is None:
             self.params.process.box_string = 'full'
         
+        # set filter type for the modality
+        if 'filter_type' in im_params:
+            self.params.filter.filter_type = im_params['filter_type']
+    
+    def __init_extraction_params(self, im_params: Dict):
+        """Initializes the extraction params from a given Dict.
+        
+        Args:
+            im_params(Dict): Dictionary of different extraction params.
+        
+        Returns:
+            None.
+        """
+        if self.type == 'CTscan' and 'imParamCT' in im_params:
+            im_params = im_params['imParamCT']
+        elif self.type == 'MRscan' and 'imParamMR' in im_params:
+            im_params = im_params['imParamMR']
+        elif self.type == 'PTscan' and 'imParamPET' in im_params:
+            im_params = im_params['imParamPET']
+        else:
+            raise ValueError(f"The given parameters dict is not valid, no params found for {self.type} modality")
+        
+        # glcm features extraction params
+        if 'glcm' in im_params:
+            if 'dist_correction' in im_params['glcm']:
+                self.params.radiomics.glcm.dist_correction = im_params['glcm']['dist_correction']
+            else:
+                self.params.radiomics.glcm.dist_correction = False
+            if 'merge_method' in im_params['glcm']:
+                self.params.radiomics.glcm.merge_method = im_params['glcm']['merge_method']
+            else:
+                self.params.radiomics.glcm.merge_method = "vol_merge"
+        else:
+            self.params.radiomics.glcm.dist_correction = False
+            self.params.radiomics.glcm.merge_method = "vol_merge"
+
+        # glrlm features extraction params
+        if 'glrlm' in im_params:
+            if 'dist_correction' in im_params['glrlm']:
+                self.params.radiomics.glrlm.dist_correction = im_params['glrlm']['dist_correction']
+            else:
+                self.params.radiomics.glrlm.dist_correction = False
+            if 'merge_method' in im_params['glrlm']:
+                self.params.radiomics.glrlm.merge_method = im_params['glrlm']['merge_method']
+            else:
+                self.params.radiomics.glrlm.merge_method = "vol_merge"
+        else:
+            self.params.radiomics.glrlm.dist_correction = False
+            self.params.radiomics.glrlm.merge_method = "vol_merge"
+
+
+        # ngtdm features extraction params
+        if 'ngtdm' in im_params:
+            if 'dist_correction' in im_params['ngtdm']:
+                self.params.radiomics.ngtdm.dist_correction = im_params['ngtdm']['dist_correction']
+            else:
+                self.params.radiomics.ngtdm.dist_correction = False
+        else:
+            self.params.radiomics.ngtdm.dist_correction = False
+
     def __init_filter_params(self, filter_params: Dict) -> None:
         """Initializes the filtering params from a given Dict.
 
@@ -163,10 +224,6 @@ class MEDimage(object):
         """
         if 'imParamFilter' in filter_params:
             filter_params = filter_params['imParamFilter']
-        
-        # set filter type
-        if 'filter_type' in filter_params:
-            self.params.filter.filter_type = filter_params['filter_type']
 
         # mean filter params
         if 'mean' in filter_params:
@@ -200,15 +257,16 @@ class MEDimage(object):
         try:
             # get default scan parameters from im_param_scan
             self.__init_process_params(im_param_scan)
+            self.__init_extraction_params(im_param_scan)
             self.__init_filter_params(im_param_scan['imParamFilter'])
 
             # compute suv map for PT scans
             if self.type == 'PTscan':
-                _compute_suv_map = im_param_scan['compute_suv_map']
+                _compute_suv_map = im_param_scan['imParamPET']['compute_suv_map']
             else :
                 _compute_suv_map = False
             
-            if self.type == 'PTscan' and _compute_suv_map:
+            if self.type == 'PTscan' and _compute_suv_map and self.format != 'nifti':
                 try:
                     self.scan.volume.data = compute_suv_map(self.scan.volume.data, self.dicomH[0])
                 except Exception as e :
@@ -524,9 +582,12 @@ class MEDimage(object):
         Returns:
             None.
         """
-        if not (path_save / "features").exists():
-            (path_save / "features").mkdir()
-            path_save = Path(path_save / "features")
+        if path_save.name != f'features({roi_type_label})':
+            if not (path_save / f'features({roi_type_label})').exists():
+                (path_save / f'features({roi_type_label})').mkdir()
+                path_save = Path(path_save / f'features({roi_type_label})')
+            else:
+                path_save = Path(path_save) / f'features({roi_type_label})'
         else:
             path_save = Path(path_save)
         params = {}
@@ -551,7 +612,7 @@ class MEDimage(object):
                         '(' + roi_type_label + ')' + \
                         scan_file_name[patient_num][index_dot : ext]
         else:
-            raise ValueError("`patient_num` must be speicifed or `scan_file_name` msut be str")
+            raise ValueError("`patient_num` must be specified or `scan_file_name` must be str")
 
         with open(path_save / f"{name_save}.json", "w") as fp:   
             dump(self.radiomics.to_json(), fp, indent=4, cls=NumpyEncoder)
@@ -577,13 +638,11 @@ class MEDimage(object):
                 """
                 self.algo = kwargs['algo'] if 'algo' in kwargs else None
                 self.box_string = kwargs['box_string'] if 'box_string' in kwargs else None
-                self.filter = kwargs['filter'] if 'filter' in kwargs else False
                 self.gl_round = kwargs['gl_round'] if 'gl_round' in kwargs else None
                 self.gray_levels = kwargs['gray_levels'] if 'gray_levels' in kwargs else None
                 self.ih = kwargs['ih'] if 'ih' in kwargs else None
                 self.im_range = kwargs['im_range'] if 'im_range' in kwargs else None
                 self.im_type = kwargs['im_type'] if 'im_type' in kwargs else None
-                self.intensity = kwargs['intensity'] if 'intensity' in kwargs else None
                 self.ivh = kwargs['ivh'] if 'ivh' in kwargs else None
                 self.n_algo = kwargs['n_algo'] if 'n_algo' in kwargs else None
                 self.n_exp = kwargs['n_exp'] if 'n_exp' in kwargs else None
@@ -611,13 +670,11 @@ class MEDimage(object):
 
                 self.algo = __params['algo'] if 'algo' in __params else self.algo
                 self.box_string = __params['box_string'] if 'box_string' in __params else self.box_string
-                self.filter = __params['filter'] if 'filter' in __params else self.filter
                 self.gl_round = __params['gl_round'] if 'gl_round' in __params else self.gl_round
                 self.gray_levels = __params['gray_levels'] if 'gray_levels' in __params else self.gray_levels
                 self.ih = __params['ih'] if 'ih' in __params else self.ih
                 self.im_range = __params['im_range'] if 'im_range' in __params else self.im_range
                 self.im_type = __params['im_type'] if 'im_type' in __params else self.im_type
-                self.intensity = __params['intensity'] if 'intensity' in __params else self.intensity
                 self.ivh = __params['ivh'] if 'ivh' in __params else self.ivh
                 self.n_algo = __params['n_algo'] if 'n_algo' in __params else self.n_algo
                 self.n_exp = __params['n_exp'] if 'n_exp' in __params else self.n_exp
@@ -807,7 +864,7 @@ class MEDimage(object):
                     Args:
                         config(List): Configuration of the Laws filter, for ex: ['E5', 'L5', 'E5'].
                         energy_distance(int): Chebyshev distance.
-                        energy_image(bool): If True will compute the Laws terxture energy image.
+                        energy_image(bool): If True will compute the Laws texture energy image.
                         rot_invariance(bool): If True the filter will be rotation invariant.
                         orthogonal_rot(bool): If True will compute average response over orthogonal planes.
                         name_save(str): Specific name added to final extraction results file.
@@ -902,9 +959,7 @@ class MEDimage(object):
                 self.ivh_name = kwargs['ivh_name'] if 'ivh_name' in kwargs else None
                 self.glcm = self.GLCM()
                 self.glrlm = self.GLRLM()
-                self.gldzm = self.GLDZM()
                 self.ngtdm = self.NGTDM()
-                self.ngldm = self.NGLDM()
                 self.name_text_types = kwargs['name_text_types'] if 'name_text_types' in kwargs else None
                 self.processing_name = kwargs['processing_name'] if 'processing_name' in kwargs else None
                 self.scale_name = kwargs['scale_name'] if 'scale_name' in kwargs else None
@@ -914,8 +969,6 @@ class MEDimage(object):
                 """Organizes the GLCM features extraction parameters"""
                 def __init__(
                         self, 
-                        symmetry: str = None,
-                        distance_norm: Dict = None,
                         dist_correction: Union[bool, str] = False,
                         merge_method: str = "vol_merge"
                 ) -> None:
@@ -923,8 +976,6 @@ class MEDimage(object):
                     Constructor of the GLCM class
 
                     Args:
-                        symmetry(str): Symmetry type.
-                        distance_norm(Dict): Dictionary of extra parameters to add.
                         dist_correction(Union[bool, str]): norm for distance weighting, must be 
                             "manhattan", "euclidean" or "chebyshev". If True the norm for distance weighting 
                             is gonna be "euclidean".
@@ -934,8 +985,6 @@ class MEDimage(object):
                     Returns:
                         None.
                     """
-                    self.symmetry = symmetry
-                    self.distance_norm = distance_norm
                     self.dist_correction = dist_correction
                     self.merge_method = merge_method
 
@@ -944,14 +993,14 @@ class MEDimage(object):
                 """Organizes the GLRLM features extraction parameters"""
                 def __init__(
                         self, 
-                        dist_correction: bool = False,
+                        dist_correction: Union[bool, str] = False,
                         merge_method: str = "vol_merge"
                 ) -> None:
                     """
                     Constructor of the GLRLM class
 
                     Args:
-                        dist_correction(bool): If True the norm for distance weighting is gonna be "euclidean".
+                        dist_correction(Union[bool, str]): If True the norm for distance weighting is gonna be "euclidean".
                         merge_method(str): merging method which determines how features are
                             calculated. Must be "average", "slice_merge", "dir_merge" and "vol_merge".
 
@@ -962,58 +1011,22 @@ class MEDimage(object):
                     self.merge_method = merge_method
 
 
-            class GLDZM:
-                """Organizes the GLDZM features extraction parameters"""
-                def __init__(
-                        self, 
-                        distance_norm: Dict = None,
-                ) -> None:
-                    """
-                    Constructor of the GLDZM class
-
-                    Args:
-                        distance_norm(Dict): Dictionary of extra parameters to add.
-
-                    Returns:
-                        None.
-                    """
-                    self.distance_norm = distance_norm
-
-
             class NGTDM:
                 """Organizes the NGTDM features extraction parameters"""
                 def __init__(
                         self, 
-                        distance_norm: Dict = None,
-                        dist_correction: str = None
+                        dist_correction: Union[bool, str] = None
                 ) -> None:
                     """
                     Constructor of the NGTDM class
 
                     Args:
-                        distance_norm(Dict): Dictionary of extra parameters to add.
-                        dist_correction(bool): If True the norm for distance weighting is gonna be "euclidean".
+                        dist_correction(Union[bool, str]): If True the norm for distance weighting is gonna be "euclidean".
 
                     Returns:
                         None.
                     """
-                    self.distance_norm = distance_norm
                     self.dist_correction = dist_correction
-
-
-            class NGLDM:
-                """Organizes the NGLDM features extraction parameters"""
-                def __init__(self, distance_norm: Dict = None) -> None:
-                    """
-                    Constructor of the NGLDM class
-
-                    Args:
-                        distance_norm(Dict): Dictionary of extra parameters to add.
-
-                    Returns:
-                        None.
-                    """
-                    self.distance_norm = distance_norm
 
 
     class Radiomics:
@@ -1145,7 +1158,7 @@ class MEDimage(object):
             j = np.arange(0, size_m[1])
             k = np.arange(0, size_m[2])
             ind_mask = np.nonzero(self.get_roi_from_indexes(0))
-            J, I, K = np.meshgrid(j, i, k, indexing='ij')
+            J, I, K = np.meshgrid(i, j, k, indexing='ij')
             I = I[ind_mask]
             J = J[ind_mask]
             K = K[ind_mask]

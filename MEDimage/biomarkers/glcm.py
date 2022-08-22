@@ -742,7 +742,7 @@ def clust_prom(glcm_dict: Dict) -> Union[float, List[float]]:
             clust_prom.append(sum(temp) / len(temp))
     return clust_prom
 
-def extract_all(vol, dist_correction=None, glcm_merge_method="vol_merge") -> Dict:
+def extract_all(vol, dist_correction=None, merge_method="vol_merge") -> Dict:
     """Computes glcm features.
     This features refer to Glcm family in the `IBSI1 reference \
     manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
@@ -757,7 +757,7 @@ def extract_all(vol, dist_correction=None, glcm_merge_method="vol_merge") -> Dic
                                                       Set this variable to false to replicate IBSI results.
                                                       Or use string and specify the norm for distance weighting. Weighting is
                                                       only performed if this argument is "manhattan", "euclidean" or "chebyshev".
-        glcm_merge_method (str, optional): merging ``method`` which determines how features are
+        merge_method (str, optional): merging ``method`` which determines how features are
                                            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
                                            Note that not all combinations of spatial and merge ``method`` are valid.
         method (str, optional): Either 'old' (deprecated) or 'new' (faster) ``method``.
@@ -780,7 +780,7 @@ def extract_all(vol, dist_correction=None, glcm_merge_method="vol_merge") -> Dic
     glcm = get_cm_features(
                         vol=vol,
                         intensity_range=[np.nan, np.nan],
-                        glcm_merge_method=glcm_merge_method,
+                        merge_method=merge_method,
                         dist_weight_norm=dist_correction
                         )
 
@@ -789,7 +789,7 @@ def extract_all(vol, dist_correction=None, glcm_merge_method="vol_merge") -> Dic
 def get_glcm_matrices(vol,
                     glcm_spatial_method="3d",
                     glcm_dist=1.0,
-                    glcm_merge_method="vol_merge",
+                    merge_method="vol_merge",
                     dist_weight_norm=None) -> Dict:
     """Extracts co-occurrence matrices from the intensity roi mask prior to features extraction.
 
@@ -806,14 +806,14 @@ def get_glcm_matrices(vol,
             co-occurrence matrices are calculated and how features are determined.
             Must be "2d", "2.5d" or "3d".
         glcm_dist (float, optional): Chebyshev distance for comparison between neighboring voxels.
-        glcm_merge_method (str, optional): merging method which determines how features are
+        merge_method (str, optional): merging method which determines how features are
             calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
             Note that not all combinations of spatial and merge method are valid.
         dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
             performed if this argument is either "manhattan","euclidean", "chebyshev" or bool.
 
     Returns:
-        Dict: Dict of the glcm features.
+        Dict: Dict of co-occurrence matrices.
 
     Raises:
         ValueError: If `glcm_spatial_method` is not "2d", "2.5d" or "3d".
@@ -824,8 +824,8 @@ def get_glcm_matrices(vol,
     if type(glcm_dist) is not list:
         glcm_dist = [glcm_dist]
 
-    if type(glcm_merge_method) is not list:
-        glcm_merge_method = [glcm_merge_method]
+    if type(merge_method) is not list:
+        merge_method = [merge_method]
 
     if type(dist_weight_norm) is bool:
         if dist_weight_norm:
@@ -895,7 +895,7 @@ def get_glcm_matrices(vol,
 
             # Merge matrices according to the given method
             upd_list = {}
-            for merge_method in glcm_merge_method:
+            for merge_method in merge_method:
                 upd_list[merge_method] = combine_matrices(
                     glcm_list=glcm_list, merge_method=merge_method, spatial_method=ii_spatial.lower())
 
@@ -908,7 +908,7 @@ def get_cm_features(vol,
                     intensity_range,
                     glcm_spatial_method="3d",
                     glcm_dist=1.0,
-                    glcm_merge_method="vol_merge",
+                    merge_method="vol_merge",
                     dist_weight_norm=None) -> Dict:
     """Extracts co-occurrence matrix-based features from the intensity roi mask.
 
@@ -927,7 +927,7 @@ def get_cm_features(vol,
                                              MUST BE "2d", "2.5d" or "3d".
         glcm_dist (float, optional): chebyshev distance for comparison between neighbouring
                                      voxels.
-        glcm_merge_method (str, optional): merging method which determines how features are
+        merge_method (str, optional): merging method which determines how features are
                                            calculated. One of "average", "slice_merge", "dir_merge" and "vol_merge".
                                            Note that not all combinations of spatial and merge method are valid.
         dist_weight_norm (Union[bool, str], optional): norm for distance weighting. Weighting is only
@@ -946,8 +946,8 @@ def get_cm_features(vol,
     if type(glcm_dist) is not list:
         glcm_dist = [glcm_dist]
 
-    if type(glcm_merge_method) is not list:
-        glcm_merge_method = [glcm_merge_method]
+    if type(merge_method) is not list:
+        merge_method = [merge_method]
 
     if type(dist_weight_norm) is bool:
         if dist_weight_norm:
@@ -1019,7 +1019,7 @@ def get_cm_features(vol,
                     df_img=df_img, img_dims=img_dims, dist_weight_norm=dist_weight_norm)
 
             # Merge matrices according to the given method
-            for merge_method in glcm_merge_method:
+            for merge_method in merge_method:
                 upd_list = combine_matrices(
                     glcm_list=glcm_list, merge_method=merge_method, spatial_method=ii_spatial.lower())
 

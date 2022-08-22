@@ -88,8 +88,7 @@ def get_matrix(roi_only: np.array,
 
     return ngldm
 
-def extract_all(vol: np.ndarray,
-                method: str="new") -> Dict :
+def extract_all(vol: np.ndarray) -> Dict :
     """Compute NGLDM features
 
     Args:
@@ -102,14 +101,8 @@ def extract_all(vol: np.ndarray,
     Returns:
         dict: Dictionary of NGTDM features.
     """
-    if method == "old":
-        ngldm = get_ngldm_features_deprecated(vol=vol)
-
-    elif method == "new":
-        ngldm = get_ngldm_features(vol=vol)
-
-    else:
-        raise ValueError("ngldm should either be calculated using the faster \"new\" method, or the slow \"old\" method.")
+    
+    ngldm = get_ngldm_features(vol=vol)
 
     return ngldm
 
@@ -531,113 +524,6 @@ class GreyLevelDependenceMatrix:
             parse_str += "_" + self.spatial_method
 
         return parse_str
-
-def get_ngldm_features_deprecated(vol: np.ndarray) ->Dict:
-    """Deprecated code. Calculated neighbouring grey level dependence matrix-based features.
-
-    Args:
-        vol: Input volume.
-    
-    Returns:
-        dict: Dictionary of NGTDM features.
-    """
-    ngldm = {'Fngl_lde': [],
-             'Fngl_hde': [],
-             'Fngl_lgce': [],
-             'Fngl_hgce': [],
-             'Fngl_ldlge': [],
-             'Fngl_ldhge': [],
-             'Fngl_hdlge': [],
-             'Fngl_hdhge': [],
-             'Fngl_glnu': [],
-             'Fngl_glnu_norm': [],
-             'Fngl_dcnu': [],
-             'Fngl_dcnu_norm': [],
-             'Fngl_gl_var': [],
-             'Fngl_dc_var': [],
-             'Fngl_dc_entr': [],
-             'Fngl_dc_energy': []}
-
-    vol = vol.copy()
-
-    # GET THE ngldm MATRIX
-    # Correct definition, without any assumption
-    levels = np.arange(1, np.max(vol[~np.isnan(vol[:])].astype("int"))+1)
-    ngldm = get_matrix(vol, levels)
-    n_s = np.sum(ngldm)
-    # Normalization of ngldm
-    ngldm = ngldm/n_s
-    sz = np.shape(ngldm)  # Size of ngldm
-    c_vect = range(1, sz[1]+1)  # Row vectors
-    r_vect = range(1, sz[0]+1)  # Column vectors
-    # Column and row indicators for each entry of the ngldm
-    c_mat, r_mat = np.meshgrid(c_vect, r_vect)
-    pg = np.transpose(np.sum(ngldm, 1))  # Gray-Level Vector
-    pd = np.sum(ngldm, 0)  # Dependence Count Vector
-
-    # COMPUTING TEXTURES
-
-    # Low dependence emphasis
-    ngldm['Fngl_lde'] = (np.matmul(pd, np.transpose(np.power(1.0/np.array(c_vect), 2))))
-
-    # High dependence emphasis
-    ngldm['Fngl_hde'] = (np.matmul(pd, np.transpose(np.power(np.array(c_vect), 2))))
-
-    # Low grey level count emphasis
-    ngldm['Fngl_lgce'] = np.matmul(pg, np.transpose(np.power(1.0/np.array(r_vect), 2)))
-    
-    # High grey level count emphasis
-    ngldm['Fngl_hgce'] = np.matmul(pg, np.transpose(np.power(np.array(r_vect), 2)))
-    
-    # Low dependence low grey level emphasis
-    ngldm['Fngl_ldlge'] = np.sum(np.sum(ngldm*(np.power(1.0/r_mat, 2))*(np.power(1.0/c_mat, 2))))
-
-    # Low dependence high grey level emphasis
-    ngldm['Fngl_ldhge'] = np.sum(np.sum(ngldm*(np.power(r_mat, 2))*(np.power(1.0/c_mat, 2))))
-
-    # High dependence low grey levels emphasis
-    ngldm['Fngl_hdlge'] = np.sum(np.sum(ngldm*(np.power(1.0/r_mat, 2))*(np.power(c_mat, 2))))
-
-    # High dependence high grey level emphasis
-    ngldm['Fngl_hdhge'] = np.sum(np.sum(ngldm*(np.power(r_mat, 2))*(np.power(c_mat, 2))))
-
-    # Gray level non-uniformity
-    ngldm['Fngl_glnu'] = np.sum(np.power(pg, 2)) * n_s
-
-    # Gray level non-uniformity normalised
-    ngldm['Fngl_glnu_norm'] = np.sum(np.power(pg, 2))
-
-    # Dependence count non-uniformity
-    ngldm['Fngl_dcnu'] = np.sum(np.power(pd, 2)) * n_s
-
-    # Dependence count non-uniformity normalised
-    ngldm['Fngl_dcnu_norm'] = np.sum(np.power(pd, 2))
-
-    # Dependence count percentage
-    # Omitted, always evaluates to 1.
-
-    # Grey level variance
-    temp = r_mat * ngldm
-    u = np.sum(temp)
-    temp = (np.power(r_mat - u, 2)) * ngldm
-    ngldm['Fngl_gl_var'] = np.sum(temp)
-
-    # Dependence count variance
-    temp = c_mat * ngldm
-    u = np.sum(temp)
-    temp = (np.power(c_mat - u, 2)) * ngldm
-    ngldm['Fngl_dc_var'] = np.sum(temp)
-
-    # Dependence count entropy
-    val_pos = ngldm[np.nonzero(ngldm)]
-    temp = val_pos * np.log2(val_pos)
-    ngldm['Fngl_dc_entr'] = -np.sum(temp)
-
-    # Dependence count energy
-    temp = np.power(ngldm, 2)
-    ngldm['Fngl_dc_energy'] = np.sum(temp)
-
-    return ngldm
 
 def get_dict(vol: np.ndarray) -> dict:
     """

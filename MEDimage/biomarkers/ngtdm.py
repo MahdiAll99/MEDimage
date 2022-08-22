@@ -30,7 +30,7 @@ def get_matrix(roi_only:np.ndarray,
             for texture analysis computations. Voxels outside the ROI are set to NaNs.
         levels (ndarray): Vector containing the quantized gray-levels in the tumor region
             (or reconstruction ``levels`` of quantization).
-        dist_correction (str, optional): Set this variable to true in order to use
+        dist_correction (bool, optional): Set this variable to true in order to use
             discretization length difference corrections as used by the `Institute of Physics and
             Engineering in Medicine <https://doi.org/10.1088/0031-9155/60/14/5471>`_.
             Set this variable to false to replicate IBSI results.

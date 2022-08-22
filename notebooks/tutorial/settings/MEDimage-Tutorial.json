@@ -18,6 +18,7 @@
     "GTVp"
   ],
   "imParamMR" : {
+    "box_string": "box10",
     "interp" : {
       "scale_non_text" : [2, 2, 3],
       "scale_text" : [[2, 2, 3]],
@@ -27,7 +28,7 @@
       "roi_pv" : 0.5
     },
     "reSeg" : {
-      "range" : [-500,400],
+      "range" : [-500, "inf"],
       "outliers" : ""
     },
     "discretisation" : {
@@ -43,47 +44,18 @@
         "val" : [[25]]
       }
       },
-      "morph" : {
-        "method" : "ISO",
-        "value" : 0.5
-      },
       "glcm" : {
-        "symmetry" : "SYM",
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : "Chebyshev",
+        "merge_method": "vol_merge"
       },
       "glrlm" : {
-        "distCorrection" : false},
-      "gldzm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        }
+        "dist_correction" : false,
+        "merge_method": "vol_merge"
       },
       "ngtdm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : false
       },
-      "ngldm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "coarseness" : 0
-      },
-      "filter": false,
-      "intensity" : "arbitrary",
-      "units" : "",
+      "filter_type": "",
       "type" : "MRscan"
     },
   "imParamCT" : {
@@ -113,48 +85,18 @@
         "val" : [[25]]
       }
       },
-      "morph" : {
-        "method" : "ISO",
-        "value" : 0.5
-      },
       "glcm" : {
-        "symmetry" : "SYM",
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : false,
+        "merge_method": "vol_merge"
       },
       "glrlm" : {
-        "distCorrection" : false
-      },
-      "gldzm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        }
+        "dist_correction" : false,
+        "merge_method": "vol_merge"
       },
       "ngtdm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : false
       },
-      "ngldm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "coarseness" : 0
-      },
-      "filter": false,
-      "intensity" : "definite",
-      "units" : "HU",
+      "filter_type": "",
       "type" : "CTscan"
     },
   "imParamPET" : {
@@ -185,52 +127,21 @@
           "val" : [[0.5, 1], [0.5, 1]]
         }
       },
-      "morph" : {
-        "method" : "ISO",
-        "value" : 0.5
-      },
       "glcm" : {
-        "symmetry" : "SYM",
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : "Chebyshev",
+        "merge_method": "vol_merge"
       },
       "glrlm" : {
-        "distCorrection" : false
-      },
-      "gldzm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        }
+        "dist_correction" : false,
+        "merge_method": "vol_merge"
       },
       "ngtdm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "distCorrection" : false
+        "dist_correction" : false
       },
-      "ngldm" : {
-        "distanceNorm" : {
-          "method" : "Chebyshev",
-          "value" : 1,
-          "unit" : ""
-        },
-        "coarseness" : 0
-      },
-      "filter": false,
-      "intensity" : "definite",
-      "units" : "SUV",
+      "filter_type": "",
       "type" : "PTscan"
   },
   "imParamFilter" : {
-    "filter_type": "",
     "mean" : {
       "ndims" : 3,
       "size" : 5,
@@ -255,7 +166,7 @@
     },
     "gabor" : {
       "sigma" : 5,
-      "_lambda" : 2,
+      "lambda" : 2,
       "gamma" : 1.5,
       "theta" : "Pi/8",
       "rot_invariance" : true,
@@ -272,21 +183,5 @@
       "padding" : "symmetric",
       "name_save" : "Wavelet_db3_LLH"
     }
-  },
-  "computeWavelet" : false,
-  "waveletName" : "coif1",
-  "segmentationMethod" : "InPolygon",
-  "softwareLabel" : "MEDomicsLab",
-  "softwareVersion" : "0.1",
-  "programmingLanguage" : "python3.8",
-  "institution" : "MEDomics",
-  "partialVolumeEffectCorrection_MR" : "",
-  "partialVolumeEffectCorrection_CT" : "",
-  "partialVolumeEffectCorrection_PET" : "",
-  "noiseReduction_MR" : "",
-  "noiseReduction_CT" : "",
-  "noiseReduction_PET" : "",
-  "imageNonUniformityCorrection_MR" : "",
-  "imageNonUniformityCorrection_CT" : "",
-  "imageNonUniformityCorrection_PET" : ""
+  }
 }

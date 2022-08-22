@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import copy
+import logging
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
@@ -802,7 +803,6 @@ def extract_all(vol: np.ndarray,
              'Fmorph_moran_i': [],
              'Fmorph_geary_c': []
             }
-
     #Initialization
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
     xgl_int, xgl_morph, xyz_int, xyz_morph, faces, vertices, conv_hull = get_variables(vol, mask_int, mask_morph, res)

@@ -2,15 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 from MEDimage.MEDimage import MEDimage
 
 from ..biomarkers.utils import find_i_x, find_v_x
-
-_logger = logging.getLogger(__name__)
-
 
 
 def init_ivh(MEDimg: MEDimage, 
@@ -94,9 +91,9 @@ def init_ivh(MEDimg: MEDimage,
     
     except Exception as e:
         message = f'PROBLEM WITH INITIALIZATION OF INTENSITY-VOLUME HISTOGRAM FEATURES \n {e}'
-        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
             {'error': 'ERROR_INITIALIZATION'})
-        _logger.error(message)
+        logging.error(message)
         print(message)
 
     return X, levels, n_g, n_v
@@ -183,9 +180,9 @@ def extract_all(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF INTENSITY-VOLUME HISTOGRAM FEATURES \n {e}'
-        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
             {'error': 'ERROR_COMPUTATION'})
-        _logger.error(message)
+        logging.error(message)
         print(message)
 
     return int_vol_hist
@@ -227,9 +224,9 @@ def v10(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF V10 FEATURE \n {e}'
-        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
             {'error': 'ERROR_V10'})
-        _logger.error(message)
+        logging.error(message)
         print(message)
 
     return v10
@@ -270,9 +267,9 @@ def v90(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF V90 FEATURE \n {e}'
-        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
             {'error': 'ERROR_V90'})
-        _logger.error(message)
+        logging.error(message)
         print(message)
 
     return v90
@@ -313,9 +310,9 @@ def i10(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF I10 FEATURE \n {e}'
-        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
             {'error': 'ERROR_I10'})
-        _logger.error(message)
+        logging.error(message)
         print(message)
 
     return i10
@@ -356,9 +353,9 @@ def i90(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF I90 FEATURE \n {e}'
-        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
             {'error': 'ERROR_I90'})
-        _logger.error(message)
+        logging.error(message)
         print(message)
 
     return i90
@@ -402,9 +399,9 @@ def v10_minus_v90(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF V10minusV90 FEATURE \n {e}'
-        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
             {'error': 'ERROR_V10minusV90'})
-        _logger.error(message)
+        logging.error(message)
         print(message)
 
     return v10 - v90
@@ -451,9 +448,9 @@ def i10_minus_i90(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF I10minusI90 FEATURE \n {e}'
-        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
             {'error': 'ERROR_I10minusI90'})
-        _logger.error(message)
+        logging.error(message)
         print(message)
 
     return i10 - i90
@@ -499,9 +496,9 @@ def auc(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF AUC FEATURE \n {e}'
-        MEDimg.results['intVolHist_3D'][MEDimg.Params['IVHname']].update(
+        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
             {'error': 'ERROR_AUC'})
-        _logger.error(message)
+        logging.error(message)
         print(message)
 
     return auc
