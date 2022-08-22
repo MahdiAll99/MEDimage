@@ -4,11 +4,12 @@ Instructions
 Download dataset
 ----------------
     In all the tutorials, an open-access dataset will be used. It consists of medical images for different type of cancers (Glioma, sarcoma...)
-    and with different imaging modalities (MR, CT...). This dataset has been pre-processed in order to be compliant with the package norms.
+    and with different imaging modalities (MR, CT and PET). This dataset has been pre-processed in order to be compliant with the package norms.
 
-    To download the dataset (~3.1GB) and organize it in your local workspace, run the following command in your terminal::
+    A script is made available to download the dataset and organize it in your local workspace, just run the following command in your terminal
+    from the  package parent folder ::
     
-       python download_organize_data.py
+       python scripts/download_organize_data.py
 
 CSV file
 --------
