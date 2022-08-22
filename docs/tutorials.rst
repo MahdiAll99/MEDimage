@@ -9,7 +9,7 @@ Download dataset
     A script is made available to download the dataset and organize it in your local workspace, just run the following command in your terminal
     from the  package parent folder ::
     
-       python scripts/download_organize_data.py
+       python scripts/download_data.py
 
 CSV file
 --------
