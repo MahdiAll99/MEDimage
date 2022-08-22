@@ -1038,8 +1038,9 @@ def av(vol: np.ndarray,
     Returns:
         float: Value of the Surface to volume ratio feature.
     """
-    volume = volume(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
+    area = get_mesh_area(faces, vertices)
     ratio = area / volume
 
     return ratio  # Surface to volume ratio
@@ -1062,8 +1063,9 @@ def comp_1(vol: np.ndarray,
     Returns:
         float: Value of the Compactness 1 feature.
     """
-    volume = volume(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
+    area = get_mesh_area(faces, vertices)
     comp_1 = volume / ((np.pi**(1/2))*(area**(3/2)))
 
     return comp_1  # Compactness 1
@@ -1086,8 +1088,9 @@ def comp_2(vol: np.ndarray,
     Returns:
         float: Value of the Compactness 2 feature.
     """
-    volume = volume(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
+    area = get_mesh_area(faces, vertices)
     comp_2 = 36*np.pi*(volume**2) / (area**3)
 
     return comp_2  # Compactness 2
@@ -1110,8 +1113,9 @@ def sph_dispr(vol: np.ndarray,
     Returns:
         float: Value of the Spherical disproportion feature.
     """
-    volume = volume(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
+    area = get_mesh_area(faces, vertices)
     sph_dispr = area / (36*np.pi*volume**2)**(1/3)
 
     return sph_dispr  # Spherical disproportion
@@ -1134,8 +1138,9 @@ def sphericity(vol: np.ndarray,
     Returns:
         float: Value of the Sphericity feature.
     """
-    volume = volume(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
+    area = get_mesh_area(faces, vertices)
     sphericity = ((36*np.pi*volume**2)**(1/3)) / area
 
     return sphericity  # Sphericity
@@ -1158,8 +1163,9 @@ def asphericity(vol: np.ndarray,
     Returns:
         float: Value of the Asphericity feature.
     """
-    volume = volume(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
+    area = get_mesh_area(faces, vertices)
     asphericity = ((area**3) / (36*np.pi*volume**2))**(1/3) - 1
 
     return asphericity  # Asphericity
@@ -1356,8 +1362,8 @@ def v_dens_aabb(vol: np.ndarray,
         float: Value of the Volume density - axis-aligned bounding box feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, _, _, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
-    volume = volume(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
     xc_aabb = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
     yc_aabb = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
     zc_aabb = np.max(vertices[:, 2]) - np.min(vertices[:, 2])
@@ -1385,8 +1391,8 @@ def a_dens_aabb(vol: np.ndarray,
         float: Value of the Area density - axis-aligned bounding box feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, _, _, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    area = get_mesh_area(faces, vertices)
     xc_aabb = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
     yc_aabb = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
     zc_aabb = np.max(vertices[:, 2]) - np.min(vertices[:, 2])
@@ -1418,8 +1424,8 @@ def v_dens_ombb(vol: np.ndarray,
         float: Value of the Volume density - oriented minimum bounding box feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, _, _, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
-    volume = volume(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
     bound_box_dims = min_oriented_bound_box(vertices)
     vol_bb = np.prod(bound_box_dims)
     v_dens_ombb = volume / vol_bb
@@ -1448,8 +1454,8 @@ def a_dens_ombb(vol: np.ndarray,
         float: Value of the Area density - oriented minimum bounding box feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, _, _, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    area = get_mesh_area(faces, vertices)
 
     bound_box_dims = min_oriented_bound_box(vertices)
     a_ombb = 2 * (bound_box_dims[0] * bound_box_dims[1] 
@@ -1478,8 +1484,8 @@ def v_dens_aee(vol: np.ndarray,
         float: Value of the Volume density - approximate enclosing ellipsoid feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, xyz_morph, _, _, _ = get_variables(vol, mask_int, mask_morph, res)
-    volume = volume(vol, mask_int, mask_morph, res)
+    _, _, _, xyz_morph, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
     [major, minor, least] = get_axis_lengths(xyz_morph)
     a = 2*np.sqrt(major)
     b = 2*np.sqrt(minor)
@@ -1508,8 +1514,8 @@ def a_dens_aee(vol: np.ndarray,
         float: Value of the Area density - approximate enclosing ellipsoid feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, xyz_morph, _, _, _ = get_variables(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, xyz_morph, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    area = get_mesh_area(faces, vertices)
     [major, minor, least] = get_axis_lengths(xyz_morph)
     a = 2*np.sqrt(major)
     b = 2*np.sqrt(minor)
@@ -1544,8 +1550,8 @@ def v_dens_mvee(vol: np.ndarray,
         float: Value of the Volume density - minimum volume enclosing ellipsoid feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, _, _, _, conv_hull = get_variables(vol, mask_int, mask_morph, res)
-    volume = volume(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, conv_hull = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
     p = np.stack((conv_hull.points[conv_hull.simplices[:, 0], 0],
                     conv_hull.points[conv_hull.simplices[:, 1], 1],
                     conv_hull.points[conv_hull.simplices[:, 2], 2]), axis=1)
@@ -1585,8 +1591,8 @@ def a_dens_mvee(vol: np.ndarray,
         float: Value of the Area density - minimum volume enclosing ellipsoid feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, _, _, _, conv_hull = get_variables(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, conv_hull = get_variables(vol, mask_int, mask_morph, res)
+    area = get_mesh_area(faces, vertices)
     p = np.stack((conv_hull.points[conv_hull.simplices[:, 0], 0],
                     conv_hull.points[conv_hull.simplices[:, 1], 1],
                     conv_hull.points[conv_hull.simplices[:, 2], 2]), axis=1)
@@ -1620,8 +1626,8 @@ def v_dens_conv_hull(vol: np.ndarray,
         float: Value of the Volume density - convex hull feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, _, _, _, conv_hull = get_variables(vol, mask_int, mask_morph, res)
-    volume = volume(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, conv_hull = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
     v_convex = conv_hull.volume
     v_dens_conv_hull = volume / v_convex
 
@@ -1646,8 +1652,8 @@ def a_dens_conv_hull(vol: np.ndarray,
         float: Value of the Area density - convex hull feature.
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    _, _, _, _, _, _, conv_hull = get_variables(vol, mask_int, mask_morph, res)
-    area = area(vol, mask_int, mask_morph, res)
+    _, _, _, _, faces, vertices, conv_hull = get_variables(vol, mask_int, mask_morph, res)
+    area = get_mesh_area(faces, vertices)
     v_convex = conv_hull.area
     a_dens_conv_hull = area / v_convex
 
@@ -1673,8 +1679,8 @@ def integ_int(vol: np.ndarray,
 
     """
     vol, mask_int, mask_morph = padding(vol, mask_int, mask_morph)
-    xgl_int, _, _, _, _, _, _ = get_variables(vol, mask_int, mask_morph, res)
-    volume = volume(vol, mask_int, mask_morph, res)
+    xgl_int, _, _, _, faces, vertices, _ = get_variables(vol, mask_int, mask_morph, res)
+    volume = get_mesh_volume(faces, vertices)
     integ_int = np.mean(xgl_int) * volume
 
     return integ_int  # Integrated intensity
