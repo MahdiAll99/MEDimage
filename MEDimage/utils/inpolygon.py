@@ -5,27 +5,32 @@
 import numpy as np
 
 
-def inpolygon(xq, yq, xv, yv) -> np.ndarray:
+def inpolygon(x_q: np.ndarray,
+              y_q: np.ndarray,
+              x_v: np.ndarray,
+              y_v: np.ndarray) -> np.ndarray:
     """Implements similar functionality MATLAB inpolygon.
     Finds points located inside or on edge of polygonal region.
 
     Note: 
-        unlike matlab inpolygon, this function does not determine the
-        status of single points (xq, yq). Instead, it determines the 
+        Unlike matlab inpolygon, this function does not determine the
+        status of single points :math:`(x_q, y_q)`. Instead, it determines the 
         status for an entire grid by ray-casting.
 
     Args:
-        xq (ndarray): x-coordinates of query points, in intrinsic reference system.
-        yq (ndarray): y-coordinates of query points, in intrinsic reference system.
-        xq (ndarray): x-coordinates of polygon vertices, in intrinsic reference system.
-        yq (ndarray): y-coordinates of polygon vertices, in intrinsic reference system.
+        x_q (ndarray): x-coordinates of query points, in intrinsic reference system.
+        y_q (ndarray): y-coordinates of query points, in intrinsic reference system.
+        x_q (ndarray): x-coordinates of polygon vertices, in intrinsic reference system.
+        y_q (ndarray): y-coordinates of polygon vertices, in intrinsic reference system.
 
     Returns:
         ndarray: boolean array indicating if the query points are on the edge of the polygon area.
 
     """
     def ray_line_intersection(ray_orig, ray_dir, vert_1, vert_2):
-
+        """
+        
+        """
         epsilon = 0.000001
 
         # Define edge
@@ -75,11 +80,11 @@ def inpolygon(xq, yq, xv, yv) -> np.ndarray:
     # These are hacks to actually make this function work
     spacing = np.array([1.0, 1.0])
     origin = np.array([0.0, 0.0])
-    shape = np.array([np.max(xq) + 1, np.max(yq) + 1])
-    # shape = np.array([np.max(xq), np.max(yq)]) Original from Alex
-    vertices = np.vstack((xv, yv)).transpose()
+    shape = np.array([np.max(x_q) + 1, np.max(y_q) + 1])
+    # shape = np.array([np.max(x_q), np.max(y_q)]) Original from Alex
+    vertices = np.vstack((x_v, y_v)).transpose()
     lines = np.vstack(
-        ([np.arange(0, len(xv))], [np.arange(-1, len(xv) - 1)])).transpose()
+        ([np.arange(0, len(x_v))], [np.arange(-1, len(x_v) - 1)])).transpose()
 
     # Set up line vertices
     vertex_a = vertices[lines[:, 0], :]

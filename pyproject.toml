@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "medimage-pkg"
+version = "0.1.0"
+description = "MEDimage is a Python package for processing and extracting features from medical images"
+authors = ["MEDomics Consortium <medomics.info@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/medomics/MEDomicsLab-develop"
+repository = "https://github.com/medomics/MEDomicsLab-develop"
+keywords = ["python", "ibsi", "medical-imaging", 
+            "cancer-imaging-research", "radiomics", 
+            "medical-image-analysis", "features-extraction", 
+            "radiomics-extraction", "radiomics-features", "radiomics-analysis"]
+packages = [ {include = "MEDimage"} ]
+
+[tool.poetry.dependencies]
+python = ">=3.8.0,<3.10"
+isort = "5.10.1"
+matplotlib = "3.4.2"
+nibabel = "3.2.2"
+numpy = "1.20.0"
+numpyencoder = "0.3.0"
+pandas = "1.2.1"
+Pillow = "9.2.0"
+protobuf = "3.20.*"
+pydicom = "1.2.2"
+PyWavelets = "1.1.1"
+scikit-image = "0.18.2"
+scipy = "1.7.0"
+setuptools = "62.2.0"
+SimpleITK = "2.1.1.2"
+Sphinx = "4.5.0"
+tqdm = "4.64.0"
+ray = "^1.13.0"
+sphinx-jsonschema = "1.19.1"
+sphinx-rtd-dark-mode = "1.2.4"
+ipykernel = "^6.15.1"
+jupyter = "^1.0.0"
+ipywidgets = "^8.0.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

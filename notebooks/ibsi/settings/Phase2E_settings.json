@@ -1,0 +1,33 @@
+{
+  "imParamCT" : {
+    "interp" : {
+      "scale_non_text" : [2, 2, 2],
+      "scale_text" : [[2, 2, 2]],
+      "vol_interp" : "cubic",
+      "gl_round" : 1,
+      "roi_interp" : "linear",
+      "roi_pv" : 0.5
+    },
+    "reSeg" : {
+      "range" : [-1000,400],
+      "outliers" : "Collewet"
+    },
+    "discretisation" : {
+      "IH" : {
+        "type" : "FBN",
+        "val" : 32
+      },
+      "IVH" : {
+        "type" : "FBN",
+        "val" : 1000
+      },
+      "texture" : {
+        "type" : ["FBN"],
+        "val" : [[32]]
+      }
+    },
+    "filter_type": "",
+    "type" : "CTscan"
+  },
+  "imParamFilter" : {}
+}

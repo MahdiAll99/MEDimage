@@ -2,72 +2,58 @@
 # -*- coding: utf-8 -*-
 
 import pickle
+from typing import Dict
 
 from MEDimage.MEDimage import MEDimage
-from MEDimage.MEDimageComputeRadiomics import MEDimageComputeRadiomics
-from MEDimage.MEDimageProcessing import MEDimageProcessing
 
 
-def initMEDimage(nameRead, pathRead, roiType, imParams, log_file):
+def initMEDimage(name_read: str,
+                 path_read: str,
+                 roi_type: str,
+                 im_params: Dict,
+                 log_file: str):
     """
     Initializes the MEDimage class and the child classes.
 
     Args:
-        nameRead (str): name of the scan that will be used to
-            initialize the MEDimage class and its children.
-        pathRead (Path): Path to the scan file.
-        roiType (str): ROI type.
-        imParams (Dict): Dict of the test parameters.
+        name_read (str): name of the scan that will be used to initialize the MEDimage class and its children.
+        path_read (Path): Path to the scan file.
+        roi_type (str): ROI type.
+        im_params (Dict): Dict of the test parameters.
         log_file (str): Name of the log file that will be used.
 
     Returns: 
         Derived classes (MEDimageProcessing and MEDimageComputeRadiomics).
 
     """ 
-    if nameRead.endswith('.npy'):
+    if name_read.endswith('.npy'):
         # MEDimage instance is now in Workspace
-        with open(pathRead / nameRead, 'rb') as f: MEDimg = pickle.load(f)
+        with open(path_read / name_read, 'rb') as f: MEDimg = pickle.load(f)
 
-        # MEDimageProcess instance is now in Workspace
-        MEDimageProcess = MEDimageProcessing(MEDimg=MEDimg, log_file=pathRead / log_file)
-
-        # MEDimageComputeRadiomics instance is now in Workspace
-        MEDimageCR = MEDimageComputeRadiomics(MEDimg=MEDimg, log_file=MEDimageProcess.log_file)
+        MEDimg = MEDimage(MEDimg, log_file)
 
         # Initialize processing & computation parameters
-        MEDimageProcess.init_Params(imParamScan=imParams,
-                                    imParamFilter=imParams['imParamFilter'],
-                                    roiType=roiType)
+        MEDimg.init_params(imParamScan=im_params,
+                                    imParamFilter=im_params['imParamFilter'],
+                                    roi_type=roi_type)
 
-        # Clear MEDimage instance # Clear up RAM
-        MEDimg = None 
-
-        return MEDimageProcess, MEDimageCR
+        return MEDimg
 
     # Set up NIFTI Image path 
-    NiftiImage = pathRead / nameRead
+    nifti_image = path_read / name_read
 
     # MEDimage instance is now in Workspace
     MEDimg = MEDimage()
 
     # Initialization using NIFTI file :
-    MEDimg.init_from_nifti(NiftiImagePath=NiftiImage)
+    MEDimg.init_from_nifti(NiftiImagePath=nifti_image)
 
-    # spatialRef Creation : 
-    MEDimg.scan.volume.spatialRef_from_NIFTI(NiftiImage)
-
-    # MEDimageProcess instance is now in Workspace
-    MEDimageProcess = MEDimageProcessing(MEDimg=MEDimg, log_file=pathRead / log_file)
-
-    # MEDimageComputeRadiomics instance is now in Workspace
-    MEDimageCR = MEDimageComputeRadiomics(MEDimg=MEDimg, log_file=MEDimageProcess.log_file)
+    # spatial_ref Creation : 
+    MEDimg.scan.volume.spatial_ref_from_NIFTI(nifti_image)
 
     # Initialize processing & computation parameters
-    MEDimageProcess.init_Params(imParamScan=imParams,
-                                imParamFilter=imParams['imParamFilter'],
-                                roiType=roiType)
+    MEDimg.init_Params(imParamScan=im_params,
+                                imParamFilter=im_params['imParamFilter'],
+                                roi_type=roi_type)
 
-    # Clear MEDimage instance, clear up RAM
-    MEDimg = None
-
-    return MEDimageProcess, MEDimageCR
+    return MEDimg

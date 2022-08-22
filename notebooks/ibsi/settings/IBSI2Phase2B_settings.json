@@ -1,0 +1,87 @@
+{
+  "imParamCT" : {
+    "interp" : {
+      "scale_non_text" : [1, 1, 1],
+      "scale_text" : [[1, 1, 1]],
+      "vol_interp" : "cubic",
+      "gl_round" : 1,
+      "roi_interp" : "linear",
+      "roi_pv" : 0.5
+    },
+    "reSeg" : {
+      "range" : [-1000, 400],
+      "outliers" : ""
+    },
+    "discretisation" : {
+      "IH" : {
+        "type" : "",
+        "val" : []
+      },
+      "IVH" : {
+        "type" : "",
+        "val" : []
+      },
+      "texture" : {
+        "type" : "",
+        "val" : [[]]
+      }
+    },
+    "glcm" : {
+      "dist_correction" : "Chebyshev",
+      "merge_method": "vol_merge"
+    },
+    "glrlm" : {
+      "dist_correction" : false,
+      "merge_method": "vol_merge"
+    },
+    "ngtdm" : {
+      "dist_correction" : false
+    },
+    "type": "CTscan",
+    "filter_type" : "mean"
+  },
+
+  "imParamFilter" : {
+    "mean" : {
+      "ndims" : 3,
+      "size" : 5,
+      "padding" : "symmetric",
+      "name_save" : ""
+    },
+    "log" : {
+      "ndims" : 3,
+      "sigma" : 1.5,
+      "orthogonal_rot" : false,
+      "padding" : "symmetric",
+      "name_save" : ""
+    },
+    "laws" : {
+      "config" : ["L5", "E5", "E5"],
+      "energy_distance" : 7,
+      "rot_invariance" : true,
+      "orthogonal_rot" : false,
+      "energy_image" : true,
+      "padding" : "symmetric",
+      "name_save" : ""
+    },
+    "gabor" : {
+      "sigma" : 5,
+      "lambda" : 2,
+      "gamma" : 1.5,
+      "theta" : "Pi/8",
+      "rot_invariance" : true,
+      "orthogonal_rot" : true,
+      "padding" : "symmetric",
+      "name_save" : ""
+    },
+    "wavelet" : {
+      "ndims" : 3,
+      "basis_function" : "db3",
+      "subband" : "LLH",
+      "level" : 1,
+      "rot_invariance" : true,
+      "padding" : "symmetric",
+      "name_save" : "Wavelet_db3_LLH"
+    }
+  }
+}
