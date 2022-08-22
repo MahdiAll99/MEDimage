@@ -17,12 +17,12 @@
   * [4. IBSI Tests](#4-ibsi-tests)
     * [IBSI Chapter 1](#ibsi-chapter-1)
     * [IBSI Chapter 2 (In progress)](#ibsi-chapter-2-in-progress)
-  * [5. Project Files Organization](#5-project-files-organization)
+  * [5. Acknowledgement](#5-acknowledgement)
   * [6. Authors](#6-authors)
   * [7. Statement](#7-statement)
 
 ## 1. Introduction
-*MEDimage* is an open-source python package for processing and extracting features from medical images. It facilitates the medical-images processing and computation of all types of radiomic features as well as the reproducibility of the different analysis. This package has been standardized with the [IBSI](https://theibsi.github.io/) norms.
+This is an open-source python package for processing and extracting features from medical images. It facilitates the medical-images processing and computation of all types of radiomic features as well as the reproducibility of the different analysis. This package has been standardized with the [IBSI](https://theibsi.github.io/) norms.
 
 ![MEDimage overview](https://github.com/MahdiAll99/MEDimage/blob/user-doc/docs/figures/pakcage-overview.png?raw=true)
 
@@ -31,48 +31,24 @@
 ### Python installation
 The MEDimage package requires *python 3.8* or more to be run. If you don't have it installed  on your machine, follow the instructions [here](https://github.com/MahdiAll99/MEDimage/blob/main/python.md).
 
-### Cloning the repository
-In your terminal, clone the repository
+### Package installation
+You can easily install the ``MEDimage``package from PyPI using:
 ```
-git clone https://github.com/MahdiAll99/MEDimage.git
-```
-
-Then access the package directory using:
-```
-cd MEDimage
+pip install MEDimage
 ```
 
-### Making the environment
-In order to use the package, make sure to have Anaconda distribution on your machine, you can download and install it by following the instructions on [this link](https://docs.anaconda.com/anaconda/install/index.html).
-
-Using anaconda distribution, we will create and activate the `medimage` environment. You can do so by running this command
-
-```
-make -f Makefile.mk create_environment
-```
-
-This command will install all the dependencies required. And now we  initialize conda with
-
-```
-conda init
-```
-
-And activate the `medimage` environment  using
-
-```
-conda activate medimage
-```
-
-Once the environment is activated, you can generate the documentation in the [doc section](#3-generating-the-documentation-locally) or start running the [IBSI-Tests](#4-ibsi-tests) without documentation (not recommended).
+For more installation options (conda, poetry...) check out the [installation documentation](https://medimage.readthedocs.io/en/latest/Installation.html).
 
 ## 3. Generating the documentation locally
-We used sphinx to create the documentation for this project and it can be found in the following [link](https://medimage.readthedocs.io/en/latest/). But you can generate and host it locally by compiling the documentation source code using:
+We used sphinx to create the documentation for this project and you check it out in this [link](https://medimage.readthedocs.io/en/latest/). But you can generate and host it locally by compiling the documentation source code using:
 
 ```
 make clean
 make html
 ```
+
 Then open it locally using:
+
 ```
 cd _build/html
 python -m http.server
@@ -99,7 +75,14 @@ The image biomarker standardization initiative (IBSI) is an independent internat
 
       Our team *UdeS* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and it can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
 
-You can also view & run the tests locall by installing the [Jupyter Notebook](https://jupyter.org/) application on your machine:
+---
+**NOTE**
+
+You can avoid the next steps (jupyter installation and environment ) if you installed the package using conda or poetry according to the documentation.
+
+---
+
+You can view & run the tests locally by installing the [Jupyter Notebook](https://jupyter.org/) application on your machine:
 ```
 python -m pip install jupyter
 ```
@@ -121,39 +104,11 @@ Finally, launch jupyter notebook to navigate through the IBSI notebooks using:
 jupyter notebook
 ```
 
-## 5. Project Files Organization
-```
-├── LICENSE
-├── Makefile           <- Makefile with multiple commands for the environment setup.
-├── README.md          <- The main README with Markdown language for this package.
-├── IBSI-TESTs
-│   ├── data           <- Data from IBSI.
-│   ├── images         <- Figures used in the notebooks.
-│   ├── settings       <- JSON files for configurations for each IBSI test.
-│   ├── ibsi1p1.ipynb  <- IBSI chapter 1 phase 1 tutorial.
-│   ├── ibsi1p2.ipynb  <- IBSI chapter 1 phase 2 tutorial.
-│   ├── ibsi2p1.ipynb  <- IBSI chapter 2 phase 1 tutorial.
-│   └── ibsi2p2.ipynb  <- IBSI chapter 2 phase 2 tutorial.
-|
-├── MEDimage           <- Source code for the MEDimage mother class and all the child classes
-|   |                     and for image filtering as well.
-│   ├── utils          <- Scripts for all the useful methods that will be called in other parts
-|   |                     of the package.
-│   ├── processing     <- Scripts for image processing (interpolation, re-segmentation...).
-│   ├── biomarkers     <- Scripts to extract features and do all features-based computations.
-│   ├── __init__.py    <- Makes MEDimage a Python module.
-│   ├── Filter.py
-│   ├── MEDimage.py
-│   ├── MEDimageProcessing.py
-│   └── MEDimageComputeRadiomics.py
-|
-├── environment.py     <- The dependencies file to create the `medimage` environment.
-│
-└── setup.py           <- Allows MEDimage package to be installed as a python package.
-```
+## 5. Acknowledgement
+MEDimage is an open source package that welcome any contribution and feedback. We wish that this package could serve the growing radiomics research community by providing a flexible as well as [ibsi](theibsi.github.io/) standardized tool to reimplement existing methods and develop their own new methods.
 
 ## 6. Authors
-* [MEDomics](https://github.com/medomics/): MEDomics consortium
+* [MEDomics](https://github.com/medomics/): MEDomics consortium.
 
 ## 7. Statement
 
