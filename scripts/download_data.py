@@ -102,7 +102,7 @@ if __name__ == "__main__":
     # setting up arguments:
     parser = argparse.ArgumentParser(description='Download dataset "\
         "for MEDimage package tests, tutorials and other demos.')
-    parser.add_argument("--no-sts", default=False, action='store_false',
+    parser.add_argument("--no-sts", default=False, action='store_true',
                     help="If specified, will not download STS data (Used in tutorials).")
     args = parser.parse_args()
 
