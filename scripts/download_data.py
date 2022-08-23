@@ -17,7 +17,8 @@ def main(no_sts: bool) -> None:
     Returns:
         None.
     """
-    # download no-sts data (IBSI and glioma test data) 
+    # download no-sts data (IBSI and glioma test data)
+    print("\n================ Downloading first part of data ================")
     try:
         wget.download(
         "https://sandbox.zenodo.org/record/1094555/files/MEDimage-Dataset-No-STS.zip?download=1",
@@ -26,6 +27,7 @@ def main(no_sts: bool) -> None:
         print("MEDimage-Dataset-No-STS.zip download failed, error:", e)
     
     # unzip data
+    print("\n================ Extracting first part of data  ================")
     try:
         with zipfile.ZipFile(os.getcwd() + "/MEDimage-Dataset-No-STS.zip", 'r') as zip_ref:
             zip_ref.extractall(os.getcwd())
@@ -36,6 +38,7 @@ def main(no_sts: bool) -> None:
     
     # Organize data in the right folders
     # ibsi tests data organization
+    print("\n================== Organizing data in folders ==================")
     try:
         shutil.move(os.getcwd() + "/ibsi-test-data" + "/CTimage", 
                     os.getcwd() + "/notebooks" + "/ibsi" + "/data/CTimage")
@@ -80,14 +83,17 @@ def main(no_sts: bool) -> None:
     # download sts data (multi-scans tutorial data)
     if not no_sts:
         # get data online
+        print("\n================ Downloading second part of data ================")
         try:
             wget.download(
             "https://sandbox.zenodo.org/record/1094555/files/MEDimage-Dataset-STS-McGill-001-005.zip?download=1",
             out=os.getcwd())
+            pass
         except Exception as e:
             print("MEDimage-Dataset-STS-McGill-001-005.zip download failed, error:", e)
         
         # unzip data
+        print("\n================ Extracting second part of data  ================")
         try:
             with zipfile.ZipFile(os.getcwd() + "/MEDimage-Dataset-STS-McGill-001-005.zip", 'r') as zip_ref:
                 zip_ref.extractall(os.getcwd())
@@ -97,6 +103,7 @@ def main(no_sts: bool) -> None:
             print("MEDimage-Dataset-STS-McGill-001-005.zip extraction failed, error:", e)
         
         # organize data in the right folder
+        print("\n================== Organizing data in folders  ==================")
         try:
             shutil.move(os.getcwd() + "/STS-McGill-001-005", 
                     os.getcwd() + "/notebooks" + "/tutorial" + "/data" + "/DICOM-STS")
