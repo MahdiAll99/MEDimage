@@ -37,15 +37,18 @@ def main(no_sts: bool) -> None:
     # Organize data in the right folders
     # ibsi tests data organization
     try:
-        shutil.move(os.getcwd() + "/ibsi-test-data" + "/CTimage", os.getcwd() + "/notebooks" + "/ibsi" + "/data")
+        shutil.move(os.getcwd() + "/ibsi-test-data" + "/CTimage", 
+                    os.getcwd() + "/notebooks" + "/ibsi" + "/data/CTimage")
     except Exception as e:
         print("Failed to move ibsi-test-data/CTimage folder, error:", e)
     try:
-        shutil.move(os.getcwd() + "/ibsi-test-data" + "/Filters", os.getcwd() + "/notebooks" + "/ibsi" + "/data")
+        shutil.move(os.getcwd() + "/ibsi-test-data" + "/Filters", 
+                    os.getcwd() + "/notebooks" + "/ibsi" + "/data/Filters")
     except Exception as e:
         print("Failed to move ibsi-test-data/Filters folder, error:", e)
     try:
-        shutil.move(os.getcwd() + "/ibsi-test-data" + "/Phantom", os.getcwd() + "/notebooks" + "/ibsi" + "/data")
+        shutil.move(os.getcwd() + "/ibsi-test-data" + "/Phantom", 
+                    os.getcwd() + "/notebooks" + "/ibsi" + "/data/Phantom")
     except Exception as e:
         print("Failed to move ibsi-test-data/Phantom folder, error:", e)
     try:
@@ -55,15 +58,18 @@ def main(no_sts: bool) -> None:
     
     # tutorials data organization
     try:
-        shutil.move(os.getcwd() + "/tutorials-data" + "/DICOM", os.getcwd() + "/notebooks" + "/tutorial" + "/data")
+        shutil.move(os.getcwd() + "/tutorials-data" + "/DICOM", 
+                    os.getcwd() + "/notebooks" + "/tutorial" + "/data/DICOM")
     except Exception as e:
         print("Failed to move tutorials-data/DICOM folder, error:", e)
     try:
-        shutil.move(os.getcwd() + "/tutorials-data" + "/IBSI-CT", os.getcwd() + "/notebooks" + "/tutorial" + "/data")
+        shutil.move(os.getcwd() + "/tutorials-data" + "/IBSI-CT", 
+                    os.getcwd() + "/notebooks" + "/tutorial" + "/data/IBSI-CT")
     except Exception as e:
         print("Failed to move tutorials-data/IBSI-CT folder, error:", e)
     try:
-        shutil.move(os.getcwd() + "/tutorials-data" + "/NIfTI", os.getcwd() + "/notebooks" + "/tutorial" + "/data")
+        shutil.move(os.getcwd() + "/tutorials-data" + "/NIfTI", 
+                    os.getcwd() + "/notebooks" + "/tutorial" + "/data/NIfTI")
     except Exception as e:
         print("Failed to move tutorials-data/NIfTI folder, error:", e)
     try:
@@ -86,7 +92,7 @@ def main(no_sts: bool) -> None:
             with zipfile.ZipFile(os.getcwd() + "/MEDimage-Dataset-STS-McGill-001-005.zip", 'r') as zip_ref:
                 zip_ref.extractall(os.getcwd())
                 # remove zip file after extraction
-                os.remove(os.getcwd() + "/MEDimage-Dataset-STS-McGill-001-005.zip")
+            os.remove(os.getcwd() + "/MEDimage-Dataset-STS-McGill-001-005.zip")
         except Exception as e:
             print("MEDimage-Dataset-STS-McGill-001-005.zip extraction failed, error:", e)
         
