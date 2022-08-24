@@ -22,3 +22,4 @@ sphinx-jsonschema==1.19.1
 sphinx-rtd-dark-mode==1.2.4
 tqdm==4.64.0
 wget==3.2
+tabulate==0.8.10
