@@ -14,7 +14,7 @@
   * [1. Introduction](#1-introduction)
   * [2. Installation](#2-installation)
   * [3. Generating the documentation locally](#3-generating-the-documentation-locally)
-  * [4. IBSI Tests](#4-ibsi-tests)
+  * [4. IBSI Standardization](#4-ibsi-standardization)
     * [IBSI Chapter 1](#ibsi-chapter-1)
     * [IBSI Chapter 2 (In progress)](#ibsi-chapter-2-in-progress)
   * [5. Acknowledgement](#5-acknowledgement)
@@ -58,7 +58,7 @@ python -m http.server
 
 We have created many tutorials for the different functionalities of the package. More details can be found in the [documentation](https://medimage.readthedocs.io/en/user-doc/tutorials.html)
 
-## 4. IBSI Tests
+## 4. IBSI Standardization
 The image biomarker standardization initiative (IBSI) is an independent international collaboration which works towards standardizing the extraction of image biomarkers from acquired imaging. The IBSI therefore seeks to provide image biomarker nomenclature and definitions, benchmark data sets, and benchmark values to verify image processing and image biomarker calculations, as well as reporting guidelines, for high-throughput image analysis. We have participated in this collaboration with our package to make sure it respects the international nomenclatures and definitions The participation was separated to two chapters:
 
   - ### IBSI Chapter 1
@@ -78,7 +78,7 @@ The image biomarker standardization initiative (IBSI) is an independent internat
 ---
 **NOTE**
 
-You can avoid the next steps (jupyter installation and environment ) if you installed the package using conda or poetry according to the documentation.
+You can avoid the next steps (jupyter installation and environment set up) if you installed the package using conda or poetry according to the documentation.
 
 ---
 
