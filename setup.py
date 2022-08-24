@@ -1,18 +1,41 @@
-import setuptools
+import sys
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+from setuptools import find_packages, setup
 
-setuptools.setup(
-    name="medimage",
-    version="0.0.1",
+# Check if current python installation is >= 3.8
+if sys.version_info < (3, 8, 0):
+  raise Exception("MEDimage requires python 3.8 or later")
+
+with open("README.md", encoding='utf-8') as f:
+    long_description = f.read()
+
+with open('requirements.txt') as f:
+    requirements = f.readlines()
+
+setup(
+    name="MEDimage",
+    version="0.1.0",
     author="MEDomics consortium",
     author_email="medomics.info@gmail.com",
-    description="MEDimage package",
+    description="Python Open-source package for medical images processing and radiomic features extraction",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/MahdiAll99/MEDimage",
-    packages=setuptools.find_packages(),
-    python_requires='>=3.8',
-    license='GNU General Public License version 3 or any later version',
+    project_urls={
+        'Documentation': 'https://medimage.readthedocs.io/en/latest/index.html',
+        'Github': 'https://github.com/MahdiAll99/MEDimage'
+    },
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Topic :: Scientific/Engineering :: Image Processing',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+    ],
+    keywords='radiomics cancer imaging medical research computational imaging',
+    python_requires='>=3.8,<3.10',
+    packages=find_packages(exclude=['docs', 'tests']),
+    install_requires=requirements
 )
