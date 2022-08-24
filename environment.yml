@@ -33,3 +33,4 @@ dependencies:
     - sphinx-prompt==1.5.0
     - sphinx-rtd-dark-mode==1.2.4
     - wget==3.2
+    - tabulate==0.8.10

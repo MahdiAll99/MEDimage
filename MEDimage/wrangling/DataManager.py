@@ -232,7 +232,7 @@ class DataManager(object):
         # SCANNING ALL FOLDERS IN INITIAL DIRECTORY
         print('\n--> Scanning all folders in initial directory...', end='')
         p = Path(self.paths._path_to_dicoms)
-        e_rglob = '*.[!xlsx,!xls,!py,!.DS_Store,!csv,!.,!txt,!..,!TXT,!npy,!m,!CT.npy]*'
+        e_rglob = '*.dcm'
 
         # EXTRACT ALL FILES IN THE PATH TO DICOMS
         if self.paths._path_to_dicoms.is_dir():
