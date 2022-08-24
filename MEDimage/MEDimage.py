@@ -1142,11 +1142,12 @@ class MEDimage(object):
             roi_volume[self.ROI.get_indexes(roi_name_key)] = 1
             return roi_volume.reshape(self.volume.data.shape)
 
-        def display(self, _slice: int = None) -> None:
+        def display(self, _slice: int = None, roi: Union[str, int] = 0) -> None:
             """Displays slices from imaging data with the ROI contour in XY-Plane.
 
             Args:
                 _slice (int, optional): Index of the slice you want to plot.
+                roi (Union[str, int], optional): ROI name or index. If not specified will use the first ROI.
 
             Returns:
                 None.
@@ -1157,7 +1158,7 @@ class MEDimage(object):
             i = np.arange(0, size_m[0])
             j = np.arange(0, size_m[1])
             k = np.arange(0, size_m[2])
-            ind_mask = np.nonzero(self.get_roi_from_indexes(0))
+            ind_mask = np.nonzero(self.get_roi_from_indexes(roi))
             J, I, K = np.meshgrid(i, j, k, indexing='ij')
             I = I[ind_mask]
             J = J[ind_mask]
@@ -1165,7 +1166,7 @@ class MEDimage(object):
             slices = np.unique(K)
 
             vol_data = self.volume.data.swapaxes(0, 1)[:, :, slices]
-            roi_data = self.get_roi_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
+            roi_data = self.get_roi_from_indexes(roi).swapaxes(0, 1)[:, :, slices]        
             
             rows = int(np.round(np.sqrt(len(slices))))
             columns = int(np.ceil(len(slices) / rows))
@@ -1217,11 +1218,12 @@ class MEDimage(object):
 
             plt.show()
 
-        def display_process(self, _slice: int = None) -> None:
+        def display_process(self, _slice: int = None, roi: Union[str, int] = 0) -> None:
             """Displays slices from imaging data with the ROI contour in XY-Plane.
 
             Args:
                 _slice (int, optional): Index of the slice you want to plot.
+                roi (Union[str, int], optional): ROI name or index. If not specified will use the first ROI.
 
             Returns:
                 None.
@@ -1232,7 +1234,7 @@ class MEDimage(object):
             i = np.arange(0, size_m[0])
             j = np.arange(0, size_m[1])
             k = np.arange(0, size_m[2])
-            ind_mask = np.nonzero(self.get_roi_from_indexes(0))
+            ind_mask = np.nonzero(self.get_roi_from_indexes(roi))
             J, I, K = np.meshgrid(j, i, k, indexing='ij')
             I = I[ind_mask]
             J = J[ind_mask]
@@ -1240,7 +1242,7 @@ class MEDimage(object):
             slices = np.unique(K)
 
             vol_data = self.volume_process.data.swapaxes(0, 1)[:, :, slices]
-            roi_data = self.get_roi_from_indexes(0).swapaxes(0, 1)[:, :, slices]        
+            roi_data = self.get_roi_from_indexes(roi).swapaxes(0, 1)[:, :, slices]        
             
             rows = int(np.round(np.sqrt(len(slices))))
             columns = int(np.ceil(len(slices) / rows))
