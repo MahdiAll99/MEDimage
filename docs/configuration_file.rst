@@ -3,7 +3,7 @@ Configuration File
 
 In ``MEDimage``, all the subpackages and modules need a specific configuration to be used correctly, so they respectively
 rely on one single JSON configuration file. This file contains parameters for each step of the workflow (processing, extraction...).
-For example, `IBSI <https://arxiv.org/abs/1612.07003>`__ tests require specific parameters for radiomcs extraction for each test.
+For example, `IBSI <https://arxiv.org/abs/1612.07003>`__ tests require specific parameters for radiomics extraction for each test.
 You can check a full example of the file here: 
 `notebooks/ibsi/settings/ <https://github.com/MahdiAll99/MEDimage/tree/main/notebooks/ibsi/settings>`__.
 
@@ -370,7 +370,7 @@ Each imaging modality should have its own params dict inside the JSON file and s
     {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "compute_suv_map",
-        "description": "Computation of the `suv <https://en.wikipedia.org/wiki/Standardized_uptake_value>`__ map for PET scans. Defalt ``True``",
+        "description": "Computation of the `suv <https://en.wikipedia.org/wiki/Standardized_uptake_value>`__ map for PET scans. Default ``True``",
         "type": "bool",
         "options": {
             "True": {
@@ -871,7 +871,7 @@ parameters for every filter of the ``MEDimage``:
             },
             "rot_invariance": {
                 "description": "If ``True``, rotational invariance will be approximated by combining the response 
-                    maps of several elements of the Gabor filterbank.",
+                    maps of several elements of the Gabor filter bank.",
                 "type": "bool"
             },
             "orthogonal_rot": {
