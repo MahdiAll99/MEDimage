@@ -306,7 +306,7 @@ class BatchExtractor(object):
             ).astype(int)
 
             # Image filtering
-            if MEDimg.params.process.filter:
+            if MEDimg.params.filter.filter_type:
                 vol_obj = MEDimage.filter.apply_filter(MEDimg, vol_obj)
 
             logging.info(f"{time() - start}\n")
