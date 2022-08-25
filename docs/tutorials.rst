@@ -34,17 +34,17 @@ DataManager
 ===========
 
     The ``DataManager`` plays an important role in ``MEDimage``. The class is capable of processing raw `DICOM <https://en.wikipedia.org/wiki/DICOM>`__ 
-    and `NIfTI <https://brainder.org/2012/09/23/the-nifti-file-format/>`__ and converting in into ``MEDimage`` class objects. This class also offers 
+    and `NIfTI <https://brainder.org/2012/09/23/the-nifti-file-format/>`__ and converting in into ``MEDimage`` class objects. This class also offers
     a pre-radiomics analysis which consists of finding the best intensity ranges and best voxel dimension rescaling parameters 
-    for a given dataset and its :doc:`../csv_file`, since these options impact the radiomics features. You can read more about this in the following 
-    `article <https://doi.org/10.1016/j.ejmp.2021.07.023>`__.
+    for a given dataset and its :doc:`../csv_file`, since these options impacts the radiomics analysis. For example, this 
+    `article <https://doi.org/10.1016/j.ejmp.2021.07.023>`__ investigates how intensities window can impact the radiomic features stability for CT data.
     
     The tutorial is an interactive Colab notebook and is directly accessible here: |DataManager_image_badge|
 
     You can also find this tutorial on the repository ``MEDimage/notebooks/tutorial/DataManager-Tutorial.ipynb``.
 
 .. |DataManager_image_badge| image:: https://colab.research.google.com/assets/colab-badge.png
-    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/DataManager-Tutorial.ipynb
+    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/tutorial/DataManager-Tutorial.ipynb
 
 .. image:: /figures/DataManager-overview.png
     :width: 800
@@ -53,20 +53,15 @@ DataManager
 MEDimage Class
 ==============
 
-    In ``MEDimage``, we have the package ``MEDimage`` and  the ``MEDimage`` class which is a Python object with the following structure:
-
-    .. image:: https://github.com/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/images/MEDimageClassDiagram.png?raw=true
-        :alt: MEDimage class diagram
-
-    
-    It maintains data and information extracted related to the scans processed from NIfTI or DICOM data. The ``MEDimage`` class is also capable 
-    of managing the parameters used in processing, filtering and extraction. It can read JSON files and update all the parameters related attributes 
-    in the class. This class offers many other useful functionalities that you can find out about in the interactive Colab notebook here: |MEDimage_image_badge|
+    In the ``MEDimage`` package, we also have a class named ``MEDimage`` which is a Python object that maintains data and information about the dataset, 
+    related to the scans processed from NIfTI or DICOM data. The ``MEDimage`` class is also capable of managing the parameters used in processing, 
+    filtering and extraction. It can read JSON files and update all the parameters related attributes in the class. This class offers many other 
+    useful functionalities that you can find out about in the interactive Colab notebook here: |MEDimage_image_badge|
     
     You can also find this tutorial on the repository ``MEDimage/notebooks/tutorial/MEDimage-Tutorial.ipynb``.
 
 .. |MEDimage_image_badge| image:: https://colab.research.google.com/assets/colab-badge.png
-    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/MEDimage-Tutorial.ipynb
+    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/tutorial/MEDimage-Tutorial.ipynb
 
 Single-scan demo
 ================
@@ -81,7 +76,7 @@ Single-scan demo
     You can also find this demo on the repository ``MEDimage/notebooks/demo/Glioma-Demo.ipynb``.
 
 .. |Glioma_demo_image_badge| image:: https://colab.research.google.com/assets/colab-badge.png
-    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/demo/Glioma-Demo.ipynb
+    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/demo/Glioma-Demo.ipynb
 
 BatchExtractor
 ==============
@@ -94,11 +89,11 @@ BatchExtractor
     
     It is capable of creating batches of scans with not so many arguments and running a full extraction of all the radiomics family features and saving
     it in tables and JSON files. In order to run a batch extraction using this class, you will only need to set the path to your dataset and to your 
-    dataset :doc:`../csv_file` of the regions of interest (check example `here <https://github.com/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/CSV/roiNames_GTV.csv>`__).
+    dataset :doc:`../csv_file` of the regions of interest (check example `here <https://github.com/MahdiAll99/MEDimage/blob/main/notebooks/tutorial/CSV/roiNames_GTV.csv>`__).
     
     This class is made very easy to use and we recommend you check this tutorial in the interactive Colab notebook here: |BatchExtractor_image_badge|
     
     You can also find this tutorial on the repository ``MEDimage/notebooks/tutorial/BatchExtractor-Tutorial.ipynb``.
 
 .. |BatchExtractor_image_badge| image:: https://colab.research.google.com/assets/colab-badge.png
-    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/dev/notebooks/tutorial/BatchExtractor-Tutorial.ipynb
+    :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/tutorial/BatchExtractor-Tutorial.ipynb
