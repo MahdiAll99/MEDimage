@@ -84,3 +84,5 @@ The created environment will be activated automatically.
 .. |poetry-logo| image:: https://python-poetry.org/images/logo-origami.svg
     :width: 3%
     :target: https://python-poetry.org/docs/
+
+Now that you have successfully installed the package and to further understand the usage of the it, we invite you to follow these :doc:`../tutorials`.

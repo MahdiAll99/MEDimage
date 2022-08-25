@@ -35,9 +35,9 @@ DataManager
 
     The ``DataManager`` plays an important role in ``MEDimage``. The class is capable of processing raw `DICOM <https://en.wikipedia.org/wiki/DICOM>`__ 
     and `NIfTI <https://brainder.org/2012/09/23/the-nifti-file-format/>`__ and converting in into ``MEDimage`` class objects. This class also offers
-    a pre-radiomics analysis which consists of finding the best intensity ranges and best voxel dimension rescaling parameters, since these options
-    impacts the radiomics analysis. For example, this `article <https://doi.org/10.1016/j.ejmp.2021.07.023>`__ investigates how intensities window can 
-    impact the radiomic features stability for CT data.
+    a pre-radiomics analysis which consists of finding the best intensity ranges and best voxel dimension rescaling parameters 
+    for a given dataset and its :doc:`../csv_file`, since these options impacts the radiomics analysis. For example, this 
+    `article <https://doi.org/10.1016/j.ejmp.2021.07.023>`__ investigates how intensities window can impact the radiomic features stability for CT data.
     
     The tutorial is an interactive Colab notebook and is directly accessible here: |DataManager_image_badge|
 
@@ -89,7 +89,7 @@ BatchExtractor
     
     It is capable of creating batches of scans with not so many arguments and running a full extraction of all the radiomics family features and saving
     it in tables and JSON files. In order to run a batch extraction using this class, you will only need to set the path to your dataset and to your 
-    dataset CSV file of the regions of interest (check example `here <https://github.com/MahdiAll99/MEDimage/blob/main/notebooks/tutorial/CSV/roiNames_GTV.csv>`__).
+    dataset :doc:`../csv_file` of the regions of interest (check example `here <https://github.com/MahdiAll99/MEDimage/blob/main/notebooks/tutorial/CSV/roiNames_GTV.csv>`__).
     
     This class is made very easy to use and we recommend you check this tutorial in the interactive Colab notebook here: |BatchExtractor_image_badge|
     
