@@ -79,7 +79,7 @@ The image biomarker standardization initiative (IBSI) is an independent internat
       Our team *UdeS* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and it can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
 
 ---
-**NOTE**
+**Miscellaneous**
 
 You can avoid the next steps (jupyter installation and environment set up) if you installed the package using conda or poetry according to the documentation.
 
