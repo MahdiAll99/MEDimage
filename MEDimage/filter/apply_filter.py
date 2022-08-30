@@ -2,22 +2,24 @@ import numpy as np
 from MEDimage.MEDimage import MEDimage
 from MEDimage.utils.image_volume_obj import image_volume_obj
 
-from .MEDimageFilter import *
+from ..filter import *
 
 
-def apply_filter(MEDimg: MEDimage,
-                 vol_obj: image_volume_obj) -> np.ndarray:
+def apply_filter(
+            MEDimg: MEDimage,
+            vol_obj: image_volume_obj
+    ) -> image_volume_obj:
     """Applies mean filter on the given data
 
     Args:
-        MEDimg (MEDimage): Instance of the MEDimage class that holds filtering params
-        data (ndarray): Array of the imaging data
+        MEDimg (MEDimage): Instance of the MEDimage class that holds the filtering params
+        vol_obj (image_volume_obj): Imaging data to be filtered
 
     Returns:
-        ndarray: Filtered data.
+        image_volume_obj: Filtered imaging data.
     """
     filter_type = MEDimg.params.filter.filter_type
-    volex_length = MEDimg.params.process.scale_non_text[0]
+    voxel_length = MEDimg.params.process.scale_non_text[0]
     input = np.expand_dims(vol_obj.data.astype(np.float64), axis=0)   # Convert to shape : (B, W, H, D)
 
     if filter_type.lower() == "mean":
@@ -28,11 +30,11 @@ def apply_filter(MEDimg: MEDimage,
                     padding=MEDimg.params.filter.mean.padding
                 )
         # Run convolution
-        result = _filter.convolve(input)
+        result = _filter.convolve(input, orthogonal_rot=MEDimg.params.filter.mean.orthogonal_rot)
 
     elif filter_type.lower() == "log":
         # Initialize filter class params & instance
-        sigma = MEDimg.params.filter.log.sigma / volex_length
+        sigma = MEDimg.params.filter.log.sigma / voxel_length
         length = 2 * int(4 * MEDimg.params.filter.log.sigma + 0.5) + 1
         _filter = LaplacianOfGaussian(
                     ndims=MEDimg.params.filter.log.ndims,
@@ -53,18 +55,18 @@ def apply_filter(MEDimg: MEDimage,
                 )
         # Run convolution
         result = _filter.convolve(
-                        input, 
-                        orthogonal_rot=MEDimg.params.filter.laws.orthogonal_rot,
-                        energy_image=MEDimg.params.filter.laws.energy_image
-                    )
+                    input, 
+                    orthogonal_rot=MEDimg.params.filter.laws.orthogonal_rot,
+                    energy_image=MEDimg.params.filter.laws.energy_image
+                )
         # Extract energy image
         if MEDimg.params.filter.laws.energy_image:
             result = result[1]
 
     elif filter_type.lower() == "gabor":
         # Initialize filter class params & instance
-        sigma = MEDimg.params.filter.gabor.sigma / volex_length
-        lamb = MEDimg.params.filter.gabor._lambda / volex_length
+        sigma = MEDimg.params.filter.gabor.sigma / voxel_length
+        lamb = MEDimg.params.filter.gabor._lambda / voxel_length
         size = 2 * int(7 * MEDimg.params.filter.gabor.sigma + 0.5) + 1
         _filter = Gabor(size=size,
                         sigma=sigma,
@@ -78,12 +80,13 @@ def apply_filter(MEDimg: MEDimage,
         result = _filter.convolve(input, orthogonal_rot=MEDimg.params.filter.gabor.orthogonal_rot)
 
     elif filter_type.lower().startswith("wavelet"):
-        # Initialize filter instance
-        _filter = Wavelet(ndims=MEDimg.params.filter.wavelet.ndims, 
+        # Initialize filter class instance
+        _filter = Wavelet(
+                        ndims=MEDimg.params.filter.wavelet.ndims, 
                         wavelet_name=MEDimg.params.filter.wavelet.basis_function,
                         rot_invariance=MEDimg.params.filter.wavelet.rot_invariance,
                         padding=MEDimg.params.filter.wavelet.padding
-                        )
+                    )
         # Run convolution
         result = _filter.convolve(
                         input, 
