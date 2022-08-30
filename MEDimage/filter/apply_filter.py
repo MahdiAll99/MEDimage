@@ -2,7 +2,11 @@ import numpy as np
 from MEDimage.MEDimage import MEDimage
 from MEDimage.utils.image_volume_obj import image_volume_obj
 
-from ..filter import *
+from .gabor import *
+from .laws import *
+from .log import *
+from .mean import *
+from .wavelet import *
 
 
 def apply_filter(
