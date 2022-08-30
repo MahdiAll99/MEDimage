@@ -4,7 +4,7 @@ from .MEDimage import MEDimage
 from . import utils
 from . import processing
 from . import biomarkers
-from . import filter
+from . import filters
 from . import wrangling
 
 
