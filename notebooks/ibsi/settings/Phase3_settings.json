@@ -285,6 +285,7 @@
         "ndims" : 3,
         "size" : 5,
         "padding" : "symmetric",
+        "orthogonal_rot" : false,
         "name_save" : "mean5"
       },
       "LoG" : {

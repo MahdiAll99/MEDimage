@@ -714,7 +714,7 @@ class MEDimage(object):
                 """Organizes the Mean filter parameters"""
                 def __init__(
                         self, ndims: int = 0, name_save: str = '', 
-                        padding: str = '', size: int = 0
+                        padding: str = '', size: int = 0, orthogonal_rot: bool = False
                 ) -> None:
                     """
                     Constructor of the Mean class.
@@ -730,6 +730,7 @@ class MEDimage(object):
                     """
                     self.name_save = name_save
                     self.ndims = ndims
+                    self.orthogonal_rot = orthogonal_rot
                     self.padding = padding
                     self.size = size
 
@@ -747,6 +748,7 @@ class MEDimage(object):
                     self.ndims = params['ndims']
                     self.padding = params['padding']
                     self.size = params['size']
+                    self.orthogonal_rot = params['orthogonal_rot']
 
 
             class Log:
@@ -843,9 +845,9 @@ class MEDimage(object):
                     self.rot_invariance = params['rot_invariance']
                     self.sigma = params['sigma']
                     if type(params["theta"]) is str:
-                        if params["theta"].startswith('pi/'):
+                        if params["theta"].lower().startswith('pi/'):
                             self.theta = np.pi / int(params["theta"].split('/')[1])
-                        elif params["theta"].startswith('-pi/'):
+                        elif params["theta"].lower().startswith('-pi/'):
                             self.theta = -np.pi / int(params["theta"].split('/')[1])
                     else:
                         self.theta = float(params["theta"])

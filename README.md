@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/figures/MEDimageLogo.png"/>
+<img src="https://raw.githubusercontent.com/MahdiAll99/MEDimage/dev/docs/figures/MEDimageLogo.png"/>
 
 [![PyPI - Python Version](https://img.shields.io/badge/python-3.8-blue)](https://www.python.org/downloads/release/python-380/)
 [![Continuous Integration](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml/badge.svg)](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml)
@@ -8,7 +8,6 @@
 [![Documentation Status](https://readthedocs.org/projects/medimage/badge/?version=latest)](https://medimage.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/tutorial/DataManager-Tutorial.ipynb)
-[![Python application](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml)
 
 </div>
 
@@ -27,7 +26,7 @@
 This is an open-source python package for processing and extracting features from medical images. It facilitates the medical-images processing and computation of all types of radiomic features as well as the reproducibility of the different analysis. This package has been standardized with the [IBSI](https://theibsi.github.io/) norms.
 
 
-![MEDimage overview](https://github.com/MahdiAll99/MEDimage/blob/main/docs/figures/pakcage-overview.png?raw=true)
+![MEDimage overview](https://raw.githubusercontent.com/MahdiAll99/MEDimage/main/docs/figures/pakcage-overview.png)
 
 
 ## 2. Installation
@@ -80,7 +79,7 @@ The image biomarker standardization initiative (IBSI) is an independent internat
       Our team *UdeS* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and it can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
 
 ---
-**NOTE**
+**Miscellaneous**
 
 You can avoid the next steps (jupyter installation and environment set up) if you installed the package using conda or poetry according to the documentation.
 

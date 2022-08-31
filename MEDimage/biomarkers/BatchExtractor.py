@@ -167,7 +167,7 @@ class BatchExtractor(object):
 
         # Image filtering
         if MEDimg.params.filter.filter_type:
-            vol_obj = MEDimage.filter.apply_filter(MEDimg, vol_obj)
+            vol_obj = MEDimage.filters.apply_filter(MEDimg, vol_obj)
 
         # ROI Extraction :
         vol_int_re = MEDimage.processing.roi_extract(
@@ -307,7 +307,7 @@ class BatchExtractor(object):
 
             # Image filtering
             if MEDimg.params.filter.filter_type:
-                vol_obj = MEDimage.filter.apply_filter(MEDimg, vol_obj)
+                vol_obj = MEDimage.filters.apply_filter(MEDimg, vol_obj)
 
             logging.info(f"{time() - start}\n")
             
