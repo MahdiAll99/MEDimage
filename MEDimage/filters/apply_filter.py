@@ -63,9 +63,6 @@ def apply_filter(
                     orthogonal_rot=MEDimg.params.filter.laws.orthogonal_rot,
                     energy_image=MEDimg.params.filter.laws.energy_image
                 )
-        # Extract energy image
-        if MEDimg.params.filter.laws.energy_image:
-            result = result[1]
 
     elif filter_type.lower() == "gabor":
         # Initialize filter class params & instance
