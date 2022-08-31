@@ -845,9 +845,9 @@ class MEDimage(object):
                     self.rot_invariance = params['rot_invariance']
                     self.sigma = params['sigma']
                     if type(params["theta"]) is str:
-                        if params["theta"].startswith('pi/'):
+                        if params["theta"].lower().startswith('pi/'):
                             self.theta = np.pi / int(params["theta"].split('/')[1])
-                        elif params["theta"].startswith('-pi/'):
+                        elif params["theta"].lower().startswith('-pi/'):
                             self.theta = -np.pi / int(params["theta"].split('/')[1])
                     else:
                         self.theta = float(params["theta"])
