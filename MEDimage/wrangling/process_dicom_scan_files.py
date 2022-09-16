@@ -61,13 +61,16 @@ def process_dicom_scan_files(
     dicom_hi = [pydicom.dcmread(str(dicom_file), force=True)
                for dicom_file in path_images]
 
-    # Determination of the scan orientation
     try:
-        mid = round(n_slices/2)
-        dist = [abs(dicom_hi[mid+1].ImagePositionPatient[0] - dicom_hi[mid].ImagePositionPatient[0]),
-                abs(dicom_hi[mid+1].ImagePositionPatient[1] - dicom_hi[mid].ImagePositionPatient[1]),
-                abs(dicom_hi[mid+1].ImagePositionPatient[2] - dicom_hi[mid].ImagePositionPatient[2])]
-
+        # Determination of the scan orientation
+        image_patient_positions_x = [dicom_hi[i].ImagePositionPatient[0] for i in range(n_slices)]
+        image_patient_positions_y = [dicom_hi[i].ImagePositionPatient[1] for i in range(n_slices)]
+        image_patient_positions_z = [dicom_hi[i].ImagePositionPatient[2] for i in range(n_slices)]
+        dist = [
+            max(np.abs(np.diff(image_patient_positions_x))), 
+            max(np.abs(np.diff(image_patient_positions_y))), 
+            max(np.abs(np.diff(image_patient_positions_z)))
+        ]
         index = dist.index(max(dist))
         if index == 0:
             orientation = 'Sagittal'

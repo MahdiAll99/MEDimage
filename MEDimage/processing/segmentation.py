@@ -235,8 +235,7 @@ def roi_extract(vol: np.ndarray,
     return vol_re
 
 def get_polygon_mask(roi_xyz: np.ndarray,
-                     spatial_ref: imref3d,
-                     orientation: str) -> np.ndarray:
+                     spatial_ref: imref3d) -> np.ndarray:
     """Computes the indexes of the ROI (Region of interest) enclosing box
     in all dimensions.
 
@@ -244,7 +243,6 @@ def get_polygon_mask(roi_xyz: np.ndarray,
         roi_xyz (ndarray): array of (x,y,z) triplets defining a contour in the
                            Patient-Based Coordinate System extracted from DICOM RTstruct.
         spatial_ref (imref3d): imref3d object (same functionality of MATLAB imref3d class).
-        orientation (str): Imaging data orientation (axial, sagittal or coronal).
 
     Returns:
         ndarray: 3D array of 1's and 0's defining the ROI mask.
@@ -261,23 +259,7 @@ def get_polygon_mask(roi_xyz: np.ndarray,
 
     points = np.transpose(np.vstack((X, Y, Z)))
 
-    if orientation == "Axial":
-        a = 0
-        b = 1
-        c = 2
-    elif orientation == "Sagittal":
-        a = 1
-        b = 2
-        c = 0
-    elif orientation == "Coronal":
-        a = 0
-        b = 2
-        c = 1
-    else:
-        raise ValueError(
-            "Provided orientation is not one of \"Axial\", \"Sagittal\", \"Coronal\".")
-
-    K = np.round(points[:, c])  # Must assign the points to one slice
+    K = np.round(points[:, 2])  # Must assign the points to one slice
     closed_contours = np.unique(roi_xyz[:, 3])
     x_q = np.arange(s_z[0])
     y_q = np.arange(s_z[1])
@@ -289,7 +271,7 @@ def get_polygon_mask(roi_xyz: np.ndarray,
         # should evaluate to 1, as closed contours are meant to be defined on
         # a given slice
         select_slice = mode(K[ind]).astype(int)
-        inpoly = inpolygon(x_q=x_q, y_q=y_q, x_v=points[ind, a], y_v=points[ind, b])
+        inpoly = inpolygon(x_q=x_q, y_q=y_q, x_v=points[ind, 0], y_v=points[ind, 1])
         roi_mask[:, :, select_slice] = np.logical_or(
             roi_mask[:, :, select_slice], inpoly)
 
@@ -698,9 +680,9 @@ def get_roi(MEDimage: MEDimage,
             roi_xyz = MEDimage.scan.ROI.get_indexes(key=contour).copy()
 
             # APPLYING ROTATION TO XYZ POINTS (if necessary --> MRscan)
-            if hasattr(MEDimage.scan.volume, 'scanRot') and MEDimage.scan.volume.scanRot is not None:
+            if hasattr(MEDimage.scan.volume, 'scan_rot') and MEDimage.scan.volume.scan_rot is not None:
                 roi_xyz[:, [0, 1, 2]] = np.transpose(
-                    MEDimage.scan.volume.scanRot @ np.transpose(roi_xyz[:, [0, 1, 2]]))
+                    MEDimage.scan.volume.scan_rot @ np.transpose(roi_xyz[:, [0, 1, 2]]))
 
             # APPLYING TRANSLATION IF SIMULATION STRUCTURE AS INPUT
             # (software STAMP utility)
@@ -863,7 +845,7 @@ def compute_roi(roi_xyz: np.ndarray,
             interp = False
             break  # Getting out of the "while" statement
 
-        V = get_polygon_mask(roi_xyz, new_spatial_ref, orientation)
+        V = get_polygon_mask(roi_xyz, new_spatial_ref)
 
         # Getting query points (x_q,y_q,z_q) of output roi_mask
         sz_q = spatial_ref.ImageSize
@@ -885,7 +867,7 @@ def compute_roi(roi_xyz: np.ndarray,
     # apparently more accurate.
     if not interp:
         # Using the inpolygon.m function. To be further tested.
-        roi_mask = get_polygon_mask(roi_xyz, spatial_ref, orientation)
+        roi_mask = get_polygon_mask(roi_xyz, spatial_ref)
 
     return roi_mask
 
