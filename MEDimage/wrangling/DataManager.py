@@ -691,11 +691,13 @@ class DataManager(object):
         print(summary_df.to_markdown(index=False))
 
     def __pre_radiomics_checks_dimensions(
-                                        self,
-                                        path_data: Union[Path, str] = None,
-                                        wildcards_dimensions: List[str] = [],
-                                        use_instances: bool = True
-                                        ) -> None:
+        self,
+        path_data: Union[Path, str] = None,
+        wildcards_dimensions: List[str] = [],
+        use_instances: bool = True,
+        min_percentile: float = 0.05,
+        max_percentile: float = 0.95
+        ) -> None:
         """Finds proper voxels dimension options for radiomics analyses for a group of scans
 
         Args:
@@ -706,6 +708,8 @@ class DataManager(object):
                 :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
             use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
                 for the analysis. If False, will analyze scans in the path where the instances were saved.
+            min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
+            max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
         
         Returns:
             None.
@@ -788,15 +792,15 @@ class DataManager(object):
             xy_dim["std"] = np.std(xy_dim["data"][~np.isnan(xy_dim["data"])])
             xy_dim["min"] = np.min(xy_dim["data"][~np.isnan(xy_dim["data"])])
             xy_dim["max"] = np.max(xy_dim["data"][~np.isnan(xy_dim["data"])])
-            xy_dim["p5"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 5)
-            xy_dim["p95"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 95)
+            xy_dim["p5"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], min_percentile)
+            xy_dim["p95"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], max_percentile)
             z_dim["mean"] = np.mean(z_dim["data"][~np.isnan(z_dim["data"])])
             z_dim["median"] = np.median(z_dim["data"][~np.isnan(z_dim["data"])])
             z_dim["std"] = np.std(z_dim["data"][~np.isnan(z_dim["data"])])
             z_dim["min"] = np.min(z_dim["data"][~np.isnan(z_dim["data"])])
             z_dim["max"] = np.max(z_dim["data"][~np.isnan(z_dim["data"])])
-            z_dim["p5"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 5)
-            z_dim["p95"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 95)
+            z_dim["p5"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], min_percentile)
+            z_dim["p95"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], max_percentile)
             xy_dim["data"] = xy_dim["data"].tolist()
             z_dim["data"] = z_dim["data"].tolist()
             
@@ -804,10 +808,10 @@ class DataManager(object):
             df_xy = pd.DataFrame(xy_dim["data"], columns=['data'])
             del xy_dim["data"]  # no interest in keeping data (we only need statistics)
             ax = df_xy.hist(column='data')
-            quant_05, quant_95= df_xy.quantile(0.05), df_xy.quantile(0.95)
+            min_quant, max_quant= df_xy.quantile(min_percentile), df_xy.quantile(max_percentile)
             for x in ax[0]:
-                x.axvline(quant_05.data, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
-                x.axvline(quant_95.data, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.axvline(min_quant.data, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
+                x.axvline(max_quant.data, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
                 x.grid(False)
                 plt.title(f"Voxels xy-spacing checks for {wildcard}")
                 plt.legend()
@@ -817,10 +821,10 @@ class DataManager(object):
             df_z = pd.DataFrame(z_dim["data"], columns=['data'])
             del z_dim["data"]  # no interest in keeping data (we only need statistics)
             ax = df_z.hist(column='data')
-            quant_05, quant_95= df_z.quantile(0.05), df_z.quantile(0.95)
+            min_quant, max_quant= df_z.quantile(min_percentile), df_z.quantile(max_percentile)
             for x in ax[0]:
-                x.axvline(quant_05.data, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
-                x.axvline(quant_95.data, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.axvline(min_quant.data, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
+                x.axvline(max_quant.data, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
                 x.grid(False)
                 plt.title(f"Voxels z-spacing checks for {wildcard}")
                 plt.legend()
@@ -832,11 +836,13 @@ class DataManager(object):
             save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim, cls=NumpyEncoder)
 
     def __pre_radiomics_checks_window(
-            self,
-            path_data: Union[str, Path] = None,
-            wildcards_window: List = [], 
-            use_instances: bool = True,
-            path_csv: Union[str, Path] = None
+        self,
+        path_data: Union[str, Path] = None,
+        wildcards_window: List = [], 
+        use_instances: bool = True,
+        path_csv: Union[str, Path] = None,
+        min_percentile: float = 0.05,
+        max_percentile: float = 0.95
         ) -> None:
         """Finds proper re-segmentation ranges options for radiomics analyses for a group of scans
 
@@ -850,6 +856,8 @@ class DataManager(object):
                 for the analysis. If False, will analyze scans in the path where the instances were saved.
             path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be
                 analyzed (a CSV file for a single ROI type).
+            min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
+            max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
         
         Returns:
             None.
@@ -946,18 +954,18 @@ class DataManager(object):
             roi_data["std"] = np.std(roi_data["data"][~np.isnan(roi_data["data"])])
             roi_data["min"] = np.min(roi_data["data"][~np.isnan(roi_data["data"])])
             roi_data["max"] = np.max(roi_data["data"][~np.isnan(roi_data["data"])])
-            roi_data["p5"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 5)
-            roi_data["p95"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 95)
+            roi_data["p5"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], min_percentile)
+            roi_data["p95"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], max_percentile)
             roi_data["data"] = roi_data["data"].tolist()
 
             # Plotting roi data histogram
             df_data = pd.DataFrame(roi_data["data"], columns=['data'])
             del roi_data["data"]  # no interest in keeping data (we only need statistics)
             ax = df_data.hist(column='data')
-            quant_05, quant_95= df_data.quantile(0.05), df_data.quantile(0.95)
+            min_quant, max_quant= df_data.quantile(min_percentile), df_data.quantile(max_percentile)
             for x in ax[0]:
-                x.axvline(quant_05.data, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
-                x.axvline(quant_95.data, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.axvline(min_quant.data, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
+                x.axvline(max_quant.data, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
                 x.grid(False)
                 plt.title(f"Intensity range checks for {wildcard}")
                 plt.legend()
@@ -1070,6 +1078,8 @@ class DataManager(object):
                                 wildcards_scans: List[str],
                                 path_data: Path = None,
                                 path_save_checks: Path = None,
+                                min_percentile: float = 0.05,
+                                max_percentile: float = 0.95
                                 ) -> None:
         """
         Summarizes MRI imaging acquisition parameters. Plots summary histograms
@@ -1084,6 +1094,8 @@ class DataManager(object):
                 inner-class ``Paths`` in the current instance.
             path_save_checks (Path, optional): Path where to save the checks, if not specified will use the one 
                 in the current instance.
+            min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
+            max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
         
         Returns:
             None.
@@ -1269,32 +1281,50 @@ class DataManager(object):
 
             # Summarize data
                 # Summarizing years
-            df_years = pd.DataFrame(param.years.data, columns=['years']).describe(percentiles=[0.05, 0.95], include='all')
+            df_years = pd.DataFrame(param.years.data, 
+                                    columns=['years']).describe(percentiles=[min_percentile, max_percentile], 
+                                    include='all')
                 # Summarizing field strength
-            df_fs = pd.DataFrame(param.fieldStrength.data, columns=['fieldStrength']).describe(percentiles=[0.05, 0.95], include='all')
+            df_fs = pd.DataFrame(param.fieldStrength.data, 
+                                columns=['fieldStrength']).describe(percentiles=[min_percentile, max_percentile], 
+                                include='all')
                 # Summarizing  repetition time
-            df_rt = pd.DataFrame(param.repetitionTime.data, columns=['repetitionTime']).describe(percentiles=[0.05, 0.95], include='all')
+            df_rt = pd.DataFrame(param.repetitionTime.data, 
+                                columns=['repetitionTime']).describe(percentiles=[min_percentile, max_percentile], 
+                                include='all')
                 # Summarizing echo time
-            df_et = pd.DataFrame(param.echoTime.data, columns=['echoTime']).describe(percentiles=[0.05, 0.95], include='all')
+            df_et = pd.DataFrame(param.echoTime.data, 
+                                columns=['echoTime']).describe(percentiles=[min_percentile, max_percentile], 
+                                include='all')
                 # Summarizing inversion time
-            df_it = pd.DataFrame(param.inversionTime.data, columns=['inversionTime']).describe(percentiles=[0.05, 0.95], include='all')
+            df_it = pd.DataFrame(param.inversionTime.data, 
+                                columns=['inversionTime']).describe(percentiles=[min_percentile, max_percentile], 
+                                include='all')
                 # Summarizing echo train length
-            df_etl = pd.DataFrame(param.echoTrainLength.data, columns=['echoTrainLength']).describe(percentiles=[0.05, 0.95], include='all')
+            df_etl = pd.DataFrame(param.echoTrainLength.data, 
+                                columns=['echoTrainLength']).describe(percentiles=[min_percentile, max_percentile], 
+                                include='all')
                 # Summarizing flip  angle
-            df_fa = pd.DataFrame(param.flipAngle.data, columns=['flipAngle']).describe(percentiles=[0.05, 0.95], include='all')
+            df_fa = pd.DataFrame(param.flipAngle.data, 
+                                columns=['flipAngle']).describe(percentiles=[min_percentile, max_percentile], 
+                                include='all')
                 # Summarizing number of  averages
-            df_na = pd.DataFrame(param.numberAverages.data, columns=['numberAverages']).describe(percentiles=[0.05, 0.95], include='all')
+            df_na = pd.DataFrame(param.numberAverages.data, 
+                                columns=['numberAverages']).describe(percentiles=[min_percentile, max_percentile], 
+                                include='all')
                 # Summarizing xy-spacing
-            df_xy = pd.DataFrame(param.xyDim.data, columns=['xyDim'])
+            df_xy = pd.DataFrame(param.xyDim.data, 
+                                columns=['xyDim'])
                 # Summarizing z-spacing
-            df_z = pd.DataFrame(param.zDim.data, columns=['zDim'])
+            df_z = pd.DataFrame(param.zDim.data, 
+                                columns=['zDim'])
 
             # Plotting xy-spacing histogram
             ax = df_xy.hist(column='xyDim')
-            quant_05, quant_95= df_xy.quantile(0.05), df_xy.quantile(0.95)
+            min_quant, max_quant= df_xy.quantile(min_percentile), df_xy.quantile(max_percentile)
             for x in ax[0]:
-                x.axvline(quant_05.xyDim, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
-                x.axvline(quant_95.xyDim, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.axvline(min_quant.xyDim, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
+                x.axvline(max_quant.xyDim, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
                 x.grid(False)
                 plt.title(f"MR xy-spacing imaging summary for {wildcard}")
                 plt.legend()
@@ -1302,19 +1332,19 @@ class DataManager(object):
             
             # Plotting z-spacing histogram
             ax = df_z.hist(column='zDim')
-            quant_05, quant_95 = df_z.quantile(0.05), df_z.quantile(0.95)
+            min_quant, max_quant = df_z.quantile(min_percentile), df_z.quantile(max_percentile)
             for x in ax[0]:
-                x.axvline(quant_05.zDim, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
-                x.axvline(quant_95.zDim, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.axvline(min_quant.zDim, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
+                x.axvline(max_quant.zDim, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
                 x.grid(False)
                 plt.title(f"MR z-spacing imaging summary for {wildcard}")
                 plt.legend()
                 plt.show()
             
             # Summarizing xy-spacing
-            df_xy = df_xy.describe(percentiles=[0.05, 0.95], include='all')
+            df_xy = df_xy.describe(percentiles=[min_percentile, max_percentile], include='all')
             # Summarizing  z-spacing
-            df_z = df_z.describe(percentiles=[0.05, 0.95], include='all')
+            df_z = df_z.describe(percentiles=[min_percentile, max_percentile], include='all')
             
             # Saving data
             name_save = wildcard.replace('*', '').replace('.npy', '')
@@ -1327,6 +1357,8 @@ class DataManager(object):
                                 wildcards_scans: List[str],
                                 path_data: Path = None,
                                 path_save_checks: Path = None,
+                                min_percentile: float = 0.05,
+                                max_percentile: float = 0.95
                                 ) -> None:
         """
         Summarizes CT imaging acquisition parameters. Plots summary histograms
@@ -1341,6 +1373,8 @@ class DataManager(object):
                 inner-class ``Paths`` in the current instance.
             path_save_checks (Path, optional): Path where to save the checks, if not specified will use the one 
                 in the current instance.
+            min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
+            max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
         
         Returns:
             None.
@@ -1475,17 +1509,17 @@ class DataManager(object):
 
             # Summarize data
                 # Summarizing years
-            df_years = pd.DataFrame(param.years.data, columns=['years']).describe(percentiles=[0.05, 0.95], include='all')
+            df_years = pd.DataFrame(param.years.data, columns=['years']).describe(percentiles=[min_percentile, max_percentile], include='all')
                 # Summarizing voltage
-            df_voltage = pd.DataFrame(param.voltage.data, columns=['voltage']).describe(percentiles=[0.05, 0.95], include='all')
+            df_voltage = pd.DataFrame(param.voltage.data, columns=['voltage']).describe(percentiles=[min_percentile, max_percentile], include='all')
                 # Summarizing exposure
-            df_exposure = pd.DataFrame(param.exposure.data, columns=['exposure']).describe(percentiles=[0.05, 0.95], include='all')
+            df_exposure = pd.DataFrame(param.exposure.data, columns=['exposure']).describe(percentiles=[min_percentile, max_percentile], include='all')
                 # Summarizing kernel
-            df_kernel = pd.DataFrame(param.kernel, columns=['kernel']).describe(percentiles=[0.05, 0.95], include='all')
+            df_kernel = pd.DataFrame(param.kernel, columns=['kernel']).describe(percentiles=[min_percentile, max_percentile], include='all')
                 # Summarize xy spacing
-            df_xy = pd.DataFrame(param.xyDim.data, columns=['xyDim']).describe(percentiles=[0.05, 0.95], include='all')
+            df_xy = pd.DataFrame(param.xyDim.data, columns=['xyDim']).describe(percentiles=[min_percentile, max_percentile], include='all')
                 # Summarize z spacing
-            df_z = pd.DataFrame(param.zDim.data, columns=['zDim']).describe(percentiles=[0.05, 0.95], include='all')
+            df_z = pd.DataFrame(param.zDim.data, columns=['zDim']).describe(percentiles=[min_percentile, max_percentile], include='all')
                 # Summarizing xy-spacing
             df_xy = pd.DataFrame(param.xyDim.data, columns=['xyDim'])
                 # Summarizing z-spacing
@@ -1493,10 +1527,10 @@ class DataManager(object):
 
             # Plotting xy-spacing histogram
             ax = df_xy.hist(column='xyDim')
-            quant_05, quant_95= df_xy.quantile(0.05), df_xy.quantile(0.95)
+            min_quant, max_quant= df_xy.quantile(min_percentile), df_xy.quantile(max_percentile)
             for x in ax[0]:
-                x.axvline(quant_05.xyDim, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
-                x.axvline(quant_95.xyDim, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.axvline(min_quant.xyDim, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
+                x.axvline(max_quant.xyDim, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
                 x.grid(False)
                 plt.title(f"CT xy-spacing imaging summary for {wildcard}")
                 plt.legend()
@@ -1504,19 +1538,19 @@ class DataManager(object):
             
             # Plotting z-spacing histogram
             ax = df_z.hist(column='zDim')
-            quant_05, quant_95 = df_z.quantile(0.05), df_z.quantile(0.95)
+            min_quant, max_quant = df_z.quantile(min_percentile), df_z.quantile(max_percentile)
             for x in ax[0]:
-                x.axvline(quant_05.zDim, linestyle=':', color='r', label=f"5th Percentile: {float(quant_05):.3f}")
-                x.axvline(quant_95.zDim, linestyle=':', color='g', label=f"95th Percentile: {float(quant_95):.3f}")
+                x.axvline(min_quant.zDim, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
+                x.axvline(max_quant.zDim, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
                 x.grid(False)
                 plt.title(f"CT z-spacing imaging summary for {wildcard}")
                 plt.legend()
                 plt.show()
             
             # Summarizing xy-spacing
-            df_xy = df_xy.describe(percentiles=[0.05, 0.95], include='all')
+            df_xy = df_xy.describe(percentiles=[min_percentile, max_percentile], include='all')
             # Summarizing  z-spacing
-            df_z = df_z.describe(percentiles=[0.05, 0.95], include='all')
+            df_z = df_z.describe(percentiles=[min_percentile, max_percentile], include='all')
 
             # Saving data
             name_save = wildcard.replace('*', '').replace('.npy', '')
