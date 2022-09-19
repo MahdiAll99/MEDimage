@@ -28,23 +28,23 @@ class ProcessDICOM():
 
     def __init__(
         self,
-        path_images: Union[str, Path],
-        path_rs: Union[str, Path],
+        path_images: List[Path],
+        path_rs: List[Path],
         path_save: Union[str, Path],
         save: bool) -> None:
         """
         Args:
-            path_images (Union[str, Path]): Path to the folder containing the dicom files of a single scan.
-            path_rs (Union[str, Path]): Path to the RT struct dicom files for the same scan.
+            path_images (List[Path]): List of paths to the dicom files of a single scan.
+            path_rs (List[Path]): List of paths to the RT struct dicom files for the same scan.
             path_save (Union[str, Path]): Path to the folder where the MEDimage object will be saved.
             save (bool): Whether to save the MEDimage object or not.
         
         Returns:
             None.
         """
-        self.path_images = Path(path_images)
-        self.path_rs = Path(path_rs)
-        self.path_save = Path(path_save)
+        self.path_images = path_images
+        self.path_rs = path_rs
+        self.path_save = Path(path_save) if path_save is str else path_save
         self.save = save
     
     def __get_dicom_scan_orientation(self, dicom_header: List[pydicom.dataset.FileDataset]) -> str:
