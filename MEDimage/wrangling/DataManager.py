@@ -721,8 +721,8 @@ class DataManager(object):
             "std": [],
             "min": [],
             "max": [],
-            "p5": [],
-            "p95": []
+            f"p{min_percentile}": [],
+            f"p{max_percentile}": []
         }
         z_dim = {
             "data": [],
@@ -731,8 +731,8 @@ class DataManager(object):
             "std": [],
             "min": [],
             "max": [],
-            "p5": [],
-            "p95": []
+            f"p{min_percentile}": [],
+            f"p{max_percentile}": []
         }
         if type(wildcards_dimensions) is str:
             wildcards_dimensions = [wildcards_dimensions]
@@ -792,15 +792,18 @@ class DataManager(object):
             xy_dim["std"] = np.std(xy_dim["data"][~np.isnan(xy_dim["data"])])
             xy_dim["min"] = np.min(xy_dim["data"][~np.isnan(xy_dim["data"])])
             xy_dim["max"] = np.max(xy_dim["data"][~np.isnan(xy_dim["data"])])
-            xy_dim["p5"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], min_percentile)
-            xy_dim["p95"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], max_percentile)
+            xy_dim[f"p{min_percentile}"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 
+                                                        min_percentile)
+            xy_dim[f"p{max_percentile}"] = np.percentile(xy_dim["data"][~np.isnan(xy_dim["data"])], 
+                                                        max_percentile)
             z_dim["mean"] = np.mean(z_dim["data"][~np.isnan(z_dim["data"])])
             z_dim["median"] = np.median(z_dim["data"][~np.isnan(z_dim["data"])])
             z_dim["std"] = np.std(z_dim["data"][~np.isnan(z_dim["data"])])
             z_dim["min"] = np.min(z_dim["data"][~np.isnan(z_dim["data"])])
             z_dim["max"] = np.max(z_dim["data"][~np.isnan(z_dim["data"])])
-            z_dim["p5"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], min_percentile)
-            z_dim["p95"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], max_percentile)
+            z_dim[f"p{min_percentile}"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], 
+                                                        min_percentile)
+            z_dim[f"p{max_percentile}"] = np.percentile(z_dim["data"][~np.isnan(z_dim["data"])], max_percentile)
             xy_dim["data"] = xy_dim["data"].tolist()
             z_dim["data"] = z_dim["data"].tolist()
             
@@ -869,8 +872,8 @@ class DataManager(object):
             "std": [],
             "min": [],
             "max": [],
-            "p5": [],
-            "p95": []
+            f"p{min_percentile}": [],
+            f"p{max_percentile}": []
         }
         if type(wildcards_window) is str:
             wildcards_window = [wildcards_window]
@@ -954,8 +957,10 @@ class DataManager(object):
             roi_data["std"] = np.std(roi_data["data"][~np.isnan(roi_data["data"])])
             roi_data["min"] = np.min(roi_data["data"][~np.isnan(roi_data["data"])])
             roi_data["max"] = np.max(roi_data["data"][~np.isnan(roi_data["data"])])
-            roi_data["p5"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], min_percentile)
-            roi_data["p95"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], max_percentile)
+            roi_data[f"p{min_percentile}"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 
+                                                        min_percentile)
+            roi_data[f"p{max_percentile}"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 
+                                                        max_percentile)
             roi_data["data"] = roi_data["data"].tolist()
 
             # Plotting roi data histogram
