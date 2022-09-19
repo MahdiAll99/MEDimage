@@ -28,7 +28,7 @@ from ..utils.get_patient_names import get_patient_names
 from ..utils.imref import imref3d
 from ..utils.json_utils import load_json, save_json
 from ..utils.save_MEDimage import save_MEDimage
-from .process_dicom_scan_files import ProcessDICOM
+from .ProcessDICOM import ProcessDICOM
 
 
 class DataManager(object):
