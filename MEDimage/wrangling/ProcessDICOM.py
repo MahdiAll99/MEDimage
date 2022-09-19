@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List, Union
 import warnings
+from typing import List, Union
 
 import numpy as np
 import pydicom
