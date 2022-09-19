@@ -278,6 +278,6 @@ def apply_laws(
         raise ValueError("Either MEDimg or config must be provided")
     
     if spatial_ref:
-        return image_volume_obj(result, spatial_ref)
+        return image_volume_obj(np.squeeze(result), spatial_ref)
     else:
-        return result
+        return np.squeeze(result)
