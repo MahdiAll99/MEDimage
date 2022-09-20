@@ -214,12 +214,11 @@ def _extract_cosines(image_orientation):
 
 def _slice_attribute_equal(slice_datasets, property_name):
     initial_value = getattr(slice_datasets[0], property_name, None)
-    for dataset in slice_datasets[1:]:
+    for slice_idx, dataset in enumerate(slice_datasets[1:]):
         value = getattr(dataset, property_name, None)
         if value != initial_value:
-            msg = 'All slices must have the same value for "{}": {} != {}'
-            raise ValueError(msg.format(
-                property_name, value, initial_value))
+            msg = f'Slice {slice_idx+1} have different value for {property_name}: {value} != {initial_value}'
+            warnings.warn(msg)
 
 
 def _slice_positions(slice_datasets):
@@ -237,7 +236,7 @@ def _check_for_missing_slices(slice_positions):
         sys.stderr.flush()
 
     if not np.allclose(slice_positions_diffs, slice_positions_diffs[0], atol=0, rtol=1e-1):
-        raise ValueError('It appears there are missing slices')
+        raise ValueError('The slice spacing is non-uniform. It appears there are extra slices from another scan')
 
 
 def _slice_spacing(slice_datasets):

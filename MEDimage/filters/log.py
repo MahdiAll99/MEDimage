@@ -107,7 +107,10 @@ def apply_log(
     Returns:
         ndarray: The filtered image.
     """
+    # Check if the input is a numpy array or a Image volume object
+    spatial_ref = None
     if type(input_images) == image_volume_obj:
+        spatial_ref = input_images.spatialRef
         input_images = input_images.data
     
     # Convert to shape : (B, W, H, D)
@@ -138,4 +141,7 @@ def apply_log(
         # Run convolution
         result = _filter.convolve(input_images, orthogonal_rot=orthogonal_rot)
 
-    return result
+    if spatial_ref:
+        return image_volume_obj(np.squeeze(result), spatial_ref)
+    else:
+        return np.squeeze(result)
