@@ -236,7 +236,7 @@ def _check_for_missing_slices(slice_positions):
         sys.stderr.flush()
 
     if not np.allclose(slice_positions_diffs, slice_positions_diffs[0], atol=0, rtol=1e-1):
-        raise ValueError('It appears there are missing slices')
+        raise ValueError('The slice spacing is non-uniform. It appears there are extra slices from another scan')
 
 
 def _slice_spacing(slice_datasets):
