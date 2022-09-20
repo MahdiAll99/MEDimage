@@ -6,13 +6,13 @@ import zipfile
 import wget
 
 
-def main(no_sts: bool) -> None:
+def main(full_sts: bool, subset: bool) -> None:
     """
     Downloads MEDimage data for testing, tutorials and demo and organizes it in the right folders.
 
     Args:
-        no_sts (bool): if ``True`` will not download the STS data (large size). We recommend you set it to
-            ``False`` so you can be able to run all the tutorials.
+        full_sts (bool): if ``True`` will not download the STS data (large size).
+        subset (bool): if ``True`` will download a subset of the data (small size).
     
     Returns:
         None.
@@ -21,7 +21,7 @@ def main(no_sts: bool) -> None:
     print("\n================ Downloading first part of data ================")
     try:
         wget.download(
-        "https://sandbox.zenodo.org/record/1094555/files/MEDimage-Dataset-No-STS.zip?download=1",
+        "https://sandbox.zenodo.org/record/1106515/files/MEDimage-Dataset-No-STS.zip?download=1",
         out=os.getcwd())
     except Exception as e:
         print("MEDimage-Dataset-No-STS.zip download failed, error:", e)
@@ -81,12 +81,40 @@ def main(no_sts: bool) -> None:
         print("Failed to remove tutorials-data folder, error:", e)
 
     # download sts data (multi-scans tutorial data)
-    if not no_sts:
+    if full_sts:
         # get data online
         print("\n================ Downloading second part of data ================")
         try:
             wget.download(
-            "https://sandbox.zenodo.org/record/1094555/files/MEDimage-Dataset-STS-McGill-001-005.zip?download=1",
+            "https://sandbox.zenodo.org/record/1106516/files/MEDimage-STS-Dataset.zip?download=1",
+            out=os.getcwd())
+            pass
+        except Exception as e:
+            print("MEDimage-STS-Dataset.zip download failed, error:", e)
+        
+        # unzip data
+        print("\n================ Extracting second part of data  ================")
+        try:
+            with zipfile.ZipFile(os.getcwd() + "/MEDimage-STS-Dataset.zip", 'r') as zip_ref:
+                zip_ref.extractall(os.getcwd())
+                # remove zip file after extraction
+            os.remove(os.getcwd() + "/MEDimage-STS-Dataset.zip")
+        except Exception as e:
+            print("MEDimage-STS-Dataset.zip extraction failed, error:", e)
+        
+        # organize data in the right folder
+        print("\n================== Organizing data in folders  ==================")
+        try:
+            shutil.move(os.getcwd() + "/DICOM-STS-Organized", 
+                    os.getcwd() + "/notebooks" + "/tutorial" + "/data" + "/DICOM-STS")
+        except Exception as e:
+            print("Failed to move DICOM-STS-Organized folder, error:", e)
+    elif subset:
+        # get data online
+        print("\n================ Downloading second part of data ================")
+        try:
+            wget.download(
+            "https://sandbox.zenodo.org/record/1106515/files/MEDimage-Dataset-STS-McGill-001-005.zip?download=1",
             out=os.getcwd())
             pass
         except Exception as e:
@@ -115,9 +143,11 @@ if __name__ == "__main__":
     # setting up arguments:
     parser = argparse.ArgumentParser(description='Download dataset "\
         "for MEDimage package tests, tutorials and other demos.')
-    parser.add_argument("--no-sts", default=False, action='store_true',
-                    help="If specified, will not download STS data (Used in tutorials).")
+    parser.add_argument("--full-sts", default=False, action='store_true',
+                    help="If specified, will download the full STS data used in tutorials. Defaults to False.")
+    parser.add_argument("--subset", default=True, action='store_true',
+                    help="If specified, will only download a subset of the STS sataset. Defaults to True.")
     args = parser.parse_args()
 
     # main
-    main(args.no_sts)
+    main(args.full_sts, args.subset)
