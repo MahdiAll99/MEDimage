@@ -317,11 +317,64 @@ class DataManager(object):
         ids = [pd.process_files.remote(pd) for pd in pds]
 
         # Update the path to the created instances
-        if self.keep_instances: 
+        for instance in ray.get(ids):
+            name_save = self.__get_MEDimage_name_save(instance)
+            if self.paths._path_save:
+                self.path_to_objects.append(str(self.paths._path_save / name_save))
+            # Update processing summary
+            if name_save.split('_')[0].count('-') >= 2:
+                scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
+                if name_save.split('-')[0] not in self.__studies:
+                    self.__studies.append(name_save.split('-')[0])  # add new study
+                if name_save.split('-')[1] not in self.__institutions:
+                    self.__institutions.append(name_save.split('-')[1])  # add new study
+                if name_save.split('-')[0] not in self.summary:
+                    self.summary[name_save.split('-')[0]] = {}
+                if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = {}  # add new institution
+                if scan_type not in self.__scans:
+                    self.__scans.append(scan_type)
+                if scan_type not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type] = []
+                if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
+                    self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
+            else:
+                logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
+
+        nb_job_left = n_scans - n_batch
+
+        # Get MEDimage instances
+        if self.keep_instances:
+            if len(self.instances)>10 and not self.__warned:
+                # User cannot save over 10 instances in the class
+                warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
+                    the rest of the instances will/can be saved locally only.")
+                self.__warned = True
+            else:
+                self.instances.extend(ray.get(ids))
+                if len(self.instances) > 10:
+                    self.instances = self.instances[:10]
+
+        # Distribute the remaining tasks
+        for _ in trange(n_scans):
+            _, not_ready = ray.wait(ids, num_returns=1)
+            ids = not_ready
+            if nb_job_left > 0:
+                idx = n_scans - nb_job_left
+                pd = ProcessDICOM(
+                        self.__dicom.cell_path_images[idx], 
+                        self.__dicom.cell_path_rs[idx], 
+                        self.paths._path_save,
+                        self.save)
+                ids.extend([pd.process_files.remote(pd)])
+                nb_job_left -= 1
+
+            # Update the path to the created instances
             for instance in ray.get(ids):
                 name_save = self.__get_MEDimage_name_save(instance)
                 if self.paths._path_save:
-                    self.path_to_objects.append(str(self.paths._path_save / name_save))
+                    self.path_to_objects.extend(str(self.paths._path_save / name_save))
                 # Update processing summary
                 if name_save.split('_')[0].count('-') >= 2:
                     scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
@@ -343,69 +396,16 @@ class DataManager(object):
                     logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
                         "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
 
-        nb_job_left = n_scans - n_batch
-
-        # Get MEDimage instances
-        if len(self.instances)>10 and not self.__warned:
-            # User cannot save over 10 instances in the class
-            warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
-                the rest of the instances will/can be saved locally only.")
-            self.__warned = True
-        elif self.keep_instances:
-            self.instances.extend(ray.get(ids))
-            if len(self.instances) > 10:
-                self.instances = self.instances[:10]
-
-        # Distribute the remaining tasks
-        for _ in trange(n_scans):
-            _, not_ready = ray.wait(ids, num_returns=1)
-            ids = not_ready
-            if nb_job_left > 0:
-                idx = n_scans - nb_job_left
-                pd = ProcessDICOM(
-                        self.__dicom.cell_path_images[idx], 
-                        self.__dicom.cell_path_rs[idx], 
-                        self.paths._path_save,
-                        self.save)
-                ids.extend([pd.process_files.remote(pd)])
-                nb_job_left -= 1
-
-            # Update the path to the created instances
-            if self.keep_instances:    
-                for instance in ray.get(ids):
-                    name_save = self.__get_MEDimage_name_save(instance)
-                    if self.paths._path_save:
-                        self.path_to_objects.extend(str(self.paths._path_save / name_save))
-                    # Update processing summary
-                    if name_save.split('_')[0].count('-') >= 2:
-                        scan_type = name_save[name_save.find('__')+2 : name_save.find('.')]
-                        if name_save.split('-')[0] not in self.__studies:
-                            self.__studies.append(name_save.split('-')[0])  # add new study
-                        if name_save.split('-')[1] not in self.__institutions:
-                            self.__institutions.append(name_save.split('-')[1])  # add new study
-                        if name_save.split('-')[0] not in self.summary:
-                            self.summary[name_save.split('-')[0]] = {}
-                        if name_save.split('-')[1] not  in self.summary[name_save.split('-')[0]]:
-                            self.summary[name_save.split('-')[0]][name_save.split('-')[1]] = {}  # add new institution
-                        if scan_type not in self.__scans:
-                            self.__scans.append(scan_type)
-                        if scan_type not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]]:
-                            self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type] = []
-                        if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
-                            self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
-                    else:
-                        logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
-                            "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
-
-                    # Get MEDimage instances
-                    if len(self.instances)>10 and not self.__warned:
-                        warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
-                            the rest of the instances will/can be saved locally only.")
-                        self.__warned = True
-                    elif self.keep_instances:
-                        self.instances.extend(ray.get(ids))
-                        if len(self.instances) > 10:
-                            self.instances = self.instances[:10]
+            # Get MEDimage instances
+            if self.keep_instances:
+                if len(self.instances)>10 and not self.__warned:
+                    warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
+                        the rest of the instances will/can be saved locally only.")
+                    self.__warned = True
+                else:
+                    self.instances.extend(ray.get(ids))
+                    if len(self.instances) > 10:
+                        self.instances = self.instances[:10]
         print('DONE')
 
         return self.instances
@@ -552,12 +552,15 @@ class DataManager(object):
             MEDimage_instance = self.__associate_roi_to_image(file, MEDimg)
             
             # User cannot save over 10 instances in the class
-            if len(self.instances)>10 and not self.__warned:
-                warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
-                    the rest of the instances will/can be saved locally only.")
-                self.__warned = True
-            elif self.keep_instances:
-                self.instances.append(MEDimage_instance)
+            if self.keep_instances:
+                if len(self.instances)>10 and not self.__warned:
+                    warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
+                        the rest of the instances will/can be saved locally only.")
+                    self.__warned = True
+                else:
+                    self.instances.append(MEDimage_instance)
+                    if len(self.instances) > 10:
+                        self.instances = self.instances[:10]
             if self.save and self.paths._path_save:
                 save_MEDimage(MEDimg, MEDimg.type.split('scan')[0], self.paths._path_save)
             
@@ -985,7 +988,9 @@ class DataManager(object):
                             wildcards_dimensions: List = [],
                             wildcards_window: List = [],
                             use_instances: bool = True,
-                            path_csv: Union[str, Path] = None) -> None:
+                            path_csv: Union[str, Path] = None,
+                            min_percentile: float = 0.05,
+                            max_percentile: float = 0.95) -> None:
         """Finds proper dimension and re-segmentation ranges options for radiomics analyses. 
 
         The resulting files from this method can then be analyzed and used to set up radiomics 
@@ -1004,6 +1009,8 @@ class DataManager(object):
                 for the analysis. If False, will analyze scans in the path where the instances were saved.
             path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be
                 analyzed (a CSV file for a single ROI type).
+            min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
+            max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
 
         Returns:
             None
@@ -1062,7 +1069,12 @@ class DataManager(object):
         # 1. PRE-RADIOMICS CHECKS -- DIMENSIONS
         start1 = time()
         print('\n--> PRE-RADIOMICS CHECKS -- DIMENSIONS ... ', end='')
-        self.__pre_radiomics_checks_dimensions(path_data, wildcards_dimensions, use_instances)
+        self.__pre_radiomics_checks_dimensions(
+                                        path_data, 
+                                        wildcards_dimensions, 
+                                        use_instances,
+                                        min_percentile, 
+                                        max_percentile)
         print('DONE', end='')
         time1 = f"{time() - start1:.2f}"
         print(f'\nElapsed time: {time1} sec', end='')
@@ -1070,7 +1082,13 @@ class DataManager(object):
         # 2. PRE-RADIOMICS CHECKS - WINDOW
         start2 = time()
         print('\n\n--> PRE-RADIOMICS CHECKS -- WINDOW ... \n', end='')
-        self.__pre_radiomics_checks_window(path_data, wildcards_window, use_instances, path_csv)
+        self.__pre_radiomics_checks_window(
+                                        path_data, 
+                                        wildcards_window, 
+                                        use_instances, 
+                                        path_csv,
+                                        min_percentile, 
+                                        max_percentile)
         print('DONE', end='')
         time2 = f"{time() - start2:.2f}"
         print(f'\nElapsed time: {time2} sec', end='')
@@ -1568,6 +1586,8 @@ class DataManager(object):
                                 wildcards_scans: List[str],
                                 path_data: Path = None,
                                 path_save_checks: Path = None,
+                                min_percentile: float = 0.05,
+                                max_percentile: float = 0.95
                                 ) -> None:
         """
         Summarizes CT and MR imaging acquisition parameters. Plots summary histograms
@@ -1582,6 +1602,8 @@ class DataManager(object):
                 inner-class ``Paths`` in the current instance.
             path_save_checks (Path, optional): Path where to save the checks, if not specified will use the one 
                 in the current instance.
+            min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
+            max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
         
         Returns:
             None.
@@ -1591,10 +1613,20 @@ class DataManager(object):
         if len(wildcards_scans_mr) == 0:
             print("Cannot perform imaging summary for MR, no MR scan wildcard was given! ")
         else:
-            self.perform_mr_imaging_summary(wildcards_scans_mr, path_data, path_save_checks)
+            self.perform_mr_imaging_summary(
+                                wildcards_scans_mr, 
+                                path_data, 
+                                path_save_checks, 
+                                min_percentile, 
+                                max_percentile)
         # CT imaging summary
         wildcards_scans_ct = [wildcard for wildcard in wildcards_scans if 'CTscan' in wildcard]
         if len(wildcards_scans_ct) == 0:
             print("Cannot perform imaging summary for CT, no CT scan wildcard was given! ")
         else:
-            self.perform_ct_imaging_summary(wildcards_scans_ct, path_data, path_save_checks)
+            self.perform_ct_imaging_summary(
+                                wildcards_scans_ct, 
+                                path_data, 
+                                path_save_checks, 
+                                min_percentile, 
+                                max_percentile)
