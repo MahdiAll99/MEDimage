@@ -283,7 +283,7 @@ class DataManager(object):
         # ASSOCIATE ALL VOLUMES TO THEIR MASK
         self.__associate_rt_stuct()
 
-    def process_all_dicoms(self) -> List[MEDimage]:
+    def process_all_dicoms(self) -> Union[List[MEDimage], None]:
         """This function reads the DICOM content of all the sub-folder tree of a starting directory defined by
         `path_to_dicoms`. It then organizes the data (files throughout the starting directory are associated by
         'SeriesInstanceUID') in the MEDimage class including the region of  interest (ROI) defined by an
@@ -408,7 +408,8 @@ class DataManager(object):
                         self.instances = self.instances[:10]
         print('DONE')
 
-        return self.instances
+        if self.instances:
+            return self.instances
 
     def __read_all_niftis(self) -> None:
         """Reads all files in the initial path and organizes other path to images and roi
@@ -814,10 +815,11 @@ class DataManager(object):
             df_xy = pd.DataFrame(xy_dim["data"], columns=['data'])
             del xy_dim["data"]  # no interest in keeping data (we only need statistics)
             ax = df_xy.hist(column='data')
-            min_quant, max_quant= df_xy.quantile(min_percentile), df_xy.quantile(max_percentile)
+            min_quant, max_quant, average = df_xy.quantile(min_percentile), df_xy.quantile(max_percentile), df_xy.mean()
             for x in ax[0]:
                 x.axvline(min_quant.data, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
                 x.axvline(max_quant.data, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
+                x.axvline(average.data, linestyle='solid', color='gold', label=f"Average: {float(average.data):.3f}")
                 x.grid(False)
                 plt.title(f"Voxels xy-spacing checks for {wildcard}")
                 plt.legend()
@@ -827,10 +829,11 @@ class DataManager(object):
             df_z = pd.DataFrame(z_dim["data"], columns=['data'])
             del z_dim["data"]  # no interest in keeping data (we only need statistics)
             ax = df_z.hist(column='data')
-            min_quant, max_quant= df_z.quantile(min_percentile), df_z.quantile(max_percentile)
+            min_quant, max_quant, average = df_z.quantile(min_percentile), df_z.quantile(max_percentile), df_z.mean()
             for x in ax[0]:
                 x.axvline(min_quant.data, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
                 x.axvline(max_quant.data, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
+                x.axvline(average.data, linestyle='solid', color='gold', label=f"Average: {float(average.data):.3f}")
                 x.grid(False)
                 plt.title(f"Voxels z-spacing checks for {wildcard}")
                 plt.legend()
@@ -1344,10 +1347,11 @@ class DataManager(object):
 
             # Plotting xy-spacing histogram
             ax = df_xy.hist(column='xyDim')
-            min_quant, max_quant= df_xy.quantile(min_percentile), df_xy.quantile(max_percentile)
+            min_quant, max_quant, average = df_xy.quantile(min_percentile), df_xy.quantile(max_percentile), param.xyDim.data.mean()
             for x in ax[0]:
                 x.axvline(min_quant.xyDim, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
                 x.axvline(max_quant.xyDim, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
+                x.axvline(average, linestyle='solid', color='gold', label=f"Average: {float(average):.3f}")
                 x.grid(False)
                 plt.title(f"MR xy-spacing imaging summary for {wildcard}")
                 plt.legend()
@@ -1355,10 +1359,11 @@ class DataManager(object):
             
             # Plotting z-spacing histogram
             ax = df_z.hist(column='zDim')
-            min_quant, max_quant = df_z.quantile(min_percentile), df_z.quantile(max_percentile)
+            min_quant, max_quant, average = df_z.quantile(min_percentile), df_z.quantile(max_percentile), param.zDim.data.mean()
             for x in ax[0]:
                 x.axvline(min_quant.zDim, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
                 x.axvline(max_quant.zDim, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
+                x.axvline(average, linestyle='solid', color='gold', label=f"Average: {float(average):.3f}")
                 x.grid(False)
                 plt.title(f"MR z-spacing imaging summary for {wildcard}")
                 plt.legend()
@@ -1550,10 +1555,11 @@ class DataManager(object):
 
             # Plotting xy-spacing histogram
             ax = df_xy.hist(column='xyDim')
-            min_quant, max_quant= df_xy.quantile(min_percentile), df_xy.quantile(max_percentile)
+            min_quant, max_quant, average = df_xy.quantile(min_percentile), df_xy.quantile(max_percentile), param.xyDim.data.mean()
             for x in ax[0]:
                 x.axvline(min_quant.xyDim, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
                 x.axvline(max_quant.xyDim, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
+                x.axvline(average, linestyle='solid', color='gold', label=f"Average: {float(average):.3f}")
                 x.grid(False)
                 plt.title(f"CT xy-spacing imaging summary for {wildcard}")
                 plt.legend()
@@ -1561,10 +1567,11 @@ class DataManager(object):
             
             # Plotting z-spacing histogram
             ax = df_z.hist(column='zDim')
-            min_quant, max_quant = df_z.quantile(min_percentile), df_z.quantile(max_percentile)
+            min_quant, max_quant, average = df_z.quantile(min_percentile), df_z.quantile(max_percentile), param.zDim.data.mean()
             for x in ax[0]:
                 x.axvline(min_quant.zDim, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
                 x.axvline(max_quant.zDim, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
+                x.axvline(average, linestyle='solid', color='gold', label=f"Average: {float(average):.3f}")
                 x.grid(False)
                 plt.title(f"CT z-spacing imaging summary for {wildcard}")
                 plt.legend()
