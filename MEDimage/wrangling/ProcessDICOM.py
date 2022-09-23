@@ -62,9 +62,9 @@ class ProcessDICOM():
         image_patient_positions_y = [dicom_header[i].ImagePositionPatient[1] for i in range(n_slices)]
         image_patient_positions_z = [dicom_header[i].ImagePositionPatient[2] for i in range(n_slices)]
         dist = [
-            max(np.abs(np.diff(image_patient_positions_x))), 
-            max(np.abs(np.diff(image_patient_positions_y))), 
-            max(np.abs(np.diff(image_patient_positions_z)))
+            np.median(np.abs(np.diff(image_patient_positions_x))), 
+            np.median(np.abs(np.diff(image_patient_positions_y))), 
+            np.median(np.abs(np.diff(image_patient_positions_z)))
         ]
         index = dist.index(max(dist))
         if index == 0:
