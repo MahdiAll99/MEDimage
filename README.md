@@ -46,6 +46,7 @@ For more installation options (conda, poetry...) check out the [installation doc
 We used sphinx to create the documentation for this project and you check it out in this [link](https://medimage.readthedocs.io/en/latest/). But you can generate and host it locally by compiling the documentation source code using:
 
 ```
+cd docs
 make clean
 make html
 ```
