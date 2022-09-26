@@ -314,7 +314,7 @@ class DataManager(object):
                         self.save)
             for i in range(n_batch)]
         
-        ids = [pd.process_files.remote(pd) for pd in pds]
+        ids = [pd.process_files() for pd in pds]
 
         # Update the path to the created instances
         for instance in ray.get(ids):
@@ -367,7 +367,7 @@ class DataManager(object):
                         self.__dicom.cell_path_rs[idx], 
                         self.paths._path_save,
                         self.save)
-                ids.extend([pd.process_files.remote(pd)])
+                ids.extend([pd.process_files()])
                 nb_job_left -= 1
 
             # Update the path to the created instances

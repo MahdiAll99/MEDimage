@@ -9,19 +9,12 @@ DataManager
    :undoc-members:
    :show-inheritance:
 
-combine\_slices 
+ProcessDICOM 
 -----------------------------------------
 
-.. automodule:: MEDimage.wrangling.combine_slices
+.. automodule:: MEDimage.wrangling.ProcessDICOM
    :members:
    :undoc-members:
    :show-inheritance:
-
-process\_dicom\_scan\_files 
------------------------------------------------------
-
-.. automodule:: MEDimage.wrangling.process_dicom_scan_files
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   :exclude-members: process_files_wrapper
 
