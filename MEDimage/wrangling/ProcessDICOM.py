@@ -23,8 +23,8 @@ from ..utils.save_MEDimage import save_MEDimage
 
 class ProcessDICOM():
     """
-    Class to process dicom files and extract 3D masks from RT struct ROIs
-    in order to oganize all this imaging data in a MEDimage class object.
+    Class to process dicom files and extract imaging volume and 3D masks from it
+    in order to oganize the data in a MEDimage class object.
     """
 
     def __init__(
@@ -259,32 +259,31 @@ class ProcessDICOM():
         This function requires that the datasets:
 
         - Be in same series (have the same
-        `Series Instance UID <https://dicom.innolitics.com/ciods/ct-image/general-series/0020000e>`__,
-        `Modality <https://dicom.innolitics.com/ciods/ct-image/general-series/00080060>`__,
-        and `SOP Class UID <https://dicom.innolitics.com/ciods/ct-image/sop-common/00080016>`__).
+          `Series Instance UID <https://dicom.innolitics.com/ciods/ct-image/general-series/0020000e>`__,
+          `Modality <https://dicom.innolitics.com/ciods/ct-image/general-series/00080060>`__,
+          and `SOP Class UID <https://dicom.innolitics.com/ciods/ct-image/sop-common/00080016>`__).
         - The binary storage of each slice must be the same (have the same
-        `Bits Allocated <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280100>`__,
-        `Bits Stored <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280101>`__,
-        `High Bit <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280102>`__, and
-        `Pixel Representation <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280103>`__).
+          `Bits Allocated <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280100>`__,
+          `Bits Stored <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280101>`__,
+          `High Bit <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280102>`__, and
+          `Pixel Representation <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280103>`__).
         - The image slice must approximately form a grid. This means there can not
-        be any missing internal slices (missing slices on the ends of the dataset
-        are not detected).
-        - It also means that  each slice must have the same
-        `Rows <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280010>`__,
-        `Columns <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280011>`__,
-        `Pixel Spacing <https://dicom.innolitics.com/ciods/ct-image/image-plane/00280030>`__, and
-        `Image Orientation (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037>`__
-        attribute values.
+          be any missing internal slices (missing slices on the ends of the dataset
+          are not detected). It also means that  each slice must have the same
+          `Rows <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280010>`__,
+          `Columns <https://dicom.innolitics.com/ciods/ct-image/image-pixel/00280011>`__,
+          `Pixel Spacing <https://dicom.innolitics.com/ciods/ct-image/image-plane/00280030>`__, and
+          `Image Orientation (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037>`__
+          attribute values.
         - The direction cosines derived from the
-        `Image Orientation (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037>`__
-        attribute must, within 1e-4, have a magnitude of 1.  The cosines must
-        also be approximately perpendicular (their dot-product must be within
-        1e-4 of 0).  Warnings are displayed if any of theseapproximations are
-        below 1e-8, however, since we have seen real datasets with values up to
-        1e-4, we let them pass.
+          `Image Orientation (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200037>`__
+          attribute must, within 1e-4, have a magnitude of 1.  The cosines must
+          also be approximately perpendicular (their dot-product must be within
+          1e-4 of 0).  Warnings are displayed if any of theseapproximations are
+          below 1e-8, however, since we have seen real datasets with values up to
+          1e-4, we let them pass.
         - The `Image Position (Patient) <https://dicom.innolitics.com/ciods/ct-image/image-plane/00200032>`__
-        values must approximately form a line.
+          values must approximately form a line.
         
         If any of these conditions are not met, a `dicom_numpy.DicomImportException` is raised.
 
@@ -306,8 +305,7 @@ class ProcessDICOM():
 
         return voxels, transform, rotation, scaling
 
-    @ray.remote
-    def process_files(self) -> MEDimage:
+    def process_files(self):
         """
         Reads DICOM files (imaging volume + ROIs) in the instance data path 
         and then organizes it in the MEDimage class.
@@ -317,6 +315,14 @@ class ProcessDICOM():
         
         Returns:
             MEDimg (MEDimage): Instance of a MEDimage class.
+        """
+        
+        return self.process_files_wrapper.remote(self)
+    
+    @ray.remote
+    def process_files_wrapper(self) -> MEDimage:
+        """
+        Wrapper function to process the files.
         """
 
         # PARTIAL PARSING OF ARGUMENTS
