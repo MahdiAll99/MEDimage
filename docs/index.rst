@@ -16,6 +16,7 @@ and filter images and compute all types of radiomic features. This package has b
    Installation
    configuration_file
    csv_file
+   input_data
 
 .. toctree::
    :maxdepth: 1
