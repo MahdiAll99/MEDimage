@@ -6,7 +6,7 @@ MEDimage
 
    MEDimage
    biomarkers
-   filter
+   filters
    processing
    utils
    wrangling
