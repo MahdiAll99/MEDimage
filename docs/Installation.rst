@@ -85,4 +85,4 @@ The created environment will be activated automatically.
     :width: 3%
     :target: https://python-poetry.org/docs/
 
-Now that you have successfully installed the package and to further understand the usage of the it, we invite you to follow these :doc:`../tutorials`.
+Now that you have successfully installed the package, we invite you to follow these :doc:`../tutorials` to further comprehend how to use it.

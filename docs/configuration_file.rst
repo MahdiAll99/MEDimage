@@ -7,7 +7,7 @@ For example, `IBSI <https://arxiv.org/abs/1612.07003>`__ tests require specific 
 You can check a full example of the file here: 
 `notebooks/ibsi/settings/ <https://github.com/MahdiAll99/MEDimage/tree/main/notebooks/ibsi/settings>`__.
 
-This section will go through the details of how to set up and use this configuration file and will be separated to four subdivision:
+This section will walk you through the details on how to set up and use the configuration file. It will be separated to four subdivision:
 
 - :ref:`Pre-checks<Pre-checks Parameters>`
 - :ref:`Processing<Processing Parameters>`
@@ -32,8 +32,8 @@ dictionary as follows:
         "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "wildcards_dimensions",
         "description": "List of wild cards for voxel dimension checks (Read about wildcards
-             `here <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`__), 
-             checks will be done for every wildcard in the list. For example ``[\"Glioma*.MRscan.npy\", \"STS*.CTscan.npy\"]``",
+             `here <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`__).
+             Checks will be run for every wildcard in the list. For example ``[\"Glioma*.MRscan.npy\", \"STS*.CTscan.npy\"]``",
         "type": "List[str]"
     }
 
@@ -52,8 +52,8 @@ dictionary as follows:
         "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "wildcards_window",
         "description": "List of wild cards for intensities window checks (Read about wildcards
-             `here <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`__), 
-             checks will be done for every wildcard in the list. For example ``[\"Glioma*.MRscan.npy\", \"STS*.CTscan.npy\"]``",
+             `here <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`__). 
+             Checks will be run for every wildcard in the list. For example ``[\"Glioma*.MRscan.npy\", \"STS*.CTscan.npy\"]``",
         "type": "List[str]"
     }
 
