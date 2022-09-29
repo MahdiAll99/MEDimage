@@ -38,7 +38,7 @@ Python 3.8.0
 
 ## Linux users
 
-To installing Python on Linux we will only need *apt*command, so make sure to run all the commands as root or as user with sudo access.
+To install Python on Linux we will only need *apt*command, so make sure to run all the commands as root or as user with sudo access.
 
 First, we update the packages list and install the prerequisites using these commands
 ```
