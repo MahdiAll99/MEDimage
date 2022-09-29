@@ -2,15 +2,18 @@ CSV File
 ========
 
 In ``MEDimage`` every dataset must have a csv file along with it, this file contains information 
-about the scans in the dataset that will be used in the radiomics analysis, especially ROI names used
-each scan. Since scans can have multiple ROIs, the user need to specify for each scan tha ROI name(s) to use
+about the scans in the dataset that will be used in the radiomics analysis, especially region of interest (ROI) names used in
+each scan. Since scans can have multiple regions of interest (ROIs), the user needs to specify for each scan the ROI name(s) to use
 for the processing and radiomics extraction. The csv files are also used by the ``DataManager`` in pre-checks and
 summary creation (after raw data processing). The different columns of the file are:
 
 - **PatientID**: The scan patient ID, for example:  ``"Glioma-TCGA-001"``.
-- **ImagingScanName**: Type of the imaging modality, usually ``"CT"`` for CT scans, ``"CT"`` for PET scans and MRI sequence for MR scans (``"T1"``, ``"T2"``...).
+- **ImagingScanName**: Type of the imaging modality, usually ``"CT"`` for CT scans, ``"PT"`` for PET scans and MRI sequence for MR scans 
+  (``"T1"``, ``"T2"``...).
 - **ImagingModality**: Imaging modality (``"CTscan"``, ``"MRscan"`` or ``"PTscan"``).
-- **ROIname**: ROI name for the analysis. Either addition or subtraction of ROIs or just a single ROI. Every ROI is put between brackets then added or subtracted to other ROIs. For example: ``"{swelling}+{edema}"``.
+- **ROIname**: ROI name for the analysis. Either addition or subtraction of multiple ROI names or a single ROI name. Every ROI name is put 
+  between brackets then added or subtracted to other ROI names. For example: ``"{swelling}+{edema}"``, which means both ROIs ``"swelling"`` and 
+  ``"edema"`` will be added-up and used in the analysis.
 
 .. note::
     The csv files must respect the following naming norm:

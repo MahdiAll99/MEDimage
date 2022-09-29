@@ -3,13 +3,13 @@ Instructions
 
 Download dataset
 ----------------
-    In all the tutorials, an open-access dataset will be used. It consists of medical images for different type of cancers (Glioma, sarcoma...)
+    In all the tutorials, an open-access dataset will be used. It consists of medical images for different types of cancer (Glioma, sarcoma...)
     and with different imaging modalities (MR, CT and PET). This dataset has been pre-processed in order to be compliant with the package norms.
 
     A script is made available to download the dataset (~3.2 GB) and organize it in your local workspace, just run the following command in your terminal
     from the  package parent folder ::
     
-       python scripts/download_data.py
+       python scripts/download_data.py --full-sts
     
     .. note::
         Since the dataset is large, there are available options to download only a subset of the data. For more information, run the following command in your terminal ::
@@ -30,7 +30,7 @@ CSV file
 Configuration file
 ------------------
 
-    In order to use ``MEDimage``, you will always need a configuration file, you can find examples of these files in the GitHub repository
+    In order to use ``MEDimage``, you will always need a configuration file, you can find an example of this file in the GitHub repository
     (``MEDimage/notebooks/tutorial/settings/MEDimage-Tutorial.json``) and the documentation is available in :doc:`../configuration_file`.
     And for each case, we will use a different JSON configuration file. For example every `IBSI <https://theibsi.github.io/>`__
     test requires specific JSON configuration and you can find all of them in: ``MEDimage/notebooks/ibsi/settings``.
@@ -39,7 +39,7 @@ DataManager
 ===========
 
     The ``DataManager`` plays an important role in ``MEDimage``. The class is capable of processing raw `DICOM <https://en.wikipedia.org/wiki/DICOM>`__ 
-    and `NIfTI <https://brainder.org/2012/09/23/the-nifti-file-format/>`__ and converting in into ``MEDimage`` class objects. This class also offers
+    and `NIfTI <https://brainder.org/2012/09/23/the-nifti-file-format/>`__ and converting them in into ``MEDimage`` class objects. This class also offers
     a pre-radiomics analysis which consists of finding the best intensity ranges and best voxel dimension rescaling parameters 
     for a given dataset and its :doc:`../csv_file`, since these options impacts the radiomics analysis. For example, this 
     `article <https://doi.org/10.1016/j.ejmp.2021.07.023>`__ investigates how intensities window can impact the radiomic features stability for CT data.
