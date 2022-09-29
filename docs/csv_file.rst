@@ -12,8 +12,12 @@ summary creation (after raw data processing). The different columns of the file 
   (``"T1"``, ``"T2"``...).
 - **ImagingModality**: Imaging modality (``"CTscan"``, ``"MRscan"`` or ``"PTscan"``).
 - **ROIname**: ROI name for the analysis. Either addition or subtraction of multiple ROI names or a single ROI name. Every ROI name is put 
-  between brackets then added or subtracted to other ROI names. For example: ``"{swelling}+{edema}"``, which means both ROIs ``"swelling"`` and 
-  ``"edema"`` will be added-up and used in the analysis.
+  between brackets then added or subtracted to other ROI names. For example: ``"{GTV_Edema}-{GTV_Mass}"``, which means ``"GTV_Mass"`` will be subtracted
+  from ``"GTV_Edema"`` in the analysis. The following picture shows the result of this subtraction:
+
+.. image:: /figures/RoiNamesExample.png
+    :width: 800
+    :align: center
 
 .. note::
     The csv files must respect the following naming norm:
