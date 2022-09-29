@@ -588,8 +588,9 @@ class DataManager(object):
                 if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
                     self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
             else:
-                logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
-                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
+                if self.save:
+                    logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                        "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
         print('DONE')
         return self.instances
 
