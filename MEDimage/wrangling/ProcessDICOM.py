@@ -475,7 +475,7 @@ class ProcessDICOM():
                     contour_num += 1
 
             # Save additional scan information in the MEDimage class
-            MEDimg.scan.patientPosition = dicom_h[0].PatientPosition
+            MEDimg.scan.set_patient_position(patient_position=dicom_h[0].PatientPosition)
             MEDimg.patientID = str(dicom_h[0].PatientID)
             MEDimg.format = "dicom"
             if 'SeriesDescription' in dicom_h[0]:

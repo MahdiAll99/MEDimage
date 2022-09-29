@@ -542,7 +542,7 @@ class DataManager(object):
             MEDimg.series_description = file.name[file.name.find('__') + 2: file.name.find('(')]
             MEDimg.format = "nifti"
             MEDimg.scan.set_orientation(orientation="Axial")
-            MEDimg.scan.set_patientPosition(patientPosition="HFS")
+            MEDimg.scan.set_patient_position(patient_position="HFS")
             MEDimg.scan.volume.data = nib.load(file).get_fdata()
             # RAS to LPS
             MEDimg.scan.volume.convert_to_LPS()

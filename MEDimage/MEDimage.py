@@ -489,7 +489,7 @@ class MEDimage(object):
         self.type = os.path.basename(nifti_image_path).split(".")[-3]
         self.format = "nifti"
         self.scan.set_orientation(orientation="Axial")
-        self.scan.set_patientPosition(patientPosition="HFS")
+        self.scan.set_patient_position(patient_position="HFS")
         self.scan.ROI.get_roi_from_path(roi_path=os.path.dirname(nifti_image_path), 
                                         id=Path(nifti_image_path).name.split("(")[0])
         self.scan.volume.data = nib.load(nifti_image_path).get_fdata()
@@ -1080,16 +1080,16 @@ class MEDimage(object):
             volume (object): Instance of MEDimage.scan.volume inner class.
             ROI (object): Instance of MEDimage.scan.ROI inner class.
             orientation (str): Imaging data orientation (axial, sagittal or coronal).
-            patientPosition (str): Patient position specifies the position of the 
+            patient_position (str): Patient position specifies the position of the 
                 patient relative to the imaging equipment space (HFS, HFP...).
 
         """
-        def __init__(self, orientation: str=None, patientPosition: str=None) -> None:
+        def __init__(self, orientation: str=None, patient_position: str=None) -> None:
             """Constructor of the scan class
 
             Args:
                 orientation (str, optional): Imaging data orientation (axial, sagittal or coronal).
-                patientPosition (str, optional): Patient position specifies the position of the 
+                patient_position (str, optional): Patient position specifies the position of the 
                     patient relative to the imaging equipment space (HFS, HFP...).
             
             Returns:
@@ -1099,10 +1099,10 @@ class MEDimage(object):
             self.volume_process = self.volume_process()
             self.ROI = self.ROI()
             self.orientation = orientation
-            self.patientPosition = patientPosition
+            self.patient_position = patient_position
 
-        def set_patientPosition(self, patientPosition):
-            self.patientPosition = patientPosition
+        def set_patient_position(self, patient_position):
+            self.patient_position = patient_position
 
         def set_orientation(self, orientation):
             self.orientation = orientation
