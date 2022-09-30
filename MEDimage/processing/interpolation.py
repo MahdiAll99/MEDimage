@@ -49,7 +49,7 @@ def interp_volume(
                             number of voxels to add.
                           - Ex: '2box': Computes the smallest box and outputs double its \
                             size. The number before 'box' defines the multiplication in size.
-        texture (bool): If True, the texture voxel spacing will be used for interpolation.
+        texture (bool): If True, the texture voxel spacing of ``MEDimage`` will be used for interpolation.
     
     Returns:
         ndarray: 3D array of 1's and 0's defining the ROI mask.
