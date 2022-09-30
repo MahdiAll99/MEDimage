@@ -16,6 +16,7 @@
   * [1. Introduction](#1-introduction)
   * [2. Installation](#2-installation)
   * [3. Generating the documentation locally](#3-generating-the-documentation-locally)
+  * [4. A simple example](#4-a-simple-example)
   * [5. Tutorials](#5-tutorials)
   * [6. IBSI Standardization](#6-ibsi-standardization)
     * [IBSI Chapter 1](#ibsi-chapter-1)
@@ -152,6 +153,7 @@ jupyter notebook
 MEDimage is an open source package developed at the [MEDomics-Udes](https://www.medomics-udes.org/en/) laboratory with the collaboration of the international consortium [MEDomics](https://www.medomics.ai/). We welcome any contribution and feedback. Furthermore, we wish that this package could serve the growing radiomics research community by providing a flexible as well as [IBSI](https://theibsi.github.io/) standardized tool to reimplement existing methods and develop their own new methods.
 
 ## 8. Authors
+* [MEDomics-Udes](https://www.medomics-udes.org/en/): Research laboratory at Université de Sherbrooke.
 * [MEDomics](https://github.com/medomics/): MEDomics consortium.
 
 ## 9. Statement
