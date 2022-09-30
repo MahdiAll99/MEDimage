@@ -298,6 +298,7 @@ class DataManager(object):
         print('--> Reading all DICOM objects to create MEDimage classes')
         self.__read_all_dicoms()
 
+        print('--> Processing DICOMs and creating MEDimage objects')
         n_scans = len(self.__dicom.cell_path_images)
         if self.n_batch is None:
             n_batch = 1
@@ -339,8 +340,9 @@ class DataManager(object):
                 if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
                     self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
             else:
-                logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
-                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
+                if self.save:
+                    logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                        "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
 
         nb_job_left = n_scans - n_batch
 
@@ -393,8 +395,9 @@ class DataManager(object):
                     if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
                         self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
                 else:
-                    logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
-                        "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
+                    if self.save:
+                        logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                            "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
 
             # Get MEDimage instances
             if self.keep_instances:
