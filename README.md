@@ -16,13 +16,13 @@
   * [1. Introduction](#1-introduction)
   * [2. Installation](#2-installation)
   * [3. Generating the documentation locally](#3-generating-the-documentation-locally)
-  * [4. Tutorials](#4-tutorials)
-  * [5. IBSI Standardization](#5-ibsi-standardization)
+  * [5. Tutorials](#5-tutorials)
+  * [6. IBSI Standardization](#6-ibsi-standardization)
     * [IBSI Chapter 1](#ibsi-chapter-1)
     * [IBSI Chapter 2 (In progress)](#ibsi-chapter-2-in-progress)
-  * [6. Acknowledgement](#6-acknowledgement)
-  * [7. Authors](#7-authors)
-  * [8. Statement](#8-statement)
+  * [7. Acknowledgement](#7-acknowledgement)
+  * [8. Authors](#8-authors)
+  * [9. Statement](#9-statement)
 
 ## 1. Introduction
 This is an open-source python package for processing and features extracting from multi-modal (MRI, CT and PET) medical images. It facilitates the medical-images processing and the computation of all types of radiomic features as well as the reproducibility of the different analysis. This package has been standardized with the [IBSI](https://theibsi.github.io/) norms.
@@ -60,11 +60,49 @@ cd _build/html
 python -m http.server
 ```
 
-## 4. Tutorials
+## 4. A simple example
+```python
+import os
+import pickle
+
+import MEDimage
+
+# Load the DataManager
+dm = MEDimage.DataManager(path_dicoms=os.getcwd())
+
+# Process the DICOM files and retrieve the MEDimage object
+med_obj = dm.process_dicoms()
+
+# Extract ROI mask from the object
+vol_obj_init, roi_obj_init = MEDimage.processing.get_roi_from_indexes(
+            med_obj,
+            name_roi='{ED}+{ET}+{NET}',
+            box_string='full')
+
+# Extract features from the imaging data
+local_intensity = MEDimage.biomarkers.local_intensity.extract_all(
+                img_obj=vol_obj_init.data,
+                roi_obj=roi_obj_init.data,
+                res=[1, 1, 1]
+            )
+
+# Update radiomics results class
+med_obj.update_radiomics(loc_int_features=local_intensity)
+
+# Saving radiomics results
+med_obj.save_radiomics(
+                scan_file_name='STS-UdS-001__T1.MRscan.npy',
+                path_save=os.getcwd(),
+                roi_type='GrossTumorVolume',
+                roi_type_label='GTV',
+            )
+```
+
+## 5. Tutorials
 
 We have created many [tutorial notebooks](https://github.com/MahdiAll99/MEDimage/tree/main/notebooks) to assist you in learning how to use the different parts of the package. More details can be found in the [documentation](https://medimage.readthedocs.io/en/latest/tutorials.html).
 
-## 5. IBSI Standardization
+## 6. IBSI Standardization
 The image biomarker standardization initiative ([IBSI](https://theibsi.github.io)) is an independent international collaboration that aims to standardize the extraction of image biomarkers from acquired imaging. The IBSI therefore seeks to provide image biomarker nomenclature and definitions, benchmark datasets, and benchmark values to verify image processing and image biomarker calculations, as well as reporting guidelines, for high-throughput image analysis. We participate in this collaboration with our package to make sure it respects the international nomenclatures and definitions. The participation was separated to two chapters:
 
   - ### IBSI Chapter 1
@@ -110,13 +148,13 @@ Finally, launch jupyter notebook to navigate through the IBSI notebooks using:
 jupyter notebook
 ```
 
-## 6. Acknowledgement
+## 7. Acknowledgement
 MEDimage is an open source package developed at the [MEDomics-Udes](https://www.medomics-udes.org/en/) laboratory with the collaboration of the international consortium [MEDomics](https://www.medomics.ai/). We welcome any contribution and feedback. Furthermore, we wish that this package could serve the growing radiomics research community by providing a flexible as well as [IBSI](https://theibsi.github.io/) standardized tool to reimplement existing methods and develop their own new methods.
 
-## 7. Authors
+## 8. Authors
 * [MEDomics](https://github.com/medomics/): MEDomics consortium.
 
-## 8. Statement
+## 9. Statement
 
 This package is part of https://github.com/medomics, a package providing research utility tools for developing precision medicine applications.
 
