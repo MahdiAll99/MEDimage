@@ -2,7 +2,6 @@ import logging
 import os
 from json import dump
 from pathlib import Path
-from pickle import FALSE
 from typing import Dict, List, Union
 
 import matplotlib.pyplot as plt
