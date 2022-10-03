@@ -72,7 +72,7 @@ import MEDimage
 dm = MEDimage.DataManager(path_dicoms=os.getcwd())
 
 # Process the DICOM files and retrieve the MEDimage object
-med_obj = dm.process_dicoms()
+med_obj = dm.process_all_dicoms()[0]
 
 # Extract ROI mask from the object
 vol_obj_init, roi_obj_init = MEDimage.processing.get_roi_from_indexes(
