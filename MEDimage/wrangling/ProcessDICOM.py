@@ -339,7 +339,7 @@ class ProcessDICOM():
 
         try:
             # Determination of the scan orientation
-            medscan.scan.orientation = self.__get_dicom_scan_orientation(dicom_hi)
+            medscan.data.orientation = self.__get_dicom_scan_orientation(dicom_hi)
 
             # IMPORTANT NOTE: extract_voxel_data using combine_slices from dicom_numpy
             # missing slices and oblique restrictions apply see the reference:
@@ -352,9 +352,9 @@ class ProcessDICOM():
             # Alignment of scan coordinates for MR scans
             # (inverse of ImageOrientationPatient rotation matrix)
             if not np.allclose(rotation_m, np.eye(rotation_m.shape[0])):
-                medscan.scan.volume.scan_rot = rotation_m
+                medscan.data.volume.scan_rot = rotation_m
 
-            medscan.scan.volume.data = voxel_ndarray
+            medscan.data.volume.array = voxel_ndarray
             medscan.type = dicom_hi[0].Modality + 'scan'
 
             # 7. Creation of imref3d object
@@ -384,7 +384,7 @@ class ProcessDICOM():
             spatial_ref.ZIntrinsicLimits = spatial_ref.ZIntrinsicLimits.tolist()
 
             # Update the spatial reference in the MEDscan class
-            medscan.scan.volume.spatialRef = spatial_ref
+            medscan.data.volume.spatialRef = spatial_ref
             
             # DICOM HEADERS OF IMAGING DATA
             dicom_h = [
@@ -424,13 +424,13 @@ class ProcessDICOM():
                             name_set_info = name_field
                             break
 
-                    medscan.scan.ROI.update_roi_name(key=contour_num,
+                    medscan.data.ROI.update_roi_name(key=contour_num,
                                                     roi_name=dicom_rs_full[rs].StructureSetROISequence[roi].ROIName)
-                    medscan.scan.ROI.update_indexes(key=contour_num,
+                    medscan.data.ROI.update_indexes(key=contour_num,
                                                     indexes=None)
-                    medscan.scan.ROI.update_name_set(key=contour_num,
+                    medscan.data.ROI.update_name_set(key=contour_num,
                                                     name_set=name_set)
-                    medscan.scan.ROI.update_name_set_info(key=contour_num,
+                    medscan.data.ROI.update_name_set_info(key=contour_num,
                                                     nameSetInfo=name_set_info)
                     
                     try:
@@ -452,7 +452,7 @@ class ProcessDICOM():
                                             axis=0
                                             )
                         # Save the XYZ points in the MEDscan class
-                        medscan.scan.ROI.update_indexes(
+                        medscan.data.ROI.update_indexes(
                                                     key=contour_num, 
                                                     indexes=np.concatenate(
                                                             (points, 
@@ -467,15 +467,15 @@ class ProcessDICOM():
                                         )
 
                         # Save the ROI box non-zero indexes in the MEDscan class
-                        medscan.scan.ROI.update_indexes(key=contour_num, indexes=np.nonzero(roi_obj.data.flatten()))
+                        medscan.data.ROI.update_indexes(key=contour_num, indexes=np.nonzero(roi_obj.data.flatten()))
 
                     except Exception as e:
                         print('patientID: ' + dicom_hi[0].PatientID + ' error: ' + str(e) + ' n_roi: ' + str(roi) + ' n_rs:' + str(rs))
-                        medscan.scan.ROI.update_indexes(key=contour_num, indexes=np.NaN)
+                        medscan.data.ROI.update_indexes(key=contour_num, indexes=np.NaN)
                     contour_num += 1
 
             # Save additional scan information in the MEDscan class
-            medscan.scan.set_patient_position(patient_position=dicom_h[0].PatientPosition)
+            medscan.data.set_patient_position(patient_position=dicom_h[0].PatientPosition)
             medscan.patientID = str(dicom_h[0].PatientID)
             medscan.format = "dicom"
             if 'SeriesDescription' in dicom_h[0]:

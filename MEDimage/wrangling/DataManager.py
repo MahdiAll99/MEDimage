@@ -249,8 +249,6 @@ class DataManager(object):
             if pydicom.misc.is_dicom(file):
                 try:
                     info = pydicom.dcmread(str(file))
-                    if info.PatientID != 'Glioma-TCGA-02-0003':
-                        continue
                     if info.Modality in ['MR', 'PT', 'CT']:
                         ind_series_id = self.__find_uid_cell_index(
                                                         info.SeriesInstanceUID, 
@@ -462,12 +460,12 @@ class DataManager(object):
             # Load the patient's ROI nifti files:
             if file.name.startswith(_id) and 'ROI' in file.name.split("."):
                 roi = nib.load(file)
-                roi_data = medscan.scan.ROI.convert_to_LPS(data=roi.get_fdata())
+                roi_data = medscan.data.ROI.convert_to_LPS(data=roi.get_fdata())
                 roi_name = file.name[file.name.find("(") + 1 : file.name.find(")")]
                 name_set = file.name[file.name.find("_") + 2 : file.name.find("(")]
-                medscan.scan.ROI.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
-                medscan.scan.ROI.update_name_set(key=roi_index, name_set=name_set)
-                medscan.scan.ROI.update_roi_name(key=roi_index, roi_name=roi_name)
+                medscan.data.ROI.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
+                medscan.data.ROI.update_name_set(key=roi_index, name_set=name_set)
+                medscan.data.ROI.update_roi_name(key=roi_index, roi_name=roi_name)
                 roi_index += 1
         return medscan
 
@@ -483,7 +481,7 @@ class DataManager(object):
         """
         # Loading the nifti file :
         nifti = nib.load(nifti_file)
-        nifti_data = medscan.scan.volume.data
+        nifti_data = medscan.data.volume.array
 
         # spatialRef Creation
         pixel_x = abs(nifti.affine[0, 0])
@@ -515,7 +513,7 @@ class DataManager(object):
         spatialRef.ZIntrinsicLimits = spatialRef.ZIntrinsicLimits.tolist()
 
         # update spatialRef in the volume sub-class
-        medscan.scan.volume.update_spatialRef(spatialRef)
+        medscan.data.volume.update_spatialRef(spatialRef)
 
         return medscan
 
@@ -546,12 +544,12 @@ class DataManager(object):
             medscan.type = os.path.basename(file).split(".")[-3]
             medscan.series_description = file.name[file.name.find('__') + 2: file.name.find('(')]
             medscan.format = "nifti"
-            medscan.scan.set_orientation(orientation="Axial")
-            medscan.scan.set_patient_position(patient_position="HFS")
-            medscan.scan.volume.data = nib.load(file).get_fdata()
+            medscan.data.set_orientation(orientation="Axial")
+            medscan.data.set_patient_position(patient_position="HFS")
+            medscan.data.volume.array = nib.load(file).get_fdata()
             # RAS to LPS
-            medscan.scan.volume.convert_to_LPS()
-            medscan.scan.volume.scan_rot = None
+            medscan.data.volume.convert_to_LPS()
+            medscan.data.volume.scan_rot = None
             # UPDATE spatialRef
             self.__associate_spatialRef(file, medscan)
             # GET ROI
@@ -769,8 +767,8 @@ class DataManager(object):
                     try:
                         medscan = self.instances[i]
                         if medscan.patientID.split('-')[0] == study and medscan.type == scan_type:
-                            xy_dim["data"][i] = medscan.scan.volume.spatialRef.PixelExtentInWorldX
-                            z_dim["data"][i]  = medscan.scan.volume.spatialRef.PixelExtentInWorldZ
+                            xy_dim["data"][i] = medscan.data.volume.spatialRef.PixelExtentInWorldX
+                            z_dim["data"][i]  = medscan.data.volume.spatialRef.PixelExtentInWorldZ
                         else:
                             continue
                     except Exception as e:
@@ -790,8 +788,8 @@ class DataManager(object):
                 for f in tqdm(range(len(file_paths))):
                     try:
                         medscan = np.load(file_paths[0], allow_pickle=True)
-                        xy_dim["data"][f] = medscan.scan.volume.spatialRef.PixelExtentInWorldX
-                        z_dim["data"][f]  = medscan.scan.volume.spatialRef.PixelExtentInWorldZ
+                        xy_dim["data"][f] = medscan.data.volume.spatialRef.PixelExtentInWorldX
+                        z_dim["data"][f]  = medscan.data.volume.spatialRef.PixelExtentInWorldZ
                     except Exception as e:
                         print(e)
 
@@ -923,8 +921,8 @@ class DataManager(object):
                     try:
                         medscan = np.load(file, allow_pickle=True)
                         if re.search('PTscan', wildcard) and medscan.type != 'nifti':
-                            medscan.scan.volume.data = compute_suv_map(
-                                                        np.double(medscan.scan.volume.data), 
+                            medscan.data.volume.array = compute_suv_map(
+                                                        np.double(medscan.data.volume.array), 
                                                         medscan.dicomH[2])
                         patient_names = pd.Index(patient_names)
                         ind_roi = patient_names.get_loc(patient_name)
@@ -945,7 +943,7 @@ class DataManager(object):
                     if medscan.patientID.split('-')[0] == study and medscan.type == scan_type:
                         try:
                             if re.search('PTscan', wildcard) and medscan.type != 'nifti':
-                                medscan.scan.volume.data = compute_suv_map(np.double(medscan.scan.volume.data), 
+                                medscan.data.volume.array = compute_suv_map(np.double(medscan.data.volume.array), 
                                                                             medscan.dicomH[2])
                             patient_names = pd.Index(patient_names)
                             ind_roi = patient_names.get_loc(patient_name)
@@ -1298,12 +1296,12 @@ class DataManager(object):
                         print(f'Cannot read number averages of: {file}. Error: {e}', file = warn_file)
                     # Recording xy spacing
                     try:
-                        param.xyDim.data[f] = medscan.scan.volume.spatialRef.PixelExtentInWorldX
+                        param.xyDim.data[f] = medscan.data.volume.spatialRef.PixelExtentInWorldX
                     except Exception as e:
                         print(f'Cannot read x spacing of: {file}. Error: {e}', file = warn_file)
                     # Recording z spacing
                     try:
-                        param.zDim.data[f] = medscan.scan.volume.spatialRef.PixelExtentInWorldZ
+                        param.zDim.data[f] = medscan.data.volume.spatialRef.PixelExtentInWorldZ
                     except Exception as e:
                         print(f'Cannot read z spacing of: {file}', file = warn_file)
                 except Exception as e:
@@ -1528,12 +1526,12 @@ class DataManager(object):
                         print(f'Cannot read Kernel of: {file}. Error: {e}', file=warn_file)
                         # Recording xy spacing
                     try:
-                        param.xyDim.data[f] = medscan.scan.volume.spatialRef.PixelExtentInWorldX
+                        param.xyDim.data[f] = medscan.data.volume.spatialRef.PixelExtentInWorldX
                     except Exception as e:
                         print(f'Cannot read x spacing of: {file}. Error: {e}', file=warn_file)
                         # Recording z spacing
                     try:
-                        param.zDim.data[f] = medscan.scan.volume.spatialRef.PixelExtentInWorldZ
+                        param.zDim.data[f] = medscan.data.volume.spatialRef.PixelExtentInWorldZ
                     except Exception as e:
                         print(f'Cannot read z spacing of: {file}. Error: {e}', file=warn_file)
                 except Exception as e:

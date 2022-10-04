@@ -23,7 +23,7 @@ class MEDscan(object):
         type (str): Scan type (MRscan, CTscan...).
         format (str): Scan file format. Either 'npy' or 'nifti'.
         dicomH (pydicom.dataset.FileDataset): DICOM header.
-        scan (MEDscan.scan): Instance of MEDscan.scan inner class.
+        data (MEDscan.data): Instance of MEDscan.data inner class.
 
     """
 
@@ -57,9 +57,9 @@ class MEDscan(object):
         except:
             self.dicomH = []
         try:
-            self.scan = medscan.scan
+            self.data = medscan.data
         except:
-            self.scan = self.scan()
+            self.data = self.data()
         try:
             self.params = medscan.params
         except:
@@ -265,7 +265,7 @@ class MEDscan(object):
             if self.type == 'PTscan' and _compute_suv_map and self.format != 'nifti':
                 try:
                     from .processing.compute_suv_map import compute_suv_map
-                    self.scan.volume.data = compute_suv_map(self.scan.volume.data, self.dicomH[0])
+                    self.data.volume.array = compute_suv_map(self.data.volume.array, self.dicomH[0])
                 except Exception as e :
                     message = f"\n ERROR COMPUTING SUV MAP - SOME FEATURES WILL BE INVALID: \n {e}"
                     logging.error(message)
@@ -485,14 +485,14 @@ class MEDscan(object):
         self.patientID = os.path.basename(nifti_image_path).split("_")[0]
         self.type = os.path.basename(nifti_image_path).split(".")[-3]
         self.format = "nifti"
-        self.scan.set_orientation(orientation="Axial")
-        self.scan.set_patient_position(patient_position="HFS")
-        self.scan.ROI.get_roi_from_path(roi_path=os.path.dirname(nifti_image_path), 
+        self.data.set_orientation(orientation="Axial")
+        self.data.set_patient_position(patient_position="HFS")
+        self.data.ROI.get_roi_from_path(roi_path=os.path.dirname(nifti_image_path), 
                                         id=Path(nifti_image_path).name.split("(")[0])
-        self.scan.volume.data = nib.load(nifti_image_path).get_fdata()
+        self.data.volume.array = nib.load(nifti_image_path).get_fdata()
         # RAS to LPS
-        self.scan.volume.convert_to_LPS()
-        self.scan.volume.scan_rot = None
+        self.data.volume.convert_to_LPS()
+        self.data.volume.scan_rot = None
     
     def update_radiomics(
                         self, int_vol_hist_features: Dict = {}, 
@@ -591,9 +591,9 @@ class MEDscan(object):
         params['roi_type'] = roi_type
         params['patientID'] = self.patientID
         params['vox_dim'] = list([
-                                self.scan.volume.spatialRef.PixelExtentInWorldX, 
-                                self.scan.volume.spatialRef.PixelExtentInWorldY,
-                                self.scan.volume.spatialRef.PixelExtentInWorldZ
+                                self.data.volume.spatialRef.PixelExtentInWorldX, 
+                                self.data.volume.spatialRef.PixelExtentInWorldY,
+                                self.data.volume.spatialRef.PixelExtentInWorldZ
                                 ])
         self.radiomics.update_params(params)
         if type(scan_file_name) is str:
@@ -1070,12 +1070,12 @@ class MEDscan(object):
             return radiomics
 
 
-    class scan:
+    class data:
         """Organizes all imaging data (volume and ROI). 
 
         Attributes:
-            volume (object): Instance of MEDscan.scan.volume inner class.
-            ROI (object): Instance of MEDscan.scan.ROI inner class.
+            volume (object): Instance of MEDscan.data.volume inner class.
+            ROI (object): Instance of MEDscan.data.ROI inner class.
             orientation (str): Imaging data orientation (axial, sagittal or coronal).
             patient_position (str): Patient position specifies the position of the 
                 patient relative to the imaging equipment space (HFS, HFP...).
@@ -1121,9 +1121,9 @@ class MEDscan(object):
                 ndarray: n-dimensional array of ROI data.
             
             """
-            roi_volume = np.zeros_like(self.volume.data).flatten()
+            roi_volume = np.zeros_like(self.volume.array).flatten()
             roi_volume[self.ROI.get_indexes(key)] = 1
-            return roi_volume.reshape(self.volume.data.shape)
+            return roi_volume.reshape(self.volume.array.shape)
 
         def get_indexes_by_roi_name(self, roi_name : str) -> np.ndarray:
             """
@@ -1137,9 +1137,9 @@ class MEDscan(object):
             
             """
             roi_name_key = list(self.ROI.roi_names.values()).index(roi_name)
-            roi_volume = np.zeros_like(self.volume.data).flatten()
+            roi_volume = np.zeros_like(self.volume.array).flatten()
             roi_volume[self.ROI.get_indexes(roi_name_key)] = 1
-            return roi_volume.reshape(self.volume.data.shape)
+            return roi_volume.reshape(self.volume.array.shape)
 
         def display(self, _slice: int = None, roi: Union[str, int] = 0) -> None:
             """Displays slices from imaging data with the ROI contour in XY-Plane.
@@ -1153,7 +1153,7 @@ class MEDscan(object):
             
             """
             # extract slices containing ROI
-            size_m = self.volume.data.shape
+            size_m = self.volume.array.shape
             i = np.arange(0, size_m[0])
             j = np.arange(0, size_m[1])
             k = np.arange(0, size_m[2])
@@ -1164,7 +1164,7 @@ class MEDscan(object):
             K = K[ind_mask]
             slices = np.unique(K)
 
-            vol_data = self.volume.data.swapaxes(0, 1)[:, :, slices]
+            vol_data = self.volume.array.swapaxes(0, 1)[:, :, slices]
             roi_data = self.get_roi_from_indexes(roi).swapaxes(0, 1)[:, :, slices]        
             
             rows = int(np.round(np.sqrt(len(slices))))
@@ -1229,7 +1229,7 @@ class MEDscan(object):
             
             """
             # extract slices containing ROI
-            size_m = self.volume_process.data.shape
+            size_m = self.volume_process.array.shape
             i = np.arange(0, size_m[0])
             j = np.arange(0, size_m[1])
             k = np.arange(0, size_m[2])
@@ -1240,7 +1240,7 @@ class MEDscan(object):
             K = K[ind_mask]
             slices = np.unique(K)
 
-            vol_data = self.volume_process.data.swapaxes(0, 1)[:, :, slices]
+            vol_data = self.volume_process.array.swapaxes(0, 1)[:, :, slices]
             roi_data = self.get_roi_from_indexes(roi).swapaxes(0, 1)[:, :, slices]        
             
             rows = int(np.round(np.sqrt(len(slices))))
@@ -1300,21 +1300,21 @@ class MEDscan(object):
             Attributes:
                 spatialRef (imref3d): Imaging data orientation (axial, sagittal or coronal).
                 scan_rot (ndarray): Array of the rotation applied to the XYZ points of the ROI.
-                data (ndarray): n-dimensional of the imaging data.
+                array (ndarray): n-dimensional of the imaging data.
 
             """
-            def __init__(self, spatialRef: imref3d=None, scan_rot: str=None, data: np.ndarray=None) -> None:
+            def __init__(self, spatialRef: imref3d=None, scan_rot: str=None, array: np.ndarray=None) -> None:
                 """Organizes all volume data and information. 
 
                 Args:
                     spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                     scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
-                    data (ndarray, optional): n-dimensional of the imaging data.
+                    array (ndarray, optional): n-dimensional of the imaging data.
 
                 """
                 self.spatialRef = spatialRef
                 self.scan_rot = scan_rot
-                self.data = data
+                self.array = array
 
             def update_spatialRef(self, spatialRef_value):
                 self.spatialRef = spatialRef_value
@@ -1325,8 +1325,8 @@ class MEDscan(object):
             def update_transScanToModel(self, transScanToModel_value):
                 self.transScanToModel = transScanToModel_value
             
-            def update_data(self, data_value):
-                self.data = data_value
+            def update_array(self, array):
+                self.array = array
 
             def convert_to_LPS(self):
                 """Convert Imaging data to LPS (Left-Posterior-Superior) coordinates system.
@@ -1337,9 +1337,9 @@ class MEDscan(object):
 
                 """
                 # flip x
-                self.data = np.flip(self.data, 0)
+                self.array = np.flip(self.array, 0)
                 # flip y
-                self.data = np.flip(self.data, 1)
+                self.array = np.flip(self.array, 1)
             
             def spatialRef_from_nifti(self, nifti_image_path: Union[Path, str]) -> None:
                 """Computes the imref3d spatialRef using a NIFTI file and
@@ -1355,7 +1355,7 @@ class MEDscan(object):
                 # Loading the nifti file:
                 nifti_image_path = Path(nifti_image_path)
                 nifti = nib.load(nifti_image_path)
-                nifti_data = self.data
+                nifti_data = self.array
 
                 # spatialRef Creation
                 pixelX = nifti.affine[0, 0]
@@ -1428,29 +1428,29 @@ class MEDscan(object):
 
             """
             def __init__(self, spatialRef: imref3d = None, 
-                        scan_rot: List = None, data: np.ndarray = None,
+                        scan_rot: List = None, array: np.ndarray = None,
                         user_string: str = "") -> None:
                 """Organizes all volume data and information. 
 
                 Args:
                     spatialRef (imref3d, optional): Imaging data orientation (axial, sagittal or coronal).
                     scan_rot (ndarray, optional): Array of the rotation applied to the XYZ points of the ROI.
-                    data (ndarray, optional): n-dimensional of the imaging data.
+                    array (ndarray, optional): n-dimensional of the imaging data.
                     user_string(str, optional): string explaining the processed data in the class.
                 
                 Returns:
                     None.
 
                 """
-                self.data = data
+                self.array = array
                 self.scan_rot = scan_rot
                 self.spatialRef = spatialRef
                 self.user_string = user_string
 
-            def update_processed_data(self, data: np.ndarray, user_string: str = "") -> None:
+            def update_processed_data(self, array: np.ndarray, user_string: str = "") -> None:
                 if user_string:
                     self.user_string = user_string
-                self.data = data
+                self.array = array
 
             def save(self, name_save: str, path_save: Union[Path, str])-> None:
                 """Saves the processed data locally.
@@ -1470,7 +1470,7 @@ class MEDscan(object):
                     name_save += '.npy'
 
                 with open(path_save / name_save, 'wb') as f:
-                    np.save(f, self.data)
+                    np.save(f, self.array)
 
             def load(
                     self, 
