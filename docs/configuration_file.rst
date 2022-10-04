@@ -71,7 +71,7 @@ dictionary as follows:
     {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "path_data",
-        "description": "Path to your data (``MEDimage`` class pickle objects)",
+        "description": "Path to your data (``MEDscan`` class pickle objects)",
         "type": "str"
     }
 

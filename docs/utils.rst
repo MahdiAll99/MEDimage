@@ -105,14 +105,6 @@ imref
    :undoc-members:
    :show-inheritance:
 
-initMEDimage 
-----------------------------------
-
-.. automodule:: MEDimage.utils.initMEDimage
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 initialize\_features\_names 
 -------------------------------------------------
 
@@ -161,10 +153,10 @@ parse\_contour\_string
    :undoc-members:
    :show-inheritance:
 
-save\_MEDimage 
+save\_MEDscan
 ------------------------------------
 
-.. automodule:: MEDimage.utils.save_MEDimage
+.. automodule:: MEDimage.utils.save_MEDscan
    :members:
    :undoc-members:
    :show-inheritance:

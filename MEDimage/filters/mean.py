@@ -2,7 +2,7 @@ from abc import ABC
 from typing import Union
 
 import numpy as np
-from MEDimage.MEDimage import MEDimage
+from MEDimage.MEDscan import MEDscan
 from MEDimage.utils.image_volume_obj import image_volume_obj
 
 from .utils import convolve
@@ -67,7 +67,7 @@ class Mean():
 
 def apply_mean(
             input_images: Union[np.ndarray, image_volume_obj],
-            MEDimg: MEDimage = None,
+            medscan: MEDscan = None,
             ndims: int = 3,
             size: int = 15,
             padding: str = "symmetric",
@@ -77,7 +77,7 @@ def apply_mean(
 
     Args:
         input_images (ndarray): The images to filter.
-        MEDimg (MEDimage, optional): The MEDimage object that will provide the filter parameters.
+        medscan (MEDscan, optional): The MEDscan object that will provide the filter parameters.
         ndims (int, optional): The number of dimensions of the input image.
         size (int, optional): The size of the kernel.
         padding (str, optional): The padding type that will be used to produce the convolution. 
@@ -96,15 +96,15 @@ def apply_mean(
     # Convert to shape : (B, W, H, D)
     input_images = np.expand_dims(input_images.astype(np.float64), axis=0) 
     
-    if MEDimg:
+    if medscan:
         # Initialize filter class instance
         _filter = Mean(
-                ndims=MEDimg.params.filter.mean.ndims,
-                size=MEDimg.params.filter.mean.size,
-                padding=MEDimg.params.filter.mean.padding
+                ndims=medscan.params.filter.mean.ndims,
+                size=medscan.params.filter.mean.size,
+                padding=medscan.params.filter.mean.padding
                 )
         # Run convolution
-        result = _filter.convolve(input_images, orthogonal_rot=MEDimg.params.filter.mean.orthogonal_rot)
+        result = _filter.convolve(input_images, orthogonal_rot=medscan.params.filter.mean.orthogonal_rot)
     else:
         # Initialize filter class instance
         _filter = Mean(

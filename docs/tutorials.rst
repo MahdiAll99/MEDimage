@@ -39,7 +39,7 @@ DataManager
 ===========
 
     The ``DataManager`` plays an important role in ``MEDimage``. The class is capable of processing raw `DICOM <https://en.wikipedia.org/wiki/DICOM>`__ 
-    and `NIfTI <https://brainder.org/2012/09/23/the-nifti-file-format/>`__ and converting them in into ``MEDimage`` class objects. This class also offers
+    and `NIfTI <https://brainder.org/2012/09/23/the-nifti-file-format/>`__ and converting them in into ``MEDscan`` class objects. This class also offers
     a pre-radiomics analysis which consists of finding the best intensity ranges and best voxel dimension rescaling parameters 
     for a given dataset and its :doc:`../csv_file`, since these options impacts the radiomics analysis. For example, this 
     `article <https://doi.org/10.1016/j.ejmp.2021.07.023>`__ investigates how intensities window can impact the radiomic features stability for CT data.
@@ -55,11 +55,11 @@ DataManager
     :width: 800
     :align: center
 
-MEDimage Class
+MEDscan Class
 ==============
 
-    In the ``MEDimage`` package, we also have a class named ``MEDimage`` which is a Python object that maintains data and information about the dataset, 
-    related to the scans processed from NIfTI or DICOM data. The ``MEDimage`` class is also capable of managing the parameters used in processing, 
+    In the ``MEDimage`` package, we have a class named ``MEDscan`` which is a Python object that maintains data and information about the dataset, 
+    related to the scans processed from NIfTI or DICOM data. The ``MEDscan`` class is also capable of managing the parameters used in processing, 
     filtering and extraction. It can read JSON files and update all the parameters related attributes in the class. This class offers many other 
     useful functionalities that you can find out about in the interactive Colab notebook here: |MEDimage_image_badge|
     
@@ -73,7 +73,7 @@ Single-scan demo
 
     This demo is a step by step guide to process and extract features for a single scan using ``MEDimage``. We try in this demo to cover all the possible
     use cases of the package and its subpackages from the first steps of processing until the last steps of features extraction. we process the scan,
-    initialize the ``MEDimage`` class, process the imaging data and extract features. So this demo is perfect to learn how to use ``MEDimage`` for single
+    initialize the ``MEDscan`` class, process the imaging data and extract features. So this demo is perfect to learn how to use ``MEDimage`` for single
     scan features extraction.
     
     The demo is an interactive Colab notebook and is directly accessible here: |Glioma_demo_image_badge|

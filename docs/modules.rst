@@ -4,7 +4,7 @@ MEDimage
 .. toctree::
    :maxdepth: 3
 
-   MEDimage
+   MEDscan
    biomarkers
    filters
    processing

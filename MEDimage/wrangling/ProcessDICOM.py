@@ -15,16 +15,16 @@ warnings.simplefilter("ignore")
 
 from pathlib import Path
 
-from MEDimage.MEDimage import MEDimage
+from MEDimage.MEDscan import MEDscan
 
 from ..processing.segmentation import get_roi
-from ..utils.save_MEDimage import save_MEDimage
+from ..utils.save_MEDscan import save_MEDscan
 
 
 class ProcessDICOM():
     """
     Class to process dicom files and extract imaging volume and 3D masks from it
-    in order to oganize the data in a MEDimage class object.
+    in order to oganize the data in a MEDscan class object.
     """
 
     def __init__(
@@ -37,8 +37,8 @@ class ProcessDICOM():
         Args:
             path_images (List[Path]): List of paths to the dicom files of a single scan.
             path_rs (List[Path]): List of paths to the RT struct dicom files for the same scan.
-            path_save (Union[str, Path]): Path to the folder where the MEDimage object will be saved.
-            save (bool): Whether to save the MEDimage object or not.
+            path_save (Union[str, Path]): Path to the folder where the MEDscan object will be saved.
+            save (bool): Whether to save the MEDscan object or not.
         
         Returns:
             None.
@@ -308,19 +308,19 @@ class ProcessDICOM():
     def process_files(self):
         """
         Reads DICOM files (imaging volume + ROIs) in the instance data path 
-        and then organizes it in the MEDimage class.
+        and then organizes it in the MEDscan class.
         
         Args:
             None.
         
         Returns:
-            MEDimg (MEDimage): Instance of a MEDimage class.
+            medscan (MEDscan): Instance of a MEDscan class.
         """
         
         return self.process_files_wrapper.remote(self)
     
     @ray.remote
-    def process_files_wrapper(self) -> MEDimage:
+    def process_files_wrapper(self) -> MEDscan:
         """
         Wrapper function to process the files.
         """
@@ -330,7 +330,7 @@ class ProcessDICOM():
             raise ValueError('At least two arguments must be provided')
 
         # INITIALIZATION
-        MEDimg = MEDimage()
+        medscan = MEDscan()
 
         # IMAGING DATA AND ROI DEFINITION (if applicable)
         # Reading DICOM images and headers
@@ -339,7 +339,7 @@ class ProcessDICOM():
 
         try:
             # Determination of the scan orientation
-            MEDimg.scan.orientation = self.__get_dicom_scan_orientation(dicom_hi)
+            medscan.scan.orientation = self.__get_dicom_scan_orientation(dicom_hi)
 
             # IMPORTANT NOTE: extract_voxel_data using combine_slices from dicom_numpy
             # missing slices and oblique restrictions apply see the reference:
@@ -352,10 +352,10 @@ class ProcessDICOM():
             # Alignment of scan coordinates for MR scans
             # (inverse of ImageOrientationPatient rotation matrix)
             if not np.allclose(rotation_m, np.eye(rotation_m.shape[0])):
-                MEDimg.scan.volume.scan_rot = rotation_m
+                medscan.scan.volume.scan_rot = rotation_m
 
-            MEDimg.scan.volume.data = voxel_ndarray
-            MEDimg.type = dicom_hi[0].Modality + 'scan'
+            medscan.scan.volume.data = voxel_ndarray
+            medscan.type = dicom_hi[0].Modality + 'scan'
 
             # 7. Creation of imref3d object
             pixel_x = scaling_m[0, 0]
@@ -383,8 +383,8 @@ class ProcessDICOM():
             spatial_ref.YIntrinsicLimits = spatial_ref.YIntrinsicLimits.tolist()
             spatial_ref.ZIntrinsicLimits = spatial_ref.ZIntrinsicLimits.tolist()
 
-            # Update the spatial reference in the MEDimage class
-            MEDimg.scan.volume.spatialRef = spatial_ref
+            # Update the spatial reference in the MEDscan class
+            medscan.scan.volume.spatialRef = spatial_ref
             
             # DICOM HEADERS OF IMAGING DATA
             dicom_h = [
@@ -392,7 +392,7 @@ class ProcessDICOM():
                 ]
             for i in range(0, len(dicom_h)):
                 dicom_h[i].remove_private_tags()
-            MEDimg.dicomH = dicom_h
+            medscan.dicomH = dicom_h
 
             # DICOM RTstruct (if applicable)
             if self.path_rs is not None and len(self.path_rs) > 0:
@@ -424,13 +424,13 @@ class ProcessDICOM():
                             name_set_info = name_field
                             break
 
-                    MEDimg.scan.ROI.update_roi_name(key=contour_num,
+                    medscan.scan.ROI.update_roi_name(key=contour_num,
                                                     roi_name=dicom_rs_full[rs].StructureSetROISequence[roi].ROIName)
-                    MEDimg.scan.ROI.update_indexes(key=contour_num,
+                    medscan.scan.ROI.update_indexes(key=contour_num,
                                                     indexes=None)
-                    MEDimg.scan.ROI.update_name_set(key=contour_num,
+                    medscan.scan.ROI.update_name_set(key=contour_num,
                                                     name_set=name_set)
-                    MEDimg.scan.ROI.update_name_set_info(key=contour_num,
+                    medscan.scan.ROI.update_name_set_info(key=contour_num,
                                                     nameSetInfo=name_set_info)
                     
                     try:
@@ -451,8 +451,8 @@ class ProcessDICOM():
                                             (points, np.reshape(np.transpose(pts_temp), (n_points, 3))),
                                             axis=0
                                             )
-                        # Save the XYZ points in the MEDimage class
-                        MEDimg.scan.ROI.update_indexes(
+                        # Save the XYZ points in the MEDscan class
+                        medscan.scan.ROI.update_indexes(
                                                     key=contour_num, 
                                                     indexes=np.concatenate(
                                                             (points, 
@@ -461,34 +461,34 @@ class ProcessDICOM():
                                                     )
                         # Compute the ROI box
                         _, roi_obj = get_roi(
-                                        MEDimg,
+                                        medscan,
                                         name_roi='{' + dicom_rs_full[rs].StructureSetROISequence[roi].ROIName + '}',
                                         box_string='full'
                                         )
 
-                        # Save the ROI box non-zero indexes in the MEDimage class
-                        MEDimg.scan.ROI.update_indexes(key=contour_num, indexes=np.nonzero(roi_obj.data.flatten()))
+                        # Save the ROI box non-zero indexes in the MEDscan class
+                        medscan.scan.ROI.update_indexes(key=contour_num, indexes=np.nonzero(roi_obj.data.flatten()))
 
                     except Exception as e:
                         print('patientID: ' + dicom_hi[0].PatientID + ' error: ' + str(e) + ' n_roi: ' + str(roi) + ' n_rs:' + str(rs))
-                        MEDimg.scan.ROI.update_indexes(key=contour_num, indexes=np.NaN)
+                        medscan.scan.ROI.update_indexes(key=contour_num, indexes=np.NaN)
                     contour_num += 1
 
-            # Save additional scan information in the MEDimage class
-            MEDimg.scan.set_patient_position(patient_position=dicom_h[0].PatientPosition)
-            MEDimg.patientID = str(dicom_h[0].PatientID)
-            MEDimg.format = "dicom"
+            # Save additional scan information in the MEDscan class
+            medscan.scan.set_patient_position(patient_position=dicom_h[0].PatientPosition)
+            medscan.patientID = str(dicom_h[0].PatientID)
+            medscan.format = "dicom"
             if 'SeriesDescription' in dicom_h[0]:
-                MEDimg.series_description = dicom_h[0].SeriesDescription
+                medscan.series_description = dicom_h[0].SeriesDescription
             else:
-                MEDimg.series_description = dicom_h[0].Modality
+                medscan.series_description = dicom_h[0].Modality
 
-            # save MEDimage class instance as a pickle object
+            # save MEDscan class instance as a pickle object
             if self.save and self.path_save:
-                save_MEDimage(MEDimg, self.path_save)
+                save_MEDscan(medscan, self.path_save)
 
         except Exception as e:
             print('patientID: ' + dicom_hi[0].PatientID + ' error: ' + str(e))
-            return MEDimg
+            return medscan
         
-        return MEDimg
+        return medscan

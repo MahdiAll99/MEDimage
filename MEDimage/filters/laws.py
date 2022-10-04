@@ -3,7 +3,7 @@ from itertools import permutations, product
 from typing import List, Union
 
 import numpy as np
-from MEDimage.MEDimage import MEDimage
+from MEDimage.MEDscan import MEDscan
 from MEDimage.utils.image_volume_obj import image_volume_obj
 from scipy.signal import fftconvolve
 
@@ -211,7 +211,7 @@ class Laws():
 
 def apply_laws(
         input_images: Union[np.ndarray, image_volume_obj],
-        MEDimg: MEDimage = None,
+        medscan: MEDscan = None,
         config: List[str] = [],
         energy_distance: int = 7,
         padding: str = "symmetric",
@@ -223,7 +223,7 @@ def apply_laws(
 
     Args:
         input_images (ndarray): The images to filter.
-        MEDimg (MEDimage, optional): The MEDimage object that will provide the filter parameters.
+        medscan (MEDscan, optional): The MEDscan object that will provide the filter parameters.
         config (List[str], optional): A string list of every 1D filter used to create the Laws kernel. Since the outer product is
             not commutative, we need to use a list to specify the order of the outer product. It is not
             recommended to use filter of different size to create the Laws kernel.
@@ -246,19 +246,19 @@ def apply_laws(
     # Convert to shape : (B, W, H, D)
     input_images = np.expand_dims(input_images.astype(np.float64), axis=0) 
 
-    if MEDimg:
+    if medscan:
         # Initialize filter class instance
         _filter = Laws(
-                    config=MEDimg.params.filter.laws.config, 
-                    energy_distance=MEDimg.params.filter.laws.energy_distance,
-                    rot_invariance=MEDimg.params.filter.laws.rot_invariance,
-                    padding=MEDimg.params.filter.laws.padding
+                    config=medscan.params.filter.laws.config, 
+                    energy_distance=medscan.params.filter.laws.energy_distance,
+                    rot_invariance=medscan.params.filter.laws.rot_invariance,
+                    padding=medscan.params.filter.laws.padding
                 )
         # Run convolution
         result = _filter.convolve(
                     input_images, 
-                    orthogonal_rot=MEDimg.params.filter.laws.orthogonal_rot,
-                    energy_image=MEDimg.params.filter.laws.energy_image
+                    orthogonal_rot=medscan.params.filter.laws.orthogonal_rot,
+                    energy_image=medscan.params.filter.laws.energy_image
                 )
     elif config:
         # Initialize filter class instance
@@ -275,7 +275,7 @@ def apply_laws(
                         energy_image=energy_image
                     )
     else:
-        raise ValueError("Either MEDimg or config must be provided")
+        raise ValueError("Either medscan or config must be provided")
     
     if spatial_ref:
         return image_volume_obj(np.squeeze(result), spatial_ref)
