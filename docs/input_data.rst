@@ -20,6 +20,13 @@ The header contains a lot of information that helps identify scans from each oth
   type of the modality used or gives it a name to help differentiate scans with the same modality (Imaging scan name). It should be in alphanumeric characters 
   only. For example, ``'T1'`` or ``'T2'`` for ``'MRI'`` scans. It is also referred to in the :doc:`../csv_file` of the dataset as ``ImagingScanName``.
 
+- **ROI name**: Only found in RTStruct files and referenced in the ``StructureSetROISequence`` field of the DICOM header, under the attribute ``ROIName``. 
+  A name given to every region of interest (ROI) to describe or to label an area of significance. Since imaging volumes can have multiple ROIs therefore 
+  you should specify the ones to use in the analysis in the :doc:`../csv_file` of the dataset under the ``ROIName`` column. ``MEDimage`` has no conventions
+  over this field, but we recommend referring to the full dataset ROI label within each ROI name. For example, suppose we have a dataset of *Giant Cell 
+  Tumor* brain cancer, we suggest ``"GCT"`` as an ROI label for our dataset and if we have a scan with two ROIs ``Mass`` and ``Swelling``, then the 
+  appropriate ROIname for each one of them is ``"{GCT_Mass}"`` and ``"{GCT_Swelling}"`` respectively as it refers the hte dataset's chosen ROI label.
+
 NIfTI
 -----
 
