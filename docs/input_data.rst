@@ -29,6 +29,8 @@ RTStruct
 RTStruct files define the area of significance and hold information about each region of interest (ROI). The RTstrtuct files are associated with their
 imaging volume using the series UID found in the header. ``MEDimage`` package recommends the following:
 
+- **Patient ID**: Same conventions and recommendations as the DICOM image.
+- **Series description**: Same conventions and recommendations as the DICOM image.
 - **ROI name**: Only found in DICOM RTStruct files and referenced in each element (each ROI) of the ``StructureSetROISequence`` list of the DICOM 
   header, under the attribute ``ROIName``. It is a name given to every region of interest (ROI) to describe or to label an area of significance. 
   ``MEDimage`` has no conventions over this field, but we recommend renaming each ROI name in a simple and logic way. For example, the the ROIs
