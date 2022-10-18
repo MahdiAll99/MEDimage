@@ -7,6 +7,9 @@ that need to be followed. The following sections describe the norms and the conv
 dataset in a way that respects them.
 
 DICOM
+=====
+
+Image
 -----
 
 Every DICOM file contains a header and a body. The header contains the metadata of the image, and the body contains the image itself.
@@ -17,15 +20,23 @@ The header contains a lot of information that helps identify scans from each oth
   format: ``'study-institution-numericID'``. For example, ``'STS-McGill-001'``. It is also used in the :doc:`../csv_file` of the dataset under 
   the column ``PatientID``.
 - **Series description**: Referenced in the ``SeriesDescription`` field of the DICOM header. A description of the series, usually describes the 
-  type of the modality used or gives it a name to help differentiate scans with the same modality (Imaging scan name). It should be in alphanumeric characters 
-  only. For example, ``'T1'`` or ``'T2'`` for ``'MRI'`` scans. It is also referred to in the :doc:`../csv_file` of the dataset as ``ImagingScanName``.
+  type of the modality used. This field must be renamed to be the same for each sequence of each modality. For example, ``'T1'`` for all the T1-weighted 
+  MRI scans and ``'T2'`` for all the T2-weighted MRI scans. It is referred to in the :doc:`../csv_file` of the dataset as ``ImagingScanName``.
 
-- **ROI name**: Only found in RTStruct files and referenced in the ``StructureSetROISequence`` field of the DICOM header, under the attribute ``ROIName``. 
-  A name given to every region of interest (ROI) to describe or to label an area of significance. Since imaging volumes can have multiple ROIs therefore 
-  you should specify the ones to use in the analysis in the :doc:`../csv_file` of the dataset under the ``ROIName`` column. ``MEDimage`` has no conventions
-  over this field, but we recommend referring to the full dataset ROI label within each ROI name. For example, suppose we have a dataset of *Giant Cell 
-  Tumor* brain cancer, we suggest ``"GCT"`` as an ROI label for our dataset and if we have a scan with two ROIs ``Mass`` and ``Swelling``, then the 
-  appropriate ROIname for each one of them is ``"{GCT_Mass}"`` and ``"{GCT_Swelling}"`` respectively as it refers the hte dataset's chosen ROI label.
+RTStruct
+--------
+
+RTStruct files define the area of significance and hold information about each region of interest (ROI). The RTstrtuct files are associated with their
+imaging volume using the series UID found in the header. ``MEDimage`` package recommends the following:
+
+- **ROI name**: Only found in DICOM RTStruct files and referenced in each element (each ROI) of the ``StructureSetROISequence`` list of the DICOM 
+  header, under the attribute ``ROIName``. It is a name given to every region of interest (ROI) to describe or to label an area of significance. 
+  ``MEDimage`` has no conventions over this field, but we recommend renaming each ROI name in a simple and logic way. For example, the the ROIs
+  are named numerically sometimes, which makes it hard to differentiate between different regions. Suppose we have a scan with two ROIs ``1`` and ``2`` 
+  and the ROI n°1 is bigger, then a logical ROIname for each one of them would be ``"{Mass}"`` and ``"{Edema}"`` for the smaller and the bigger one 
+  respectively. You can also add some details to your ROI name to make it more coherent. Suppose the scans from the last example are of *Giant Cell 
+  Tumor* brain cancer, then the outcome of adding that detail to the ROI names would be ``"{GCT_Mass}"`` and ``"{GCT_Edema}"``. The ROIs used for 
+  your analysis must be specified in the :doc:`../csv_file` of the dataset under the ``ROIName`` column.
 
 NIfTI
 -----
@@ -47,6 +58,9 @@ The following figure sums up the ``MEDimage`` logic in reading data for both for
 If these conventions are followed, the ``DataManager`` class will be able to read the data and create the ``MEDscan`` objects that will be used
 in the radiomics analysis. Furthermore, we suggest you organize your dataset folder as follows:
 
+.. note::
+    For instance, ``MEDimage`` package is capable of automatically updating the fields of all the DICOM files as long as the dataset is organized 
+    in the way described below.
 ::
 
     dataset_folder
@@ -88,5 +102,4 @@ For example:
     └── ...
 
 .. note::
-    For instance, ``MEDimage`` assumes that all the NIfTI files are ``Axial`` and ``HFS`` so make sure your scans have this same orientation
-    and this same patient position. Future works will include the automatic pre-processing of datasets according to the package conventions.
+    Future works will include the automatic pre-processing of datasets according to the package conventions.
