@@ -7,38 +7,34 @@ that need to be followed. The following sections describe the norms and the conv
 dataset in a way that respects them.
 
 DICOM
-=====
-
-Image
 -----
 
-Every DICOM file contains a header and a body. The header contains the metadata of the image, and the body contains the image itself.
-The header contains a lot of information that helps identify scans from each other, but the most important are the following:
+A. **Image**
 
-- **Patient ID**: Primary identifier for the Patient, referenced in the ``PatientID`` field of the header. This field should not contain any
-  underscore and for compatibility with other `MEDomics packages <https://github.com/medomics>`__, we recommend that it respects the following 
-  format: ``'study-institution-numericID'``. For example, ``'STS-McGill-001'``. It is also used in the :doc:`../csv_file` of the dataset under 
-  the column ``PatientID``.
-- **Series description**: Referenced in the ``SeriesDescription`` field of the DICOM header. A description of the series, usually describes the 
-  type of the modality used. This field must be renamed to be the same for each sequence of each modality. For example, ``'T1'`` for all the T1-weighted 
-  MRI scans and ``'T2'`` for all the T2-weighted MRI scans. It is referred to in the :doc:`../csv_file` of the dataset as ``ImagingScanName``.
+  Every DICOM file contains a header and a body. The header contains the metadata of the image, and the body contains the image itself.
+  The header contains information about the scan and the most important for our package is the following:
 
-RTStruct
---------
+  - **Patient ID**: Primary identifier for the Patient, referenced in the ``(0010,0020) PatientID`` field of the header. This field should not 
+    contain any underscore and for compatibility with other `MEDomics packages <https://github.com/medomics>`__, we recommend using the following 
+    format: ``'study-institution-numericID'``. For example, ``'STS-McGill-001'``. It is also used in the :doc:`../csv_file` of the dataset under 
+    the column ``PatientID``.
+  - **Series description**: Referenced in the ``(0008,103E) Series Description`` field of the DICOM header. A description of the series, usually describes 
+    the type of the modality used. This field must be renamed to be the same for each sequence of each modality. For example, ``'T1'`` for all the 
+    T1-weighted MRI scans and ``'T2'`` for all the T2-weighted MRI scans. It is referred to in the :doc:`../csv_file` of the dataset as ``ImagingScanName``.
 
-RTStruct files define the area of significance and hold information about each region of interest (ROI). The RTstrtuct files are associated with their
-imaging volume using the series UID found in the header. ``MEDimage`` package recommends the following:
+B. **RTstruct**
 
-- **Patient ID**: Same conventions and recommendations as the DICOM image.
-- **Series description**: Same conventions and recommendations as the DICOM image.
-- **ROI name**: Only found in DICOM RTStruct files and referenced in each element (each ROI) of the ``StructureSetROISequence`` list of the DICOM 
-  header, under the attribute ``ROIName``. It is a name given to every region of interest (ROI) to describe or to label an area of significance. 
-  ``MEDimage`` has no conventions over this field, but we recommend renaming each ROI name in a simple and logic way. For example, the the ROIs
-  are named numerically sometimes, which makes it hard to differentiate between different regions. Suppose we have a scan with two ROIs ``1`` and ``2`` 
-  and the ROI n°1 is bigger, then a logical ROIname for each one of them would be ``"{Mass}"`` and ``"{Edema}"`` for the smaller and the bigger one 
-  respectively. You can also add some details to your ROI name to make it more coherent. Suppose the scans from the last example are of *Giant Cell 
-  Tumor* brain cancer, then the outcome of adding that detail to the ROI names would be ``"{GCT_Mass}"`` and ``"{GCT_Edema}"``. The ROIs used for 
-  your analysis must be specified in the :doc:`../csv_file` of the dataset under the ``ROIName`` column.
+  RTstruct files define the area of significance and hold information about each region of interest (ROI). The RTstruct files are associated with their
+  imaging volume using the ``(0020,000E) Series Instance UID`` or the ``(0020,0052) Frame of Reference UID`` found in the file's header. 
+  ``MEDimage`` package recommends the following:
+
+  - **Patient ID**: Same conventions and recommendations as the DICOM image.
+  - **Series description**: Same conventions and recommendations as the DICOM image.
+  - **ROI name**: Only found in DICOM RTstruct files and referenced in each element (each ROI) of the ``(3006,0020) Structure Set ROI Sequence`` list of 
+    the DICOM header, under the attribute ``(3006,0026) ROI Name`` which is a name given to each region of interest (ROI). ``MEDimage`` has no 
+    conventions over this field, but we recommend renaming each ROI name in a simple and logic way to differentiate them from each other. It is very 
+    important to keep track of all the ROIs in your dataset since they need to be specified in the :doc:`../csv_file` of the dataset under the 
+    ``ROIName`` column to be used later in your radiomics analysis.
 
 NIfTI
 -----
