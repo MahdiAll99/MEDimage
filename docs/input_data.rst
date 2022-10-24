@@ -54,11 +54,8 @@ The following figure sums up the ``MEDimage`` logic in reading data for both for
     :align: center
 
 If these conventions are followed, the ``DataManager`` class will be able to read the data and create the ``MEDscan`` objects that will be used
-in the radiomics analysis. Furthermore, we suggest you organize your dataset folder as follows:
-
-.. note::
-    For instance, ``MEDimage`` package is capable of automatically updating the fields of all the DICOM files as long as the dataset is organized 
-    in the way described below.
+in the radiomics analysis with no further intervention from the user. For instance, ``MEDimage`` package is capable of automatically updating 
+the fields of all the DICOM files as long as the dataset is organized in the following way:
 ::
 
     dataset_folder
@@ -98,6 +95,10 @@ For example:
     │       ├── *.dcm
     │       └── ...
     └── ...
+
+Just run the following command: ::
+  
+  python scripts/process_dataset.py --path-dataset path/to/your/dataset/folder
 
 .. note::
     Future works will include the automatic pre-processing of datasets according to the package conventions.
