@@ -34,8 +34,8 @@ your dataset ROI label and how to name your csv files:
 The following tables are an example of csv files for the same dataset Soft-Tissue-Sarcoma (STS) cancer consisting of different modalities (MR, CT and PET),
 different ROIs (GTV mass and GTV edema) and each table is for different radiomcis analysis:
 
-- **Radiomics analysis 1**: ``"GTV_Mass"`` ROI.
-.. list-table:: roiNames_GTV.csv
+- **Radiomics analysis 1**: ``"Tumor"``.
+.. list-table:: roiNames_Tumor.csv
     :widths: 25 25 25 25
     :header-rows: 1
 
@@ -60,8 +60,8 @@ different ROIs (GTV mass and GTV edema) and each table is for different radiomci
         - PTscan
         - {GTV_Mass}
 
-- **Radiomics analysis 2**: ``"{GTV_Mass}+{GTV_Edema}"`` ROI.
-.. list-table:: roiNames_GTV.csv
+- **Radiomics analysis 2**: ``"TumorAndEdema"``.
+.. list-table:: roiNames_TumorAndEdema.csv
     :widths: 25 25 25 25
     :header-rows: 1
 
@@ -72,22 +72,22 @@ different ROIs (GTV mass and GTV edema) and each table is for different radiomci
     *   - STS-McGill-001
         - T1
         - MRscan
-        - {GTV_Mass}+{GTV_Edema}
+        - {GTV_Edema}
     *   - STS-McGill-001
         - T2
         - MRscan
-        - {GTV_Mass}+{GTV_Edema}
+        - {GTV_Edema}
     *   - STS-McGill-002
         - CT
         - CTscan
-        - {GTV_Mass}+{GTV_Edema}
+        - {GTV_Edema}
     *   - STS-McGill-003
         - PET
         - PTscan
-        - {GTV_Mass}+{GTV_Edema}
+        - {GTV_Edema}
 
-- **Radiomics analysis 3**: ``"{GTV_Edema}-{GTV_Mass}"`` ROI.
-.. list-table:: roiNames_GTV.csv
+- **Radiomics analysis 3**: ``"EdemaRing"``.
+.. list-table:: roiNames_EdemaRing.csv
     :widths: 25 25 25 25
     :header-rows: 1
 
@@ -113,4 +113,5 @@ different ROIs (GTV mass and GTV edema) and each table is for different radiomci
         - {GTV_Edema}-{GTV_Mass}
 
 .. note::
+    It is pointless in our case but it's possible to analyze the addition of multiple ROIs, for example: ``"{GTV_Edema}+{GTV_Mass}"``.
     Future works of ``MEDimage`` will aim to automate the creation of these csv files for each dataset and to implement ROIs intersection as well.
