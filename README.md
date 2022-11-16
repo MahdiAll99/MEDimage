@@ -26,8 +26,7 @@
   * [9. Statement](#9-statement)
 
 ## 1. Introduction
-This is an open-source python package for processing and features extracting from multi-modal (MRI, CT and PET) medical images. It facilitates the medical-images processing and the computation of all types of radiomic features as well as the reproducibility of the different analysis. This package has been standardized with the [IBSI](https://theibsi.github.io/) norms.
-
+MEDimage is an open-source Python package that can be used for processing multi-modal medical images (MRI, CT or PET) and for extracting their radiomic features. This package is meant to facilitate the processing of medical images and the subsequent computation of all types of radiomic features while maintaining the reproducibility of analyses. This package has been standardized with the [IBSI](https://theibsi.github.io/) norms.
 
 ![MEDimage overview](https://raw.githubusercontent.com/MahdiAll99/MEDimage/main/docs/figures/pakcage-overview.png)
 
@@ -35,18 +34,18 @@ This is an open-source python package for processing and features extracting fro
 ## 2. Installation
 
 ### Python installation
-The MEDimage package requires *Python 3.8* or more. If you don't have it installed  on your machine, follow the instructions [here](https://github.com/MahdiAll99/MEDimage/blob/main/python.md) to install it.
+The MEDimage package requires *Python 3.8* or more. If you don't have it installed on your machine, follow the instructions [here](https://github.com/MahdiAll99/MEDimage/blob/main/python.md) to install it.
 
 ### Package installation
-You can easily install the ``MEDimage``package from PyPI using:
+You can easily install the ``MEDimage`` package from PyPI using:
 ```
 pip install MEDimage
 ```
 
-For more installation options (conda, poetry...) check out the [installation documentation](https://medimage.readthedocs.io/en/latest/Installation.html).
+For more installation options (Conda, Poetry...) check out the [installation documentation](https://medimage.readthedocs.io/en/latest/Installation.html).
 
 ## 3. Generating the documentation locally
-We used sphinx to create the documentation for this project and you can check it out in this [link](https://medimage.readthedocs.io/en/latest/). However you can generate and host it locally by compiling the documentation source code using:
+The [documentation](https://medimage.readthedocs.io/en/latest/) of the MEDimage package was created using Sphinx. However, you can generate and host it locally by compiling the documentation source code using :
 
 ```
 cd docs
@@ -104,7 +103,7 @@ med_obj.save_radiomics(
 We have created many [tutorial notebooks](https://github.com/MahdiAll99/MEDimage/tree/main/notebooks) to assist you in learning how to use the different parts of the package. More details can be found in the [documentation](https://medimage.readthedocs.io/en/latest/tutorials.html).
 
 ## 6. IBSI Standardization
-The image biomarker standardization initiative ([IBSI](https://theibsi.github.io)) is an independent international collaboration that aims to standardize the extraction of image biomarkers from acquired imaging. The IBSI therefore seeks to provide image biomarker nomenclature and definitions, benchmark datasets, and benchmark values to verify image processing and image biomarker calculations, as well as reporting guidelines, for high-throughput image analysis. We participate in this collaboration with our package to make sure it respects the international nomenclatures and definitions. The participation was separated to two chapters:
+The image biomarker standardization initiative ([IBSI](https://theibsi.github.io)) is an independent international collaboration that aims to standardize the extraction of image biomarkers from acquired imaging. The IBSI therefore seeks to provide image biomarker nomenclature and definitions, benchmark datasets, and benchmark values to verify image processing and image biomarker calculations, as well as reporting guidelines, for high-throughput image analysis. We participate in this collaboration with our package to make sure it respects international nomenclatures and definitions. The participation was separated into two chapters:
 
   - ### IBSI Chapter 1
       [The IBSI chapter 1](https://theibsi.github.io/ibsi1/) is dedicated to the standardization of commonly used radiomic features. It was initiated in September 2016 and reached completion in March 2020. We have created two [jupyter notebooks](https://github.com/MahdiAll99/MEDimage/tree/main/notebooks/ibsi) for each phase of the chapter and made them available for the users to run the IBSI tests for themselves. The tests can also be explored in interactive Colab notebooks that are directly accessible here:
@@ -113,25 +112,25 @@ The image biomarker standardization initiative ([IBSI](https://theibsi.github.io
       - **Phase 2**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/ibsi/ibsi1p2.ipynb)
 
   - ### IBSI Chapter 2 (In progress)
-      [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and still in progress. It is dedicated to the standardization of commonly used imaging filters in radiomic studies. We have created two [jupyter notebooks](https://github.com/MahdiAll99/MEDimage/tree/main/notebooks/ibsi) for each phase of the chapter and made them available for the users to run the IBSI tests for themselves and validate image filtering and image biomarker calculations from filter response maps. The tests can also be explored in interactive Colab notebooks that are directly accessible here: 
+      [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and is still in progress. It is dedicated to the standardization of commonly used imaging filters in radiomic studies. We have created two [jupyter notebooks](https://github.com/MahdiAll99/MEDimage/tree/main/notebooks/ibsi) for each phase of the chapter and made them available for the users to run the IBSI tests for themselves and validate image filtering and image biomarker calculations from filter response maps. The tests can also be explored in interactive Colab notebooks that are directly accessible here: 
       
       - **Phase 1**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/ibsi/ibsi2p1.ipynb)
       - **Phase 2**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/ibsi/ibsi2p2.ipynb)
 
-      Our team *UdeS* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the IBSI uploading website and it can be found here: [IBSI upload page](https://ibsi.radiomics.hevs.ch/).
+      Our team at *UdeS* (a.k.a. Université de Sherbrooke) has already submitted the benchmarked values to the [IBSI uploading website](https://ibsi.radiomics.hevs.ch/).
 
 ---
 **Miscellaneous**
 
-You can avoid the next steps (jupyter installation and environment set up) if you installed the package using conda or poetry according to the documentation.
+You can avoid the next steps (Jupyter installation and environment setup) if you installed the package using Conda or Poetry according to the documentation.
 
 ---
 
-You can view & run the tests locally by installing the [Jupyter Notebook](https://jupyter.org/) application on your machine:
+You can view and run the tests locally by installing the [Jupyter Notebook](https://jupyter.org/) application on your machine:
 ```
 python -m pip install jupyter
 ```
-Then add the installed `medimage` environment to the jupyter notebook kernels using:
+Then add the installed `medimage` environment to the Jupyter Notebook kernels using:
 
 ```
 python -m ipykernel install --user --name=medimage
@@ -143,14 +142,14 @@ Then access the IBSI tests folder using:
 cd notebooks/ibsi/
 ```
 
-Finally, launch jupyter notebook to navigate through the IBSI notebooks using:
+Finally, launch Jupyter Notebook to navigate through the IBSI notebooks using:
 
 ```
 jupyter notebook
 ```
 
 ## 7. Acknowledgement
-MEDimage is an open source package developed at the [MEDomics-Udes](https://www.medomics-udes.org/en/) laboratory with the collaboration of the international consortium [MEDomics](https://www.medomics.ai/). We welcome any contribution and feedback. Furthermore, we wish that this package could serve the growing radiomics research community by providing a flexible as well as [IBSI](https://theibsi.github.io/) standardized tool to reimplement existing methods and develop their own new methods.
+MEDimage is an open-source package developed at the [MEDomics-Udes](https://www.medomics-udes.org/en/) laboratory with the collaboration of the international consortium [MEDomics](https://www.medomics.ai/). We welcome any contribution and feedback. Furthermore, we wish that this package could serve the growing radiomics research community by providing a flexible as well as [IBSI](https://theibsi.github.io/) standardized tool to reimplement existing methods and develop new ones.
 
 ## 8. Authors
 * [MEDomics-Udes](https://www.medomics-udes.org/en/): Research laboratory at Université de Sherbrooke.
