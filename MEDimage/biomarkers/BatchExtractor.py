@@ -479,7 +479,7 @@ class BatchExtractor(object):
 
             # Wildcard used to look only in the parent folder (save path),
             # no need to recursively look into sub-folders using '**/'.
-            wildcard = '*' + scan + '(' + roi_type + ')*.json'
+            wildcard = '*_' + scan + '(' + roi_type + ')*.json'
 
             # Create radiomics table
             radiomics_table_dict = MEDimage.utils.create_radiomics_table(
