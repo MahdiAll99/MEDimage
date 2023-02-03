@@ -55,8 +55,7 @@
       "ngtdm" : {
         "dist_correction" : false
       },
-      "filter_type": "",
-      "type" : "MRscan"
+      "filter_type": ""
     },
   "imParamCT" : {
     "interp" : {
@@ -96,8 +95,7 @@
       "ngtdm" : {
         "dist_correction" : false
       },
-      "filter_type": "",
-      "type" : "CTscan"
+      "filter_type": ""
     },
   "imParamPET" : {
       "compute_suv_map" : true,
@@ -138,8 +136,7 @@
       "ngtdm" : {
         "dist_correction" : false
       },
-      "filter_type": "",
-      "type" : "PTscan"
+      "filter_type": ""
   },
   "imParamFilter" : {
     "mean" : {
