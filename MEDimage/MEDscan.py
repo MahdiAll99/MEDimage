@@ -121,8 +121,8 @@ class MEDscan(object):
         self.params.process.ih = im_params['discretisation']['IH']
         self.params.process.ivh = im_params['discretisation']['IVH']
         self.params.process.scale_text = im_params['interp']['scale_text']
-        self.params.process.algo = im_params['discretisation']['texture']['type']
-        self.params.process.gray_levels = im_params['discretisation']['texture']['val']
+        self.params.process.algo = im_params['discretisation']['texture']['type'] if 'type' in im_params['discretisation']['texture'] else []
+        self.params.process.gray_levels = im_params['discretisation']['texture']['val'] if 'val' in im_params['discretisation']['texture'] else [[]]
         self.params.process.im_type = im_params['type']
 
         # Voxels dimension
@@ -313,7 +313,10 @@ class MEDscan(object):
             self.params.radiomics.scale_name = 'scale' + (str(self.params.process.scale_non_text[0])).replace('.', 'dot')
 
             # IH name
-            ih_val_name = 'bin' + (str(self.params.process.ih['val'])).replace('.', 'dot')
+            if 'val' in self.params.process.ih:
+                ih_val_name = 'bin' + (str(self.params.process.ih['val'])).replace('.', 'dot')
+            else:
+                ih_val_name = 'binNone'
 
             # The minimum value defines the computation.
             if self.params.process.ih['type'].find('FBS')>=0:
@@ -344,7 +347,10 @@ class MEDscan(object):
                     range_name = ''
             else:
                 ivh_algo_name = 'algo' + self.params.process.ivh['type']
-                ivh_val_name = 'bin' + (str(self.params.process.ivh['val'])).replace('.', 'dot')
+                if 'val' in self.params.process.ivh:
+                    ivh_val_name = 'bin' + (str(self.params.process.ivh['val'])).replace('.', 'dot')
+                else:
+                    ivh_val_name = 'binNone'
                 # The im_range defines the computation.
                 if 'type' in self.params.process.ivh and self.params.process.ivh['type'].find('FBS') >=0:
                     if self.params.process.im_range:
@@ -844,8 +850,12 @@ class MEDscan(object):
                     if type(params["theta"]) is str:
                         if params["theta"].lower().startswith('pi/'):
                             self.theta = np.pi / int(params["theta"].split('/')[1])
-                        elif params["theta"].lower().startswith('-pi/'):
-                            self.theta = -np.pi / int(params["theta"].split('/')[1])
+                        elif params["theta"].lower().startswith('-'):
+                            if params["theta"].lower().startswith('-pi/'):
+                                self.theta = -np.pi / int(params["theta"].split('/')[1])
+                            else:
+                                nom, denom = params["theta"].replace('-', '').replace('Pi', '').split('/')
+                                self.theta = -np.pi*int(nom) / int(denom)
                     else:
                         self.theta = float(params["theta"])
 
