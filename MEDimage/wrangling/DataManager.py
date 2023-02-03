@@ -875,16 +875,6 @@ class DataManager(object):
         Returns:
             None.
         """
-        roi_data= {
-            "data": [],
-            "mean": [],
-            "median": [],
-            "std": [],
-            "min": [],
-            "max": [],
-            f"p{min_percentile}": [],
-            f"p{max_percentile}": []
-        }
         if type(wildcards_window) is str:
             wildcards_window = [wildcards_window]
 
@@ -899,11 +889,20 @@ class DataManager(object):
         roi_names[1] = roi_table['ImagingScanName']
         roi_names[2] = roi_table['ImagingModality']
         patient_names = get_patient_names(roi_names)
-
-        temp_val = []
-        temp = []
-        file_paths = []
         for w in range(len(wildcards_window)):
+            temp_val = []
+            temp = []
+            file_paths = []
+            roi_data= {
+                "data": [],
+                "mean": [],
+                "median": [],
+                "std": [],
+                "min": [],
+                "max": [],
+                f"p{min_percentile}": [],
+                f"p{max_percentile}": []
+            }
             wildcard = wildcards_window[w]
             if not use_instances:
                 if path_data:
@@ -932,7 +931,8 @@ class DataManager(object):
                         temp_val.append(len(temp))
                         roi_data["data"].append(np.zeros(shape=(n_files, temp_val[f])))
                         roi_data["data"][f] = temp
-                    except:
+                    except Exception as e:
+                        print(f"Problem with patient {patient_name}, error: {e}")
                         roi_data["data"][f] = []
             else:
                 for i in tqdm(range(len(self.instances))):
@@ -953,8 +953,8 @@ class DataManager(object):
                             temp_val.append(len(temp))
                             roi_data["data"].append(np.zeros(shape=(len(self.instances), temp_val[i])))
                             roi_data["data"][i] = temp
-                        except:
-                            print(f"Problem with patient {patient_name}, scan or roi not found")
+                        except Exception as e:
+                            print(f"Problem with patient {patient_name}, error: {e}")
                             roi_data["data"].append([])
                             roi_data["data"][i] = []
                     else:
