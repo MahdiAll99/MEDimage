@@ -1,6 +1,6 @@
 {
   "pre_radiomics_checks" : {
-    "pathDATA" : "",
+    "path_data" : "",
     "wildcards_dimensions" : [
       "Glioma*.MRscan.npy"
     ],
