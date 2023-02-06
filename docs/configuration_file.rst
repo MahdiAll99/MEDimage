@@ -1129,7 +1129,7 @@ e.g.
 Example of a full settings dictionary
 -------------------------------------
 
-Here is an example of a complete settings disctionary:
+Here is an example of a complete settings dictionary:
 
 .. raw:: html
 
@@ -1324,7 +1324,7 @@ Here is an example of a complete settings disctionary:
             }
             ;
         $("#json_dict").html(
-            "<a href='#' class='json_dict_expand'>Click here to display the disctionary</a>" +
+            "<a href='#' class='json_dict_expand'>Click here to display the dictionary</a>" +
             "<pre class='json_dict_content' style='display: none;'>" +
             JSON.stringify(json_dict, null, 4) +
             "</pre>"
