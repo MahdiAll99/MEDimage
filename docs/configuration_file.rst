@@ -14,6 +14,68 @@ This section will walk you through the details on how to set up and use the conf
 - :ref:`Radiomics<Extraction Parameters>`
 - :ref:`Filters<Filtering Parameters>`
 
+General analysis Parameters
+---------------------------
+
+.. jsonschema::
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "n_batch",
+        "description": "A numerical value that determines the number of batches to be used in parallel computations, 
+            set to 0 for serial computation.",
+        "type": "int"
+    }
+
+e.g.
+
+.. code-block:: JSON
+
+    {
+        "n_batch" : 8
+    }
+
+.. jsonschema::
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "roi_type_labels",
+        "description": "A list of labels for the regions of interest (ROI) to use in the analysis. The labels must match the names 
+            of the corresponding CSV files. For example, if you have a csv file named ``roiNames_GTV.csv``, 
+            then the ``roi_type_labels`` msut be ``[\"GTV\"]``.",
+        "type": "List[str]"
+    }
+
+e.g.
+
+.. code-block:: JSON
+
+    {
+        "roi_type_labels" : ["GTV"]
+    }
+
+.. jsonschema::
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "roi_types",
+        "description": "A list of labels that describe the regions of interest, used to save the analysis results. The labels must accurately 
+            reflect the regions analyzed. For instance, if you conduct an analysis of a single ROI in a  ``\"GTV\"`` area with
+            two different ROIs (``\"Mass\"`` and ``\"Edema\"``), the label can be ``[\"GTVMassOnly\"]``. This name will be displayed in the
+            JSON results file.",
+        "type": "List[str]"
+    }
+
+e.g.
+
+.. code-block:: JSON
+
+    {
+        "roi_types" : ["GTVMassOnly"]
+    }
+
+
+
 Pre-checks Parameters
 ---------------------
 The pre radiomics checks configuration is a set of parameters used by the ``DataManager`` class. These parameters must be set in a nested
@@ -37,6 +99,7 @@ dictionary as follows:
         "type": "List[str]"
     }
 
+e.g.
 
 .. code-block:: JSON
 
@@ -57,6 +120,7 @@ dictionary as follows:
         "type": "List[str]"
     }
 
+e.g.
 
 .. code-block:: JSON
 
@@ -75,6 +139,7 @@ dictionary as follows:
         "type": "str"
     }
 
+e.g.
 
 .. code-block:: JSON
 
@@ -93,6 +158,26 @@ dictionary as follows:
         "type": "str"
     }
 
+e.g.
+
+.. code-block:: JSON
+
+    {
+        "pre_radiomics_checks" : {
+            "path_save_checks" : "home/user/medimage/checks",
+            }
+    }
+
+.. jsonschema::
+
+    {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "title": "path_save_checks",
+        "description": "Path where the pre-checks results will be saved",
+        "type": "str"
+    }
+
+e.g.
 
 .. code-block:: JSON
 
@@ -104,7 +189,7 @@ dictionary as follows:
 
 .. note::
     initializing the :ref:`pre-radiomics checks settings<Pre-checks Parameters>` 
-    is optional and can be done later while using the ``DataManager`` instance.
+    is optional and can be done in the ``DataManager`` instance initialization step.
 
 Processing Parameters
 ---------------------
@@ -149,19 +234,20 @@ Each imaging modality should have its own params dict inside the JSON file and s
         }
     }
 
+e.g.
 
 .. code-block:: JSON
 
     {
         "imParamCT" : {
             "box_string" : "box7",
-            },
+            }
         "imParamMR" : {
             "box_string" : "box",
-            },
+            }
         "imParamPET" : {
             "box_string" : "2box",
-            },
+            }
     }
 
 .. jsonschema::
@@ -199,19 +285,39 @@ Each imaging modality should have its own params dict inside the JSON file and s
         }
     }
 
+e.g.
 
 .. code-block:: JSON
 
     {
+        "imParamMR" : {
+            "interp" : {
+                "scale_non_text" : [1, 1, 1],
+                "scale_text" : [[1, 1, 1]],
+                "vol_interp" : "linear",
+                "gl_round" : [],
+                "roi_interp" : "linear",
+                "roi_pv" : 0.5
+            }
         "imParamCT" : {
             "interp" : {
                 "scale_non_text" : [2, 2, 3],
                 "scale_text" : [[2, 2, 3]],
-                "vol_interp" : "linear",
+                "vol_interp" : "nearest",
                 "gl_round" : 1,
-                "roi_interp" : "linear",
+                "roi_interp" : "nearest",
                 "roi_pv" : 0.5
-            },
+            }
+        "imParamPET" : {
+            "interp" : {
+                "scale_non_text" : [3, 3, 3],
+                "scale_text" : [[3, 3, 3]],
+                "vol_interp" : "spline",
+                "gl_round" : [],
+                "roi_interp" : "spline",
+                "roi_pv" : 0.5
+            }
+        }
     }
 
 
@@ -236,23 +342,28 @@ Each imaging modality should have its own params dict inside the JSON file and s
         }
     }
 
+e.g.
 
 .. code-block:: JSON
 
     {
-        {
-        "imParamCT" : {
-            "reSeg" : {
-                "range" : [-500, "inf"],
-                "outliers" : ""
-            },
-        },
-        {
         "imParamMR" : {
+            "reSeg" : {
+                "range" : [0, "inf"],
+                "outliers" : ""
+            }
+        },
+        "imParamCT" : {
             "reSeg" : {
                 "range" : [-500, 500],
                 "outliers" : "Collewet"
-            },
+            }
+        },
+        "imParamPET" : {
+            "reSeg" : {
+                "range" : [0, "inf""],
+                "outliers" : "Collewet"
+            }
         }
     }
 
@@ -344,25 +455,27 @@ Each imaging modality should have its own params dict inside the JSON file and s
         }
     }
 
+e.g. for CT only (the parameters are the same for MR and PET):
 
 .. code-block:: JSON
 
     {
-        {
         "imParamCT" : {
-            "IH" : {
-                "type" : "FBS",
-                "val" : 25
-            },
-            "IVH" : {
-                "type" : "FBN",
-                "val" : 10
-            },
-            "texture" : {
-                "type" : ["FBS", "FBN"],
-                "val" : [[25], [10]]
+            "discretisation" : {
+                "IH" : {
+                    "type" : "FBS",
+                    "val" : 25
+                },
+                "IVH" : {
+                    "type" : "FBN",
+                    "val" : 10
+                },
+                "texture" : {
+                    "type" : ["FBS"],
+                    "val" : [[25]]
+                }
             }
-        },
+        }
     }
 
 .. jsonschema::
@@ -384,12 +497,14 @@ Each imaging modality should have its own params dict inside the JSON file and s
         }
     }
 
+This parameter is only used for PET scans and is set as follows:
+
 .. code-block:: JSON
 
     {
         "imParamPET" : {
             "compute_suv_map" : true
-            },
+            }
     }
 
 .. note::
@@ -427,6 +542,8 @@ Each imaging modality should have its own params dict inside the JSON file and s
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
@@ -438,7 +555,7 @@ Each imaging modality should have its own params dict inside the JSON file and s
             },
         "imParamCT" : {
             "filter_type" : "log"
-            },
+            }
     }
 
 Extraction Parameters
@@ -486,19 +603,26 @@ Extraction parameters are organized in the same wat as the processing parameters
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
-        "imParamCT" : {
-            "glcm" : {
-                "dist_correction" : "chebyshev"
-        },
-        {
         "imParamMR" : {
             "glcm" : {
                 "dist_correction" : false
+            }
         },
+        "imParamCT" : {
+            "glcm" : {
+                "dist_correction" : "chebyshev"
+            }
+        },
+        "imParamPET" : {
+            "glcm" : {
+                "dist_correction" : "euclidean"
+            }
+        }
     }
 
 .. jsonschema::
@@ -530,19 +654,26 @@ Extraction parameters are organized in the same wat as the processing parameters
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
-        "imParamCT" : {
-            "glcm" : {
-                "merge_method" : "vol_merge"
-        },
-        {
         "imParamMR" : {
             "glcm" : {
                 "merge_method" : "average"
+            }
         },
+        "imParamCT" : {
+            "glcm" : {
+                "merge_method" : "vol_merge"
+            }
+        },
+        "imParamPET" : {
+            "glcm" : {
+                "merge_method" : "dir_merge"
+            }
+        }
     }
 
 .. jsonschema::
@@ -577,19 +708,26 @@ Extraction parameters are organized in the same wat as the processing parameters
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
-        "imParamCT" : {
-            "glrlm" : {
-                "dist_correction" : "chebyshev"
-        },
-        {
         "imParamMR" : {
             "glrlm" : {
                 "dist_correction" : false
+            }
         },
+        "imParamCT" : {
+            "glrlm" : {
+                "dist_correction" : "chebyshev"
+            }
+        },
+        "imParamPET" : {
+            "glrlm" : {
+                "dist_correction" : "euclidean"
+            }
+        }
     }
 
 .. jsonschema::
@@ -621,19 +759,26 @@ Extraction parameters are organized in the same wat as the processing parameters
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
-        "imParamCT" : {
-            "glrlm" : {
-                "merge_method" : "vol_merge"
-        },
-        {
         "imParamMR" : {
             "glrlm" : {
                 "merge_method" : "average"
+            }
         },
+        "imParamCT" : {
+            "glrlm" : {
+                "merge_method" : "vol_merge"
+            }
+        },
+        "imParamPET" : {
+            "glrlm" : {
+                "merge_method" : "dir_merge"
+            }
+        }
     }
 
 .. jsonschema::
@@ -656,19 +801,26 @@ Extraction parameters are organized in the same wat as the processing parameters
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
-        "imParamCT" : {
-            "ngtdm" : {
-                "dist_correction" : true,
-        },
-        {
         "imParamMR" : {
             "ngtdm" : {
                 "dist_correction" : false
+            }
         },
+        "imParamCT" : {
+            "ngtdm" : {
+                "dist_correction" : true
+            }
+        },
+        "imParamPET" : {
+            "ngtdm" : {
+                "dist_correction" : true
+            }
+        }
     }
 
 
@@ -719,18 +871,18 @@ parameters for every filter of the ``MEDimage``:
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
         "imParamFilter" : {
             "mean" : {
                 "ndims" : 3,
                 "size" : 5,
                 "padding" : "symmetric",
                 "name_save" : "mean5"
-            },
-        },
+            }
     }
 
 .. jsonschema::
@@ -766,10 +918,11 @@ parameters for every filter of the ``MEDimage``:
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
         "imParamFilter" : {
             "log" : {
                 "ndims" : 3,
@@ -777,8 +930,7 @@ parameters for every filter of the ``MEDimage``:
                 "orthogonal_rot" : false,
                 "padding" : "constant",
                 "name_save" : "log_1.5"
-            },
-        },
+            }
     }
 
 .. jsonschema::
@@ -824,10 +976,11 @@ parameters for every filter of the ``MEDimage``:
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
         "imParamFilter" : {
             "laws" : {
                 "config" : ["L5", "E5", "E5"],
@@ -837,8 +990,7 @@ parameters for every filter of the ``MEDimage``:
                 "energy_image" : true,
                 "padding" : "symmetric",
                 "name_save" : "laws_l5_e5_e5_7"
-            },
-        },
+            }
     }
 
 .. note::
@@ -891,10 +1043,11 @@ parameters for every filter of the ``MEDimage``:
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
         "imParamFilter" : {
             "gabor" : {
                 "sigma" : 5,
@@ -905,8 +1058,7 @@ parameters for every filter of the ``MEDimage``:
                 "orthogonal_rot" : true,
                 "padding" : "symmetric",
                 "name_save" : "gabor_5_2_1.5"
-            },
-        },
+            }
     }
 
 .. note::
@@ -957,10 +1109,11 @@ parameters for every filter of the ``MEDimage``:
         }
     }
 
+e.g.
+
 .. code-block:: JSON
 
     {
-        {
         "imParamFilter" : {
             "wavelet" : {
                 "ndims" : 3,
@@ -971,5 +1124,216 @@ parameters for every filter of the ``MEDimage``:
                 "padding" : "symmetric",
                 "name_save" : "Wavelet_db3_LLH"
             },
-        },
     }
+
+Example of a full settings dictionary
+-------------------------------------
+
+Here is an example of a complete settings disctionary:
+
+.. raw:: html
+
+    <div id="json_dict"></div>
+
+    <script>
+    $(document).ready(function () {
+        var json_dict = {
+            "pre_radiomics_checks" : {
+                "path_data" : "",
+                "wildcards_dimensions" : [
+                "Glioma*.MRscan.npy"
+                ],
+                "path_csv" : "",
+                "wildcards_window" : [
+                "Glioma*.MRscan.npy"
+                ],
+                "path_save_checks" : ""
+            },
+            "n_batch" : 16,
+            "roi_type_labels" : [
+                "Lesions"
+            ],
+            "roi_types" : [
+                "CTLesion"
+            ],
+            "imParamMR" : {
+                "box_string": "box10",
+                "interp" : {
+                "scale_non_text" : [2, 2, 3],
+                "scale_text" : [[2, 2, 3]],
+                "vol_interp" : "linear",
+                "gl_round" : 1,
+                "roi_interp" : "linear",
+                "roi_pv" : 0.5
+                },
+                "reSeg" : {
+                "range" : [-500, "inf"],
+                "outliers" : ""
+                },
+                "discretisation" : {
+                "IH" : {
+                    "type" : "FBS",
+                    "val" : 25
+                },
+                "IVH" : {
+
+                },
+                "texture" : {
+                    "type" : ["FBS"],
+                    "val" : [[25]]
+                }
+                },
+                "glcm" : {
+                    "dist_correction" : "Chebyshev",
+                    "merge_method": "vol_merge"
+                },
+                "glrlm" : {
+                    "dist_correction" : false,
+                    "merge_method": "vol_merge"
+                },
+                "ngtdm" : {
+                    "dist_correction" : false
+                },
+                "filter_type": ""
+                },
+            "imParamCT" : {
+                "interp" : {
+                "scale_non_text" : [2, 2, 2],
+                "scale_text" : [[2, 2, 2]],
+                "vol_interp" : "linear",
+                "gl_round" : 1,
+                "roi_interp" : "linear",
+                "roi_pv" : 0.5
+                },
+                "reSeg" : {
+                "range" : [-1000,400],
+                "outliers" : ""
+                },
+                "discretisation" : {
+                "IH" : {
+                    "type" : "FBS",
+                    "val" : 25
+                },
+                "IVH" : {
+                    "type" : "FBS",
+                    "val" : 2.5
+                },
+                "texture" : {
+                    "type" : ["FBS"],
+                    "val" : [[25]]
+                }
+                },
+                "glcm" : {
+                    "dist_correction" : false,
+                    "merge_method": "vol_merge"
+                },
+                "glrlm" : {
+                    "dist_correction" : false,
+                    "merge_method": "vol_merge"
+                },
+                "ngtdm" : {
+                    "dist_correction" : false
+                },
+                "filter_type": ""
+                },
+            "imParamPET" : {
+                "compute_suv_map" : true,
+                "interp" :  {
+                    "scale_non_text" : [4, 4, 4],
+                    "scale_text" : [[3, 3, 3], [4, 4, 4]],
+                    "vol_interp" : "linear",
+                    "gl_round" : [],
+                    "roi_interp" : "linear",
+                    "roi_pv" : 0.5
+                },
+                "reSeg" :  {
+                    "range" : [0, "inf"],
+                    "outliers" : ""
+                },
+                "discretisation" :  {
+                    "IH" : {
+                    "type" : "FBN",
+                    "val" : 64
+                    },
+                    "IVH" : {
+                    "type" : "FBS",
+                    "val" : 0.1
+                    },
+                    "texture" : {
+                    "type" : ["FBS", "FBSequal"],
+                    "val" : [[0.5, 1], [0.5, 1]]
+                    }
+                },
+                "glcm" : {
+                    "dist_correction" : "Chebyshev",
+                    "merge_method": "vol_merge"
+                },
+                "glrlm" : {
+                    "dist_correction" : false,
+                    "merge_method": "vol_merge"
+                },
+                "ngtdm" : {
+                    "dist_correction" : false
+                },
+                "filter_type": ""
+            },
+            "imParamFilter" : {
+                "mean" : {
+                "ndims" : 3,
+                "size" : 5,
+                "padding" : "symmetric",
+                "orthogonal_rot" : false,
+                "name_save" : ""
+                },
+                "log" : {
+                "ndims" : 3,
+                "sigma" : 1.5,
+                "orthogonal_rot" : false,
+                "padding" : "symmetric",
+                "name_save" : ""
+                },
+                "laws" : {
+                "config" : ["L5", "E5", "E5"],
+                "energy_distance" : 7,
+                "rot_invariance" : true,
+                "orthogonal_rot" : false,
+                "energy_image" : true,
+                "padding" : "symmetric",
+                "name_save" : ""
+                },
+                "gabor" : {
+                "sigma" : 5,
+                "lambda" : 2,
+                "gamma" : 1.5,
+                "theta" : "Pi/8",
+                "rot_invariance" : true,
+                "orthogonal_rot" : true,
+                "padding" : "symmetric",
+                "name_save" : ""
+                },
+                "wavelet" : {
+                "ndims" : 3,
+                "basis_function" : "db3",
+                "subband" : "LLH",
+                "level" : 1,
+                "rot_invariance" : true,
+                "padding" : "symmetric",
+                "name_save" : "Wavelet_db3_LLH"
+                }
+            }
+            }
+            ;
+        $("#json_dict").html(
+            "<a href='#' class='json_dict_expand'>Click here to display the disctionary</a>" +
+            "<pre class='json_dict_content' style='display: none;'>" +
+            JSON.stringify(json_dict, null, 4) +
+            "</pre>"
+        );
+        $(".json_dict_expand").click(function (e) {
+            e.preventDefault();
+            $(".json_dict_content").toggle();
+        });
+    });
+    </script>
+
+
