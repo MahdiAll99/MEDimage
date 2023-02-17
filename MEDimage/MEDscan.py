@@ -123,7 +123,7 @@ class MEDscan(object):
         self.params.process.scale_text = im_params['interp']['scale_text']
         self.params.process.algo = im_params['discretisation']['texture']['type'] if 'type' in im_params['discretisation']['texture'] else []
         self.params.process.gray_levels = im_params['discretisation']['texture']['val'] if 'val' in im_params['discretisation']['texture'] else [[]]
-        self.params.process.im_type = im_params['type']
+        self.params.process.im_type = self.type
 
         # Voxels dimension
         self.params.process.n_scale = len(self.params.process.scale_text)
