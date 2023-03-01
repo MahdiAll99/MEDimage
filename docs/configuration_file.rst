@@ -854,6 +854,10 @@ parameters for every filter of the ``MEDimage``:
                 "description": "Dimension of the imaging data. Usually 3.",
                 "type": "int"
             },
+            "orthogonal_rot": {
+                "description": "If ``True``, the images will be rotated over all the planes.",
+                "type": "bool"
+            },
             "size": {
                 "description": "Size of the filter kernel.",
                 "type": "int"
@@ -879,6 +883,7 @@ e.g.
         "imParamFilter" : {
             "mean" : {
                 "ndims" : 3,
+                "orthogonal_rot": false,
                 "size" : 5,
                 "padding" : "symmetric",
                 "name_save" : "mean5"
