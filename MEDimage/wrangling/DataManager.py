@@ -855,7 +855,9 @@ class DataManager(object):
         use_instances: bool = True,
         path_csv: Union[str, Path] = None,
         min_percentile: float = 0.05,
-        max_percentile: float = 0.95
+        max_percentile: float = 0.95,
+        bin_width: int = 0,
+        hist_range: list = []
         ) -> None:
         """Finds proper re-segmentation ranges options for radiomics analyses for a group of scans
 
@@ -871,6 +873,10 @@ class DataManager(object):
                 analyzed (a CSV file for a single ROI type).
             min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
             max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
+            bin_width(int, optional): Width of the bins for the histograms. If not provided, will use the 
+                default number of bins in the method 
+                :ref:`pandas.DataFrame.hist <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.hist.html>`: 10 bins.
+            hist_range(list, optional): Range of the histograms. If empty, will use the minimum and maximum values.
         
         Returns:
             None.
@@ -973,16 +979,42 @@ class DataManager(object):
                                                         max_percentile)
             roi_data["data"] = roi_data["data"].tolist()
 
-            # Plotting roi data histogram
+            # Initializing and plotting roi data histogram
+            plt.rcParams["figure.figsize"] = (20,20)
+            plt.rcParams.update({'font.size': 22})
             df_data = pd.DataFrame(roi_data["data"], columns=['data'])
+            
+            # Set bin width if not provided
+            if bin_width != 0:
+                if hist_range:
+                    nb_bins = (round(hist_range[1]) - round(hist_range[0])) // bin_width
+                else:
+                    nb_bins = (round(roi_data["max"]) - round(roi_data["min"])) // bin_width
+            else:
+                nb_bins = 10
+                if hist_range:
+                    bin_width = int((round(hist_range[1]) - round(hist_range[0])) // nb_bins)
+                else:
+                    bin_width = int((round(roi_data["max"]) - round(roi_data["min"])) // nb_bins)
+            nb_bins = int(nb_bins)
+
+            # Set histogram range if not provided
+            if not hist_range:
+                hist_range = (roi_data["min"], roi_data["max"])
+
             del roi_data["data"]  # no interest in keeping data (we only need statistics)
-            ax = df_data.hist(column='data')
+
+            # Plot histogram
+            ax = df_data.hist(column='data', bins=nb_bins, range=(hist_range[0], hist_range[1]), edgecolor='black')
             min_quant, max_quant= df_data.quantile(min_percentile), df_data.quantile(max_percentile)
             for x in ax[0]:
-                x.axvline(min_quant.data, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
-                x.axvline(max_quant.data, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
+                x.axvline(min_quant.data, linestyle=':', color='r', label=f"{min_percentile*100}% Percentile: {float(min_quant):.3f}")
+                x.axvline(max_quant.data, linestyle=':', color='g', label=f"{max_percentile*100}% Percentile: {float(max_quant):.3f}")
                 x.grid(False)
-                plt.title(f"Intensity range checks for {wildcard}")
+                x.xaxis.set_ticks(np.arange(hist_range[0], hist_range[1], bin_width, dtype=int))
+                x.set_xticklabels(x.get_xticks(), rotation=45)
+                x.xaxis.set_tick_params(pad=15)
+                plt.title(f"Intensity range checks for {wildcard}, bw={bin_width}")
                 plt.legend()
                 plt.show()
             
@@ -997,7 +1029,9 @@ class DataManager(object):
                             use_instances: bool = True,
                             path_csv: Union[str, Path] = None,
                             min_percentile: float = 0.05,
-                            max_percentile: float = 0.95) -> None:
+                            max_percentile: float = 0.95,
+                            bin_width: int = 0,
+                            hist_range: list = []) -> None:
         """Finds proper dimension and re-segmentation ranges options for radiomics analyses. 
 
         The resulting files from this method can then be analyzed and used to set up radiomics 
@@ -1018,6 +1052,10 @@ class DataManager(object):
                 analyzed (a CSV file for a single ROI type).
             min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
             max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
+            bin_width(int, optional): Width of the bins for the histograms. If not provided, will use the 
+                default number of bins in the method 
+                :ref:`pandas.DataFrame.hist <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.hist.html>`: 10 bins.
+            hist_range(list, optional): Range of the histograms. If empty, will use the minimum and maximum values.
 
         Returns:
             None
@@ -1095,7 +1133,9 @@ class DataManager(object):
                                         use_instances, 
                                         path_csv,
                                         min_percentile, 
-                                        max_percentile)
+                                        max_percentile,
+                                        bin_width,
+                                        hist_range)
         print('DONE', end='')
         time2 = f"{time() - start2:.2f}"
         print(f'\nElapsed time: {time2} sec', end='')
