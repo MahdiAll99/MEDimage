@@ -445,8 +445,9 @@ class BatchExtractor(object):
         for t in range(0, n_tables):
             scan = table_tags[t][0]
             roi_type = table_tags[t][1]
-            im_space = table_tags[t][2]
-            modality = table_tags[t][3]
+            roi_label = table_tags[t][2]
+            im_space = table_tags[t][3]
+            modality = table_tags[t][4]
 
             # extract parameters for the current modality
             if modality == 'CTscan' and 'imParamCT' in im_params:
@@ -483,14 +484,14 @@ class BatchExtractor(object):
 
             # Create radiomics table
             radiomics_table_dict = MEDimage.utils.create_radiomics_table(
-                MEDimage.utils.get_file_paths(self._path_save, wildcard),
+                MEDimage.utils.get_file_paths(self._path_save / f'features({roi_label})', wildcard),
                 im_space, 
                 log_file
             )
             radiomics_table_dict['Properties']['Description'] = name_table
 
             # Save radiomics table
-            save_path = self._path_save / name_table
+            save_path = self._path_save / f'features({roi_label})' / name_table
             np.save(save_path, [radiomics_table_dict])
 
             # Create CSV table and Definitions
@@ -613,7 +614,7 @@ class BatchExtractor(object):
         for r in range(0, n_roi_types):
             label = self.roi_type_labels[r]
             wildcard = '*' + label + '*.json'
-            file_paths = MEDimage.utils.get_file_paths(self._path_save, wildcard)
+            file_paths = MEDimage.utils.get_file_paths(self._path_save / f'features({self.roi_types[r]})', wildcard)
             n_files = len(file_paths)
             scans = [0] * n_files
             modalities = [0] * n_files
@@ -628,7 +629,7 @@ class BatchExtractor(object):
                 scan = scans[s]
                 modality = modalities[s]
                 wildcard = '*' + scan + '(' + label + ')*.json'
-                file_paths = MEDimage.utils.get_file_paths(self._path_save, wildcard)
+                file_paths = MEDimage.utils.get_file_paths(self._path_save / f'features({self.roi_types[r]})', wildcard)
                 n_files = len(file_paths)
 
                 # Finding the images spaces for a test file (assuming that all
@@ -640,7 +641,7 @@ class BatchExtractor(object):
                 # Constructing the table_tags variable
                 for i in range(0, n_im_spaces):
                     im_space = im_spaces[i]
-                    table_tags = table_tags + [[scan, label, im_space, modality]]
+                    table_tags = table_tags + [[scan, label, self.roi_types[r], im_space, modality]]
 
         # INITIALIZATION
         os.chdir(self._path_save)
@@ -714,13 +715,15 @@ class BatchExtractor(object):
         Returns:
             None.
         """
-        # Initialize ray
-        if ray.is_initialized():
-            ray.shutdown()
-        ray.init(local_mode=True, include_dashboard=True)
 
         # Load and process computing parameters
         im_params = self.__load_and_process_params()
+
+        # Initialize ray
+        if ray.is_initialized():
+            ray.shutdown()
+
+        ray.init(local_mode=True, include_dashboard=True, num_cpus=self.n_bacth)
 
         # Batch all scans from CSV file and compute radiomics for each scan
         self.__batch_all_patients(im_params)

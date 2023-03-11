@@ -585,16 +585,16 @@ class MEDscan(object):
         Returns:
             None.
         """
-        if path_save.name != f'features({roi_type_label})':
-            if not (path_save / f'features({roi_type_label})').exists():
-                (path_save / f'features({roi_type_label})').mkdir()
-                path_save = Path(path_save / f'features({roi_type_label})')
+        if path_save.name != f'features({roi_type})':
+            if not (path_save / f'features({roi_type})').exists():
+                (path_save / f'features({roi_type})').mkdir()
+                path_save = Path(path_save / f'features({roi_type})')
             else:
-                path_save = Path(path_save) / f'features({roi_type_label})'
+                path_save = Path(path_save) / f'features({roi_type})'
         else:
             path_save = Path(path_save)
         params = {}
-        params['roi_type'] = roi_type
+        params['roi_type'] = roi_type_label
         params['patientID'] = self.patientID
         params['vox_dim'] = list([
                                 self.data.volume.spatialRef.PixelExtentInWorldX, 
