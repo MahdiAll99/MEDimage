@@ -407,18 +407,18 @@ class BatchExtractor(object):
                                 ngldm_features=ngldm
                             )
                 
-                # End of texture features extraction
-                logging.info(f"End of texture features extraction: {time() - start}\n")
+        # End of texture features extraction
+        logging.info(f"End of texture features extraction: {time() - start}\n")
 
-                # Saving radiomics results
-                medscan.save_radiomics(
-                                scan_file_name=name_patient,
-                                path_save=self._path_save,
-                                roi_type=roi_type,
-                                roi_type_label=roi_type_label,
-                            )
-                
-                logging.info(f"TOTAL TIME:{time() - t_start} seconds\n\n")
+        # Saving radiomics results
+        medscan.save_radiomics(
+                        scan_file_name=name_patient,
+                        path_save=self._path_save,
+                        roi_type=roi_type,
+                        roi_type_label=roi_type_label,
+                    )
+        
+        logging.info(f"TOTAL TIME:{time() - t_start} seconds\n\n")
 
         return log_file
 
