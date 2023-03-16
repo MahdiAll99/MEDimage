@@ -5,7 +5,7 @@ from MEDimage.MEDscan import MEDscan
 
 
 def save_MEDscan(medscan: MEDscan,
-                  path_save: Path) -> None:
+                  path_save: Path) -> str:
     """Saves MEDscan class instance in a pickle object
     
     Args:
@@ -26,3 +26,5 @@ def save_MEDscan(medscan: MEDscan,
     # save
     with open(path_save / name_complete,'wb') as f: 
         pickle.dump(medscan, f)
+
+    return name_complete

@@ -17,9 +17,10 @@ import pydicom
 import pydicom.errors
 import pydicom.misc
 import ray
-from MEDimage.MEDscan import MEDscan
 from numpyencoder import NumpyEncoder
 from tqdm import tqdm, trange
+
+from MEDimage.MEDscan import MEDscan
 
 from ..processing.compute_suv_map import compute_suv_map
 from ..processing.segmentation import get_roi_from_indexes
@@ -75,7 +76,6 @@ class DataManager(object):
             path_save_checks: Union[Path, str] = None,
             path_pre_checks_settings: Union[Path, str] = None,
             save: bool = False,
-            keep_instances: bool = True,
             n_batch: int = 2
     ) -> None:
         """Constructor of the class DataManager.
@@ -92,7 +92,6 @@ class DataManager(object):
             path_pre_checks_settings(Union[Path, str], optional): Full path to the JSON file of the pre-checks analysis
                 parameters.
             save (bool, optional): True to save the MEDscan classes in `path_save`.
-            keep_instances(bool, optional): If True, will keep the created MEDscan instances in the class instance.
             n_batch (int, optional): Numerical value specifying the number of batch to use in the
                 parallel computations (use 0 for serial computation).
         
@@ -122,7 +121,6 @@ class DataManager(object):
                 path_pre_checks_settings,
         )
         self.save = save
-        self.keep_instances = keep_instances
         self.n_batch = n_batch
         self.__dicom = self.DICOM(
                 stack_series_rs=[],
@@ -139,7 +137,6 @@ class DataManager(object):
                 stack_path_roi=[],
                 stack_path_all=[]
         )
-        self.instances = []
         self.path_to_objects = []
         self.summary = {}
         self.csv_data = None
@@ -318,8 +315,7 @@ class DataManager(object):
         ids = [pd.process_files() for pd in pds]
 
         # Update the path to the created instances
-        for instance in ray.get(ids):
-            name_save = self.__get_MEDscan_name_save(instance)
+        for name_save in ray.get(ids):
             if self.paths._path_save:
                 self.path_to_objects.append(str(self.paths._path_save / name_save))
             # Update processing summary
@@ -346,22 +342,9 @@ class DataManager(object):
 
         nb_job_left = n_scans - n_batch
 
-        # Get MEDscan instances
-        if self.keep_instances:
-            if len(self.instances)>10 and not self.__warned:
-                # User cannot save over 10 instances in the class
-                warnings.warn("You have more than 10 MEDscan objects saved in the current DataManager instance, \
-                    the rest of the instances will/can be saved locally only.")
-                self.__warned = True
-            else:
-                self.instances.extend(ray.get(ids))
-                if len(self.instances) > 10:
-                    self.instances = self.instances[:10]
-
         # Distribute the remaining tasks
         for _ in trange(n_scans):
-            _, not_ready = ray.wait(ids, num_returns=1)
-            ids = not_ready
+            _, ids = ray.wait(ids, num_returns=1)
             if nb_job_left > 0:
                 idx = n_scans - nb_job_left
                 pd = ProcessDICOM(
@@ -373,8 +356,7 @@ class DataManager(object):
                 nb_job_left -= 1
 
             # Update the path to the created instances
-            for instance in ray.get(ids):
-                name_save = self.__get_MEDscan_name_save(instance)
+            for name_save in ray.get(ids):
                 if self.paths._path_save:
                     self.path_to_objects.extend(str(self.paths._path_save / name_save))
                 # Update processing summary
@@ -398,21 +380,7 @@ class DataManager(object):
                     if self.save:
                         logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
                             "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
-
-            # Get MEDscan instances
-            if self.keep_instances:
-                if len(self.instances)>10 and not self.__warned:
-                    warnings.warn("You have more than 10 MEDscan objects saved in the current DataManager instance, \
-                        the rest of the instances will/can be saved locally only.")
-                    self.__warned = True
-                else:
-                    self.instances.extend(ray.get(ids))
-                    if len(self.instances) > 10:
-                        self.instances = self.instances[:10]
         print('DONE')
-
-        if self.instances:
-            return self.instances
 
     def __read_all_niftis(self) -> None:
         """Reads all files in the initial path and organizes other path to images and roi
@@ -554,17 +522,7 @@ class DataManager(object):
             self.__associate_spatialRef(file, medscan)
             # GET ROI
             MEDscan_instance = self.__associate_roi_to_image(file, medscan)
-            
-            # User cannot save over 10 instances in the class
-            if self.keep_instances:
-                if len(self.instances)>10 and not self.__warned:
-                    warnings.warn("You have more than 10 MEDscan objects saved in the current DataManager instance, \
-                        the rest of the instances will/can be saved locally only.")
-                    self.__warned = True
-                else:
-                    self.instances.append(MEDscan_instance)
-                    if len(self.instances) > 10:
-                        self.instances = self.instances[:10]
+            # SAVE MEDscan INSTANCE
             if self.save and self.paths._path_save:
                 save_MEDscan(medscan, self.paths._path_save)
             
@@ -595,7 +553,6 @@ class DataManager(object):
                     logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
                         "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
         print('DONE')
-        return self.instances
 
     def update_from_csv(self, path_csv: Union[str, Path] = None) -> None:
         """Updates the class from a given CSV and summarizes the processed scans again according to it.
@@ -702,7 +659,6 @@ class DataManager(object):
         self,
         path_data: Union[Path, str] = None,
         wildcards_dimensions: List[str] = [],
-        use_instances: bool = True,
         min_percentile: float = 0.05,
         max_percentile: float = 0.95
         ) -> None:
@@ -714,8 +670,6 @@ class DataManager(object):
             wildcards_dimensions(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
                 :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
-            use_instances(bool, optional): If True will use the instances of the MEDscan class saved in DataManager
-                for the analysis. If False, will analyze scans in the path where the instances were saved.
             min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
             max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
         
@@ -745,8 +699,8 @@ class DataManager(object):
         if type(wildcards_dimensions) is str:
             wildcards_dimensions = [wildcards_dimensions]
 
-        if len(wildcards_dimensions) == 0 and not use_instances:
-            print("Wildcard is empty and instances use is not allowed, the pre-checks will be aborted")
+        if len(wildcards_dimensions) == 0:
+            print("Wildcard is empty, the pre-checks will be aborted")
             return
 
         # TODO: seperate by studies and scan type (MRscan, CTscan...)
@@ -755,43 +709,24 @@ class DataManager(object):
         file_paths = list()
         for w in range(len(wildcards_dimensions)):
             wildcard = wildcards_dimensions[w]
-            if use_instances:
-                wildcard = str(wildcard).replace('*', '')
-                study, scan_type = wildcard.split('.')[0:2]
-                n_instances = len(self.instances)
-                xy_dim["data"] = np.zeros((n_instances, 1))
-                xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
-                z_dim["data"] = np.zeros((n_instances, 1))
-                z_dim["data"] = np.multiply(z_dim["data"], np.nan)
-                for i in tqdm(range(len(self.instances))):
-                    try:
-                        medscan = self.instances[i]
-                        if medscan.patientID.split('-')[0] == study and medscan.type == scan_type:
-                            xy_dim["data"][i] = medscan.data.volume.spatialRef.PixelExtentInWorldX
-                            z_dim["data"][i]  = medscan.data.volume.spatialRef.PixelExtentInWorldZ
-                        else:
-                            continue
-                    except Exception as e:
-                        print(e)
+            if path_data:
+                file_paths = get_file_paths(path_data, wildcard)
+            elif self.paths._path_save:
+                file_paths = get_file_paths(self.paths._path_save, wildcard)
             else:
-                if path_data:
-                    file_paths = get_file_paths(path_data, wildcard)
-                elif self.paths._path_save:
-                    file_paths = get_file_paths(self.paths._path_save, wildcard)
-                else:
-                    raise ValueError("Path data is invalid.")
-                n_files = len(file_paths)
-                xy_dim["data"] = np.zeros((n_files, 1))
-                xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
-                z_dim["data"] = np.zeros((n_files, 1))
-                z_dim["data"] = np.multiply(z_dim["data"], np.nan)
-                for f in tqdm(range(len(file_paths))):
-                    try:
-                        medscan = np.load(file_paths[0], allow_pickle=True)
-                        xy_dim["data"][f] = medscan.data.volume.spatialRef.PixelExtentInWorldX
-                        z_dim["data"][f]  = medscan.data.volume.spatialRef.PixelExtentInWorldZ
-                    except Exception as e:
-                        print(e)
+                raise ValueError("Path data is invalid.")
+            n_files = len(file_paths)
+            xy_dim["data"] = np.zeros((n_files, 1))
+            xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
+            z_dim["data"] = np.zeros((n_files, 1))
+            z_dim["data"] = np.multiply(z_dim["data"], np.nan)
+            for f in tqdm(range(len(file_paths))):
+                try:
+                    medscan = np.load(file_paths[0], allow_pickle=True)
+                    xy_dim["data"][f] = medscan.data.volume.spatialRef.PixelExtentInWorldX
+                    z_dim["data"][f]  = medscan.data.volume.spatialRef.PixelExtentInWorldZ
+                except Exception as e:
+                    print(e)
 
             # Running analysis
             xy_dim["data"] = np.concatenate(xy_dim["data"])
@@ -852,7 +787,6 @@ class DataManager(object):
         self,
         path_data: Union[str, Path] = None,
         wildcards_window: List = [], 
-        use_instances: bool = True,
         path_csv: Union[str, Path] = None,
         min_percentile: float = 0.05,
         max_percentile: float = 0.95,
@@ -867,8 +801,6 @@ class DataManager(object):
             wildcards_window(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
                 :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
-            use_instances(bool, optional): If True will use the instances of the MEDscan class saved in DataManager
-                for the analysis. If False, will analyze scans in the path where the instances were saved.
             path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be
                 analyzed (a CSV file for a single ROI type).
             min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
@@ -910,62 +842,36 @@ class DataManager(object):
                 f"p{max_percentile}": []
             }
             wildcard = wildcards_window[w]
-            if not use_instances:
-                if path_data:
-                    file_paths = get_file_paths(path_data, wildcard)
-                elif self.paths._path_save:
-                    file_paths = get_file_paths(self.paths._path_save, wildcard)
-                else:
-                    raise ValueError("Path data is invalid.")
-                n_files = len(file_paths)
-                for f in tqdm(range(n_files)):
-                    file = file_paths[f]
-                    _, filename = os.path.split(file)
-                    filename, ext = os.path.splitext(filename)
-                    patient_name = filename + ext
-                    try:
-                        medscan = np.load(file, allow_pickle=True)
-                        if re.search('PTscan', wildcard) and medscan.type != 'nifti':
-                            medscan.data.volume.array = compute_suv_map(
-                                                        np.double(medscan.data.volume.array), 
-                                                        medscan.dicomH[2])
-                        patient_names = pd.Index(patient_names)
-                        ind_roi = patient_names.get_loc(patient_name)
-                        name_roi = roi_table.loc[ind_roi][3]
-                        vol_obj_init, roi_obj_init = get_roi_from_indexes(medscan, name_roi, 'box')
-                        temp = vol_obj_init.data[roi_obj_init.data == 1]
-                        temp_val.append(len(temp))
-                        roi_data["data"].append(np.zeros(shape=(n_files, temp_val[f])))
-                        roi_data["data"][f] = temp
-                    except Exception as e:
-                        print(f"Problem with patient {patient_name}, error: {e}")
-                        roi_data["data"][f] = []
+            if path_data:
+                file_paths = get_file_paths(path_data, wildcard)
+            elif self.paths._path_save:
+                file_paths = get_file_paths(self.paths._path_save, wildcard)
             else:
-                for i in tqdm(range(len(self.instances))):
-                    wildcard = str(wildcard).replace('*', '')
-                    study, scan_type = wildcard.split('.')[0:2]
-                    medscan = self.instances[i]
-                    patient_name = self.__get_MEDscan_name_save(medscan)
-                    if medscan.patientID.split('-')[0] == study and medscan.type == scan_type:
-                        try:
-                            if re.search('PTscan', wildcard) and medscan.type != 'nifti':
-                                medscan.data.volume.array = compute_suv_map(np.double(medscan.data.volume.array), 
-                                                                            medscan.dicomH[2])
-                            patient_names = pd.Index(patient_names)
-                            ind_roi = patient_names.get_loc(patient_name)
-                            name_roi = roi_table.loc[ind_roi][3]
-                            vol_obj_init, roi_obj_init = get_roi_from_indexes(medscan, name_roi, 'box')
-                            temp = vol_obj_init.data[roi_obj_init.data == 1]
-                            temp_val.append(len(temp))
-                            roi_data["data"].append(np.zeros(shape=(len(self.instances), temp_val[i])))
-                            roi_data["data"][i] = temp
-                        except Exception as e:
-                            print(f"Problem with patient {patient_name}, error: {e}")
-                            roi_data["data"].append([])
-                            roi_data["data"][i] = []
-                    else:
-                        roi_data["data"].append([])
-                        continue
+                raise ValueError("Path data is invalid.")
+            n_files = len(file_paths)
+            i = 0
+            for f in tqdm(range(n_files)):
+                file = file_paths[f]
+                _, filename = os.path.split(file)
+                filename, ext = os.path.splitext(filename)
+                patient_name = filename + ext
+                try:
+                    medscan = np.load(file, allow_pickle=True)
+                    if re.search('PTscan', wildcard) and medscan.type != 'nifti':
+                        medscan.data.volume.array = compute_suv_map(
+                                                    np.double(medscan.data.volume.array), 
+                                                    medscan.dicomH[2])
+                    patient_names = pd.Index(patient_names)
+                    ind_roi = patient_names.get_loc(patient_name)
+                    name_roi = roi_table.loc[ind_roi][3]
+                    vol_obj_init, roi_obj_init = get_roi_from_indexes(medscan, name_roi, 'box')
+                    temp = vol_obj_init.data[roi_obj_init.data == 1]
+                    temp_val.append(len(temp))
+                    roi_data["data"].append(np.zeros(shape=(n_files, temp_val[i])))
+                    roi_data["data"][i] = temp
+                    i+=1
+                except Exception as e:
+                    print(f"Problem with patient {patient_name}, error: {e}")
             
             roi_data["data"] = np.concatenate(roi_data["data"])
             roi_data["mean"] = np.mean(roi_data["data"][~np.isnan(roi_data["data"])])
@@ -977,12 +883,6 @@ class DataManager(object):
                                                         min_percentile)
             roi_data[f"p{max_percentile}"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 
                                                         max_percentile)
-            roi_data["data"] = roi_data["data"].tolist()
-
-            # Initializing and plotting roi data histogram
-            plt.rcParams["figure.figsize"] = (20,20)
-            plt.rcParams.update({'font.size': 22})
-            df_data = pd.DataFrame(roi_data["data"], columns=['data'])
             
             # Set bin width if not provided
             if bin_width != 0:
@@ -1002,6 +902,9 @@ class DataManager(object):
             if not hist_range:
                 hist_range = (roi_data["min"], roi_data["max"])
 
+           # re-segment data according to histogram range
+            roi_data["data"] = roi_data["data"][(roi_data["data"] > hist_range[0]) & (roi_data["data"] < hist_range[1])]
+            df_data = pd.DataFrame(roi_data["data"], columns=['data'])
             del roi_data["data"]  # no interest in keeping data (we only need statistics)
 
             # Plot histogram
@@ -1026,7 +929,6 @@ class DataManager(object):
                             path_data: Union[str, Path] = None,
                             wildcards_dimensions: List = [],
                             wildcards_window: List = [],
-                            use_instances: bool = True,
                             path_csv: Union[str, Path] = None,
                             min_percentile: float = 0.05,
                             max_percentile: float = 0.95,
@@ -1046,8 +948,6 @@ class DataManager(object):
             wildcards_window(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
                 `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
-            use_instances(bool, optional): If True will use the instances of the MEDscan class saved in DataManager
-                for the analysis. If False, will analyze scans in the path where the instances were saved.
             path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be
                 analyzed (a CSV file for a single ROI type).
             min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
@@ -1108,6 +1008,10 @@ class DataManager(object):
                     os.mkdir(self.paths._path_save_checks / 'checks')
                     self.paths._path_save_checks = Path(self.paths._path_save_checks / 'checks')
 
+        # Initializing plotting params
+        plt.rcParams["figure.figsize"] = (20,20)
+        plt.rcParams.update({'font.size': 22})
+        
         start = time()
         print('\n\n************************* PRE-RADIOMICS CHECKS *************************', end='')
 
@@ -1117,7 +1021,6 @@ class DataManager(object):
         self.__pre_radiomics_checks_dimensions(
                                         path_data, 
                                         wildcards_dimensions, 
-                                        use_instances,
                                         min_percentile, 
                                         max_percentile)
         print('DONE', end='')
@@ -1130,7 +1033,6 @@ class DataManager(object):
         self.__pre_radiomics_checks_window(
                                         path_data, 
                                         wildcards_window, 
-                                        use_instances, 
                                         path_csv,
                                         min_percentile, 
                                         max_percentile,

@@ -451,26 +451,35 @@ class ProcessDICOM():
                                             (points, np.reshape(np.transpose(pts_temp), (n_points, 3))),
                                             axis=0
                                             )
-                        # Save the XYZ points in the MEDscan class
-                        medscan.data.ROI.update_indexes(
-                                                    key=contour_num, 
-                                                    indexes=np.concatenate(
-                                                            (points, 
-                                                            np.reshape(ind_closed_contour, (len(ind_closed_contour), 1))),
-                                                    axis=1)
-                                                    )
-                        # Compute the ROI box
-                        _, roi_obj = get_roi(
-                                        medscan,
-                                        name_roi='{' + dicom_rs_full[rs].StructureSetROISequence[roi].ROIName + '}',
-                                        box_string='full'
-                                        )
+                        if n_closed_contour == 0:
+                            print(f'Warning: no contour data found for ROI: \
+                                  {dicom_rs_full[rs].StructureSetROISequence[roi].ROIName}')
+                        else:
+                            # Save the XYZ points in the MEDscan class
+                            medscan.data.ROI.update_indexes(
+                                                        key=contour_num, 
+                                                        indexes=np.concatenate(
+                                                                (points, 
+                                                                np.reshape(ind_closed_contour, (len(ind_closed_contour), 1))),
+                                                        axis=1)
+                                                        )
+                            # Compute the ROI box
+                            _, roi_obj = get_roi(
+                                            medscan,
+                                            name_roi='{' + dicom_rs_full[rs].StructureSetROISequence[roi].ROIName + '}',
+                                            box_string='full'
+                                            )
 
-                        # Save the ROI box non-zero indexes in the MEDscan class
-                        medscan.data.ROI.update_indexes(key=contour_num, indexes=np.nonzero(roi_obj.data.flatten()))
+                            # Save the ROI box non-zero indexes in the MEDscan class
+                            medscan.data.ROI.update_indexes(key=contour_num, indexes=np.nonzero(roi_obj.data.flatten()))
 
                     except Exception as e:
-                        print('patientID: ' + dicom_hi[0].PatientID + ' error: ' + str(e) + ' n_roi: ' + str(roi) + ' n_rs:' + str(rs))
+                        if 'SeriesDescription' in dicom_h[0]:
+                            print(f'patientID: {dicom_hi[0].PatientID} Modality: {dicom_hi[0].SeriesDescription} error: \
+                                {str(e)} n_roi: {str(roi)}  n_rs: {str(rs)}')
+                        else:
+                            print(f'patientID: {dicom_hi[0].PatientID} Modality: {dicom_hi[0].Modality} error: \
+                            {str(e)} n_roi: {str(roi)}  n_rs: {str(rs)}')
                         medscan.data.ROI.update_indexes(key=contour_num, indexes=np.NaN)
                     contour_num += 1
 
@@ -485,10 +494,20 @@ class ProcessDICOM():
 
             # save MEDscan class instance as a pickle object
             if self.save and self.path_save:
-                save_MEDscan(medscan, self.path_save)
+                name_complete = save_MEDscan(medscan, self.path_save)
+                del medscan
+            else:
+                series_description = medscan.series_description.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
+                name_id = medscan.patientID.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
+
+                # final saving name
+                name_complete = name_id + '__' + series_description + '.' + medscan.type + '.npy'
 
         except Exception as e:
-            print('patientID: ' + dicom_hi[0].PatientID + ' error: ' + str(e))
-            return medscan
+            if 'SeriesDescription' in dicom_hi[0]:
+                print(f'patientID: {dicom_hi[0].PatientID} Modality: {dicom_hi[0].SeriesDescription} error: {str(e)}')
+            else:
+                print(f'patientID: {dicom_hi[0].PatientID} Modality: {dicom_hi[0].Modality} error: {str(e)}')
+            return ''
         
-        return medscan
+        return name_complete
