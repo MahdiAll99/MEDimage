@@ -722,7 +722,7 @@ class DataManager(object):
             z_dim["data"] = np.multiply(z_dim["data"], np.nan)
             for f in tqdm(range(len(file_paths))):
                 try:
-                    medscan = np.load(file_paths[0], allow_pickle=True)
+                    medscan = np.load(file_paths[f], allow_pickle=True)
                     xy_dim["data"][f] = medscan.data.volume.spatialRef.PixelExtentInWorldX
                     z_dim["data"][f]  = medscan.data.volume.spatialRef.PixelExtentInWorldZ
                 except Exception as e:
