@@ -96,7 +96,8 @@ class Gabor():
 
     def convolve(self,
                  images: np.ndarray,
-                 orthogonal_rot=False) -> np.ndarray:
+                 orthogonal_rot=False,
+                 pooling_method='mean') -> np.ndarray:
         """Filter a given image using the Gabor kernel defined during the construction of this instance.
 
         Args:
@@ -121,7 +122,12 @@ class Gabor():
         result = np.linalg.norm(result, axis=0)
 
         # Rotation invariance.
-        result = np.mean(result, axis=2) if orthogonal_rot else np.mean(result, axis=1)
+        if pooling_method == 'mean':
+            result = np.mean(result, axis=2) if orthogonal_rot else np.mean(result, axis=1)
+        elif pooling_method == 'max':
+            result = np.max(result, axis=2) if orthogonal_rot else np.max(result, axis=1)
+        else:
+            raise ValueError("Pooling method should be either 'mean' or 'max'.")
 
         # Aggregate orthogonal rotation
         result = np.mean(result, axis=0) if orthogonal_rot else result
@@ -138,7 +144,8 @@ def apply_gabor(
         theta: float = 0.0,
         rot_invariance: bool = False,
         padding: str = "symmetric",
-        orthogonal_rot: bool = False
+        orthogonal_rot: bool = False,
+        pooling_method: str = "mean"
     ) -> np.ndarray:
     """Apply the Gabor filter to a given imaging data.
     
@@ -173,7 +180,7 @@ def apply_gabor(
         voxel_length = medscan.params.process.scale_non_text[0]
         sigma = medscan.params.filter.gabor.sigma / voxel_length
         lamb = medscan.params.filter.gabor._lambda / voxel_length
-        size = 2 * int(7 * medscan.params.filter.gabor.sigma + 0.5) + 1
+        size = 2 * int(7 * sigma + 0.5) + 1
         _filter = Gabor(size=size,
                         sigma=sigma,
                         lamb=lamb,
@@ -200,7 +207,7 @@ def apply_gabor(
                         padding=padding
                         )
         # Run convolution
-        result = _filter.convolve(input_images, orthogonal_rot=orthogonal_rot)
+        result = _filter.convolve(input_images, orthogonal_rot=orthogonal_rot, pooling_method=pooling_method)
     
     if spatial_ref:
         return image_volume_obj(np.squeeze(result), spatial_ref)
