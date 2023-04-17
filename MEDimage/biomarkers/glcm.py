@@ -1441,11 +1441,11 @@ class CooccurrenceMatrix:
         # Don't return data for empty slices or slices without a good matrix
         if self.matrix is None:
             # Update names
-            df_feat.columns += self._parse_names()
+            #df_feat.columns += self._parse_names()
             return df_feat
         elif len(self.matrix) == 0:
             # Update names
-            df_feat.columns += self._parse_names()
+            #df_feat.columns += self._parse_names()
             return df_feat
 
         df_pij, df_pi, df_pj, df_pimj, df_pipj, n_g = self.get_cm_data(intensity_range)
