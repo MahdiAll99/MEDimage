@@ -39,7 +39,7 @@ def apply_filter(
     elif filter_type.lower() == "log":
         # Initialize filter class params & instance
         sigma = medscan.params.filter.log.sigma / voxel_length
-        length = 2 * int(4 * medscan.params.filter.log.sigma + 0.5) + 1
+        length = 2 * int(4 * sigma + 0.5) + 1
         _filter = LaplacianOfGaussian(
                     ndims=medscan.params.filter.log.ndims,
                     size=length,
@@ -68,7 +68,7 @@ def apply_filter(
         # Initialize filter class params & instance
         sigma = medscan.params.filter.gabor.sigma / voxel_length
         lamb = medscan.params.filter.gabor._lambda / voxel_length
-        size = 2 * int(7 * medscan.params.filter.gabor.sigma + 0.5) + 1
+        size = 2 * int(7 * sigma + 0.5) + 1
         _filter = Gabor(size=size,
                         sigma=sigma,
                         lamb=lamb,
@@ -100,6 +100,6 @@ def apply_filter(
                 r'Filter name should either be: "mean", "log", "laws", "gabor" or "wavelet".'
                 )
 
-    vol_obj.data = np.squeeze(result)
+    vol_obj.data = np.squeeze(result,axis=0)
 
     return vol_obj
