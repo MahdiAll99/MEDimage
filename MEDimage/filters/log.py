@@ -119,7 +119,7 @@ def apply_log(
     if medscan:
         # Initialize filter class params & instance
         sigma = medscan.params.filter.log.sigma / voxel_length
-        length = 2 * int(4 * medscan.params.filter.log.sigma + 0.5) + 1
+        length = 2 * int(4 * sigma + 0.5) + 1
         _filter = LaplacianOfGaussian(
                     ndims=medscan.params.filter.log.ndims,
                     size=length,
