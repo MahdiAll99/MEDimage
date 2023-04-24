@@ -24,21 +24,23 @@ def _is_jsonable(data: any, cls: object) -> bool:
         return False
 
 
-def posix_to_string(dictionnary: Dict) -> None:
+def posix_to_string(dictionnary: Dict) -> Dict:
     """Converts all Pathlib.Path to str [Pathlib is not serializable].
 
     Args:
-        dictionnary (Dict): ``Input`` dict with Pathlib.Path values to convert.
+        dictionnary (Dict):  dict with Pathlib.Path values to convert.
 
     Returns:
-        None: Mutate the given dictionary.
+        Dict: ``dictionnary`` with all Pathlib.Path converted to str.
     """
     for key, value in dictionnary.items():
         if type(value) is dict:
-            posix_to_string(value)
+            value = posix_to_string(value)
         else:
-            dictionnary[key] = str(value) if isinstance(value, pathlib.PosixPath) else value
-
+            if issubclass(type(value), (pathlib.WindowsPath, pathlib.PosixPath, pathlib.Path)):
+               dictionnary[key] = str(value)
+    
+    return dictionnary
 
 def load_json(file_path: pathlib.Path) -> Dict:
     """Wrapper to json.load function.
