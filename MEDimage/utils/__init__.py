@@ -4,6 +4,7 @@ from .create_radiomics_table import *
 from .data_frame_export import *
 from .find_process_names import *
 from .get_file_paths import *
+from .get_full_rad_names import *
 from .get_institutions_from_ids import *
 from .get_patient_id_from_scan_name import *
 from .get_patient_names import *
