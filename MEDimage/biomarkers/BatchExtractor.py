@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import pickle
 import sys
@@ -9,11 +10,12 @@ from pathlib import Path
 from time import time
 from typing import Dict, List, Union
 
-import MEDimage
 import numpy as np
 import pandas as pd
 import ray
 from tqdm import trange
+
+import MEDimage
 
 
 class BatchExtractor(object):
@@ -170,11 +172,19 @@ class BatchExtractor(object):
             vol_obj = MEDimage.filters.apply_filter(medscan, vol_obj)
 
         # ROI Extraction :
-        vol_int_re = MEDimage.processing.roi_extract(
-            vol=vol_obj.data, 
-            roi=roi_obj_int.data
-        )
+        try:
+            vol_int_re = MEDimage.processing.roi_extract(
+                vol=vol_obj.data, 
+                roi=roi_obj_int.data
+            )
+        except Exception as e:
+            print(name_patient, e)
+            return log_file
 
+        # check if ROI is empty
+        if math.isnan(np.nanmax(vol_int_re)) and math.isnan(np.nanmin(vol_int_re)):
+            logging.error(f'PROBLEM WITH INTENSITY MASK. ROI {roi_name} IS EMPTY.')
+            return log_file
         # Computation of non-texture features
         logging.info("--> Computation of non-texture features:")
 
@@ -333,12 +343,16 @@ class BatchExtractor(object):
                     roi=roi_obj_int.data)
 
                 # Discretisation :
-                vol_quant_re, _ = MEDimage.processing.discretize(
-                    vol_re=vol_int_re,
-                    discr_type=medscan.params.process.algo[a], 
-                    n_q=medscan.params.process.gray_levels[a][n], 
-                    user_set_min_val=medscan.params.process.user_set_min_value
-                )
+                try:
+                    vol_quant_re, _ = MEDimage.processing.discretize(
+                        vol_re=vol_int_re,
+                        discr_type=medscan.params.process.algo[a], 
+                        n_q=medscan.params.process.gray_levels[a][n], 
+                        user_set_min_val=medscan.params.process.user_set_min_value
+                    )
+                except Exception as e:
+                    logging.error(f'PROBLEM WITH DISCRETIZATION: {e}')
+                    vol_quant_re = None
 
                 # GLCM features extraction
                 try:
