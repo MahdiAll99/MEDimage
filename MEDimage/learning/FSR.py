@@ -344,7 +344,7 @@ class FSR:
 
             # Update threshold if the number of variables is too small or too large
             if len(ind_keep) < min_n_feat_total:
-                # Lower the threshold
+                # Increase the threshold (less stringent)
                 thresh_inter_corr = thresh_inter_corr + 0.05
                 corr_mat_temp = corr_mat.copy() # reset the correlation matrix
             else:
