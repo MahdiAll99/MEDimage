@@ -323,7 +323,7 @@ class RadiomicsLearner:
             'max_depth': [3, 4, 5], 
             'learning_rate': [0.1 , 0.01, 0.001], 
             'n_estimators': [50, 100, 200],
-            'scale_pos_weight': [1, 25, 50, 75, 99, scale_pos_weight]
+            'scale_pos_weight': [scale_pos_weight]
         }
 
         # Set up grid search with cross-validation
@@ -339,9 +339,6 @@ class RadiomicsLearner:
 
         # Get the best parameters
         best_params = grid_search.best_params_
-
-        # Update scale_pos_weight
-        best_params['scale_pos_weight'] = (outcome_table_binary_train == 0).sum().values[0] / (outcome_table_binary_train == 1).sum().values[0]
 
         # Fit the XGB Classifier with the best parameters
         classifier = XGBClassifier(**best_params)
