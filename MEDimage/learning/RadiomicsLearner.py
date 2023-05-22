@@ -311,18 +311,20 @@ class RadiomicsLearner:
         # Finalize the new radiomics table with the remaining variables
         var_table_train = finalize_rad_table(var_table_train)
 
-        # XGB Classifier
-        classifier = XGBClassifier()
-
         # Suggested scale_pos_weight
-        scale_pos_weight = (outcome_table_binary_train == 0).sum().values[0] / (outcome_table_binary_train == 1).sum().values[0]
+        scale_pos_weight = 1 - (outcome_table_binary_train == 0).sum().values[0] \
+            / (outcome_table_binary_train == 1).sum().values[0]
+
+        # XGB Classifier
+        classifier = XGBClassifier(scale_pos_weight=scale_pos_weight)
 
         # Tune XGBoost parameters
         params = {
             'max_depth': [3, 4, 5], 
             'learning_rate': [0.1 , 0.01, 0.001], 
             'n_estimators': [50, 100, 200],
-            'scale_pos_weight': [1, 25, 50, 75, 99, scale_pos_weight]}
+            'scale_pos_weight': [1, 25, 50, 75, 99, scale_pos_weight]
+        }
 
         # Set up grid search with cross-validation
         grid_search = GridSearchCV(
