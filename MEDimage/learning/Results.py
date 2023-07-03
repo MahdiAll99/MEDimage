@@ -1,8 +1,10 @@
 import os
 from pathlib import Path
+from typing import List
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from matplotlib import pyplot as plt
 from numpyencoder import NumpyEncoder
 from sklearn import metrics
@@ -269,6 +271,43 @@ class Results:
             print(f"Error in get_model_performance_metrics: ", e, "filling metrics with nan...")
             return self.__get_metrics_failure_dict()
     
+    def plot_models_performance(path_results: Path) -> None:
+        """
+        Plots the performance metrics of every model found in the given path.
+
+        Args:
+            path_results(Path): path to the folder containing the results of the experiment.
+
+        Returns:
+            None: Saves the plots.
+        """
+        # Get all tests paths
+        list_path_tests =  [path for path in path_results.iterdir() if path.is_dir()]
+        test_names = [path.name for path in list_path_tests]
+
+        # Metrics to process
+        metrics = ['AUC', 'AUPRC', 'BAC', 'Sensitivity', 'Specificity',
+                'Precision', 'NPV', 'F1_score', 'Accuracy', 'MCC',
+                'TN', 'FP', 'FN', 'TP']
+        
+        # Organize metrics in a dataframe
+        metrics_df = pd.DataFrame(columns=test_names)
+
+        # Process metrics
+        for dataset in ['train', 'test', 'holdout']:
+            for metric in metrics:
+                metric_values = []
+                for path_test in list_path_tests:
+                    results_dict = load_json(path_test / 'run_results.json')
+                    metric_values.append(results_dict[list(results_dict.keys())[0]][dataset]['metrics'][metric])
+
+                    # fill the dataframe
+                    metrics_df.loc[metric, path_test.name] = metric_values[-1]
+        
+        # Plot a heatmap of the metrics
+        sns.heatmap(metrics_df, annot=True, cmap='coolwarm')
+        plt.show()
+
     def to_json(
             self, 
             response_train: list = None, 
