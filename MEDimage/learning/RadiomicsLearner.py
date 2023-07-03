@@ -9,17 +9,17 @@ import numpy as np
 import pandas as pd
 from numpyencoder import NumpyEncoder
 from sklearn import metrics
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from supervised.automl import AutoML
 from xgboost import XGBClassifier
 
 from MEDimage.learning.DataCleaner import DataCleaner
 from MEDimage.learning.DesignExperiment import DesignExperiment
 from MEDimage.learning.FSR import FSR
 from MEDimage.learning.ml_utils import (average_results, combine_rad_tables,
-                                        finalize_rad_table, find_best_model,
-                                        get_ml_test_table, get_radiomics_table,
-                                        intersect, intersect_var_tables,
-                                        save_model)
+                                        finalize_rad_table, get_ml_test_table,
+                                        get_radiomics_table, intersect,
+                                        intersect_var_tables, save_model)
 from MEDimage.learning.Normalization import Normalization
 from MEDimage.learning.Results import Results
 
@@ -152,7 +152,7 @@ class RadiomicsLearner:
             Tuple: Two dict of processed radiomics tables, one dict for training and one for 
                 testing (no feature set reduction). 
         """
-        # Get a list of unique varaibles found in the ml variables combinations dict
+        # Get a list of unique variables found in the ml variables combinations dict
         variables_id = [s.split('_') for s in ml['variables']['combinations']]
         variables_id = list(set([x for sublist in variables_id for x in sublist]))
 
@@ -171,9 +171,9 @@ class RadiomicsLearner:
             var_id: str, 
             outcome_table_binary: pd.DataFrame,
             patients_train: list
-        ) -> Tuple[Dict, Dict]:
+        ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
-        For the given varaible, this function loads the corresponding radiomics tables and pre-processes them
+        For the given variable, this function loads the corresponding radiomics tables and pre-processes them
         (cleaning, normalization and feature set reduction).
 
         Note: 
@@ -189,36 +189,32 @@ class RadiomicsLearner:
             patients_train (list): List of patients to use for training.
         
         Returns:
-            Tuple: Two dict of processed radiomics tables, one dict for training and one for 
-                testing (no feature set reduction).
+            Tuple[pd.DataFrame, pd.DataFrame]: Two dataframes of processed radiomics tables, one for training 
+                and one for testing (no feature set reduction).
         """
         # Initialization
         patient_ids = list(outcome_table_binary.index)
         outcome_table_binary_training = outcome_table_binary.loc[patients_train]
         var_names = ['var_datacleaning', 'var_normalization', 'var_fSetReduction']
         flags_preprocessing =  {key: key in ml['variables'][var_id].keys() for key in var_names}
+        flags_preprocessing_test = flags_preprocessing.copy()
+        flags_preprocessing_test['var_fSetReduction'] = False
 
         # Pre-processing
         rad_var_struct = ml['variables'][var_id]
-        rad_tables_training = list()
-        rad_tables_testing = list()
+        rad_tables_learning = list()
         for item in rad_var_struct['path'].values():
             # Loading the table
             path_radiomics_csv = item['csv']
             path_radiomics_txt = item['txt']
             image_type = item['type']
-            rad_table_training = get_radiomics_table(path_radiomics_csv, path_radiomics_txt, image_type, patients_train)
-            rad_table_testing = get_radiomics_table(path_radiomics_csv, path_radiomics_txt, image_type, patient_ids)
+            rad_table_learning = get_radiomics_table(path_radiomics_csv, path_radiomics_txt, image_type, patient_ids)
 
             # Data cleaning
             if flags_preprocessing['var_datacleaning']:
                 cleaning_dict = ml['datacleaning'][ml['variables'][var_id]['var_datacleaning']]['feature']['continuous']
-                # Training data
-                data_cleaner = DataCleaner(rad_table_training)
-                rad_table_training = data_cleaner.apply_data_cleaning(cleaning_dict)
-                # Testing data
-                data_cleaner = DataCleaner(rad_table_testing)
-                rad_table_testing = data_cleaner.apply_data_cleaning(cleaning_dict)
+                data_cleaner = DataCleaner(rad_table_learning)
+                rad_table_learning = data_cleaner(cleaning_dict)
 
             # Normalization (ComBat)
             if flags_preprocessing['var_normalization']:
@@ -226,41 +222,33 @@ class RadiomicsLearner:
                 # Some information must be stored to re-apply combat for testing data
                 if 'combat' in normalization_method.lower():
                     # Training data
-                    rad_table_training.Properties['userData']['normalization'] = dict()
-                    rad_table_training.Properties['userData']['normalization']['original_data'] = dict()
-                    rad_table_training.Properties['userData']['normalization']['original_data']['path_radiomics_csv'] = path_radiomics_csv
-                    rad_table_training.Properties['userData']['normalization']['original_data']['path_radiomics_txt'] = path_radiomics_txt
-                    rad_table_training.Properties['userData']['normalization']['original_data']['image_type'] = image_type
-                    rad_table_training.Properties['userData']['normalization']['original_data']['patient_ids'] = patient_ids
+                    rad_table_learning.Properties['userData']['normalization'] = dict()
+                    rad_table_learning.Properties['userData']['normalization']['original_data'] = dict()
+                    rad_table_learning.Properties['userData']['normalization']['original_data']['path_radiomics_csv'] = path_radiomics_csv
+                    rad_table_learning.Properties['userData']['normalization']['original_data']['path_radiomics_txt'] = path_radiomics_txt
+                    rad_table_learning.Properties['userData']['normalization']['original_data']['image_type'] = image_type
+                    rad_table_learning.Properties['userData']['normalization']['original_data']['patient_ids'] = patient_ids
                     if flags_preprocessing['var_datacleaning']:
                         data_cln_method = ml['variables'][var_id]['var_datacleaning']
-                        rad_table_training.Properties['userData']['normalization']['original_data']['datacleaning_method'] = data_cln_method
+                        rad_table_learning.Properties['userData']['normalization']['original_data']['datacleaning_method'] = data_cln_method
                     
                     # Apply ComBat
                     normalization = Normalization('combat')
-                    rad_table_training = normalization.apply_combat(variable_table=rad_table_training)  # Training data
-
-                    # Testing data
-                    rad_table_testing.Properties['userData']['normalization'] = dict()
-                    rad_table_testing.Properties['userData']['normalization']['original_data'] = dict()
-                    rad_table_testing.Properties['userData']['normalization']['original_data']['path_radiomics_csv'] = path_radiomics_csv
-                    rad_table_testing.Properties['userData']['normalization']['original_data']['path_radiomics_txt'] = path_radiomics_txt
-                    rad_table_testing.Properties['userData']['normalization']['original_data']['image_type'] = image_type
-                    rad_table_testing.Properties['userData']['normalization']['original_data']['patient_ids'] = patient_ids
-                    if flags_preprocessing['var_datacleaning']:
-                        data_cln_method = ml['variables'][var_id]['var_datacleaning']
-                        rad_table_testing.Properties['userData']['normalization']['original_data']['datacleaning_method'] = data_cln_method
-                    
-                    # Apply ComBat
-                    normalization = Normalization('combat')
-                    rad_table_testing = normalization.apply_combat(variable_table=rad_table_testing)  # Testing data
-                    
+                    rad_table_learning = normalization.apply_combat(variable_table=rad_table_learning)  # Training data
                 else:
                     raise NotImplementedError(f'Normalization method: {normalization_method} not recognized.')
 
             # Save the table
-            rad_tables_training.append(rad_table_training)
-            rad_tables_testing.append(rad_table_testing)
+            rad_tables_learning.append(rad_table_learning)
+
+        # Seperate training and testing data before feature set reduction
+        rad_tables_testing = deepcopy(rad_tables_learning)
+        rad_tables_training = deepcopy([rad_tab.loc[patients_train] for rad_tab in rad_tables_learning])
+
+        # Deepcopy properties
+        temp_properties = list()
+        for rad_tab in rad_tables_testing:
+            temp_properties.append(deepcopy(rad_tab.Properties))
 
         # Feature set reduction (for training data only)
         if flags_preprocessing['var_fSetReduction']:
@@ -273,8 +261,15 @@ class RadiomicsLearner:
             # Apply FDA
             rad_tables_training = fsr.apply_fsr(ml, rad_tables_training, outcome_table_binary_training)
 
+        # Re-assign properties
+        for i in range(len(rad_tables_testing)):
+            rad_tables_testing[i].Properties = temp_properties[i]
+        del temp_properties
+        
         # Finalization steps
         rad_tables_training.Properties['userData']['flags_preprocessing'] = flags_preprocessing
+        rad_tables_testing = combine_rad_tables(rad_tables_testing)
+        rad_tables_testing.Properties['userData']['flags_processing'] = flags_preprocessing_test
 
         return rad_tables_training, rad_tables_testing
 
@@ -282,8 +277,9 @@ class RadiomicsLearner:
             self, 
             var_table_train: pd.DataFrame,
             outcome_table_binary_train: pd.DataFrame,
-            var_importance_threshold: float,
-            optimal_threshold: float = None
+            var_importance_threshold: float = 0.01,
+            optimal_threshold: float = None,
+            method : str = "auto"
         ) -> Dict:
         """
         Trains an XGBoost model for the given machine learning test.
@@ -293,6 +289,11 @@ class RadiomicsLearner:
             outcome_table_binary_train (pd.DataFrame): Outcome table with binary labels for the training/learning set.
             var_importance_threshold (float): Threshold for the variable importance. Variables with importance below
                 this threshold will be removed from the model.
+            optimal_threshold (float, optional): Optimal threshold for the XGBoost model. If not given, it will be
+                computed using the training set.
+            method (str, optional): String specifying the method to use to train the XGBoost model.
+                - "grid_search": Grid search with cross-validation to find the best parameters.
+                - "auto": AutoML to find the best XGBoost model.
         
         Returns:
             Dict: Dictionary containing info about the trained XGBoost model.
@@ -301,52 +302,70 @@ class RadiomicsLearner:
         # Safety check (make sure that the outcome table and the variable table have the same patients)
         var_table_train, outcome_table_binary_train = intersect_var_tables(var_table_train, outcome_table_binary_train)
 
-        # Initial training to filter features using variable importance
-        # XGB Classifier
-        classifier = XGBClassifier()
-        classifier.fit(var_table_train, outcome_table_binary_train)
-        var_importance = classifier.feature_importances_
-        var_table_train = var_table_train.iloc[:, var_importance >= var_importance_threshold]
-
         # Finalize the new radiomics table with the remaining variables
         var_table_train = finalize_rad_table(var_table_train)
 
-        # Suggested scale_pos_weight
-        scale_pos_weight = 1 - (outcome_table_binary_train == 0).sum().values[0] \
-            / (outcome_table_binary_train == 1).sum().values[0]
+        if method == "auto":
+            # Best model using AutoML
+            classifier = AutoML(algorithms=["Xgboost"], mode="Compete", golden_features=False, eval_metric=metrics.matthews_corrcoef)
 
-        # XGB Classifier
-        classifier = XGBClassifier(scale_pos_weight=scale_pos_weight)
+            # Fit the best XGB Classifier
+            classifier.fit(var_table_train, outcome_table_binary_train)
+        
+        else:
+            # Initial training to filter features using variable importance
+            # XGB Classifier
+            classifier = XGBClassifier()
+            classifier.fit(var_table_train, outcome_table_binary_train)
+            var_importance = classifier.feature_importances_
+            # TODO: normalize var_importance
+            var_table_train = var_table_train.iloc[:, var_importance >= var_importance_threshold]
 
-        # Tune XGBoost parameters
-        params = {
-            'max_depth': [3, 4, 5], 
-            'learning_rate': [0.1 , 0.01, 0.001], 
-            'n_estimators': [50, 100, 200],
-            'scale_pos_weight': [scale_pos_weight]
-        }
+            # Suggested scale_pos_weight
+            scale_pos_weight = 1 - (outcome_table_binary_train == 0).sum().values[0] \
+                / (outcome_table_binary_train == 1).sum().values[0]
 
-        # Set up grid search with cross-validation
-        grid_search = GridSearchCV(
-            estimator=classifier, 
-            param_grid=params, 
-            cv=5, 
-            n_jobs=-1, 
-            verbose=3, 
-            scoring='matthews_corrcoef'
-        )
-        grid_search.fit(var_table_train, outcome_table_binary_train)
+            # XGB Classifier
+            classifier = XGBClassifier(scale_pos_weight=scale_pos_weight)
 
-        # Get the best parameters
-        best_params = grid_search.best_params_
+            # Tune XGBoost parameters
+            params = {
+                'max_depth': [3, 4, 5], 
+                'learning_rate': [0.1 , 0.01, 0.001], 
+                'n_estimators': [50, 100, 200]
+            }
 
-        # Fit the XGB Classifier with the best parameters
-        classifier = XGBClassifier(**best_params)
-        classifier.fit(var_table_train, outcome_table_binary_train)
+            if method == "grid_search":
+                # Set up grid search with cross-validation
+                grid_search = GridSearchCV(
+                    estimator=classifier, 
+                    param_grid=params, 
+                    cv=5, 
+                    n_jobs=-1, 
+                    verbose=3, 
+                    scoring='matthews_corrcoef'
+                )
+            elif method == "random_search":
+                # Set up random search with cross-validation
+                grid_search = RandomizedSearchCV(
+                    estimator=classifier, 
+                    param_distributions=params, 
+                    cv=5, 
+                    n_jobs=-1, 
+                    verbose=3, 
+                    scoring='matthews_corrcoef'
+                )
+            else:
+                raise NotImplementedError(f'Method: {method} not recognized. Use "grid_search", "random_search" or "auto".')
+            
+            # Fit the grid search
+            grid_search.fit(var_table_train, outcome_table_binary_train)
 
-        # Another work around
-        #selection = SelectFromModel(classifier, threshold=var_importance_threshold, prefit=True)
-        #var_table_train = selection.transform(var_table_train)
+            # Get the best parameters
+            best_params = grid_search.best_params_
+
+            # Fit the XGB Classifier with the best parameters
+            classifier = XGBClassifier(**best_params)
         
         # Saving the information of the model in a dictionary
         model_xgb = dict()
@@ -363,7 +382,10 @@ class RadiomicsLearner:
         model_xgb['model'] = classifier
         model_xgb['var_names'] = list(var_table_train.columns.values)
         model_xgb['var_info'] = deepcopy(var_table_train.Properties['userData'])
-        model_xgb['optimization'] = best_params
+        if method != "auto":
+            model_xgb['optimization'] = best_params
+        else:
+            model_xgb['optimization'] = "auto"
 
         return model_xgb
         
@@ -428,7 +450,7 @@ class RadiomicsLearner:
 
         return predictions
 
-    def ml_run(self, path_ml: Path, holdout_test: bool = True) -> None:
+    def ml_run(self, path_ml: Path, holdout_test: bool = True, method: str = 'auto') -> None:
         """
         This function runs the machine learning test for the ceated experiment.
 
@@ -474,7 +496,7 @@ class RadiomicsLearner:
         var_id = str(ml['variables']['varStudy'])
 
         # Pre-processing of the radiomics tables/variables
-        processed_var_table, processed_var_tables_test = self.pre_process_radiomics_table(
+        processed_training_table, processed_testing_table = self.pre_process_radiomics_table(
             ml, 
             var_id, 
             outcome_table_binary.copy(),
@@ -495,7 +517,7 @@ class RadiomicsLearner:
         outcome_table_binary_holdout = outcome_table_binary.loc[patients_holdout, :] if holdout_test else None
 
         # Serperate variable table for training sets (repetetive but double-checking)
-        var_table_train = processed_var_table.loc[patients_train, :]
+        var_table_train = processed_training_table.loc[patients_train, :]
 
         # Initializing XGBoost model settings
         var_importance_threshold = ml['algorithms']['XGBoost']['varImportanceThreshold']
@@ -510,7 +532,8 @@ class RadiomicsLearner:
             var_table_train, 
             outcome_table_binary_train, 
             var_importance_threshold, 
-            optimal_threshold
+            optimal_threshold,
+            method=method
         )
 
         # Saving the trained model using pickle
@@ -521,18 +544,14 @@ class RadiomicsLearner:
 
         logging.info("{}--> DONE. TOTAL TIME OF LEARNING PROCESS: {:.2f} min".format(" " * 4, (time.time()-tstart) / 60))
 
-        # --> C. Testing phase
-        # C.1. Preparing test data
-        var_table_all_test = combine_rad_tables(processed_var_tables_test)
-        var_table_all_test.Properties['userData']['flags_processing'] = flags_processing
-
-        # C.2. Testing the XGBoost model and computing model response
+        # --> C. Testing phase        
+        # C.1. Testing the XGBoost model and computing model response
         tstart = time.time()
         logging.info(f"\n\n--> TESTING XGBOOST MODEL FOR VARIABLE {var_id}")
 
         response_train, response_test = self.test_xgb_model(
-            model, 
-            var_table_all_test, 
+            model,
+            processed_testing_table,
             [patients_train, patients_test]
         )
         
@@ -607,10 +626,19 @@ class RadiomicsLearner:
         logging.info('{} TOTAL COMPUTATION TIME: {:.2f} hours'.format(" " * 13, (time.time()-batch_start)/3600))
         logging.info("*********************************************************************")
         
-    def run_experiment(self, holdout_test: bool = True) -> None:
+    def run_experiment(self, holdout_test: bool = True, method: str = "auto") -> None:
         """
         Run the machine learning experiment for each split/run
-        """        
+
+        Args:
+            holdout_test (bool, optional): Boolean specifying if the hold-out test should be performed.
+            method (str, optional): String specifying the method to use to train the XGBoost model.
+                - "grid_search": Grid search with cross-validation to find the best parameters.
+                - "auto": AutoML to find the best XGBoost model.
+            
+        Returns:
+            None
+        """
         # Initialize the DesignExperiment class
         experiment = DesignExperiment(self.path_study, self.path_settings, self.experiment_label)
 
@@ -620,7 +648,7 @@ class RadiomicsLearner:
         # Run the different machine learning tests for the experiment
         tests_dict = load_json(path_file_ml_paths) # Tests dictionary
         for run in tests_dict.keys():
-            self.ml_run(tests_dict[run], holdout_test)
+            self.ml_run(tests_dict[run], holdout_test, method)
         
         # Average results of the different splits/runs
         average_results(self.path_study / f'learn__{self.experiment_label}')
