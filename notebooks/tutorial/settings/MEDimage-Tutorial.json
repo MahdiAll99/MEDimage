@@ -180,6 +180,17 @@
       "rot_invariance" : true,
       "padding" : "symmetric",
       "name_save" : "Wavelet_db3_LLH"
+    },
+    "textural" : {
+      "family" : "glcm",
+      "feature" : "Fcm_energy",
+      "discretization": {
+        "type" : "FBS",
+        "bins" : 64
+      },
+      "size" : 3,
+      "local" : false,
+      "name_save" : "glcm_energy"
     }
   }
 }

@@ -167,9 +167,34 @@ class BatchExtractor(object):
         # Preparation of computation :
         medscan.init_ntf_calculation(vol_obj)
 
-        # Image filtering
-        if medscan.params.filter.filter_type:
-            vol_obj = MEDimage.filters.apply_filter(medscan, vol_obj)
+        # Image filtering: linear
+        if medscan.params.filter.filter_type and medscan.params.filter.filter_type.lower() != 'textural':
+            try:
+                vol_obj = MEDimage.filters.apply_filter(medscan, vol_obj)
+            except Exception as e:
+                logging.error(f'PROBLEM WITH LINEAR FILTERING: {e}')
+        
+        # Image filtering: textural
+        elif medscan.params.filter.filter_type and medscan.params.filter.filter_type.lower() == 'textural':
+            # ROI Extraction :
+            try:
+                vol_int_re = MEDimage.processing.roi_extract(
+                    vol=vol_obj.data, 
+                    roi=roi_obj_int.data
+                )
+            except Exception as e:
+                print(name_patient, e)
+                return log_file
+
+            # Apply textural filter
+            try:
+                vol_obj_temp = MEDimage.filters.apply_filter(medscan, vol_int_re)
+
+                # Re-apply ROI
+                vol_obj.data[roi_obj_int.data != 0] = vol_obj_temp[roi_obj_int.data != 0]
+                
+            except Exception as e:
+                logging.error(f'PROBLEM WITH LINEAR FILTERING: {e}')
 
         # ROI Extraction :
         try:
@@ -185,6 +210,7 @@ class BatchExtractor(object):
         if math.isnan(np.nanmax(vol_int_re)) and math.isnan(np.nanmin(vol_int_re)):
             logging.error(f'PROBLEM WITH INTENSITY MASK. ROI {roi_name} IS EMPTY.')
             return log_file
+        
         # Computation of non-texture features
         logging.info("--> Computation of non-texture features:")
 

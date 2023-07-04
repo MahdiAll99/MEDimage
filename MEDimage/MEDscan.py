@@ -220,6 +220,9 @@ class MEDscan(object):
         """
         if 'imParamFilter' in filter_params:
             filter_params = filter_params['imParamFilter']
+        
+        # Initializae filter attribute
+        self.params.filter = self.params.Filter()
 
         # mean filter params
         if 'mean' in filter_params:
@@ -241,6 +244,10 @@ class MEDscan(object):
         if 'wavelet' in filter_params:
             self.params.filter.wavelet.init_from_json(filter_params['wavelet'])
 
+        # Textural filter params
+        if 'textural' in filter_params:
+            self.params.filter.textural.init_from_json(filter_params['textural'])
+
     def init_params(self, im_param_scan: Dict) -> None:
         """Initializes the Params class from a dictionary.
 
@@ -252,9 +259,9 @@ class MEDscan(object):
         """
         try:
             # get default scan parameters from im_param_scan
+            self.__init_filter_params(im_param_scan['imParamFilter'])
             self.__init_process_params(im_param_scan)
             self.__init_extraction_params(im_param_scan)
-            self.__init_filter_params(im_param_scan['imParamFilter'])
 
             # compute suv map for PT scans
             if self.type == 'PTscan':
@@ -711,6 +718,7 @@ class MEDscan(object):
                 self.gabor = self.Gabor()
                 self.laws = self.Laws()
                 self.wavelet = self.Wavelet()
+                self.textural = self.Textural()
 
 
             class Mean:
@@ -956,6 +964,56 @@ class MEDscan(object):
                     self.padding = params['padding']
                     self.rot_invariance = params['rot_invariance']
                     self.subband = params['subband']
+            
+
+            class Textural:
+                """Organizes the Textural filters parameters"""
+                def __init__(
+                        self,
+                        family: str = '',
+                        feature: str = '',
+                        size: int = 0,
+                        discretization: dict = {},
+                        local: bool = False,
+                        name_save: str = ''
+                ) -> None:
+                    """
+                    Constructor of the Textural class.
+
+                    Args:
+                        family (str, optional): The family of the textural filter.
+                        feature (str, optional): The feature of the textural filter.
+                        size (int, optional): The filter size.
+                        discretization (dict, optional): The discretization parameters.
+                        local (bool, optional): If true, the discretization will be computed locally, else globally.
+                        name_save (str, optional): Specific name added to final extraction results file.
+                                       
+                    Returns:
+                        None.
+                    """
+                    self.family = family
+                    self.feature = feature
+                    self.size = size
+                    self.discretization = discretization
+                    self.local = local
+                    self.name_save = name_save
+
+                def init_from_json(self, params: Dict) -> None:
+                    """
+                    Updates class attributes from json file.
+
+                    Args:
+                        params(Dict): Dictionary of the wavelet filter parameters.
+                    
+                    Returns:
+                        None.
+                    """
+                    self.family = params['family']
+                    self.feature = params['feature']
+                    self.size = params['size']
+                    self.discretization = params['discretization']
+                    self.local = params['local']
+                    self.name_save = params['name_save']
 
 
         class Radiomics:
