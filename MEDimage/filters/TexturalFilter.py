@@ -7,8 +7,8 @@ import pycuda.driver as cuda
 from pycuda.autoinit import context
 from pycuda.compiler import SourceModule
 
-from MEDimage.biomarkers.textural_filters_kernels import *
-from MEDimage.processing.discretisation import discretize
+from .textural_filters_kernels import glcm_kernel
+from ..processing.discretisation import discretize
 
 
 class TexturalFilter():
