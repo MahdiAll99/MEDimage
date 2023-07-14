@@ -183,14 +183,13 @@
     },
     "textural" : {
       "family" : "glcm",
-      "feature" : "Fcm_energy",
       "discretization": {
         "type" : "FBS",
         "bins" : 64
       },
       "size" : 3,
       "local" : false,
-      "name_save" : "glcm_energy"
+      "name_save" : "glcm_global_fbs_64"
     }
   }
 }

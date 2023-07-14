@@ -971,7 +971,6 @@ class MEDscan(object):
                 def __init__(
                         self,
                         family: str = '',
-                        feature: str = '',
                         size: int = 0,
                         discretization: dict = {},
                         local: bool = False,
@@ -982,7 +981,6 @@ class MEDscan(object):
 
                     Args:
                         family (str, optional): The family of the textural filter.
-                        feature (str, optional): The feature of the textural filter.
                         size (int, optional): The filter size.
                         discretization (dict, optional): The discretization parameters.
                         local (bool, optional): If true, the discretization will be computed locally, else globally.
@@ -992,7 +990,6 @@ class MEDscan(object):
                         None.
                     """
                     self.family = family
-                    self.feature = feature
                     self.size = size
                     self.discretization = discretization
                     self.local = local
@@ -1009,7 +1006,6 @@ class MEDscan(object):
                         None.
                     """
                     self.family = params['family']
-                    self.feature = params['feature']
                     self.size = params['size']
                     self.discretization = params['discretization']
                     self.local = params['local']

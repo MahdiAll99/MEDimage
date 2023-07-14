@@ -13,13 +13,15 @@ from .wavelet import *
 
 def apply_filter(
             medscan: MEDscan,
-            vol_obj: Union[image_volume_obj, np.ndarray]
+            vol_obj: Union[image_volume_obj, np.ndarray],
+            user_set_min_val: float = None
     ) -> Union[image_volume_obj, np.ndarray]:
     """Applies mean filter on the given data
 
     Args:
         medscan (MEDscan): Instance of the MEDscan class that holds the filtering params
         vol_obj (image_volume_obj): Imaging data to be filtered
+        user_set_min_val (float, optional): The minimum value to use for the discretization. Defaults to None.
 
     Returns:
         image_volume_obj: Filtered imaging data.
@@ -105,14 +107,14 @@ def apply_filter(
         # Initialize filter class instance
         _filter = TexturalFilter(
             family=medscan.params.filter.textural.family,
-            feature=medscan.params.filter.textural.feature
         )
         # Apply filter
         vol_obj = _filter(
             vol_obj,
             size=medscan.params.filter.textural.size,
             discretization=medscan.params.filter.textural.discretization,
-            local=medscan.params.filter.textural.local
+            local=medscan.params.filter.textural.local,
+            user_set_min_val=user_set_min_val
         )
     else:
         raise ValueError(

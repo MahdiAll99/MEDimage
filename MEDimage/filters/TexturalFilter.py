@@ -18,7 +18,6 @@ class TexturalFilter():
     def __init__(
                 self,
                 family: str,
-                feature: str,
                 size: int = 3,
                 local: bool = False
                 ):
@@ -28,7 +27,6 @@ class TexturalFilter():
 
         Args:
             family (str): The family of the textural filter.
-            feature (str): The feature of the textural filter.
             size (int, optional): The size of the kernel, which will define the filter kernel dimension.
             local (bool, optional): If true, the discrete will be computed locally, else globally.
         
@@ -39,10 +37,8 @@ class TexturalFilter():
         assert size % 2 == 1 and size > 0, "size should be a positive odd number."
         assert isinstance(family, str) and family.upper() in ["GLCM", "NGTDM", "GLDZM", "GLSZM", "NGLDM", "GLRLM"],\
             "family should be a string and should be one of the following: GLCM, NGTDM, GLDZM, GLSZM, NGLDM, GLRLM."
-        assert isinstance(feature, str), "feature should be a string."
 
         self.family = family
-        self.feature = feature
         self.size = size
         self.local = local
         self.glcm_features = [
@@ -73,10 +69,11 @@ class TexturalFilter():
             "Fcm_info_corr2"
         ]
 
-    def __glcm_filter_globally(
+    def __glcm_filter(
             self,
             input_images: np.ndarray,
-            discretization : dict
+            discretization : dict,
+            user_set_min_val: float
         ) -> np.ndarray:
         """
         Apply a textural filter to the input image.
@@ -84,8 +81,8 @@ class TexturalFilter():
         Args:
             input_images (ndarray): The images to filter.
             discretization (dict): The discretization parameters.
+            user_set_min_val (float): The minimum value to use for the discretization.
             family (str, optional): The family of the textural filter.
-            feature (str, optional): The feature of the textural filter.
             size (int, optional): The filter size.
             local (bool, optional): If true, the discretization will be computed locally, else globally.
         
@@ -107,50 +104,75 @@ class TexturalFilter():
         input_images = np.lib.stride_tricks.as_strided(input_images, shape=input_images.shape, strides=strides)
         input_images[:,:,:] = input_images_copy[:, :, :]
 
-        # Discretization
-        input_images, _ = discretize(
-            vol_re=input_images,
-            discr_type=discretization['type'],
-            n_q=discretization['bins'],
-            user_set_min_val=np.nanmin(input_images),
-            ivh=False
-        )
+        if self.local:
+            # Discretization (to get the global max value)
+            temp_vol, _ = discretize(
+                vol_re=input_images,
+                discr_type=discretization['type'],
+                n_q=discretization['bins'],
+                user_set_min_val=user_set_min_val,
+                ivh=False
+            )
 
-        volume = input_images
-        volume_copy = deepcopy(volume)
+            # Initialize the filtering parameters
+            max_vol = np.nanmax(temp_vol)
 
-        # Initialize the filtering parameters
-        feature_index = self.feature if isinstance(self.feature, int) else int(self.glcm_features.index(self.feature))
-        max_vol = np.nanmax(volume)
+            del temp_vol
+        
+        else:
+            # Discretization
+            input_images, _ = discretize(
+                vol_re=input_images,
+                discr_type=discretization['type'],
+                n_q=discretization['bins'],
+                user_set_min_val=user_set_min_val,
+                ivh=False
+            )
+
+            # Initialize the filtering parameters
+            max_vol = np.nanmax(input_images)
+
+        volume_copy = deepcopy(input_images)
+
+        # Create the final volume to store the results
+        input_images = np.zeros((input_images.shape[0], input_images.shape[1], input_images.shape[2], 25), dtype=np.float32)
+
+        # Fill with nan
+        input_images[:] = np.nan
 
         # Initialize the kernel
         kernel_glcm = glcm_kernel.substitute(
             max_vol=int(max_vol),
             filter_size=self.size,
-            shape_volume_0=int(volume.shape[0]),
-            shape_volume_1=int(volume.shape[1]),
-            shape_volume_2=int(volume.shape[2]),
-            feature_index=feature_index
+            shape_volume_0=int(volume_copy.shape[0]),
+            shape_volume_1=int(volume_copy.shape[1]),
+            shape_volume_2=int(volume_copy.shape[2]),
+            discr_type=discretization['type'],
+            n_q=discretization['bins'],
+            min_val=user_set_min_val
         )
 
         # Compile the CUDA kernel
         mod = SourceModule(kernel_glcm, no_extern_c=True)
-        process_loop_kernel = mod.get_function("glcm_filter_global")
+        if self.local:
+            process_loop_kernel = mod.get_function("glcm_filter_local")
+        else:
+            process_loop_kernel = mod.get_function("glcm_filter_global")
 
         # Allocate GPU memory
-        volume_gpu = cuda.mem_alloc(volume.nbytes)
+        volume_gpu = cuda.mem_alloc(input_images.nbytes)
         volume_gpu_copy = cuda.mem_alloc(volume_copy.nbytes)
 
         # Copy data to the GPU
-        cuda.memcpy_htod(volume_gpu, volume)
+        cuda.memcpy_htod(volume_gpu, input_images)
         cuda.memcpy_htod(volume_gpu_copy, volume_copy)
 
         # Set up the grid and block dimensions
         block_dim = (16, 16, 1)  # threads per block
         grid_dim = (
-            int((volume.shape[0] - 1) // block_dim[0] + 1),
-            int((volume.shape[1] - 1) // block_dim[1] + 1),
-            int((volume.shape[2] - 1) // block_dim[2] + 1)
+            int((volume_copy.shape[0] - 1) // block_dim[0] + 1),
+            int((volume_copy.shape[1] - 1) // block_dim[1] + 1),
+            int((volume_copy.shape[2] - 1) // block_dim[2] + 1)
         )   # blocks in the grid
 
         # Run the kernel
@@ -160,7 +182,7 @@ class TexturalFilter():
         context.synchronize()
 
         # Copy data back to the CPU
-        cuda.memcpy_dtoh(volume, volume_gpu)
+        cuda.memcpy_dtoh(input_images, volume_gpu)
 
         # Free the allocated GPU memory
         volume_gpu.free()
@@ -168,19 +190,16 @@ class TexturalFilter():
         del volume_copy
 
         # unpad the volume
-        volume = volume[padding_size:-padding_size, padding_size:-padding_size, padding_size:-padding_size]
+        input_images = input_images[padding_size:-padding_size, padding_size:-padding_size, padding_size:-padding_size, :]
 
-        return volume
-
-    def __glcm_filter_locally(self):
-        return NotImplementedError
+        return input_images
     
     def __call__(
             self,
             input_images: np.ndarray,
             discretization : dict,
-            family: str = "",
-            feature: Union[str, int] = None,
+            user_set_min_val: float,
+            family: str = "GLCM",
             size: int = None,
             local: bool = False
         ) -> np.ndarray:
@@ -190,8 +209,8 @@ class TexturalFilter():
         Args:
             input_images (ndarray): The images to filter.
             discretization (dict): The discretization parameters.
+            user_set_min_val (float): The minimum value to use for the discretization.
             family (str, optional): The family of the textural filter.
-            feature (str, optional): The feature of the textural filter.
             size (int, optional): The filter size.
             local (bool, optional): If true, the discretization will be computed locally, else globally.
         
@@ -201,8 +220,6 @@ class TexturalFilter():
         # Initialization
         if family:
             self.family = family
-        if feature:
-            self.feature = feature
         if size:
             self.size = size
         if local:
@@ -210,10 +227,7 @@ class TexturalFilter():
 
         # Filtering
         if self.family.lower() == "glcm":
-            if local:
-                filtered_images = self.__glcm_filter_locally(input_images, discretization)
-            else:
-                filtered_images = self.__glcm_filter_globally(input_images, discretization)
+            filtered_images = self.__glcm_filter(input_images, discretization, user_set_min_val)
         else:
             raise NotImplementedError("Only GLCM is implemented for now.")
 
