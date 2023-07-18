@@ -1,8 +1,7 @@
 import numpy as np
 
-from MEDimage.MEDscan import MEDscan
-from MEDimage.utils.image_volume_obj import image_volume_obj
-
+from ..MEDscan import MEDscan
+from ..utils.image_volume_obj import image_volume_obj
 from .gabor import *
 from .laws import *
 from .log import *

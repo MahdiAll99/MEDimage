@@ -4,8 +4,9 @@ from typing import List, Union
 
 import numpy as np
 import pywt
-from MEDimage.MEDscan import MEDscan
-from MEDimage.utils.image_volume_obj import image_volume_obj
+
+from ..MEDscan import MEDscan
+from ..utils.image_volume_obj import image_volume_obj
 
 
 class Wavelet():

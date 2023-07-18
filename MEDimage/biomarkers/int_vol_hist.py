@@ -5,9 +5,9 @@ import logging
 from typing import Dict, Tuple
 
 import numpy as np
-from MEDimage.MEDscan import MEDscan
 
 from ..biomarkers.utils import find_i_x, find_v_x
+from ..MEDscan import MEDscan
 
 
 def init_ivh(medscan: MEDscan, 

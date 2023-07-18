@@ -3,10 +3,10 @@ from itertools import permutations, product
 from typing import List, Union
 
 import numpy as np
-from MEDimage.MEDscan import MEDscan
-from MEDimage.utils.image_volume_obj import image_volume_obj
 from scipy.signal import fftconvolve
 
+from ..MEDscan import MEDscan
+from ..utils.image_volume_obj import image_volume_obj
 from .utils import convolve, pad_imgs
 
 
