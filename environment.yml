@@ -22,6 +22,7 @@ dependencies:
     - ipywidgets==8.0.1
     - jupyter==1.0.0
     - numpy==1.20.0
+    - nilearn==0.10.1
     - numpyencoder==0.3.0
     - protobuf==3.17.3
     - ray==1.13.0
