@@ -7,8 +7,8 @@ import pycuda.driver as cuda
 from pycuda.autoinit import context
 from pycuda.compiler import SourceModule
 
-from .textural_filters_kernels import glcm_kernel
 from ..processing.discretisation import discretize
+from .textural_filters_kernels import glcm_kernel, single_glcm_kernel
 
 
 class TexturalFilter():
@@ -73,7 +73,8 @@ class TexturalFilter():
             self,
             input_images: np.ndarray,
             discretization : dict,
-            user_set_min_val: float
+            user_set_min_val: float,
+            feature = None
         ) -> np.ndarray:
         """
         Apply a textural filter to the input image.
@@ -83,12 +84,23 @@ class TexturalFilter():
             discretization (dict): The discretization parameters.
             user_set_min_val (float): The minimum value to use for the discretization.
             family (str, optional): The family of the textural filter.
-            size (int, optional): The filter size.
-            local (bool, optional): If true, the discretization will be computed locally, else globally.
+            feature (str, optional): The feature to extract from the family. if not specified, all the features of the
+                family will be extracted.
         
         Returns:
             ndarray: The filtered image.
         """
+
+        if feature:
+            if isinstance(feature, str):
+                assert feature in self.glcm_features,\
+                    "feature should be a string or an integer and should be one of the following: " + ", ".join(self.glcm_features) + "."
+            elif isinstance(feature, int):
+                assert feature in range(len(self.glcm_features)),\
+                    "feature's index should be an integer between 0 and " + str(len(self.glcm_features) - 1) + "."
+            else:
+                raise TypeError("feature should be an integer or a string from the following list: " + ", ".join(self.glcm_features) + ".")
+                
 
         # Pre-processing of the input volume
         padding_size = (self.size - 1) // 2
@@ -106,10 +118,20 @@ class TexturalFilter():
 
         if self.local:
             # Discretization (to get the global max value)
+            if discretization['type'] == "FBS":
+                print("Warning: FBS local discretization is equivalent to global discretization.")
+                n_q = discretization['bw']
+            elif discretization['type'] == "FBN" and discretization['adapted']:
+                n_q = (np.nanmax(input_images) - np.nanmin(input_images)) // discretization['bw']
+            elif discretization['type'] == "FBN":
+                n_q = discretization['bn']
+            else:
+                raise ValueError("Discretization should be either FBS or FBN.")
+            
             temp_vol, _ = discretize(
                 vol_re=input_images,
                 discr_type=discretization['type'],
-                n_q=discretization['bins'],
+                n_q=n_q,
                 user_set_min_val=user_set_min_val,
                 ivh=False
             )
@@ -121,10 +143,17 @@ class TexturalFilter():
         
         else:
             # Discretization
+            if discretization['type'] == "FBS":
+                n_q = discretization['bw']
+            elif discretization['type'] == "FBN":
+                n_q = discretization['bn']
+            else:
+                raise ValueError("Discretization should be either FBS or FBN.")
+            
             input_images, _ = discretize(
                 vol_re=input_images,
                 discr_type=discretization['type'],
-                n_q=discretization['bins'],
+                n_q=n_q,
                 user_set_min_val=user_set_min_val,
                 ivh=False
             )
@@ -134,23 +163,42 @@ class TexturalFilter():
 
         volume_copy = deepcopy(input_images)
 
-        # Create the final volume to store the results
-        input_images = np.zeros((input_images.shape[0], input_images.shape[1], input_images.shape[2], 25), dtype=np.float32)
+        # Filtering
+        if feature is not None:
+            # Select the feature to compute
+            feature = self.glcm_features.index(feature) if isinstance(feature, str) else feature
 
-        # Fill with nan
-        input_images[:] = np.nan
+            # Initialize the kernel
+            kernel_glcm = single_glcm_kernel.substitute(
+                max_vol=int(max_vol),
+                filter_size=self.size,
+                shape_volume_0=int(volume_copy.shape[0]),
+                shape_volume_1=int(volume_copy.shape[1]),
+                shape_volume_2=int(volume_copy.shape[2]),
+                discr_type=discretization['type'],
+                n_q=n_q,
+                min_val=user_set_min_val,
+                feature_index=feature
+            )
 
-        # Initialize the kernel
-        kernel_glcm = glcm_kernel.substitute(
-            max_vol=int(max_vol),
-            filter_size=self.size,
-            shape_volume_0=int(volume_copy.shape[0]),
-            shape_volume_1=int(volume_copy.shape[1]),
-            shape_volume_2=int(volume_copy.shape[2]),
-            discr_type=discretization['type'],
-            n_q=discretization['bins'],
-            min_val=user_set_min_val
-        )
+        else:
+            # Create the final volume to store the results
+            input_images = np.zeros((input_images.shape[0], input_images.shape[1], input_images.shape[2], 25), dtype=np.float32)
+
+            # Fill with nan
+            input_images[:] = np.nan
+
+            # Initialize the kernel
+            kernel_glcm = glcm_kernel.substitute(
+                max_vol=int(max_vol),
+                filter_size=self.size,
+                shape_volume_0=int(volume_copy.shape[0]),
+                shape_volume_1=int(volume_copy.shape[1]),
+                shape_volume_2=int(volume_copy.shape[2]),
+                discr_type=discretization['type'],
+                n_q=n_q,
+                min_val=user_set_min_val
+            )
 
         # Compile the CUDA kernel
         mod = SourceModule(kernel_glcm, no_extern_c=True)
@@ -190,7 +238,10 @@ class TexturalFilter():
         del volume_copy
 
         # unpad the volume
-        input_images = input_images[padding_size:-padding_size, padding_size:-padding_size, padding_size:-padding_size, :]
+        if feature: # 3D (single-feature)
+            input_images = input_images[padding_size:-padding_size, padding_size:-padding_size, padding_size:-padding_size]
+        else: # 4D (all features)
+            input_images = input_images[padding_size:-padding_size, padding_size:-padding_size, padding_size:-padding_size, :]
 
         return input_images
     
@@ -200,6 +251,7 @@ class TexturalFilter():
             discretization : dict,
             user_set_min_val: float,
             family: str = "GLCM",
+            feature : str = None,
             size: int = None,
             local: bool = False
         ) -> np.ndarray:
@@ -211,6 +263,8 @@ class TexturalFilter():
             discretization (dict): The discretization parameters.
             user_set_min_val (float): The minimum value to use for the discretization.
             family (str, optional): The family of the textural filter.
+            feature (str, optional): The feature to extract from the family. if not specified, all the features of the
+                family will be extracted.
             size (int, optional): The filter size.
             local (bool, optional): If true, the discretization will be computed locally, else globally.
         
@@ -227,7 +281,7 @@ class TexturalFilter():
 
         # Filtering
         if self.family.lower() == "glcm":
-            filtered_images = self.__glcm_filter(input_images, discretization, user_set_min_val)
+            filtered_images = self.__glcm_filter(input_images, discretization, user_set_min_val, feature)
         else:
             raise NotImplementedError("Only GLCM is implemented for now.")
 

@@ -13,7 +13,8 @@ from .wavelet import *
 def apply_filter(
             medscan: MEDscan,
             vol_obj: Union[image_volume_obj, np.ndarray],
-            user_set_min_val: float = None
+            user_set_min_val: float = None,
+            feature: str = None
     ) -> Union[image_volume_obj, np.ndarray]:
     """Applies mean filter on the given data
 
@@ -21,6 +22,8 @@ def apply_filter(
         medscan (MEDscan): Instance of the MEDscan class that holds the filtering params
         vol_obj (image_volume_obj): Imaging data to be filtered
         user_set_min_val (float, optional): The minimum value to use for the discretization. Defaults to None.
+        feature (str, optional): The feature to extract from the family. In batch extraction, all the features 
+            of the family will be extracted. Defaults to None.
 
     Returns:
         image_volume_obj: Filtered imaging data.
@@ -113,7 +116,8 @@ def apply_filter(
             size=medscan.params.filter.textural.size,
             discretization=medscan.params.filter.textural.discretization,
             local=medscan.params.filter.textural.local,
-            user_set_min_val=user_set_min_val
+            user_set_min_val=user_set_min_val,
+            feature=feature
         )
     else:
         raise ValueError(

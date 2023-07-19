@@ -185,7 +185,9 @@
       "family" : "glcm",
       "discretization": {
         "type" : "FBS",
-        "bins" : 64
+        "bn" : None,
+        "bw" : 1,
+        "adapted" : false
       },
       "size" : 3,
       "local" : false,
