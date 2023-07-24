@@ -5,7 +5,7 @@ import numpy as np
 from scipy.stats import iqr, kurtosis, skew, scoreatpercentile, variation
 
 
-def extract_all(vol: np.ndarray) -> dict:
+def extract_all(vol: np.ndarray, intensity_type: str) -> dict:
     """Computes Intensity-based statistical features.
     These features refer to "Intensity-based statistical features" (ID = UHIW) in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`_.
@@ -13,10 +13,18 @@ def extract_all(vol: np.ndarray) -> dict:
     Args:
         vol(ndarray): 3D volume, NON-QUANTIZED, with NaNs outside the region of interest
             (continuous imaging intensity distribution).
+        intensity_type (str): Type of intensity to compute. Can be "arbitrary", "definite" or "filtered".
+            Will compute features only for "definite" intensity type.
 
     Return:
         dict: Dictionnary containing all stats features.
+
+    Raises:
+        ValueError: If `intensity_type` is not "arbitrary", "definite" or "filtered".
     """
+    assert intensity_type in ["arbitrary", "definite", "filtered"], \
+        "intensity_type must be 'arbitrary', 'definite' or 'filtered'"
+    
     x = vol[~np.isnan(vol[:])]  # Initialization
 
     # Initialization of final structure (Dictionary) containing all features.
@@ -41,27 +49,28 @@ def extract_all(vol: np.ndarray) -> dict:
              }
 
     # STARTING COMPUTATION
-    stats['Fstat_mean'] = np.mean(x)  # Mean
-    stats['Fstat_var'] = np.var(x)  # Variance
-    stats['Fstat_skew'] = skew(x)  # Skewness
-    stats['Fstat_kurt'] = kurtosis(x)  # Kurtosis
-    stats['Fstat_median'] = np.median(x)  # Median
-    stats['Fstat_min'] = np.min(x)  # Minimum grey level
-    stats['Fstat_P10'] = scoreatpercentile(x, 10)  # 10th percentile
-    stats['Fstat_P90'] = scoreatpercentile(x, 90)  # 90th percentile
-    stats['Fstat_max'] = np.max(x)  # Maximum grey level
-    stats['Fstat_iqr'] = iqr(x)  # Interquantile range
-    stats['Fstat_range'] = np.ptp(x)  # Range max(x) - min(x)
-    stats['Fstat_mad'] = np.mean(np.absolute(x - np.mean(x)))  # Mean absolute deviation
-    x_10_90 = x[np.where((x >= stats['Fstat_P10']) &
-                            (x <= stats['Fstat_P90']), True, False)]
-    stats['Fstat_rmad'] = np.mean(np.abs(x_10_90 - np.mean(x_10_90)))  # Robust mean absolute deviation
-    stats['Fstat_medad'] = np.mean(np.absolute(x - np.median(x)))  # Median absolute deviation
-    stats['Fstat_cov'] = variation(x)  # Coefficient of variation
-    x_75_25 = scoreatpercentile(x, 75) + scoreatpercentile(x, 25)
-    stats['Fstat_qcod'] = iqr(x)/x_75_25  # Quartile coefficient of dispersion
-    stats['Fstat_energy'] = np.sum(np.power(x, 2))  # Energy
-    stats['Fstat_rms'] = np.sqrt(np.mean(np.power(x, 2)))  # Root mean square
+    if intensity_type == "definite":
+        stats['Fstat_mean'] = np.mean(x)  # Mean
+        stats['Fstat_var'] = np.var(x)  # Variance
+        stats['Fstat_skew'] = skew(x)  # Skewness
+        stats['Fstat_kurt'] = kurtosis(x)  # Kurtosis
+        stats['Fstat_median'] = np.median(x)  # Median
+        stats['Fstat_min'] = np.min(x)  # Minimum grey level
+        stats['Fstat_P10'] = scoreatpercentile(x, 10)  # 10th percentile
+        stats['Fstat_P90'] = scoreatpercentile(x, 90)  # 90th percentile
+        stats['Fstat_max'] = np.max(x)  # Maximum grey level
+        stats['Fstat_iqr'] = iqr(x)  # Interquantile range
+        stats['Fstat_range'] = np.ptp(x)  # Range max(x) - min(x)
+        stats['Fstat_mad'] = np.mean(np.absolute(x - np.mean(x)))  # Mean absolute deviation
+        x_10_90 = x[np.where((x >= stats['Fstat_P10']) &
+                                (x <= stats['Fstat_P90']), True, False)]
+        stats['Fstat_rmad'] = np.mean(np.abs(x_10_90 - np.mean(x_10_90)))  # Robust mean absolute deviation
+        stats['Fstat_medad'] = np.mean(np.absolute(x - np.median(x)))  # Median absolute deviation
+        stats['Fstat_cov'] = variation(x)  # Coefficient of variation
+        x_75_25 = scoreatpercentile(x, 75) + scoreatpercentile(x, 25)
+        stats['Fstat_qcod'] = iqr(x)/x_75_25  # Quartile coefficient of dispersion
+        stats['Fstat_energy'] = np.sum(np.power(x, 2))  # Energy
+        stats['Fstat_rms'] = np.sqrt(np.mean(np.power(x, 2)))  # Root mean square
 
     return stats
 

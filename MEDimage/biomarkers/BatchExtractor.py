@@ -202,6 +202,7 @@ class BatchExtractor(object):
                 mask_int=roi_obj_int.data, 
                 mask_morph=roi_obj_morph.data,
                 res=medscan.params.process.scale_non_text,
+                intensity_type=medscan.params.process.intensity_type
             )
         except Exception as e:
             logging.error(f'PROBLEM WITH COMPUTATION OF MORPHOLOGICAL FEATURES {e}')
@@ -212,7 +213,8 @@ class BatchExtractor(object):
             local_intensity = MEDimage.biomarkers.local_intensity.extract_all(
                 img_obj=vol_obj.data,
                 roi_obj=roi_obj_int.data,
-                res=medscan.params.process.scale_non_text
+                res=medscan.params.process.scale_non_text,
+                intensity_type=medscan.params.process.intensity_type
             )
         except Exception as e:
             logging.error(f'PROBLEM WITH COMPUTATION OF LOCAL INTENSITY FEATURES {e}')
@@ -222,6 +224,7 @@ class BatchExtractor(object):
         try:
             stats = MEDimage.biomarkers.stats.extract_all(
                 vol=vol_int_re,
+                intensity_type=medscan.params.process.intensity_type
             )
         except Exception as e:
             logging.error(f'PROBLEM WITH COMPUTATION OF STATISTICAL FEATURES {e}')

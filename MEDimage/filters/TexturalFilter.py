@@ -122,7 +122,7 @@ class TexturalFilter():
                 print("Warning: FBS local discretization is equivalent to global discretization.")
                 n_q = discretization['bw']
             elif discretization['type'] == "FBN" and discretization['adapted']:
-                n_q = (np.nanmax(input_images) - np.nanmin(input_images)) // discretization['bw']
+                n_q = (np.nanmax(input_images) - user_set_min_val) // discretization['bw']
             elif discretization['type'] == "FBN":
                 n_q = discretization['bn']
             else:

@@ -751,6 +751,7 @@ def extract_all(vol: np.ndarray,
                 mask_int: np.ndarray, 
                 mask_morph: np.ndarray, 
                 res: np.ndarray, 
+                intensity_type: str,
                 compute_moran_i: bool=False, 
                 compute_geary_c: bool=False) -> Dict:
     """Compute Morphological Features.
@@ -767,12 +768,18 @@ def extract_all(vol: np.ndarray,
         mask_morph (ndarray): Morphological mask.
         res (ndarray): [a,b,c] vector specfying the resolution of the volume in mm.
             XYZ resolution (world), or JIK resolution (intrinsic matlab).
+        intensity_type (str): Type of intensity to compute. Can be "arbitrary", "definite" or "filtered".
+            Will compute all features for "definite" intensity type and all but intergrated intensity for 
+            "arbitrary" intensity type.
         compute_moran_i (bool, optional): True to compute Moran's Index.
         compute_geary_c (bool, optional): True to compute Geary's C measure.
 
     Raises:
-        ValueError: `intensity` musy be either "arbitrary", "definite", "filter" or None.
+        ValueError: If `intensity_type` is not "arbitrary", "definite" or "filtered".
     """
+    assert intensity_type in ["arbitrary", "definite", "filtered"], \
+        "intensity_type must be 'arbitrary', 'definite' or 'filtered'"
+    
     # Initialization of final structure (Dictionary) containing all features.
     morph = {'Fmorph_vol': [],
              'Fmorph_approx_vol': [],
@@ -809,134 +816,136 @@ def extract_all(vol: np.ndarray,
     xgl_int, xgl_morph, xyz_int, xyz_morph, faces, vertices, conv_hull = get_variables(vol, mask_int, mask_morph, res)
 
     # STARTING COMPUTATION
-    # In mm^3
-    volume = get_mesh_volume(faces, vertices)
-    morph['Fmorph_vol'] = volume  # Volume
+    if intensity_type != "filtered":
+        # Volume in mm^3
+        volume = get_mesh_volume(faces, vertices)
+        morph['Fmorph_vol'] = volume  # Volume
 
-    # Approximate Volume
-    morph['Fmorph_approx_vol'] = np.sum(mask_morph[:]) * np.prod(res)
+        # Approximate Volume
+        morph['Fmorph_approx_vol'] = np.sum(mask_morph[:]) * np.prod(res)
 
-    # Surface area
-    # In mm^2
-    area = get_mesh_area(faces, vertices)
-    morph['Fmorph_area'] = area
+        # Surface area in mm^2
+        area = get_mesh_area(faces, vertices)
+        morph['Fmorph_area'] = area
 
-    # Surface to volume ratio
-    morph['Fmorph_av'] = area / volume
+        # Surface to volume ratio
+        morph['Fmorph_av'] = area / volume
 
-    # Compactness 1
-    morph['Fmorph_comp_1'] = volume / ((np.pi**(1/2))*(area**(3/2)))
+        # Compactness 1
+        morph['Fmorph_comp_1'] = volume / ((np.pi**(1/2))*(area**(3/2)))
 
-    # Compactness 2
-    morph['Fmorph_comp_2'] = 36*np.pi*(volume**2) / (area**3)
+        # Compactness 2
+        morph['Fmorph_comp_2'] = 36*np.pi*(volume**2) / (area**3)
 
-    # Spherical disproportion
-    morph['Fmorph_sph_dispr'] = area / (36*np.pi*volume**2)**(1/3)
+        # Spherical disproportion
+        morph['Fmorph_sph_dispr'] = area / (36*np.pi*volume**2)**(1/3)
 
-    # Sphericity
-    morph['Fmorph_sphericity'] = ((36*np.pi*volume**2)**(1/3)) / area
+        # Sphericity
+        morph['Fmorph_sphericity'] = ((36*np.pi*volume**2)**(1/3)) / area
 
-    # Asphericity
-    morph['Fmorph_asphericity'] = ((area**3) / (36*np.pi*volume**2))**(1/3) - 1
+        # Asphericity
+        morph['Fmorph_asphericity'] = ((area**3) / (36*np.pi*volume**2))**(1/3) - 1
 
-    # Centre of mass shift
-    morph['Fmorph_com'] = get_com(xgl_int, xgl_morph, xyz_int, xyz_morph)
+        # Centre of mass shift
+        morph['Fmorph_com'] = get_com(xgl_int, xgl_morph, xyz_int, xyz_morph)
 
-    # Maximum 3D diameter
-    morph['Fmorph_diam'] = np.max(sc.distance.pdist(conv_hull.points[conv_hull.vertices]))
+        # Maximum 3D diameter
+        morph['Fmorph_diam'] = np.max(sc.distance.pdist(conv_hull.points[conv_hull.vertices]))
 
-    # Major axis length
-    [major, minor, least] = get_axis_lengths(xyz_morph)
-    morph['Fmorph_pca_major'] = 4 * np.sqrt(major)
+        # Major axis length
+        [major, minor, least] = get_axis_lengths(xyz_morph)
+        morph['Fmorph_pca_major'] = 4 * np.sqrt(major)
 
-    # Minor axis length
-    morph['Fmorph_pca_minor'] = 4 * np.sqrt(minor)
+        # Minor axis length
+        morph['Fmorph_pca_minor'] = 4 * np.sqrt(minor)
 
-    # Least axis length
-    morph['Fmorph_pca_least'] = 4 * np.sqrt(least)
+        # Least axis length
+        morph['Fmorph_pca_least'] = 4 * np.sqrt(least)
 
-    # Elongation
-    morph['Fmorph_pca_elongation'] = np.sqrt(minor / major)
+        # Elongation
+        morph['Fmorph_pca_elongation'] = np.sqrt(minor / major)
 
-    # Flatness
-    morph['Fmorph_pca_flatness'] = np.sqrt(least / major)
+        # Flatness
+        morph['Fmorph_pca_flatness'] = np.sqrt(least / major)
 
-    # Volume density - axis-aligned bounding box
-    xc_aabb = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
-    yc_aabb = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
-    zc_aabb = np.max(vertices[:, 2]) - np.min(vertices[:, 2])
-    v_aabb = xc_aabb * yc_aabb * zc_aabb
-    morph['Fmorph_v_dens_aabb'] = volume / v_aabb
+        # Volume density - axis-aligned bounding box
+        xc_aabb = np.max(vertices[:, 0]) - np.min(vertices[:, 0])
+        yc_aabb = np.max(vertices[:, 1]) - np.min(vertices[:, 1])
+        zc_aabb = np.max(vertices[:, 2]) - np.min(vertices[:, 2])
+        v_aabb = xc_aabb * yc_aabb * zc_aabb
+        morph['Fmorph_v_dens_aabb'] = volume / v_aabb
 
-    # Area density - axis-aligned bounding box
-    a_aabb = 2*xc_aabb*yc_aabb + 2*xc_aabb*zc_aabb + 2*yc_aabb*zc_aabb
-    morph['Fmorph_a_dens_aabb'] = area / a_aabb
+        # Area density - axis-aligned bounding box
+        a_aabb = 2*xc_aabb*yc_aabb + 2*xc_aabb*zc_aabb + 2*yc_aabb*zc_aabb
+        morph['Fmorph_a_dens_aabb'] = area / a_aabb
 
-    # Volume density - oriented minimum bounding box
-    # Implementation of Chan and Tan's algorithm (C.K. Chan, S.T. Tan.
-    # Determination of the minimum bounding box of an
-    # arbitrary solid: an iterative approach.
-    # Comp Struc 79 (2001) 1433-1449
-    bound_box_dims = min_oriented_bound_box(vertices)
-    vol_bb = np.prod(bound_box_dims)
-    morph['Fmorph_v_dens_ombb'] = volume / vol_bb
+        # Volume density - oriented minimum bounding box
+        # Implementation of Chan and Tan's algorithm (C.K. Chan, S.T. Tan.
+        # Determination of the minimum bounding box of an
+        # arbitrary solid: an iterative approach.
+        # Comp Struc 79 (2001) 1433-1449
+        bound_box_dims = min_oriented_bound_box(vertices)
+        vol_bb = np.prod(bound_box_dims)
+        morph['Fmorph_v_dens_ombb'] = volume / vol_bb
 
-    # Area density - oriented minimum bounding box
-    a_ombb = 2 * (bound_box_dims[0]*bound_box_dims[1] +
-                    bound_box_dims[0]*bound_box_dims[2] +
-                    bound_box_dims[1]*bound_box_dims[2])
-    morph['Fmorph_a_dens_ombb'] = area / a_ombb
+        # Area density - oriented minimum bounding box
+        a_ombb = 2 * (bound_box_dims[0]*bound_box_dims[1] +
+                        bound_box_dims[0]*bound_box_dims[2] +
+                        bound_box_dims[1]*bound_box_dims[2])
+        morph['Fmorph_a_dens_ombb'] = area / a_ombb
 
-    # Volume density - approximate enclosing ellipsoid
-    a = 2*np.sqrt(major)
-    b = 2*np.sqrt(minor)
-    c = 2*np.sqrt(least)
-    v_aee = (4*np.pi*a*b*c) / 3
-    morph['Fmorph_v_dens_aee'] = volume / v_aee
+        # Volume density - approximate enclosing ellipsoid
+        a = 2*np.sqrt(major)
+        b = 2*np.sqrt(minor)
+        c = 2*np.sqrt(least)
+        v_aee = (4*np.pi*a*b*c) / 3
+        morph['Fmorph_v_dens_aee'] = volume / v_aee
 
-    # Area density - approximate enclosing ellipsoid
-    a_aee = get_area_dens_approx(a, b, c, 20)
-    morph['Fmorph_a_dens_aee'] = area / a_aee
+        # Area density - approximate enclosing ellipsoid
+        a_aee = get_area_dens_approx(a, b, c, 20)
+        morph['Fmorph_a_dens_aee'] = area / a_aee
 
-    # Volume density - minimum volume enclosing ellipsoid
-    # (Rotate the volume first??)
-    # Copyright (c) 2009, Nima Moshtagh
-    # http://www.mathworks.com/matlabcentral/fileexchange/
-    # 9542-minimum-volume-enclosing-ellipsoid
-    # Subsequent singular value decomposition of matrix A and and
-    # taking the inverse of the square root of the diagonal of the
-    # sigma matrix will produce respective semi-axis lengths.
-    # Subsequent singular value decomposition of matrix A and
-    # taking the inverse of the square root of the diagonal of the
-    # sigma matrix will produce respective semi-axis lengths.
-    p = np.stack((conv_hull.points[conv_hull.simplices[:, 0], 0],
-                    conv_hull.points[conv_hull.simplices[:, 1], 1],
-                    conv_hull.points[conv_hull.simplices[:, 2], 2]), axis=1)
-    A, _ = min_vol_ellipse(np.transpose(p), 0.01)
-    # New semi-axis lengths
-    _, Q, _ = np.linalg.svd(A)
-    a = 1/np.sqrt(Q[2])
-    b = 1/np.sqrt(Q[1])
-    c = 1/np.sqrt(Q[0])
-    v_mvee = (4*np.pi*a*b*c)/3
-    morph['Fmorph_v_dens_mvee'] = volume / v_mvee
+        # Volume density - minimum volume enclosing ellipsoid
+        # (Rotate the volume first??)
+        # Copyright (c) 2009, Nima Moshtagh
+        # http://www.mathworks.com/matlabcentral/fileexchange/
+        # 9542-minimum-volume-enclosing-ellipsoid
+        # Subsequent singular value decomposition of matrix A and and
+        # taking the inverse of the square root of the diagonal of the
+        # sigma matrix will produce respective semi-axis lengths.
+        # Subsequent singular value decomposition of matrix A and
+        # taking the inverse of the square root of the diagonal of the
+        # sigma matrix will produce respective semi-axis lengths.
+        p = np.stack((conv_hull.points[conv_hull.simplices[:, 0], 0],
+                        conv_hull.points[conv_hull.simplices[:, 1], 1],
+                        conv_hull.points[conv_hull.simplices[:, 2], 2]), axis=1)
+        A, _ = min_vol_ellipse(np.transpose(p), 0.01)
+        # New semi-axis lengths
+        _, Q, _ = np.linalg.svd(A)
+        a = 1/np.sqrt(Q[2])
+        b = 1/np.sqrt(Q[1])
+        c = 1/np.sqrt(Q[0])
+        v_mvee = (4*np.pi*a*b*c)/3
+        morph['Fmorph_v_dens_mvee'] = volume / v_mvee
 
-    # Area density - minimum volume enclosing ellipsoid
-    # Using a new set of (a,b,c), see Volume density - minimum
-    # volume enclosing ellipsoid
-    a_mvee = get_area_dens_approx(a, b, c, 20)
-    morph['Fmorph_a_dens_mvee'] = area / a_mvee
+        # Area density - minimum volume enclosing ellipsoid
+        # Using a new set of (a,b,c), see Volume density - minimum
+        # volume enclosing ellipsoid
+        a_mvee = get_area_dens_approx(a, b, c, 20)
+        morph['Fmorph_a_dens_mvee'] = area / a_mvee
 
-    # Volume density - convex hull
-    v_convex = conv_hull.volume
-    morph['Fmorph_v_dens_conv_hull'] = volume / v_convex
+        # Volume density - convex hull
+        v_convex = conv_hull.volume
+        morph['Fmorph_v_dens_conv_hull'] = volume / v_convex
 
-    # Area density - convex hull
-    a_convex = conv_hull.area
-    morph['Fmorph_a_dens_conv_hull'] = area / a_convex
+        # Area density - convex hull
+        a_convex = conv_hull.area
+        morph['Fmorph_a_dens_conv_hull'] = area / a_convex
 
     # Integrated intensity
-    morph['Fmorph_integ_int'] = np.mean(xgl_int) * volume
+    if intensity_type == "definite":
+        volume = get_mesh_volume(faces, vertices)
+        morph['Fmorph_integ_int'] = np.mean(xgl_int) * volume
 
     # Moran's I index
     if compute_moran_i:

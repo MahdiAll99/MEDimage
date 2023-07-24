@@ -152,7 +152,17 @@ class MEDscan(object):
         # set filter type for the modality
         if 'filter_type' in im_params:
             self.params.filter.filter_type = im_params['filter_type']
-    
+        
+        # Set intensity type
+        if 'intensity_type' in im_params and im_params['intensity_type'] != "":
+            self.params.process.intensity_type = im_params['intensity_type']
+        elif self.params.filter.filter_type is not None:
+            self.params.process.intensity_type = 'filtered'
+        elif self.type == 'MRscan':
+            self.params.process.intensity_type = 'arbitrary'
+        else:
+            self.params.process.intensity_type = 'definite'
+
     def __init_extraction_params(self, im_params: Dict):
         """Initializes the extraction params from a given Dict.
         
@@ -653,6 +663,7 @@ class MEDscan(object):
                 self.ih = kwargs['ih'] if 'ih' in kwargs else None
                 self.im_range = kwargs['im_range'] if 'im_range' in kwargs else None
                 self.im_type = kwargs['im_type'] if 'im_type' in kwargs else None
+                self.intensity_type = kwargs['intensity_type'] if 'intensity_type' in kwargs else None
                 self.ivh = kwargs['ivh'] if 'ivh' in kwargs else None
                 self.n_algo = kwargs['n_algo'] if 'n_algo' in kwargs else None
                 self.n_exp = kwargs['n_exp'] if 'n_exp' in kwargs else None
