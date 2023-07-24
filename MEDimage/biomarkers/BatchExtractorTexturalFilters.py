@@ -200,7 +200,7 @@ class BatchExtractorTexturalFilters(object):
         try:
             vol_int_re = MEDimage.processing.roi_extract(
                 vol=vol_obj.data, 
-                roi=roi_obj_morph.data
+                roi=roi_obj_int.data
             )
         except Exception as e:
             print(name_patient, e)
@@ -234,7 +234,7 @@ class BatchExtractorTexturalFilters(object):
             filtered_vol = vol_obj_all_features[...,i]
 
             # Replace the original voxels with the filter ones
-            vol_obj.data[roi_obj_morph.data != 0] = filtered_vol[roi_obj_morph.data != 0]
+            vol_obj.data[roi_obj_int.data != 0] = filtered_vol[roi_obj_int.data != 0]
 
             # Compute radiomics features
             logging.info(f"--> Computation of radiomics features for filter {i}:")
