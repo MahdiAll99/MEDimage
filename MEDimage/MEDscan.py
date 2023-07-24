@@ -156,7 +156,7 @@ class MEDscan(object):
         # Set intensity type
         if 'intensity_type' in im_params and im_params['intensity_type'] != "":
             self.params.process.intensity_type = im_params['intensity_type']
-        elif self.params.filter.filter_type is not None:
+        elif self.params.filter.filter_type != "":
             self.params.process.intensity_type = 'filtered'
         elif self.type == 'MRscan':
             self.params.process.intensity_type = 'arbitrary'
