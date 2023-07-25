@@ -231,10 +231,7 @@ class BatchExtractorTexturalFilters(object):
         nb_filters = len(self.glcm_features)
         for i in range(self.n_bacth):
             # Extract the filtered volume
-            filtered_vol = vol_obj_all_features[...,i]
-
-            # Replace the original voxels with the filter ones
-            vol_obj.data[roi_obj_int.data != 0] = filtered_vol[roi_obj_int.data != 0]
+            vol_obj.data = deepcopy(vol_obj_all_features[...,i])
 
             # Compute radiomics features
             logging.info(f"--> Computation of radiomics features for filter {i}:")
@@ -262,10 +259,7 @@ class BatchExtractorTexturalFilters(object):
                 log_file = ray.get(ready)[0]
 
                 # Extract the filtered volume
-                filtered_vol = vol_obj_all_features[...,i]
-
-                # Replace with textural filter voxels 
-                vol_obj.data[roi_obj_morph.data != 0] = filtered_vol[roi_obj_morph.data != 0]
+                vol_obj.data = deepcopy(vol_obj_all_features[...,i])
 
                 # Compute radiomics features
                 logging.info(f"--> Computation of radiomics features for filter {i}:")
@@ -305,14 +299,7 @@ class BatchExtractorTexturalFilters(object):
         t_start = time()
 
         # ROI Extraction :
-        try:
-            vol_int_re = MEDimage.processing.roi_extract(
-                vol=vol_obj.data, 
-                roi=roi_obj_int.data
-            )
-        except Exception as e:
-            print(name_patient, e)
-            return log_file
+        vol_int_re = deepcopy(vol_obj.data)
 
         # check if ROI is empty
         if math.isnan(np.nanmax(vol_int_re)) and math.isnan(np.nanmin(vol_int_re)):
