@@ -26,11 +26,14 @@ __device__ float * reshape(float(*matrix)[FILTER_SIZE][FILTER_SIZE]) {
 }
 
 // Function to perform histogram equalisation of the ROI imaging intensities
-__device__ void discretize(float vol_quant_re[FILTER_SIZE][FILTER_SIZE][FILTER_SIZE], float max_val, const char* discr_type="${discr_type}", float n_q=${n_q}) {
+__device__ void discretize(float vol_quant_re[FILTER_SIZE][FILTER_SIZE][FILTER_SIZE], 
+                            float max_val, float min_val=${min_val}) {
+    
+    // PARSING ARGUMENTS
+    float n_q = ${n_q};
+    const char* discr_type = "${discr_type}";
 
     // DISCRETISATION
-    float min_val = ${min_val};
-
     if (discr_type == "FBS") {
         float w_b = n_q;
         for (int i = 0; i < FILTER_SIZE; i++) {
@@ -725,9 +728,23 @@ __global__ void glcm_filter_local(
                     }
                 }
             }
+            // get the minimum value of the submatrix if discr_type is FBN
+            float min_val = 3.40282e+38;
+            if ("${discr_type}" == "FBN") {
+                for (int idx_i = 0; idx_i < FILTER_SIZE; ++idx_i) {
+                    for (int idx_j = 0; idx_j < FILTER_SIZE; ++idx_j) {
+                        for (int idx_k = 0; idx_k < FILTER_SIZE; ++idx_k) {
+                            min_val = min(min_val, sub_matrix[idx_i][idx_j][idx_k]);
+                        }
+                    }
+                }
+                discretize(sub_matrix, max_vol, min_val);
+            }
 
-            // Discretize the submatrix
-            discretize(sub_matrix, max_vol);
+            // If FBS discretize the submatrix with user set minimum value
+            else{
+                discretize(sub_matrix, max_vol);
+            }
                                                           
             // get the maximum value of the submatrix after discretization
             max_vol = -3.40282e+38;
@@ -781,11 +798,14 @@ __device__ float * reshape(float(*matrix)[FILTER_SIZE][FILTER_SIZE]) {
 }
 
 // Function to perform discretization on the ROI imaging intensities
-__device__ void discretize(float vol_quant_re[FILTER_SIZE][FILTER_SIZE][FILTER_SIZE], float max_val, const char* discr_type="${discr_type}", float n_q=${n_q}) {
+__device__ void discretize(float vol_quant_re[FILTER_SIZE][FILTER_SIZE][FILTER_SIZE], 
+                            float max_val, float min_val=${min_val}) {
+    
+    // PARSING ARGUMENTS
+    float n_q = ${n_q};
+    const char* discr_type = "${discr_type}";
 
     // DISCRETISATION
-    float min_val = ${min_val};
-
     if (discr_type == "FBS") {
         float w_b = n_q;
         for (int i = 0; i < FILTER_SIZE; i++) {
@@ -1674,8 +1694,23 @@ __global__ void glcm_filter_local(
                     }
                 }
             }
+            // get the minimum value of the submatrix if discr_type is FBN
+            float min_val = 3.40282e+38;
+            if ("${discr_type}" == "FBN") {
+                for (int idx_i = 0; idx_i < FILTER_SIZE; ++idx_i) {
+                    for (int idx_j = 0; idx_j < FILTER_SIZE; ++idx_j) {
+                        for (int idx_k = 0; idx_k < FILTER_SIZE; ++idx_k) {
+                            min_val = min(min_val, sub_matrix[idx_i][idx_j][idx_k]);
+                        }
+                    }
+                }
+                discretize(sub_matrix, max_vol, min_val);
+            }
 
-            discretize(sub_matrix, max_vol);
+            // If FBS discretize the submatrix with user set minimum value
+            else{
+                discretize(sub_matrix, max_vol);
+            }
                                                           
             // get the maximum value of the submatrix after discretization
             max_vol = -3.40282e+38;
