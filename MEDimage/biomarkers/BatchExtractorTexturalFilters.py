@@ -88,7 +88,8 @@ class BatchExtractorTexturalFilters(object):
             im_params: Dict,
             roi_type: str,
             roi_type_label: str,
-            log_file: Union[Path, str]
+            log_file: Union[Path, str],
+            skip_existing: bool
         ) -> str:
         """
         Computes all radiomics features (Texture & Non-texture) for one patient/scan
@@ -101,10 +102,27 @@ class BatchExtractorTexturalFilters(object):
             roi_type(str): Type of ROI used in the processing and computation (for identification purposes)
             roi_type_label(str): Label of the ROI used, to make it identifiable from other ROIs.
             log_file(Union[Path, str]): Path to the logging file.
+            skip_existing(bool): True to skip the computation of the features for the scans that already have been computed.
 
         Returns:
             Union[Path, str]: Path to the updated logging file.
         """
+        # Check if the features for the current filter have already been computed
+        if skip_existing:
+            list_feature = []
+            # Find the glcm filters that have not been computed yet
+            for i in range(len(self.glcm_features)):
+                index_dot = name_patient.find('.')
+                ext = name_patient.find('.npy')
+                name_save = name_patient[:index_dot] + '(' + roi_type_label + ')' + name_patient[index_dot : ext] + ".json"
+                name_roi_type = roi_type + '_' + self.glcm_features[i]
+                path_to_check = Path(self._path_save / f'features({name_roi_type})')
+                if not (path_to_check / name_save).exists():
+                    list_feature.append(i)
+            # If all the features have already been computed, skip the computation
+            if len(list_feature) == 0:
+                return log_file
+        
         # Setting up logging settings
         logging.basicConfig(filename=log_file, level=logging.DEBUG, force=True)
 
@@ -226,15 +244,18 @@ class BatchExtractorTexturalFilters(object):
 
         ray.init(local_mode=True, include_dashboard=True, num_cpus=self.n_bacth)
 
-        # Loop through all the filter and extract the features for each filter
+        # Loop through all the filters and extract the features for each filter
         ids = []
-        nb_filters = len(self.glcm_features)
+        nb_filters = len(list_feature)
+        if nb_filters < self.n_bacth:
+            self.n_bacth = nb_filters
         for i in range(self.n_bacth):
             # Extract the filtered volume
-            vol_obj.data = deepcopy(vol_obj_all_features[...,i])
+            filter_idx = list_feature[i]
+            vol_obj.data = deepcopy(vol_obj_all_features[...,filter_idx])
 
             # Compute radiomics features
-            logging.info(f"--> Computation of radiomics features for filter {i}:")
+            logging.info(f"--> Computation of radiomics features for filter {filter_idx}:")
 
             ids.append(
                 self.__compute_radiomics_filtered_volume.remote(
@@ -245,7 +266,7 @@ class BatchExtractorTexturalFilters(object):
                     roi_obj_morph=roi_obj_morph,
                     name_patient=name_patient,
                     roi_name=roi_name,
-                    roi_type=roi_type + '_' + self.glcm_features[i],
+                    roi_type=roi_type + '_' + self.glcm_features[filter_idx],
                     roi_type_label=roi_type_label,
                     log_file=log_file
                 )
@@ -256,13 +277,16 @@ class BatchExtractorTexturalFilters(object):
             for i in range(nb_filters - nb_job_left, nb_filters):
                 ready, not_ready = ray.wait(ids, num_returns=1)
                 ids = not_ready
-                log_file = ray.get(ready)[0]
-
+                try:
+                    log_file = ray.get(ready)[0]
+                except:
+                    pass
                 # Extract the filtered volume
-                vol_obj.data = deepcopy(vol_obj_all_features[...,i])
+                filter_idx = list_feature[i]
+                vol_obj.data = deepcopy(vol_obj_all_features[...,filter_idx])
 
                 # Compute radiomics features
-                logging.info(f"--> Computation of radiomics features for filter {i}:")
+                logging.info(f"--> Computation of radiomics features for filter {filter_idx}:")
 
                 ids.append(
                     self.__compute_radiomics_filtered_volume.remote(
@@ -273,13 +297,16 @@ class BatchExtractorTexturalFilters(object):
                         roi_obj_morph=roi_obj_morph,
                         name_patient=name_patient,
                         roi_name=roi_name,
-                        roi_type=roi_type + '_' + self.glcm_features[i],
+                        roi_type=roi_type + '_' + self.glcm_features[filter_idx],
                         roi_type_label=roi_type_label,
                         log_file=log_file
                     )
                 )
         
         logging.info(f"TOTAL TIME:{time() - t_start} seconds\n\n")
+
+        # Empty memory
+        del medscan
 
     @ray.remote
     def __compute_radiomics_filtered_volume(
@@ -376,12 +403,23 @@ class BatchExtractorTexturalFilters(object):
             wd = 1
 
         # Intensity volume histogram features extraction
-        int_vol_hist = MEDimage.biomarkers.int_vol_hist.extract_all(
-            medscan=medscan,
-            vol=vol_quant_re,
-            vol_int_re=vol_int_re, 
-            wd=wd
-        )
+        try:
+            int_vol_hist = MEDimage.biomarkers.int_vol_hist.extract_all(
+                medscan=medscan,
+                vol=vol_quant_re,
+                vol_int_re=vol_int_re, 
+                wd=wd
+            )
+        except:
+            print("Error ivh:",name_patient)
+            int_vol_hist = {'Fivh_V10': [],
+                    'Fivh_V90': [],
+                    'Fivh_I10': [],
+                    'Fivh_I90': [],
+                    'Fivh_V10minusV90': [],
+                    'Fivh_I10minusI90': [],
+                    'Fivh_auc': []
+                    }
 
         # End of Non-Texture features extraction
         logging.info(f"End of non-texture features extraction: {time() - t_start}\n")
@@ -585,12 +623,13 @@ class BatchExtractorTexturalFilters(object):
 
         return log_file
     
-    def __batch_all_patients(self, im_params: Dict) -> None:
+    def __batch_all_patients(self, im_params: Dict, skip_existing) -> None:
         """
         Create batches of scans to process and compute radiomics features for every single scan.
 
         Args: 
             im_params(Dict): Dict of the processing & computation parameters.
+            skip_existing(bool) : True to skip the computation of the features for the scans that already have been computed.
 
         Returns:
             None
@@ -652,7 +691,8 @@ class BatchExtractorTexturalFilters(object):
                     im_params,
                     roi_type,
                     roi_type_label,
-                    log_files[i]
+                    log_files[i],
+                    skip_existing
                 )
 
             print('DONE')
@@ -777,12 +817,13 @@ class BatchExtractorTexturalFilters(object):
 
         print('DONE')
 
-    def compute_radiomics(self, create_tables: bool = True) -> None:
+    def compute_radiomics(self, create_tables: bool = True, skip_existing: bool = False) -> None:
         """Compute all radiomic features for all scans in the CSV file (set in initialization) and organize it
         in JSON and CSV files
 
         Args:
             create_tables(bool) : True to create CSV tables for the extracted features and not save it in JSON only.
+            skip_existing(bool) : True to skip the computation of the features for the scans that already have been computed.
         
         Returns:
             None.
@@ -792,7 +833,7 @@ class BatchExtractorTexturalFilters(object):
         im_params = self.__load_and_process_params()
 
         # Batch all scans from CSV file and compute radiomics for each scan
-        self.__batch_all_patients(im_params)
+        self.__batch_all_patients(im_params, skip_existing)
 
         # Create a CSV file off of the computed features for all the scans
         if create_tables:
