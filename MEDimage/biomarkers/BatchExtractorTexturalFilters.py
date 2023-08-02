@@ -691,14 +691,15 @@ class BatchExtractorTexturalFilters(object):
         
         # GETTING COMBINATIONS OF scan, roi_type and imageSpaces
         n_roi_types = len(self.roi_type_labels)
-        table_tags = []
         
         # Get all scan names present for the given roi_type_label
-        for i in range(0, len(self.glcm_features)):
+        for f_idx in range(0, len(self.glcm_features)):
+            # RE-INITIALIZATION
+            table_tags = []
             for r in range(0, n_roi_types):
                 label = self.roi_type_labels[r]
                 wildcard = '*' + label + '*.json'
-                roi_type = self.roi_types[r] + '_' + self.glcm_features[i]
+                roi_type = self.roi_types[r] + '_' + self.glcm_features[f_idx]
                 file_paths = MEDimage.utils.get_file_paths(self._path_save / f'features({roi_type})', wildcard)
                 n_files = len(file_paths)
                 scans = [0] * n_files
@@ -751,7 +752,7 @@ class BatchExtractorTexturalFilters(object):
                                     [table_tags[i]], 
                                     log_files[i],
                                     im_params,
-                                    self.glcm_features[i])
+                                    self.glcm_features[f_idx])
                     for i in range(self.n_bacth)]
 
             nb_job_left = n_tables - self.n_bacth
@@ -771,7 +772,7 @@ class BatchExtractorTexturalFilters(object):
                                     [table_tags[idx]], 
                                     log_file,
                                     im_params,
-                                    self.glcm_features[idx])])
+                                    self.glcm_features[f_idx])])
                     nb_job_left -= 1
 
         print('DONE')
