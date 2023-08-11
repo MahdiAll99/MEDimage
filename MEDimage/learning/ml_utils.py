@@ -277,7 +277,7 @@ def create_holdout_set(
             will be saved.
         method (str): Method to use for creating the hold-out set. Options are:
             - 'random': Randomly selects patients for the hold-out set.
-            - 'alllearn': No hold-out set is created. All patients are used for learning.
+            - 'all_learn': No hold-out set is created. All patients are used for learning.
             - 'institution': TODO.
         percentage (float): Percentage of patients to use for the hold-out set. Default is 0.2.
         n_split (int): Number of splits to create. Default is 1.
@@ -288,7 +288,7 @@ def create_holdout_set(
     """
     # Initilization
     outcome_name = outcome_name.upper()
-    outcome_table = pandas.read_csv(path_outcome_file)
+    outcome_table = pandas.read_csv(path_outcome_file, sep=';')
     outcome_table.dropna(inplace=True)
     outcome_table.reset_index(inplace=True, drop=True)
     patient_ids = outcome_table['PatientID']
@@ -300,7 +300,7 @@ def create_holdout_set(
     
     # Column names in the outcome table
     with open(path_outcome_file, 'r') as infile:
-        reader = csv.DictReader(infile)
+        reader = csv.DictReader(infile, delimiter=';')
         var_names = reader.fieldnames
 
     # Include time to event if it exists
@@ -309,6 +309,10 @@ def create_holdout_set(
         name_outcome_in_table_time = outcome_name + '_eventFreeTime'
         flag_time = True
 
+    # Check if the outcome name for binary is correct
+    if name_outcome_in_table_binary not in outcome_table.columns:
+            name_outcome_in_table_binary = var_names[-1]
+    
     # Run the split
     # Random
     if 'random' in method.lower():
@@ -334,14 +338,16 @@ def create_holdout_set(
             patients_hold_out.reset_index(inplace=True, drop=True)
     
     # All Learn
-    elif 'alllearn' in method.lower():
+    elif 'all_learn' in method.lower():
         # Creating the experiment folder
-        path_split = create_experiment_folder(path_outcome, 'allLearn')
+        path_split = create_experiment_folder(path_outcome, 'all_learn')
 
         # Getting the split (all Learn so no hold out)
         patients_learn = patient_ids
         patients_hold_out = []
-
+    else:
+        raise ValueError('Method not recognized. Use "random" or "all_learn".')
+    
     # Creating final outcome table and saving it
     if flag_time:
         outcomes = outcome_table[
@@ -362,16 +368,23 @@ def create_holdout_set(
     patients_learn.to_json(paths_exp_patientsLearn, orient='values', indent=4)
 
     # Save dict of patientsHoldOut
-    paths_exp_patients_hold_out = str(path_split) + '/patientsHoldOut.json'
-    patients_hold_out.to_json(paths_exp_patients_hold_out, orient='values', indent=4)
+    if method == 'random':
+        paths_exp_patients_hold_out = str(path_split) + '/patientsHoldOut.json'
+        patients_hold_out.to_json(paths_exp_patients_hold_out, orient='values', indent=4)
 
-    # Save dict of all the paths
-    data={
-        "outcomes" : paths_exp_outcomes,
-        "patientsLearn": paths_exp_patientsLearn,
-        "patientsHoldOut": paths_exp_patients_hold_out,
-        "pathWORK": path_split
-    }
+        # Save dict of all the paths
+        data={
+            "outcomes" : paths_exp_outcomes,
+            "patientsLearn": paths_exp_patientsLearn,
+            "patientsHoldOut": paths_exp_patients_hold_out,
+            "pathWORK": path_split
+        }
+    else:
+        data={
+            "outcomes" : paths_exp_outcomes,
+            "patientsLearn": paths_exp_patientsLearn,
+            "pathWORK": path_split
+        }
     paths_exp = str(path_split + '/paths_exp.json')
     with open(paths_exp, 'w') as f:
         json.dump(data, f, indent=4)
@@ -379,39 +392,48 @@ def create_holdout_set(
     # Return the path to the experiment and path to split
     return path_split, paths_exp
 
-def find_best_model(path_results: Path, metric: str = 'AUC') -> Tuple[Dict, Path]:
+def find_best_model(path_results: Path, metric: str = 'AUC', second_metric: str = 'AUC') -> Tuple[Dict, Path]:
     """
     Find the best model with the highest performance on the test set
     in a given path based on a given metric.
 
     Args:
         path_results (Path): Path to the results folder.
-        metric (str): Metric to use to find the best model. Default is 'AUC'.
+        metric (str): Metric to use to find the best model in case of a tie. Default is 'AUC'.
 
     Returns:
         Tuple[Dict, Path]: Tuple containing the best model result dict and the path to the best model.
     """
-    # Make sure the metric is in the list of metrics
-    assert metric in [
-                        'AUC', 'Sensitivity', 'Specificity', 
-                        'BAC', 'AUPRC', 'Precision', 
-                        'NPV', 'Accuracy', 'F1_score', 'MCC',
-                        'TP', 'TN', 'FP', 'FN'
-                    ], f'Given metric {metric} is not in the list of metrics.'
+    list_metrics = [
+        'AUC', 'Sensitivity', 'Specificity', 
+        'BAC', 'AUPRC', 'Precision', 
+        'NPV', 'Accuracy', 'F1_score', 'MCC',
+        'TP', 'TN', 'FP', 'FN'
+    ]
+    assert metric in list_metrics, f'Given metric {metric} is not in the list of metrics. Please choose from {list_metrics}'
 
     # Get all tests paths
     list_path_tests =  [path for path in path_results.iterdir() if path.is_dir()]
 
     # Initialization
     metric_best = -1
+    second_metric_best = -1
     path_result_best = None
 
     # Get all models and their metrics (AUC especially)
     for path_test in list_path_tests:
+        if not (path_test / 'run_results.json').exists():
+            continue
         results_dict = load_json(path_test / 'run_results.json')
         metric_test = results_dict[list(results_dict.keys())[0]]['test']['metrics'][metric]
         if metric_test > metric_best:
+            metric_best = metric_test
             path_result_best = path_test
+        elif metric_test == metric_best:
+            second_metric_test = results_dict[list(results_dict.keys())[0]]['test']['metrics'][second_metric]
+            if second_metric_test > second_metric_best:
+                second_metric_best = second_metric_test
+                path_result_best = path_test
     
     # Load best model result dict
     results_dict_best = load_json(path_result_best / 'run_results.json')
@@ -457,9 +479,20 @@ def get_ml_test_table(variable_table: pd.DataFrame, var_names: List, var_def: st
 
     # Get the test table with the variables that are present in the training table
     variable_table = variable_table.iloc[:, indexes]
+
+    # User data - var_def
+    str_names = '||'
+    for v in range(len(var_names)):
+        str_names += var_names[v] + ':' + full_radvar_names_trained[v] + '||'
+
+    # Update metadata and variable names
+    variable_table.columns = var_names
+    variable_table.Properties['VariableNames'] = var_names
+    variable_table.Properties['userData']['variables']['var_def'] = str_names
+    variable_table.Properties['userData']['variables']['continuous'] = var_names
     
     # Rename columns to s sequential names again
-    return finalize_rad_table(variable_table)
+    return variable_table
 
 def finalize_rad_table(rad_table: pd.DataFrame) -> pd.DataFrame:
     """
