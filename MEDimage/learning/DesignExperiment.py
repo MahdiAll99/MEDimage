@@ -204,7 +204,7 @@ class DesignExperiment:
                 if 'radiomics' in var_struct['nameType'].lower():
                     # Get radiomics features in workspace
                     if 'settofeatures' in var_struct['path'].lower():
-                        name_folder = re.match(r"setTo(\w+)inWorkspace", var_struct['path']).group(1)
+                        name_folder = re.match(r"setTo(.*)inWorkspace", var_struct['path']).group(1)
                         path_features = self.path_study / name_folder
                     # Get radiomics features in path provided in the dictionary by the user 
                     else:
