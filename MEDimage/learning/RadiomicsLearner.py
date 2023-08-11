@@ -8,6 +8,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 from numpyencoder import NumpyEncoder
+from pycaret.classification import *
 from sklearn import metrics
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from supervised.automl import AutoML
@@ -243,7 +244,10 @@ class RadiomicsLearner:
 
         # Seperate training and testing data before feature set reduction
         rad_tables_testing = deepcopy(rad_tables_learning)
-        rad_tables_training = deepcopy([rad_tab.loc[patients_train] for rad_tab in rad_tables_learning])
+        rad_tables_training = []
+        for rad_tab in rad_tables_learning:
+            patients_ids = intersect(patients_train, list(rad_tab.index))
+            rad_tables_training.append(deepcopy(rad_tab.loc[patients_ids]))
 
         # Deepcopy properties
         temp_properties = list()
@@ -277,9 +281,10 @@ class RadiomicsLearner:
             self, 
             var_table_train: pd.DataFrame,
             outcome_table_binary_train: pd.DataFrame,
-            var_importance_threshold: float = 0.01,
+            var_importance_threshold: float = 0.05,
             optimal_threshold: float = None,
-            method : str = "auto"
+            optimization_metric: str = 'MCC',
+            method : str = "pycaret"
         ) -> Dict:
         """
         Trains an XGBoost model for the given machine learning test.
@@ -292,7 +297,9 @@ class RadiomicsLearner:
             optimal_threshold (float, optional): Optimal threshold for the XGBoost model. If not given, it will be
                 computed using the training set.
             method (str, optional): String specifying the method to use to train the XGBoost model.
+                - "pycaret": Use PyCaret to train the model (automatic).
                 - "grid_search": Grid search with cross-validation to find the best parameters.
+                - "random_search": Random search with cross-validation to find the best parameters.
                 - "auto": AutoML to find the best XGBoost model.
         
         Returns:
@@ -312,13 +319,39 @@ class RadiomicsLearner:
             # Fit the best XGB Classifier
             classifier.fit(var_table_train, outcome_table_binary_train)
         
+        elif method.lower() == "pycaret":
+            # Set up data for PyCaret
+            temp_data = pd.merge(var_table_train, outcome_table_binary_train, left_index=True, right_index=True)
+
+            # PyCaret setup
+            setup(
+                data=temp_data,
+                feature_selection=True,
+                n_features_to_select=1-var_importance_threshold,
+                fold=5,
+                target=temp_data.columns[-1],
+                use_gpu=True
+            )
+
+            # Creating XGBoost model using PyCaret
+            classifier = create_model('xgboost', verbose=False)
+
+            # Tuning XGBoost model using PyCaret
+            classifier = tune_model(classifier, optimize=optimization_metric)
+        
         else:
             # Initial training to filter features using variable importance
             # XGB Classifier
             classifier = XGBClassifier()
             classifier.fit(var_table_train, outcome_table_binary_train)
             var_importance = classifier.feature_importances_
-            # TODO: normalize var_importance
+
+            # Normalize var_importance if necessary
+            if np.sum(var_importance) != 1:
+                var_importance_threshold = var_importance_threshold / np.sum(var_importance)
+                var_importance = var_importance / np.sum(var_importance)
+
+            # Filter variables
             var_table_train = var_table_train.iloc[:, var_importance >= var_importance_threshold]
 
             # Suggested scale_pos_weight
@@ -335,7 +368,7 @@ class RadiomicsLearner:
                 'n_estimators': [50, 100, 200]
             }
 
-            if method == "grid_search":
+            if method.lower() == "grid_search":
                 # Set up grid search with cross-validation
                 grid_search = GridSearchCV(
                     estimator=classifier, 
@@ -345,7 +378,7 @@ class RadiomicsLearner:
                     verbose=3, 
                     scoring='matthews_corrcoef'
                 )
-            elif method == "random_search":
+            elif method.lower() == "random_search":
                 # Set up random search with cross-validation
                 grid_search = RandomizedSearchCV(
                     estimator=classifier, 
@@ -356,7 +389,7 @@ class RadiomicsLearner:
                     scoring='matthews_corrcoef'
                 )
             else:
-                raise NotImplementedError(f'Method: {method} not recognized. Use "grid_search", "random_search" or "auto".')
+                raise NotImplementedError(f'Method: {method} not recognized. Use "grid_search", "random_search", "auto" or "pycaret".')
             
             # Fit the grid search
             grid_search.fit(var_table_train, outcome_table_binary_train)
@@ -366,11 +399,13 @@ class RadiomicsLearner:
 
             # Fit the XGB Classifier with the best parameters
             classifier = XGBClassifier(**best_params)
+            classifier.fit(var_table_train, outcome_table_binary_train)
         
         # Saving the information of the model in a dictionary
         model_xgb = dict()
         model_xgb['algo'] = 'xgb'
         model_xgb['type'] = 'binary'
+        model_xgb['method'] = method
         if optimal_threshold:
             model_xgb['threshold'] = optimal_threshold
         else:
@@ -380,12 +415,14 @@ class RadiomicsLearner:
                 print('Error in finding optimal threshold, it will be set to 0.5:' + str(e))
                 model_xgb['threshold'] = 0.5
         model_xgb['model'] = classifier
-        model_xgb['var_names'] = list(var_table_train.columns.values)
+        model_xgb['var_names'] = list(classifier.feature_names_in_)
         model_xgb['var_info'] = deepcopy(var_table_train.Properties['userData'])
-        if method != "auto":
-            model_xgb['optimization'] = best_params
-        else:
+        if method == "auto":
             model_xgb['optimization'] = "auto"
+        elif method == "pycaret":
+            model_xgb['optimization'] = classifier.get_params()
+        else:
+            model_xgb['optimization'] = best_params
 
         return model_xgb
         
@@ -483,10 +520,6 @@ class RadiomicsLearner:
         ml = ml_info_dict['ml']
         path_results = ml_info_dict['path_results']
 
-        # Features processing flags
-        var_names = ['datacleaning', 'fSetReduction', 'normalization', 'fSetSelection']
-        flags_processing = {key: key in ml['settings'].keys() for key in var_names}
-
         # --> B. Machine Learning phase 
         # B.1. Pre-processing features
         start = time.time()
@@ -507,8 +540,8 @@ class RadiomicsLearner:
         # B.2. Pre-learning initialization
         # Patient definitions (training and test sets)
         patient_ids = list(outcome_table_binary.index)
-        patients_train = intersect(patient_ids, patients_train)
-        patients_test = intersect(patient_ids, patients_test)
+        patients_train = intersect(intersect(patient_ids, patients_train), processed_training_table.index)
+        patients_test = intersect(intersect(patient_ids, patients_test), processed_testing_table.index)
         patients_holdout = intersect(patient_ids, patients_holdout) if holdout_test else None
 
         # Initializing outcome tables for training and test sets
@@ -516,12 +549,14 @@ class RadiomicsLearner:
         outcome_table_binary_test = outcome_table_binary.loc[patients_test, :]
         outcome_table_binary_holdout = outcome_table_binary.loc[patients_holdout, :] if holdout_test else None
 
-        # Serperate variable table for training sets (repetetive but double-checking)
+        # Serperate variable table for training sets (repetitive but double-checking)
         var_table_train = processed_training_table.loc[patients_train, :]
 
         # Initializing XGBoost model settings
         var_importance_threshold = ml['algorithms']['XGBoost']['varImportanceThreshold']
         optimal_threshold = ml['algorithms']['XGBoost']['optimalThreshold']
+        optimization_metric = ml['algorithms']['XGBoost']['optimizationMetric']
+        method = ml['algorithms']['XGBoost']['method'] if 'method' in ml['algorithms']['XGBoost'].keys() else method
 
         # B.2. Training the XGBoost model
         tstart = time.time()
@@ -533,7 +568,8 @@ class RadiomicsLearner:
             outcome_table_binary_train, 
             var_importance_threshold, 
             optimal_threshold,
-            method=method
+            method=method,
+            optimization_metric=optimization_metric
         )
 
         # Saving the trained model using pickle
@@ -626,14 +662,16 @@ class RadiomicsLearner:
         logging.info('{} TOTAL COMPUTATION TIME: {:.2f} hours'.format(" " * 13, (time.time()-batch_start)/3600))
         logging.info("*********************************************************************")
         
-    def run_experiment(self, holdout_test: bool = True, method: str = "auto") -> None:
+    def run_experiment(self, holdout_test: bool = True, method: str = "pycaret") -> None:
         """
         Run the machine learning experiment for each split/run
 
         Args:
             holdout_test (bool, optional): Boolean specifying if the hold-out test should be performed.
             method (str, optional): String specifying the method to use to train the XGBoost model.
+                - "pycaret": Use PyCaret to train the model (automatic).
                 - "grid_search": Grid search with cross-validation to find the best parameters.
+                - "random_search": Random search with cross-validation to find the best parameters.
                 - "auto": AutoML to find the best XGBoost model.
             
         Returns:
