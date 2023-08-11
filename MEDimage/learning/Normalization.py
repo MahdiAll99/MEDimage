@@ -104,7 +104,7 @@ class Normalization:
                 self.covariates_df, 
                 batch_col
             )
-            vt_combat = pd.DataFrame(data_combat).transpose()
+            vt_combat = pd.DataFrame(data_combat['data']).transpose()
 
         self.variable_table[:] = vt_combat.values
 
