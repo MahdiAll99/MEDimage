@@ -9,11 +9,12 @@ from matplotlib import pyplot as plt
 from numpyencoder import NumpyEncoder
 from sklearn import metrics
 
+from MEDimage.learning.ml_utils import find_best_model
 from MEDimage.utils.json_utils import load_json, save_json
 
 
 class Results:
-    def __init__(self, model_dict: dict, model_id: str) -> None:
+    def __init__(self, model_dict: dict = {}, model_id: str = "") -> None:
         """
         Constructor of the class Results
         """
@@ -159,13 +160,14 @@ class Results:
         plt.legend(loc="lower right")
         plt.savefig(os.path.dirname(self.model_dict['path']) + "/ROC_curve_" + label + ".png")
 
-    def average_results(self, path_results: Path = None) -> None:
+    def average_results(self, path_results: Path, save: bool = False) -> None:
         """
         Averages the results (AUC, BAC, Sensitivity and Specifity) of all the runs of the same experiment,
         for training, testing and holdout sets.
 
         Args:
             path_results(Path): path to the folder containing the results of the experiment.
+            save (bool, optional): If True, saves the results in the same folder as the model.
         
         Returns:
             None.
@@ -192,18 +194,29 @@ class Results:
                 metric_values = []
                 for path_test in list_path_tests:
                     results_dict = load_json(path_test / 'run_results.json')
-                    metric_values.append(results_dict[list(results_dict.keys())[0]][dataset]['metrics'][metric])
+                    if dataset in results_dict[list(results_dict.keys())[0]].keys():
+                        if 'metrics' in results_dict[list(results_dict.keys())[0]][dataset].keys():
+                            metric_values.append(results_dict[list(results_dict.keys())[0]][dataset]['metrics'][metric])
+                        else:
+                            continue
+                    else:
+                        continue
 
                 # Fill the dictionary
-                dataset_dict[f'{metric}_mean'] = np.mean(metric_values)
-                dataset_dict[f'{metric}_std'] = np.std(metric_values)
-                dataset_dict[f'{metric}_max'] = np.max(metric_values)
-                dataset_dict[f'{metric}_min'] = np.min(metric_values)
-                dataset_dict[f'{metric}_2.5%'] = np.percentile(metric_values, 2.5)
-                dataset_dict[f'{metric}_97.5%'] = np.percentile(metric_values, 97.5)
+                if metric_values:
+                    dataset_dict[f'{metric}_mean'] = np.nanmean(metric_values)
+                    dataset_dict[f'{metric}_std'] = np.nanstd(metric_values)
+                    dataset_dict[f'{metric}_max'] = np.nanmax(metric_values)
+                    dataset_dict[f'{metric}_min'] = np.nanmin(metric_values)
+                    dataset_dict[f'{metric}_2.5%'] = np.nanpercentile(metric_values, 2.5)
+                    dataset_dict[f'{metric}_97.5%'] = np.nanpercentile(metric_values, 97.5)
 
         # Save the results
-        save_json(path_results / 'results_avg.json', results_avg, cls=NumpyEncoder)
+        if save:
+            save_json(path_results / 'results_avg.json', results_avg, cls=NumpyEncoder)
+            return path_results / 'results_avg.json'
+
+        return results_avg
     
     def get_model_performance_metrics(
             self, 
@@ -271,6 +284,112 @@ class Results:
             print(f"Error in get_model_performance_metrics: ", e, "filling metrics with nan...")
             return self.__get_metrics_failure_dict()
     
+    def plot_heatmap(
+            self, 
+            path_experiments: Path, 
+            experiment: str,
+            levels: List,
+            stat: str = 'mean',
+            problems: List = [], 
+            modalities: List = [], 
+            metric: str = 'AUC',
+            save: bool = False
+        ) -> None:
+        # Make sure the metric is in the list of metrics
+        list_metrics = [
+            'AUC', 'Sensitivity', 'Specificity', 
+            'BAC', 'AUPRC', 'Precision', 
+            'NPV', 'Accuracy', 'F1_score', 'MCC',
+            'TP', 'TN', 'FP', 'FN'
+        ]
+        assert metric in list_metrics, f'Given metric {metric} is not in the list of metrics. Please choose from {list_metrics}'
+
+        # Make sure the chosen stat is in the list of stats
+        list_stats = ['mean', 'std', 'max', 'min', '2.5%', '97.5%']
+        assert stat in list_stats, f'Given stat {stat} is not in the list of stats. Please choose from {list_stats}'
+
+        # Prepare the data for the heatmap
+        if problems:            
+            # Load the models resutls
+            results_dicts = []
+            for problem in problems:
+                for level in levels:
+                    exp_full_name = 'learn__' + experiment + '_' + level + '_' + problem
+                    _, results_dict = find_best_model(path_experiments / exp_full_name, metric=metric)
+                    results_dicts.append(results_dict)
+
+            # Create the heatmap data using the metric of interest
+            heatmap_data = np.zeros((len(problems), len(levels)))
+            for i in range(len(problems)):
+                for j in range(len(levels)):
+                    results_dict = results_dicts[i * len(levels) + j]
+                    heatmap_data[i, j] = results_dict[list(results_dict.keys())[0]]['test']['metrics'][metric]
+            
+            # Convert the numpy array to a DataFrame for Seaborn
+            df = pd.DataFrame(heatmap_data, columns=levels, index=problems)
+
+            # Set the yticklabels
+            yticklabels = True
+
+        elif modalities:
+            # Load the models resutls
+            results_dicts = []
+            for modality in modalities:
+                for level in levels:
+                    exp_full_name = 'learn__' + experiment + '_' + level + '_' + modality
+                    _, results_dict = find_best_model(path_experiments / exp_full_name, metric=metric)
+                    results_dicts.append(results_dict)
+            
+            # Create the heatmap data using the metric of interest
+            heatmap_data = np.zeros((len(modalities), len(levels)))
+            for i in range(len(modalities)):
+                for j in range(len(levels)):
+                    results_dict = results_dicts[i * len(levels) + j]
+                    heatmap_data[i, j] = results_dict[list(results_dict.keys())[0]]['test']['metrics'][metric]
+            
+            # Convert the numpy array to a DataFrame for Seaborn
+            df = pd.DataFrame(heatmap_data, columns=levels, index=modalities)
+
+            # Set the yticklabels
+            yticklabels = True
+
+        else:
+            # Load the models resutls
+            results_dicts = []
+            for level in levels:
+                exp_full_name = 'learn__' + experiment + '_' + level
+                results_dict = self.average_results(path_experiments / exp_full_name)
+                results_dicts.append(results_dict)
+            # Create the heatmap data using the metric of interest
+            heatmap_data = np.zeros((1, len(results_dicts)))
+            for j, results_dict in enumerate(results_dicts):
+                    heatmap_data[0, j] = results_dict['test'][metric + '_' + stat]
+            
+            # Convert the numpy array to a DataFrame for Seaborn
+            df = pd.DataFrame(heatmap_data, columns=levels)
+
+            # Set the yticklabels
+            yticklabels = False     # No yticklabels for single level experiments
+            
+
+        # Step 3: Create the heatmap using seaborn
+        plt.figure(figsize=(8, 6))
+        sns.set(font_scale=1.2)
+        if metric == 'MCC':
+            sns.heatmap(df, annot=True, fmt=".2f", cmap="viridis", cbar=True, linewidths=0.5, vmin=-1, vmax=1, yticklabels=yticklabels)
+        else:
+            sns.heatmap(df, annot=True, fmt=".2f", cmap="viridis", cbar=True, linewidths=0.5, vmin=0, vmax=1, yticklabels=yticklabels)
+        
+        plt.title("Testing Results Heatmap")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.title(f'{metric}_{stat} heatmap')
+        plt.show()
+
+        # Save the heatmap
+        if save:
+            plt.savefig(path_experiments / f'{metric}_{stat}_heatmap.png')
+
     def plot_models_performance(path_results: Path) -> None:
         """
         Plots the performance metrics of every model found in the given path.
