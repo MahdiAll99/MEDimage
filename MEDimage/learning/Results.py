@@ -295,6 +295,22 @@ class Results:
             metric: str = 'AUC',
             save: bool = False
         ) -> None:
+        """
+        This function plots a heatmap with the performance of the models in the given experiment.
+
+        Args:
+            path_experiments (Path): Path to the folder containing the experiments.
+            experiment (str): Name of the experiment to plot.
+            levels (List): List of levels to plot.
+            stat (str, optional): Statistic to plot. Defaults to 'mean'.
+            problems (List, optional): List of problems to include in the plot. Defaults to [].
+            modalities (List, optional): List of modalities to include in the plot. Defaults to [].
+            metric (str, optional): Metric to plot. Defaults to 'AUC'.
+            save (bool, optional): Whether to save the plot. Defaults to False.
+        
+        Returns:
+            None.
+        """
         # Make sure the metric is in the list of metrics
         list_metrics = [
             'AUC', 'Sensitivity', 'Specificity', 
@@ -315,7 +331,7 @@ class Results:
             for problem in problems:
                 for level in levels:
                     exp_full_name = 'learn__' + experiment + '_' + level + '_' + problem
-                    _, results_dict = find_best_model(path_experiments / exp_full_name, metric=metric)
+                    results_dict = self.average_results(path_experiments / exp_full_name)
                     results_dicts.append(results_dict)
 
             # Create the heatmap data using the metric of interest
@@ -323,7 +339,7 @@ class Results:
             for i in range(len(problems)):
                 for j in range(len(levels)):
                     results_dict = results_dicts[i * len(levels) + j]
-                    heatmap_data[i, j] = results_dict[list(results_dict.keys())[0]]['test']['metrics'][metric]
+                    heatmap_data[i, j] = results_dict['test'][metric + '_' + stat]
             
             # Convert the numpy array to a DataFrame for Seaborn
             df = pd.DataFrame(heatmap_data, columns=levels, index=problems)
@@ -337,7 +353,7 @@ class Results:
             for modality in modalities:
                 for level in levels:
                     exp_full_name = 'learn__' + experiment + '_' + level + '_' + modality
-                    _, results_dict = find_best_model(path_experiments / exp_full_name, metric=metric)
+                    results_dict = self.average_results(path_experiments / exp_full_name)
                     results_dicts.append(results_dict)
             
             # Create the heatmap data using the metric of interest
@@ -345,7 +361,7 @@ class Results:
             for i in range(len(modalities)):
                 for j in range(len(levels)):
                     results_dict = results_dicts[i * len(levels) + j]
-                    heatmap_data[i, j] = results_dict[list(results_dict.keys())[0]]['test']['metrics'][metric]
+                    heatmap_data[i, j] = results_dict['test'][metric + '_' + stat]
             
             # Convert the numpy array to a DataFrame for Seaborn
             df = pd.DataFrame(heatmap_data, columns=levels, index=modalities)
@@ -370,8 +386,7 @@ class Results:
 
             # Set the yticklabels
             yticklabels = False     # No yticklabels for single level experiments
-            
-
+        
         # Step 3: Create the heatmap using seaborn
         plt.figure(figsize=(8, 6))
         sns.set(font_scale=1.2)
