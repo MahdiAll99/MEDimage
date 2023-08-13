@@ -218,6 +218,42 @@ class Results:
 
         return results_avg
     
+    def count_patients(self, path_results: Path) -> dict:
+        """
+        Counts the number of patients used in learning, testing and holdout.
+
+        Args:
+            path_results(Path): path to the folder containing the results of the experiment.
+        
+        Returns:
+            Dict: Dictionary with the number of patients used in learning, testing and holdout.
+        """
+        # Get all tests paths
+        list_path_tests =  [path for path in path_results.iterdir() if path.is_dir()]
+
+        # Initialize dictionaries
+        patients_count = {
+            'train': {},
+            'test': {},
+            'holdout': {}
+        }
+
+        # Process metrics
+        for dataset in ['train', 'test', 'holdout']:
+            for path_test in list_path_tests:
+                results_dict = load_json(path_test / 'run_results.json')
+                if dataset in results_dict[list(results_dict.keys())[0]].keys():
+                    if 'patients' in results_dict[list(results_dict.keys())[0]][dataset].keys():
+                        if results_dict[list(results_dict.keys())[0]][dataset]['patients']:
+                            patients_count[dataset] = len(results_dict[list(results_dict.keys())[0]][dataset]['patients'])
+                    else:
+                        continue
+                else:
+                    continue
+                break   # The number of patients is the same for all the runs
+
+        return patients_count
+    
     def get_model_performance_metrics(
             self, 
             response: list, 
@@ -295,22 +331,6 @@ class Results:
             metric: str = 'AUC',
             save: bool = False
         ) -> None:
-        """
-        This function plots a heatmap with the performance of the models in the given experiment.
-
-        Args:
-            path_experiments (Path): Path to the folder containing the experiments.
-            experiment (str): Name of the experiment to plot.
-            levels (List): List of levels to plot.
-            stat (str, optional): Statistic to plot. Defaults to 'mean'.
-            problems (List, optional): List of problems to include in the plot. Defaults to [].
-            modalities (List, optional): List of modalities to include in the plot. Defaults to [].
-            metric (str, optional): Metric to plot. Defaults to 'AUC'.
-            save (bool, optional): Whether to save the plot. Defaults to False.
-        
-        Returns:
-            None.
-        """
         # Make sure the metric is in the list of metrics
         list_metrics = [
             'AUC', 'Sensitivity', 'Specificity', 
@@ -328,11 +348,18 @@ class Results:
         if problems:            
             # Load the models resutls
             results_dicts = []
+            patients_count = dict.fromkeys(problems)
             for problem in problems:
                 for level in levels:
                     exp_full_name = 'learn__' + experiment + '_' + level + '_' + problem
                     results_dict = self.average_results(path_experiments / exp_full_name)
                     results_dicts.append(results_dict)
+
+                    # Patient count
+                patients_count[problem] = self.count_patients(path_experiments / exp_full_name)
+
+            # Update problem name to include the number of patients
+            problems = [problem + f' ({patients_count[problem]["train"]} train, {patients_count[problem]["test"]} test)' for problem in problems]
 
             # Create the heatmap data using the metric of interest
             heatmap_data = np.zeros((len(problems), len(levels)))
@@ -343,18 +370,22 @@ class Results:
             
             # Convert the numpy array to a DataFrame for Seaborn
             df = pd.DataFrame(heatmap_data, columns=levels, index=problems)
-
-            # Set the yticklabels
-            yticklabels = True
-
+        
         elif modalities:
             # Load the models resutls
             results_dicts = []
+            patients_count = dict.fromkeys(modalities)
             for modality in modalities:
                 for level in levels:
                     exp_full_name = 'learn__' + experiment + '_' + level + '_' + modality
                     results_dict = self.average_results(path_experiments / exp_full_name)
                     results_dicts.append(results_dict)
+
+                # Patient count
+                patients_count[modality] = self.count_patients(path_experiments / exp_full_name)
+
+            # Update modality name to include the number of patients
+            modalities = [modality + f' ({patients_count[modality]["train"]} train, {patients_count[modality]["test"]} test)' for modality in modalities]
             
             # Create the heatmap data using the metric of interest
             heatmap_data = np.zeros((len(modalities), len(levels)))
@@ -366,9 +397,6 @@ class Results:
             # Convert the numpy array to a DataFrame for Seaborn
             df = pd.DataFrame(heatmap_data, columns=levels, index=modalities)
 
-            # Set the yticklabels
-            yticklabels = True
-
         else:
             # Load the models resutls
             results_dicts = []
@@ -376,24 +404,31 @@ class Results:
                 exp_full_name = 'learn__' + experiment + '_' + level
                 results_dict = self.average_results(path_experiments / exp_full_name)
                 results_dicts.append(results_dict)
+            
+            # Patient count
+            patients_count = self.count_patients(path_experiments / exp_full_name)
+
+            # Update modality name to include the number of patients
+            index = [f'({patients_count["train"]} train, {patients_count["test"]} test)']
+
             # Create the heatmap data using the metric of interest
             heatmap_data = np.zeros((1, len(results_dicts)))
             for j, results_dict in enumerate(results_dicts):
                     heatmap_data[0, j] = results_dict['test'][metric + '_' + stat]
             
             # Convert the numpy array to a DataFrame for Seaborn
-            df = pd.DataFrame(heatmap_data, columns=levels)
+            df = pd.DataFrame(heatmap_data, columns=levels, index=index)
+            
+        # Count the patients used in learning
+        patients_count = self.count_patients(path_experiments / exp_full_name)
 
-            # Set the yticklabels
-            yticklabels = False     # No yticklabels for single level experiments
-        
-        # Step 3: Create the heatmap using seaborn
+        # Create the heatmap using seaborn
         plt.figure(figsize=(8, 6))
         sns.set(font_scale=1.2)
         if metric == 'MCC':
-            sns.heatmap(df, annot=True, fmt=".2f", cmap="viridis", cbar=True, linewidths=0.5, vmin=-1, vmax=1, yticklabels=yticklabels)
+            sns.heatmap(df, annot=True, fmt=".2f", cmap="viridis", cbar=True, linewidths=0.5, vmin=-1, vmax=1)
         else:
-            sns.heatmap(df, annot=True, fmt=".2f", cmap="viridis", cbar=True, linewidths=0.5, vmin=0, vmax=1, yticklabels=yticklabels)
+            sns.heatmap(df, annot=True, fmt=".2f", cmap="viridis", cbar=True, linewidths=0.5, vmin=0, vmax=1)
         
         plt.title("Testing Results Heatmap")
         plt.xticks(rotation=45)
