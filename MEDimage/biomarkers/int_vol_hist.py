@@ -14,7 +14,7 @@ def init_ivh(medscan: MEDscan,
              vol: np.ndarray, 
              vol_int_re: np.ndarray, 
              wd: int, 
-             user_set_range: np.ndarray=None) -> Tuple[np.ndarray, np.ndarray, np.integer, np.integer]:
+             user_set_range: np.ndarray=None) -> Tuple[np.ndarray, np.ndarray, int, int]:
     """Computes Intensity-volume Histogram Features.
 
     Note:

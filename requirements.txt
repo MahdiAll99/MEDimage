@@ -1,4 +1,4 @@
-numpy==1.20.0
+numpy==1.22.4
 nilearn==0.10.1
 isort==5.10.1
 ipykernel==6.15.1
