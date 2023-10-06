@@ -212,7 +212,15 @@ class DesignExperiment:
                     scans = var_struct['scans'] # list of imaging sequences
                     rois = var_struct['rois'] # list of roi labels
                     im_spaces = var_struct['imSpaces'] # list of image spaces (filterd and original)
-                    all_combinations = list(product(scans, rois, im_spaces))
+                    use_combinations = var_struct['use_combinations'] # boolean to use combinations of scans and im_spaces
+                    if use_combinations:
+                        all_combinations = []
+                        scans = list(var_struct['combinations'].keys())
+                        for scan in scans:
+                            im_spaces = list(var_struct['combinations'][scan])
+                            all_combinations += list(product([scan], rois, im_spaces))
+                    else:
+                        all_combinations = list(product(scans, rois, im_spaces))
                     
                     # Initialize dict to hold all paths to radiomics features (csv and txt files)
                     path = dict() 
