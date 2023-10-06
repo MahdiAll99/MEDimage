@@ -171,12 +171,23 @@ class DataCleaner:
             missing_cutoff_ps = cleaning_dict['missingCutoffps']
             cov_cutoff = cleaning_dict['covCutoff']
             imputation_method = cleaning_dict['imputation']
+        
+        # Replace infinite values with NaNs
+        self.df_features = self.df_features.replace([np.inf, -np.inf], np.nan)
 
         # Remove features with more than missing_cutoff_pf missing samples (NaNs)
         var_of_type = self.cut_off_missing_per_feature(var_of_type, missing_cutoff_pf)
 
+        # Check
+        if len(var_of_type) == 0:
+            return None
+
         # Remove features with a coefficient of variation less than cov_cutoff
         var_of_type = self.cut_off_variation(var_of_type, cov_cutoff)
+
+        # Check
+        if len(var_of_type) == 0:
+            return None
 
         # Remove scans with more than missing_cutoff_ps missing features
         self.cut_off_missing_per_sample(var_of_type, missing_cutoff_ps)
