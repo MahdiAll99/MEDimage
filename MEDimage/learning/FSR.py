@@ -1,12 +1,15 @@
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
+from numpyencoder import NumpyEncoder
 
 from MEDimage.learning.ml_utils import (combine_rad_tables, finalize_rad_table,
                                         get_stratified_splits,
                                         intersect_var_tables)
 from MEDimage.utils.get_full_rad_names import get_full_rad_names
+from MEDimage.utils.json_utils import save_json
 
 
 class FSR:
@@ -18,23 +21,6 @@ class FSR:
             method (str): Method of feature set reduction. Can be "FDA", "LASSO" or "mRMR".
         """
         self.method = method
-    
-    def __count_fda_stable(self, var_names_stable: Dict) -> int:
-        """
-        Counts the number of stable variables in all the tables.
-
-        Args:
-            var_names_stable (Dict): dictionary of keys, {table names: values = array 
-                of variable names that are stable}
-        
-        Returns:
-            int: number of stable variables in all the tables.
-        """
-        n_stable = 0
-        for key in var_names_stable:
-            n_stable += var_names_stable[key].size
-
-        return n_stable
 
     def __get_fda_corr_table(
             self, 
@@ -366,7 +352,8 @@ class FSR:
             ml: Dict, 
             variable_table: List, 
             outcome_table_binary: pd.DataFrame,
-            del_variants: bool = True
+            del_variants: bool = True,
+            logging_dict: Dict = None
         ) -> List:
         """
         Applies false discovery avoidance method.
@@ -388,6 +375,12 @@ class FSR:
         min_n_feat_stable = ml['fSetReduction']['FDA']['minNfeatStable']
         min_n_feat_total = ml['fSetReduction']['FDA']['minNfeat']
         seed = ml['fSetReduction']['FDA']['seed']
+
+        # Initialization - logging
+        if logging_dict is not None:
+            table_level = variable_table.Properties['Description'].split('__')[-1]
+            logging_dict['one_space']['unstable'][table_level] = {}
+            logging_dict['one_space']['inter_corr'][table_level] = {}
 
         # Getting the correlation table for the radiomics table
         radiomics_table_temp = variable_table.copy()
@@ -454,6 +447,10 @@ class FSR:
             # Compute mean correlation
             corr_mean_stable = corr_table.mean()
 
+        # Update logging
+        if logging_dict is not None:
+            logging_dict['one_space']['unstable'][table_level] = radiomics_table_temp.columns.shape[0]
+
         # Inter-Correlation Cut
         if radiomics_table_temp.shape[1] > 1:
             radiomics_table_temp = self.__remove_correlated_variables(
@@ -467,6 +464,13 @@ class FSR:
             # Finalize radiomics table
             radiomics_table_temp = finalize_rad_table(radiomics_table_temp)
         
+        # Update logging
+        if logging_dict is not None:
+            logging_dict['one_space']['inter_corr'][table_level] = get_full_rad_names(
+                radiomics_table_temp.Properties['userData']['variables']['var_def'], 
+                radiomics_table_temp.columns.values
+            ).tolist()
+
         return radiomics_table_temp
     
     def apply_fda(
@@ -474,9 +478,142 @@ class FSR:
             ml: Dict, 
             variable_table: List, 
             outcome_table_binary: pd.DataFrame,
+            logging: bool = True,
+            path_save_logging: Path = None
         ) -> List:
         """
         Applies false discovery avoidance method.
+
+        Args:
+            ml (dict): Machine learning dictionary containing the learning options.
+            variable_table (List): Table of variables.
+            outcome_table_binary (pd.DataFrame): Table of binary outcomes.
+            logging (bool, optional): If True, will save a dict that tracks features selsected for each level. Defaults to True.
+            path_save_logging (Path, optional): Path to save the logging dict. Defaults to None.
+
+        Returns:
+            List: Table of variables after feature set reduction.
+        """
+        # Initialization
+        rad_tables = variable_table.copy()
+        n_rad_tables = len(rad_tables)
+        variable_tables = []
+        logging_dict = {'one_space': {'unstable': {}, 'inter_corr': {}}, 'final': {}}
+
+        # Apply FDA for each image space/radiomics table
+        for r in range(n_rad_tables):
+            if logging:
+                variable_tables.append(self.apply_fda_one_space(ml, rad_tables[r], outcome_table_binary, logging_dict=logging_dict))
+            else:
+                variable_tables.append(self.apply_fda_one_space(ml, rad_tables[r], outcome_table_binary))
+        
+        # Combine radiomics tables
+        variable_table = combine_rad_tables(variable_tables)
+
+        # Apply FDA again on the combined radiomics table
+        variable_table = self.apply_fda_one_space(ml, variable_table, outcome_table_binary, del_variants=False)
+
+        # Update logging dict
+        if logging:
+            logging_dict['final'] = get_full_rad_names(variable_table.Properties['userData']['variables']['var_def'], 
+                                                       variable_table.columns.values).tolist()
+            if path_save_logging is not None:
+                path_save_logging = Path(path_save_logging).parent / 'fda_logging_dict.json'
+                save_json(path_save_logging, logging_dict, cls=NumpyEncoder)
+        
+        return variable_table
+    
+    def apply_fda_balanced(
+            self, 
+            ml: Dict, 
+            variable_table: List, 
+            outcome_table_binary: pd.DataFrame,
+        ) -> List:
+        """
+        Applies false discovery avoidance method but balances the number of features on each level.
+
+        Args:
+            ml (dict): Machine learning dictionary containing the learning options.
+            variable_table (List): Table of variables.
+            outcome_table_binary (pd.DataFrame): Table of binary outcomes.
+            logging (bool, optional): If True, will save a dict that tracks features selsected for each level. Defaults to True.
+            path_save_logging (Path, optional): Path to save the logging dict. Defaults to None.
+
+        Returns:
+            List: Table of variables after feature set reduction.
+        """
+        # Initilization
+        rad_tables = variable_table.copy()
+        n_rad_tables = len(rad_tables)
+        variable_tables_all_levels = []
+        levels = [[], [], []]
+
+        # Organize the tables by level
+        for r in range(n_rad_tables):
+            if 'morph' in rad_tables[r].Properties['Description'].lower():
+                levels[0].append(rad_tables[r])
+            elif 'intensity' in rad_tables[r].Properties['Description'].lower():
+                levels[0].append(rad_tables[r])
+            elif 'texture' in rad_tables[r].Properties['Description'].lower():
+                levels[0].append(rad_tables[r])
+            elif 'mean' in rad_tables[r].Properties['Description'].lower() or \
+                 'laws' in rad_tables[r].Properties['Description'].lower() or \
+                 'log' in rad_tables[r].Properties['Description'].lower() or \
+                 'gabor' in rad_tables[r].Properties['Description'].lower() or \
+                 'coif' in rad_tables[r].Properties['Description'].lower() or \
+                 'wavelet' in rad_tables[r].Properties['Description'].lower():
+                levels[1].append(rad_tables[r])
+            elif 'glcm' in rad_tables[r].Properties['Description'].lower():
+                levels[2].append(rad_tables[r])
+
+        # Apply FDA for each image space/radiomics table for each level
+        for level in levels:
+            variable_tables = []
+            if len(level) == 0:
+                continue
+            for r in range(len(level)):
+                variable_tables.append(self.apply_fda_one_space(ml, level[r], outcome_table_binary))
+            
+            # Combine radiomics tables
+            variable_table = combine_rad_tables(variable_tables)
+
+            # Apply FDA again on the combined radiomics table
+            variable_table = self.apply_fda_one_space(ml, variable_table, outcome_table_binary, del_variants=False)
+
+            # Add-up the tables
+            variable_tables_all_levels.append(variable_table)
+        
+        # Combine radiomics tables of all 3 major levels (original, linear filters and textures)
+        variable_table_all_levels = combine_rad_tables(variable_tables_all_levels)
+
+        # Apply FDA again on the combined radiomics table
+        variable_table_all_levels = self.apply_fda_one_space(ml, variable_table_all_levels, outcome_table_binary, del_variants=False)
+        
+        return variable_table_all_levels
+
+    def apply_random_fsr_one_space(
+            self,
+            ml: Dict,
+            variable_table: pd.DataFrame,
+        ) -> List:
+        seed = ml['fSetReduction']['FDA']['seed']
+        
+        # Setting the seed
+        np.random.seed(seed)
+
+        # Random select 10 columns (features)
+        random_df = np.random.choice(variable_table.columns.values.tolist(), 10, replace=False)
+        random_df = variable_table[random_df]
+
+        return finalize_rad_table(random_df)
+    
+    def apply_random_fsr(
+            self, 
+            ml: Dict, 
+            variable_table: List, 
+        ) -> List:
+        """
+        Applies random feature set reduction by choosing a random number of features.
 
         Args:
             ml (dict): Machine learning dictionary containing the learning options.
@@ -493,17 +630,17 @@ class FSR:
 
         # Apply FDA for each image space/radiomics table
         for r in range(n_rad_tables):
-            variable_tables.append(self.apply_fda_one_space(ml, rad_tables[r], outcome_table_binary))
+            variable_tables.append(self.apply_random_fsr_one_space(ml, rad_tables[r]))
         
         # Combine radiomics tables
         variable_table = combine_rad_tables(variable_tables)
 
         # Apply FDA again on the combined radiomics table
-        variable_table = self.apply_fda_one_space(ml, variable_table, outcome_table_binary, del_variants=False)
+        variable_table = self.apply_random_fsr_one_space(ml, variable_table)
         
         return variable_table
-
-    def apply_fsr(self, ml: Dict, variable_table: List, outcome_table_binary: pd.DataFrame) -> List:
+    
+    def apply_fsr(self, ml: Dict, variable_table: List, outcome_table_binary: pd.DataFrame, path_save_logging: Path = None) -> List:
         """
         Applies feature set reduction method.
 
@@ -515,8 +652,12 @@ class FSR:
         Returns:
             List: Table of variables after feature set reduction.
         """
-        if self.method == "FDA":
-            variable_table = self.apply_fda(ml, variable_table, outcome_table_binary)
+        if self.method.lower() == "fda":
+            variable_table = self.apply_fda(ml, variable_table, outcome_table_binary, path_save_logging=path_save_logging)
+        elif self.method.lower() == "fdabalanced":
+            variable_table = self.apply_fda_balanced(ml, variable_table, outcome_table_binary)
+        elif self.method.lower() == "random":
+            variable_table = self.apply_random_fsr(ml, variable_table)
         elif self.method == "LASSO":
             raise NotImplementedError("LASSO not implemented yet.")
         elif self.method == "mRMR":
