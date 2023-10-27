@@ -875,48 +875,6 @@ def intersect_var_tables(var_table1: pd.DataFrame, var_table2: pd.DataFrame) -> 
 
     return var_table1, var_table2
 
-def plot_models_performance(path_results: Path, dataset: str = 'test') -> None:
-    """
-    Plots the performance metrics of every model found in the given path.
-
-    Args:
-        path_results(Path): path to the folder containing the results of the experiment.
-
-    Returns:
-        None: Saves the plots.
-    """
-    # Get all tests paths
-    list_path_tests =  [path for path in path_results.iterdir() if path.is_dir()]
-    test_names = [path.name for path in list_path_tests]
-
-    # Metrics to process
-    metrics = ['AUC', 'AUPRC', 'BAC', 'Sensitivity', 'Specificity',
-            'Precision', 'NPV', 'F1_score', 'Accuracy', 'MCC']
-    
-    # Organize metrics in a dataframe
-    metrics_df = pd.DataFrame(columns=test_names, dtype=float)
-
-    # Process metrics
-    for metric in metrics:
-        for path_test in list_path_tests:
-            # Load the results
-            results_dict = load_json(path_test / 'run_results.json')
-
-            # Get the metric value
-            metric_value = results_dict[list(results_dict.keys())[0]][dataset]['metrics'][metric]
-
-            # Normalize the MCC
-            if metric == 'MCC':
-                metric_value = (metric_value + 1) / 2
-
-            # fill the dataframe
-            metrics_df.loc[metric, path_test.name] = float(round(metric_value, 3))
-    
-    # Plot a heatmap of the metrics
-    sns.heatmap(metrics_df.reindex(sorted(metrics_df.columns), axis=1), annot=True, cmap='coolwarm')
-    plt.title(f"Models perfomance on the {dataset} set")
-    plt.show()
-
 def under_sample(outcome_table_binary: pd.DataFrame) -> pd.DataFrame:
     """
     Performs under-sampling to obtain an equal number of outcomes in the binary outcome table.
