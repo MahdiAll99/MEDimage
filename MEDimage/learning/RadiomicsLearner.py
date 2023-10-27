@@ -18,6 +18,7 @@ from MEDimage.learning.DataCleaner import DataCleaner
 from MEDimage.learning.DesignExperiment import DesignExperiment
 from MEDimage.learning.FSR import FSR
 from MEDimage.learning.ml_utils import (average_results, combine_rad_tables,
+                                        feature_imporance_analysis,
                                         finalize_rad_table, get_ml_test_table,
                                         get_radiomics_table, intersect,
                                         intersect_var_tables, save_model)
@@ -94,9 +95,15 @@ class RadiomicsLearner:
         Returns:
             float: Balanced threshold for the given machine learning test.
         """
+        # Check is there is a feature mismatch
+        if model.feature_names_in_.shape[0] != variable_table.columns.shape[0]:
+            variable_table = variable_table.loc[:, model.feature_names_in_]
 
-        # Getting the probability responses
-        prob_xgb = self.predict_xgb(model, variable_table)
+        # Getting the probability responses for each patient
+        prob_xgb = np.zeros((variable_table.index.shape[0], 1)) * np.nan
+        patient_ids = list(variable_table.index.values)
+        for p in range(variable_table.index.shape[0]):
+            prob_xgb[p] = self.predict_xgb(model, variable_table.loc[[patient_ids[p]], :])
 
         # Calculating the ROC curve
         fpr, tpr, thresholds = metrics.roc_curve(outcome_table_binary.iloc[:, 0], prob_xgb)
@@ -216,6 +223,8 @@ class RadiomicsLearner:
                 cleaning_dict = ml['datacleaning'][ml['variables'][var_id]['var_datacleaning']]['feature']['continuous']
                 data_cleaner = DataCleaner(rad_table_learning)
                 rad_table_learning = data_cleaner(cleaning_dict)
+                if rad_table_learning is None:
+                    continue
 
             # Normalization (ComBat)
             if flags_preprocessing['var_normalization']:
@@ -257,13 +266,15 @@ class RadiomicsLearner:
         # Feature set reduction (for training data only)
         if flags_preprocessing['var_fSetReduction']:
             f_set_reduction_method = ml['variables'][var_id]['var_fSetReduction']['method']
-            if f_set_reduction_method.lower() == 'fda':
-                fsr = FSR(f_set_reduction_method)
-            else:
-                raise NotImplementedError(f'Feature set reduction method: {f_set_reduction_method} not recognized.')
+            fsr = FSR(f_set_reduction_method)
             
             # Apply FDA
-            rad_tables_training = fsr.apply_fsr(ml, rad_tables_training, outcome_table_binary_training)
+            rad_tables_training = fsr.apply_fsr(
+                ml, 
+                rad_tables_training, 
+                outcome_table_binary_training, 
+                path_save_logging=ml['path_results']
+            )
 
         # Re-assign properties
         for i in range(len(rad_tables_testing)):
@@ -284,7 +295,9 @@ class RadiomicsLearner:
             var_importance_threshold: float = 0.05,
             optimal_threshold: float = None,
             optimization_metric: str = 'MCC',
-            method : str = "pycaret"
+            method : str = "pycaret",
+            use_gpu: bool = True,
+            seed: int = None,
         ) -> Dict:
         """
         Trains an XGBoost model for the given machine learning test.
@@ -296,11 +309,14 @@ class RadiomicsLearner:
                 this threshold will be removed from the model.
             optimal_threshold (float, optional): Optimal threshold for the XGBoost model. If not given, it will be
                 computed using the training set.
+            optimization_metric (str, optional): String specifying the metric to use to optimize the ml model.
             method (str, optional): String specifying the method to use to train the XGBoost model.
                 - "pycaret": Use PyCaret to train the model (automatic).
                 - "grid_search": Grid search with cross-validation to find the best parameters.
                 - "random_search": Random search with cross-validation to find the best parameters.
                 - "auto": AutoML to find the best XGBoost model.
+            use_gpu (bool, optional): Boolean specifying if the GPU should be used to train the model. Default is True.
+            seed (int, optional): Integer specifying the seed to use for the random number generator.
         
         Returns:
             Dict: Dictionary containing info about the trained XGBoost model.
@@ -330,8 +346,13 @@ class RadiomicsLearner:
                 n_features_to_select=1-var_importance_threshold,
                 fold=5,
                 target=temp_data.columns[-1],
-                use_gpu=True
+                use_gpu=use_gpu,
+                session_id=seed
             )
+
+            # Set seed
+            if seed is not None:
+                set_config('seed', seed)
 
             # Creating XGBoost model using PyCaret
             classifier = create_model('xgboost', verbose=False)
@@ -519,6 +540,7 @@ class RadiomicsLearner:
         outcome_table_binary = ml_info_dict['outcome_table_binary']
         ml = ml_info_dict['ml']
         path_results = ml_info_dict['path_results']
+        ml['path_results'] = path_results
 
         # --> B. Machine Learning phase 
         # B.1. Pre-processing features
@@ -557,6 +579,8 @@ class RadiomicsLearner:
         optimal_threshold = ml['algorithms']['XGBoost']['optimalThreshold']
         optimization_metric = ml['algorithms']['XGBoost']['optimizationMetric']
         method = ml['algorithms']['XGBoost']['method'] if 'method' in ml['algorithms']['XGBoost'].keys() else method
+        use_gpu = ml['algorithms']['XGBoost']['useGPU'] if 'useGPU' in ml['algorithms']['XGBoost'].keys() else True
+        seed = ml['algorithms']['XGBoost']['seed'] if 'seed' in ml['algorithms']['XGBoost'].keys() else None
 
         # B.2. Training the XGBoost model
         tstart = time.time()
@@ -569,7 +593,9 @@ class RadiomicsLearner:
             var_importance_threshold, 
             optimal_threshold,
             method=method,
-            optimization_metric=optimization_metric
+            use_gpu=use_gpu,
+            optimization_metric=optimization_metric,
+            seed=seed
         )
 
         # Saving the trained model using pickle
@@ -689,4 +715,8 @@ class RadiomicsLearner:
             self.ml_run(tests_dict[run], holdout_test, method)
         
         # Average results of the different splits/runs
-        average_results(self.path_study / f'learn__{self.experiment_label}')
+        average_results(self.path_study / f'learn__{self.experiment_label}', save=True)
+
+        # Analyze the features importance for all the runs
+        feature_imporance_analysis(self.path_study / f'learn__{self.experiment_label}')
+        
