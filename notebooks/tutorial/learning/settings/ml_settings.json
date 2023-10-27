@@ -1,0 +1,5 @@
+{
+    "normalization": "combat",
+    "fSetReduction": "FDA",
+    "algorithm": "XGBoost"
+}
