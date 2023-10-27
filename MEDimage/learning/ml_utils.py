@@ -20,13 +20,14 @@ from MEDimage.utils.get_full_rad_names import get_full_rad_names
 from MEDimage.utils.json_utils import load_json, save_json
 
 
-def average_results(path_results: Path = None) -> None:
+def average_results(path_results: Path, save: bool = False) -> None:
     """
     Averages the results (AUC, BAC, Sensitivity and Specifity) of all the runs of the same experiment,
     for training, testing and holdout sets.
 
     Args:
         path_results(Path): path to the folder containing the results of the experiment.
+        save (bool, optional): If True, saves the results in the same folder as the model.
     
     Returns:
         None.
@@ -43,8 +44,8 @@ def average_results(path_results: Path = None) -> None:
 
     # Metrics to process
     metrics = ['AUC', 'AUPRC', 'BAC', 'Sensitivity', 'Specificity',
-               'Precision', 'NPV', 'F1_score', 'Accuracy', 'MCC',
-               'TN', 'FP', 'FN', 'TP']
+            'Precision', 'NPV', 'F1_score', 'Accuracy', 'MCC',
+            'TN', 'FP', 'FN', 'TP']
 
     # Process metrics
     for dataset in ['train', 'test', 'holdout']:
@@ -53,17 +54,29 @@ def average_results(path_results: Path = None) -> None:
             metric_values = []
             for path_test in list_path_tests:
                 results_dict = load_json(path_test / 'run_results.json')
-                metric_values.append(results_dict[list(results_dict.keys())[0]][dataset]['metrics'][metric])
+                if dataset in results_dict[list(results_dict.keys())[0]].keys():
+                    if 'metrics' in results_dict[list(results_dict.keys())[0]][dataset].keys():
+                        metric_values.append(results_dict[list(results_dict.keys())[0]][dataset]['metrics'][metric])
+                    else:
+                        continue
+                else:
+                    continue
 
-            dataset_dict[f'{metric}_mean'] = np.nanmean(metric_values)
-            dataset_dict[f'{metric}_std'] = np.nanstd(metric_values)
-            dataset_dict[f'{metric}_max'] = np.nanmax(metric_values)
-            dataset_dict[f'{metric}_min'] = np.nanmin(metric_values)
-            dataset_dict[f'{metric}_2.5%'] = np.nanpercentile(metric_values, 2.5)
-            dataset_dict[f'{metric}_97.5%'] = np.nanpercentile(metric_values, 97.5)
+            # Fill the dictionary
+            if metric_values:
+                dataset_dict[f'{metric}_mean'] = np.nanmean(metric_values)
+                dataset_dict[f'{metric}_std'] = np.nanstd(metric_values)
+                dataset_dict[f'{metric}_max'] = np.nanmax(metric_values)
+                dataset_dict[f'{metric}_min'] = np.nanmin(metric_values)
+                dataset_dict[f'{metric}_2.5%'] = np.nanpercentile(metric_values, 2.5)
+                dataset_dict[f'{metric}_97.5%'] = np.nanpercentile(metric_values, 97.5)
 
     # Save the results
-    save_json(path_results / 'results_avg.json', results_avg, cls=NumpyEncoder)
+    if save:
+        save_json(path_results / 'results_avg.json', results_avg, cls=NumpyEncoder)
+        return path_results / 'results_avg.json'
+
+    return results_avg
 
 def combine_rad_tables(rad_tables: List) -> pd.DataFrame:
     """
@@ -120,10 +133,13 @@ def combine_rad_tables(rad_tables: List) -> pd.DataFrame:
                 radiomics_table[var_name] = rad_tables[t][feature]
                 radiomics_table.Properties['VariableNames'].append(var_name)
                 continuous.append(var_name)
-                str_names += 'radVar' + str(count) + ':' + description + '___' + full_rad_names[f] + '||'
+                if description:
+                    str_names += 'radVar' + str(count) + ':' + description + '___' + full_rad_names[f] + '||'
+                else:
+                    str_names += 'radVar' + str(count) + ':' + full_rad_names[f] + '||'
 
     # Updating the radiomics table properties
-    radiomics_table.Properties['Description'] = 'Combined radiomics table'
+    radiomics_table.Properties['Description'] = ''
     radiomics_table.Properties['DimensionNames'] = ['PatientID']
     radiomics_table.Properties['userData']['variables'] = {}
     radiomics_table.Properties['userData']['variables']['var_def'] = str_names
@@ -219,6 +235,28 @@ def convert_comibnations_to_list(combinations_string: str) -> Tuple[List, List]:
     
     return combinations, model_ids
 
+def count_class_imbalance(path_csv_outcomes: Path) -> Dict:
+    """
+    Counts the class imbalance in a given outcome table.
+    
+    Args:
+        path_csv_outcomes (Path): Path to the outcome table.
+
+    Returns:
+        Dict: Dictionary containing the count of each class.
+    """
+    # Initialization
+    outcomes = pandas.read_csv(path_csv_outcomes, sep=',')
+    outcomes.dropna(inplace=True)
+    outcomes.reset_index(inplace=True, drop=True)
+    name_outcome = outcomes.columns[-1]
+    
+    # Counting the percentage of each class
+    class_0_perc = np.sum(outcomes[name_outcome] == 0) / len(outcomes)
+    class_1_perc = np.sum(outcomes[name_outcome] == 1) / len(outcomes)
+
+    return {'class_0': class_0_perc, 'class_1': class_1_perc}
+
 def create_experiment_folder(path_outcome_folder: str, method: str = 'Random') -> str:
     """
     Creates the experiment folder where the hold-out splits will be saved and returns the path
@@ -288,7 +326,7 @@ def create_holdout_set(
     """
     # Initilization
     outcome_name = outcome_name.upper()
-    outcome_table = pandas.read_csv(path_outcome_file, sep=';')
+    outcome_table = pandas.read_csv(path_outcome_file, sep=',')
     outcome_table.dropna(inplace=True)
     outcome_table.reset_index(inplace=True, drop=True)
     patient_ids = outcome_table['PatientID']
@@ -300,7 +338,7 @@ def create_holdout_set(
     
     # Column names in the outcome table
     with open(path_outcome_file, 'r') as infile:
-        reader = csv.DictReader(infile, delimiter=';')
+        reader = csv.DictReader(infile, delimiter=',')
         var_names = reader.fieldnames
 
     # Include time to event if it exists
@@ -444,6 +482,57 @@ def find_best_model(path_results: Path, metric: str = 'AUC', second_metric: str 
         model = pickle.load(file)
     
     return model, results_dict_best
+
+def feature_imporance_analysis(path_results: Path):
+    """
+    Averages the results (AUC, BAC, Sensitivity and Specifity) of all the runs of the same experiment,
+    for training, testing and holdout sets.
+
+    Args:
+        path_results(Path): path to the folder containing the results of the experiment.
+        save (bool, optional): If True, saves the results in the same folder as the model.
+    
+    Returns:
+        None.
+    """
+    # Get all tests paths
+    list_path_tests =  [path for path in path_results.iterdir() if path.is_dir()]
+
+    # Initialization
+    results_avg_temp = {}
+    results_avg = {}
+
+    # Process metrics
+    for path_test in list_path_tests:
+        variables = []
+        list_models = list(path_test.glob('*.pickle'))
+        if len(list_models) == 0 or len(list_models) > 1:
+            raise ValueError(f'Path {path_test} does not contain a single model.')
+        model_obj = list_models[0]
+        with open(model_obj, "rb") as f:
+            model_dict = pickle.load(f)
+        if model_dict["var_names"]:
+            variables = get_full_rad_names(model_dict['var_info']['variables']['var_def'], model_dict["var_names"])
+        for index, var in enumerate(variables):
+            var = var.split("\\")[-1]   # Remove the path for windows
+            var = var.split("/")[-1]    # Remove the path for linux
+            if var not in results_avg_temp:
+                results_avg_temp[var] = {
+                    'importance_mean': [],
+                    'times_selected': 0
+                }
+            
+            results_avg_temp[var]['importance_mean'].append(model_dict['model'].feature_importances_[index])
+            results_avg_temp[var]['times_selected'] += 1
+    for var in results_avg_temp:
+        results_avg[var] = {
+            'importance_mean': np.sum(results_avg_temp[var]['importance_mean']) / len(list_path_tests),
+            'times_selected': results_avg_temp[var]['times_selected']
+        }
+    
+    del results_avg_temp
+            
+    save_json(path_results / 'feature_importance_analysis.json', results_avg, cls=NumpyEncoder)
 
 def get_ml_test_table(variable_table: pd.DataFrame, var_names: List, var_def: str) -> pd.DataFrame:
     """
