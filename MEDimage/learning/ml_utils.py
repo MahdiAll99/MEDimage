@@ -686,10 +686,10 @@ def get_splits(outcome: pd.DataFrame, n_split: int, test_split_proportion: float
     ind_pos = np.where(outcome == 1)
     n_pos = len(ind_pos[0])
     n_neg_test = round(test_split_proportion * n_neg)
-    n_pos_text = round(test_split_proportion * n_pos)
+    n_pos_test = round(test_split_proportion * n_pos)
 
     n_inst = len(outcome)
-    n_test = n_pos_text + n_neg_test
+    n_test = n_pos_test + n_neg_test
     n_train = n_inst - n_test
 
     if(n_split==1):
@@ -700,7 +700,7 @@ def get_splits(outcome: pd.DataFrame, n_split: int, test_split_proportion: float
         test_sets = np.zeros((n_split, n_test))
 
     for s in range(n_split):
-        ind_pos_test = np.random.choice(ind_pos[0], n_pos_text, replace=False)
+        ind_pos_test = np.random.choice(ind_pos[0], n_pos_test, replace=False)
         ind_neg_test = np.random.choice(ind_neg[0], n_neg_test, replace=False)
 
         ind_test = np.concatenate((ind_pos_test,ind_neg_test))
