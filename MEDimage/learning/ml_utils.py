@@ -14,6 +14,7 @@ import pandas
 import pandas as pd
 import seaborn as sns
 from numpyencoder import NumpyEncoder
+from sklearn.model_selection import StratifiedKFold
 
 from MEDimage.utils import get_institutions_from_ids
 from MEDimage.utils.get_full_rad_names import get_full_rad_names
@@ -429,6 +430,38 @@ def create_holdout_set(
     
     # Return the path to the experiment and path to split
     return path_split, paths_exp
+
+def cross_validation_split(
+        outcome: List[Union[int, float]], 
+        n_splits: int = 5, 
+        seed: int = None
+    ) -> Tuple[List[List[int]], List[List[int]]]:
+    """
+    Perform stratified cross-validation split.
+
+    Args:
+        outcome (list): Outcome variable (binary).
+        n_splits (int, optional): Number of folds. Default is 5.
+        seed (int or None, optional): Random seed for reproducibility. Default is None.
+
+    Returns:
+        train_indices_list (list of lists): List of training indices for each fold.
+        test_indices_list (list of lists): List of testing indices for each fold.
+    """
+
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    train_data_list = []
+    test_data_list = []
+    patient_ids = pd.Series(outcome.index)
+
+    for train_indices, test_indices in skf.split(X=outcome, y=outcome):
+        train_data_list.append(patient_ids[train_indices])
+        test_data_list.append(patient_ids[test_indices])
+    
+    train_data_array = np.array(train_data_list)
+    test_data_array = np.array(test_data_list)
+
+    return train_data_array, test_data_array
 
 def find_best_model(path_results: Path, metric: str = 'AUC', second_metric: str = 'AUC') -> Tuple[Dict, Path]:
     """
