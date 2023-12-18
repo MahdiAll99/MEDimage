@@ -452,7 +452,7 @@ class FSR:
             logging_dict['one_space']['unstable'][table_level] = radiomics_table_temp.columns.shape[0]
 
         # Inter-Correlation Cut
-        if radiomics_table_temp.shape[1] > 1:
+        if radiomics_table_temp.shape[1] > 1 and n_stable > min_n_feat_total:
             radiomics_table_temp = self.__remove_correlated_variables(
                 radiomics_table_temp, 
                 corr_mean_stable.abs(), 
