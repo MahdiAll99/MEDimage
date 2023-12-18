@@ -8,7 +8,7 @@ import pandas as pd
 
 from ..utils.get_institutions_from_ids import get_institutions_from_ids
 from ..utils.json_utils import load_json, posix_to_string, save_json
-from .ml_utils import get_stratified_splits
+from .ml_utils import cross_validation_split, get_stratified_splits
 
 
 class DesignExperiment:
@@ -434,6 +434,27 @@ class DesignExperiment:
                             patients_test,
                             ml_path
                         )
+            elif type_set.lower() == 'cv':
+                # Get the experiment options for the sets
+                cv_info = ml['design'][type_set]
+                n_splits = cv_info['nSplits']
+                seed = cv_info['seed']
+                # Get the training and testing sets
+                patients_train, patients_test = cross_validation_split(
+                    outcomes_table, 
+                    n_splits, 
+                    seed=seed
+                )
+                for i in range(n_splits):
+                    # Create a folder for each split/run
+                    run_name = "test__{0:03}".format(i+1)
+                    ml_path = self.__create_folder_and_content(
+                        path_learn,
+                        run_name,
+                        patients_train[i],
+                        patients_test[i],
+                        ml_path
+                    )
             else:
                 raise ValueError("The type of test set is not recognized. Must be 'random' or 'institutions'.")
 
