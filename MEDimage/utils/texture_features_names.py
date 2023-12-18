@@ -1,0 +1,115 @@
+glcm_features_names = [
+    "Fcm_joint_max",
+    "Fcm_joint_avg",
+    "Fcm_joint_var",
+    "Fcm_joint_entr",
+    "Fcm_diff_avg",
+    "Fcm_diff_var",
+    "Fcm_diff_entr",
+    "Fcm_sum_avg",
+    "Fcm_sum_var",
+    "Fcm_sum_entr",
+    "Fcm_energy",
+    "Fcm_contrast",
+    "Fcm_dissimilarity",
+    "Fcm_inv_diff",
+    "Fcm_inv_diff_norm",
+    "Fcm_inv_diff_mom",
+    "Fcm_inv_diff_mom_norm",
+    "Fcm_inv_var",
+    "Fcm_corr",
+    "Fcm_auto_corr",
+    "Fcm_info_corr1",
+    "Fcm_info_corr2",
+    "Fcm_clust_tend",
+    "Fcm_clust_shade",
+    "Fcm_clust_prom"
+]
+glrlm_features_names = [
+    "Frlm_sre",
+    "Frlm_lre",
+    "Frlm_lgre",
+    "Frlm_hgre",
+    "Frlm_srlge",
+    "Frlm_srhge",
+    "Frlm_lrlge",
+    "Frlm_lrhge",
+    "Frlm_glnu",
+    "Frlm_glnu_norm",
+    "Frlm_rlnu",
+    "Frlm_rlnu_norm",
+    "Frlm_r_perc",
+    "Frlm_gl_var",
+    "Frlm_rl_var",
+    "Frlm_rl_entr"
+]
+glszm_features_names = [
+    "Fszm_sze",
+    "Fszm_lze",
+    "Fszm_lgze",
+    "Fszm_hgze",
+    "Fszm_szlge",
+    "Fszm_szhge",
+    "Fszm_lzlge",
+    "Fszm_lzhge",
+    "Fszm_glnu",
+    "Fszm_glnu_norm",
+    "Fszm_zsnu",
+    "Fszm_zsnu_norm",
+    "Fszm_z_perc",
+    "Fszm_gl_var",
+    "Fszm_zs_var",
+    "Fszm_zs_entr",
+]
+gldzm_features_names = [
+    "Fdzm_sde",
+    "Fdzm_lde",
+    "Fdzm_lgze",
+    "Fdzm_hgze",
+    "Fdzm_sdlge",
+    "Fdzm_sdhge",
+    "Fdzm_ldlge",
+    "Fdzm_ldhge",
+    "Fdzm_glnu",
+    "Fdzm_glnu_norm",
+    "Fdzm_zdnu",
+    "Fdzm_zdnu_norm",
+    "Fdzm_z_perc",
+    "Fdzm_gl_var",
+    "Fdzm_zd_var",
+    "Fdzm_zd_entr"
+]
+ngtdm_features_names = [
+    "Fngt_coarseness"
+    "Fngt_contrast"
+    "Fngt_busyness"
+    "Fngt_complexity"
+    "Fngt_strength"
+]
+ngldm_features_names = [
+    "Fngl_lde",
+    "Fngl_hde",
+    "Fngl_lgce",
+    "Fngl_hgce",
+    "Fngl_ldlge",
+    "Fngl_ldhge",
+    "Fngl_hdlge",
+    "Fngl_hdhge",
+    "Fngl_glnu",
+    "Fngl_glnu_norm",
+    "Fngl_dcnu",
+    "Fngl_dcnu_norm",
+    "Fngl_gl_var",
+    "Fngl_dc_var",
+    "Fngl_dc_entr",
+    "Fngl_dc_energy"
+]
+# PS: DO NOT CHANGE THE ORDER OF THE LISTS BELOW, CHANGING THE ORDER WILL BREAK THE CODE (RESULTS CLASS)
+texture_features_all = [
+    glcm_features_names,
+    ngtdm_features_names,
+    ngldm_features_names,
+    glrlm_features_names,
+    gldzm_features_names,
+    glszm_features_names
+]
