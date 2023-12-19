@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List, Union
+from typing import List
 
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -9,9 +9,8 @@ import numpy as np
 import pandas as pd
 import scipy
 import seaborn as sns
-from matplotlib import cm
 from matplotlib import pyplot as plt
-from matplotlib.colors import ListedColormap, to_rgba
+from matplotlib.colors import to_rgba
 from matplotlib.lines import Line2D
 from networkx.drawing.nx_pydot import graphviz_layout
 from numpyencoder import NumpyEncoder
@@ -48,6 +47,9 @@ class Results:
         Returns:
             Dict: Dictionary containing the performance metrics.
         """
+        # Recording results
+        results_dict = dict()
+
         # Removing Nans
         df = labels.copy()
         outcome_name = labels.columns.values[0]
@@ -55,65 +57,54 @@ class Results:
         df.dropna(axis=0, how='any', inplace=True)
 
         # Confusion matrix elements:
-        TP = ((df['response'] >= thresh) & (df[outcome_name] == 1)).sum()
-        TN = ((df['response'] < thresh) & (df[outcome_name] == 0)).sum()
-        FP = ((df['response'] >= thresh) & (df[outcome_name] == 0)).sum()
-        FN = ((df['response'] < thresh) & (df[outcome_name] == 1)).sum()
+        results_dict['TP'] = ((df['response'] >= thresh) & (df[outcome_name] == 1)).sum()
+        results_dict['TN'] = ((df['response'] < thresh) & (df[outcome_name] == 0)).sum()
+        results_dict['FP'] = ((df['response'] >= thresh) & (df[outcome_name] == 0)).sum()
+        results_dict['FN'] = ((df['response'] < thresh) & (df[outcome_name] == 1)).sum()
+        
+        # Copying confusion matrix elements
+        TP = results_dict['TP']
+        TN = results_dict['TN']
+        FP = results_dict['FP']
+        FN = results_dict['FN']
 
         # AUC
-        auc = metrics.roc_auc_score(df[outcome_name], df['response'])
+        results_dict['AUC'] = metrics.roc_auc_score(df[outcome_name], df['response'])
 
         # AUPRC
-        auprc = metrics.average_precision_score(df[outcome_name], df['response'])
+        results_dict['AUPRC'] = metrics.average_precision_score(df[outcome_name], df['response'])
 
         # Sensitivity
         try:
-            sensitivity = TP / (TP + FN)
-        except(ZeroDivisionError):
-            print('TP + FN = 0, Division by 0, replacing sensitivity by 0.5')
-            sensitivity = 0.5
+            results_dict['Sensitivity'] = TP / (TP + FN)
+        except:
+            print('TP + FN = 0, Division by 0, replacing sensitivity by 0.0')
+            results_dict['Sensitivity'] = 0.0
 
         # Specificity
         try:
-            specificity = TN / (TN + FP)
-        except(ZeroDivisionError):
-            print('TN + FP= 0, Division by 0, replacing specificity by 0.5')
-            specificity = 0.5
+            results_dict['Specificity'] = TN / (TN + FP)
+        except:
+            print('TN + FP= 0, Division by 0, replacing specificity by 0.0')
+            results_dict['Specificity'] = 0.0
 
         # Balanced accuracy
-        bac = (sensitivity + specificity) / 2
+        results_dict['BAC'] = (results_dict['Sensitivity'] + results_dict['Specificity']) / 2
 
         # Precision
-        precision = TP / (TP + FP)
+        results_dict['Precision'] = TP / (TP + FP)
 
         # NPV (Negative Predictive Value)
-        npv = TN / (TN + FN)
+        results_dict['NPV'] = TN / (TN + FN)
 
         # Accuracy
-        accuracy = (TP + TN) / (TP + TN + FP + FN)
+        results_dict['Accuracy'] = (TP + TN) / (TP + TN + FP + FN)
 
         # F1 score
-        f1_score = 2 * TP / (2 * TP + FP + FN)
+        results_dict['F1_score'] = 2 * TP / (2 * TP + FP + FN)
 
         # mcc (mathews correlation coefficient)
-        mcc = (TP * TN - FP * FN) / np.sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN))
-
-        # Recording results
-        results_dict = dict()
-        results_dict['TP'] = TP
-        results_dict['TN'] = TN
-        results_dict['FP'] = FP
-        results_dict['FN'] = FN
-        results_dict['AUC'] = auc
-        results_dict['AUPRC'] = auprc
-        results_dict['Sensitivity'] = sensitivity
-        results_dict['Specificity'] = specificity
-        results_dict['BAC'] = bac
-        results_dict['Precision'] = precision
-        results_dict['NPV'] = npv
-        results_dict['Accuracy'] = accuracy
-        results_dict['F1_score'] = f1_score
-        results_dict['MCC'] = mcc
+        results_dict['MCC'] = (TP * TN - FP * FN) / np.sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN))
 
         return results_dict
 
@@ -259,42 +250,9 @@ class Results:
             Dict: Dictionary with the metrics filled with NaNs.
         """
         failure_struct = dict()
-        failure_struct = dict()
-        for metric in metrics:
-            failure_struct[metric] = np.nan
+        failure_struct = {metric: np.nan for metric in metrics}
 
         return failure_struct
-    
-    def __save_roc_curve(self, response: list, outcome_binary: pd.DataFrame, label: str) -> None:
-        """
-        This function saves the ROC curve of the model.
-
-        Args:
-            response (List): List of machine learning model predictions of the class 1.
-            outcome_binary (pd.DataFrame): Outcome table with binary labels.
-            label (str): Label that gives context to the ROC curve. For example, "Test" or "Traing".
-        
-        Returns:
-            None: Saves the ROC curve.
-        """
-        # Removing Nans
-        df = outcome_binary.copy()
-        outcome_name = outcome_binary.columns.values[0]
-        df['response'] = response
-        df.dropna(axis=0, how='any', inplace=True)
-
-        # Get ROC curve
-        fpr, tpr, _ = metrics.roc_curve(df[outcome_name], df['response'])
-
-        # Create ROC curve plot and save it
-        plt.figure()
-        plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve')
-        plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title('ROC curve - ' + label)
-        plt.legend(loc="lower right")
-        plt.savefig(os.path.dirname(self.model_dict['path']) + "/ROC_curve_" + label + ".png")
     
     def __count_percentage_levels(self, features_dict: dict, fda: bool = False) -> list:
         """
@@ -969,7 +927,6 @@ class Results:
             response: list, 
             outcome_table: pd.DataFrame,
             threshold: float, 
-            label: str
         ) -> dict:
         """
         Calculates the performance metrics for the given machine learning model reponse.
@@ -978,7 +935,6 @@ class Results:
             response (List): List of machine learning model predictions.
             outcome_table (pd.DataFrame): Outcome table with binary labels.
             threshold (float): Optimal threshold selected from the ROC curve.
-            label (str): Label that gives context to the ROC curve. For example, "Test" or "Train".
         
         Returns:
             Dict: Dictionary with the performance metrics.
@@ -998,9 +954,6 @@ class Results:
         outcome_binary = outcome_binary.iloc[:, 0]
         response = response_table.loc[patient_ids, :]
         response = response.iloc[:, 0]
-
-        # Create ROC curve and save it
-        self.__save_roc_curve(response, outcome_binary.to_frame(), label)
         
         # Calculating performance
         results_dict = self.__calculate_performance(response, outcome_binary.to_frame(), threshold)
