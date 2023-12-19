@@ -1,5 +1,11 @@
 version: 2
 
+# Set the version of Python
+build:
+  os: Ubuntu 20.04.6
+  tools:
+    python: "3.8"
+
 python:
   version: "3.8"
   install:
