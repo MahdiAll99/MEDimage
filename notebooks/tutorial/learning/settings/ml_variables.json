@@ -1,0 +1,32 @@
+{
+    "var1": {
+        "nameType": "RadiomicsAll",
+        "nameFile": "",
+        "path": "setToFEATURESinWorkspace",
+        "scans": [
+            "T1",
+            "T1CE",
+            "T2",
+            "T2F"
+        ],
+        "rois": [
+            "gliomaTumorAuto"
+        ],
+        "imSpaces": [
+            "image"
+        ],
+        "combinations": {},
+        "use_combinations": false,
+        "var_datacleaning": "default",
+        "var_normalization": "combat",
+        "var_fSetReduction": {
+            "method": "FDA",
+            "imbalance": ""
+        }
+    },
+    "pathCSV": "setToCSVinWorkspace",
+    "varStudy": "var1",
+    "combinations": [
+        "var1"
+    ]
+}

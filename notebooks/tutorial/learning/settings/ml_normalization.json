@@ -1,0 +1,12 @@
+{
+	"standardCombat": "RUN",
+	"stratifiedCombat": "Options could be added here",
+	"standardization": {
+		"perClass": 0,
+		"perInstitution": 0
+	},
+	"minmax": {
+		"min": 0,
+		"max": 1
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"default": {
+		"feature": {
+			"continuous": {
+				"missingCutoffps": 0.25,
+				"covCutoff": 0.1,
+				"missingCutoffpf": 0.1,
+				"imputation": "mean"
+			}
+		}
+	}
+}
