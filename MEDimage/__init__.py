@@ -5,6 +5,7 @@ from . import processing
 from . import biomarkers
 from . import filters
 from . import wrangling
+from . import learning
 from .MEDscan import MEDscan
 
 

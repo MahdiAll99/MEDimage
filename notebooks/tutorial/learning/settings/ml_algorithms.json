@@ -1,0 +1,11 @@
+{
+	"XGBoost": {
+		"varImportanceThreshold": 0.3,
+		"optimalThreshold": null,
+		"nameSave": "xgboost_optimalThresh_03",
+		"optimizationMetric": "MCC",
+		"method": "pycaret",
+		"useGPU": true,
+		"seed": 54288
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"testSets": [
+		"Random"
+	],
+	"Random": {
+		"method": "SubSampling",
+		"nSplits": 10,
+		"stratifyInstitutions": 1,
+    "testProportion": 0.33,
+		"seed": 54288
+	}
+}

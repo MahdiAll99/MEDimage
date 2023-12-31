@@ -10,3 +10,4 @@ MEDimage
    processing
    utils
    wrangling
+   learning

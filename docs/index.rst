@@ -10,11 +10,11 @@ and filter images and compute all types of radiomic features. This package has b
 <https://arxiv.org/pdf/1612.07003.pdf>`_ norms.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Getting started
 
    Installation
-   configuration_file
+   configurations_file
    csv_file
    input_data
 
