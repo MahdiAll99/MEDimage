@@ -76,7 +76,7 @@ class DataManager(object):
             path_save: Union[Path, str] = None,
             path_save_checks: Union[Path, str] = None,
             path_pre_checks_settings: Union[Path, str] = None,
-            save: bool = False,
+            save: bool = True,
             n_batch: int = 2
     ) -> None:
         """Constructor of the class DataManager.
@@ -291,12 +291,10 @@ class DataManager(object):
         Returns:
             List[MEDscan]: List of MEDscan instances.
         """
-        ray.init(local_mode=True, include_dashboard=True)
-
         print('--> Reading all DICOM objects to create MEDscan classes')
         self.__read_all_dicoms()
 
-        print('--> Processing DICOMs and creating MEDscan objects')
+        # Get number of processors to use
         n_scans = len(self.__dicom.cell_path_images)
         if self.n_batch is None:
             n_batch = 1
@@ -305,6 +303,13 @@ class DataManager(object):
         else:
             n_batch = self.n_batch
 
+        print('--> Processing DICOMs and creating MEDscan objects')
+
+        # Initialize ray
+        if ray.is_initialized():
+            ray.shutdown()
+        ray.init(local_mode=True, include_dashboard=True, num_cpus=n_batch)
+        
         # Distribute the first tasks to all workers
         pds = [ProcessDICOM(
                         self.__dicom.cell_path_images[i], 
@@ -633,7 +638,7 @@ class DataManager(object):
             self.csv_data = csv_data
             self.summarize()
 
-    def summarize(self):
+    def summarize(self, return_summary: bool = False) -> None:
         """Creates and shows a summary of processed scans organized by study, institution, scan type and roi type
 
         Args:
@@ -707,7 +712,10 @@ class DataManager(object):
                                                 'roi_type': roi_type,
                                                 'count' : roi_count
                                                 }, ignore_index=True)
-        print(summary_df.to_markdown(index=False))
+        if return_summary:
+            return summary_df
+        else:
+            print(summary_df.to_markdown(index=False))
 
     def __pre_radiomics_checks_dimensions(
         self,
@@ -759,6 +767,10 @@ class DataManager(object):
             print("Wildcard is empty, the pre-checks will be aborted")
             return
 
+        # Initializing plotting params
+        plt.rcParams["figure.figsize"] = (10,10)
+        plt.rcParams.update({'font.size': 22})
+
         # TODO: seperate by studies and scan type (MRscan, CTscan...)
         # TODO: Two summaries (df, list of names saves) -> 
         # name_save = name_save(ROI) : Glioma-Huashan-001__T1.MRscan.npy({GTV})
@@ -772,6 +784,11 @@ class DataManager(object):
             else:
                 raise ValueError("Path data is invalid.")
             n_files = len(file_paths)
+
+            # Check if there are files to analyze
+            if n_files == 0:
+                print(f"No files found for wildcard: {wildcard}")
+                continue
             xy_dim["data"] = np.zeros((n_files, 1))
             xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
             z_dim["data"] = np.zeros((n_files, 1))
@@ -823,7 +840,12 @@ class DataManager(object):
                 x.grid(False)
                 plt.title(f"Voxels xy-spacing checks for {wildcard}")
                 plt.legend()
-                plt.show()
+                if not save:
+                    plt.show()
+                else:
+                    wildcard_npy = str(wildcard).replace('*', '').replace('.npy', '.png')
+                    plt.savefig(self.paths._path_save_checks / ('xyDim_' + wildcard_npy))
+                    plt.close()
             
             # Plotting z-spacing data histogram
             df_z = pd.DataFrame(z_dim["data"], columns=['data'])
@@ -837,13 +859,18 @@ class DataManager(object):
                 x.grid(False)
                 plt.title(f"Voxels z-spacing checks for {wildcard}")
                 plt.legend()
-                plt.show()
+                if not save:
+                    plt.show()
+                else:
+                    wildcard_npy = str(wildcard).replace('*', '').replace('.npy', '.png')
+                    plt.savefig(self.paths._path_save_checks / ('zDim_' + wildcard_npy))
+                    plt.close()
                 
             # Saving files using wildcard for name
             if save:
-                wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
-                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim, cls=NumpyEncoder)
-                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim, cls=NumpyEncoder)
+                wildcard_json = str(wildcard).replace('*', '').replace('.npy', '.json')
+                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard_json), xy_dim, cls=NumpyEncoder)
+                save_json(self.paths._path_save_checks / ('zDim_' + wildcard_json), z_dim, cls=NumpyEncoder)
 
     def __pre_radiomics_checks_window(
         self,
@@ -1009,7 +1036,12 @@ class DataManager(object):
                 x.xaxis.set_tick_params(pad=15)
                 plt.title(f"Intensity range checks for {wildcard}, bw={bin_width}")
                 plt.legend()
-                plt.show()
+                if not save:
+                    plt.show()
+                else:
+                    wildcard_npy = str(wildcard).replace('*', '').replace('.npy', '.png')
+                    plt.savefig(self.paths._path_save_checks / ('window_checks_' + wildcard_npy))
+                    plt.close()
             
             # save final checks
             if save:
