@@ -206,17 +206,20 @@ class DataManager(object):
         if n_rs:
             for i in trange(0, n_rs):
                 try: # PUT ALL THE DICOM PATHS WITH THE SAME UID IN THE SAME PATH LIST
+                    self.__dicom.stack_series_rs = list(set(self.__dicom.stack_series_rs))
                     ind_series_id = self.__find_uid_cell_index(
                                                         self.__dicom.stack_series_rs[i], 
                                                         self.__dicom.cell_series_id)
                     for n in range(len(ind_series_id)):
-                        self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
+                        if ind_series_id[n] < len(self.__dicom.cell_path_rs):
+                            self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
                 except:
                     ind_series_id = self.__find_uid_cell_index(
                                                         self.__dicom.stack_frame_rs[i], 
                                                         self.__dicom.cell_frame_id)
                     for n in range(len(ind_series_id)):
-                        self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
+                        if ind_series_id[n] < len(self.__dicom.cell_path_rs):
+                            self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
         print('DONE')
 
     def __read_all_dicoms(self) -> None:
