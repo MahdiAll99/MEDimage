@@ -21,6 +21,14 @@ from MEDimage.utils.get_full_rad_names import get_full_rad_names
 from MEDimage.utils.json_utils import load_json, save_json
 
 
+# Define useful constants
+# Metrics to process
+list_metrics = [
+    'AUC', 'AUPRC', 'BAC', 'Sensitivity', 'Specificity',
+    'Precision', 'NPV', 'F1_score', 'Accuracy', 'MCC',
+    'TN', 'FP', 'FN', 'TP'
+]
+
 def average_results(path_results: Path, save: bool = False) -> None:
     """
     Averages the results (AUC, BAC, Sensitivity and Specifity) of all the runs of the same experiment,
