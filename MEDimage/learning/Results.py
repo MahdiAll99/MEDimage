@@ -1,3 +1,5 @@
+# Description: Class Results to store and analyze the results of experiments.
+
 import os
 from pathlib import Path
 from typing import List
@@ -7,7 +9,6 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
-import scipy
 import seaborn as sns
 from matplotlib import pyplot as plt
 from matplotlib.colors import to_rgba
@@ -16,12 +17,25 @@ from networkx.drawing.nx_pydot import graphviz_layout
 from numpyencoder import NumpyEncoder
 from sklearn import metrics
 
-from MEDimage.learning.ml_utils import feature_imporance_analysis
+from MEDimage.learning.ml_utils import feature_imporance_analysis, list_metrics
+from MEDimage.learning.Stats import Stats
 from MEDimage.utils.json_utils import load_json, save_json
 from MEDimage.utils.texture_features_names import *
 
 
 class Results:
+    """
+    A class to analyze the results of a given machine learning experiment, including the assessment of the model's performance,
+
+    Args:
+        model_dict (dict, optional): Dictionary containing the model's parameters. Defaults to {}.
+        model_id (str, optional): ID of the model. Defaults to "".
+
+    Attributes:
+        model_dict (dict): Dictionary containing the model's parameters.
+        model_id (str): ID of the model.
+        results_dict (dict): Dictionary containing the results of the model's performance.
+    """
     def __init__(self, model_dict: dict = {}, model_id: str = "") -> None:
         """
         Constructor of the class Results
@@ -107,135 +121,10 @@ class Results:
         results_dict['MCC'] = (TP * TN - FP * FN) / np.sqrt((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN))
 
         return results_dict
-
-    def __compute_midrank(self, x: np.array) -> np.array:
-        """
-        Computes midranks for Delong p-value.
-        Args:
-            x(np.array): 1D array of probabilities.
-
-        Returns:
-            np.array: Midranks.
-        """
-        J = np.argsort(x)
-        Z = x[J]
-        N = len(x)
-        T = np.zeros(N, dtype=np.float)
-        i = 0
-        while i < N:
-            j = i
-            while j < N and Z[j] == Z[i]:
-                j += 1
-            T[i:j] = 0.5*(i + j - 1)
-            i = j
-        T2 = np.empty(N, dtype=np.float)
-        # Note(kazeevn) +1 is due to Python using 0-based indexing
-        # instead of 1-based in the AUC formula in the paper
-        T2[J] = T + 1
-        return T2
-
-    def __fast_delong(self, predictions_sorted_transposed: np.array, label_1_count: int) -> tuple[float, float]:
-        """
-        Computes the empricial AUC and its covariance using the fast version of DeLong's method.
-
-        Args:
-            predictions_sorted_transposed (np.array): a 2D numpy.array[n_classifiers, n_examples]
-                sorted such as the examples with label "1" are first.
-            label_1_count (int): number of examples with label "1".
-        
-        Returns:
-            Tuple(float, float): (AUC value, DeLong covariance)
-        
-        Reference:
-            @article{sun2014fast,
-            title={Fast Implementation of DeLong's Algorithm for
-                    Comparing the Areas Under Correlated Receiver Operating Characteristic Curves},
-            author={Xu Sun and Weichao Xu},
-            journal={IEEE Signal Processing Letters},
-            volume={21},
-            number={11},
-            pages={1389--1393},
-            year={2014},
-            publisher={IEEE}
-        }
-        """
-        # Short variables are named as they are in the paper
-        m = label_1_count
-        n = predictions_sorted_transposed.shape[1] - m
-        positive_examples = predictions_sorted_transposed[:, :m]
-        negative_examples = predictions_sorted_transposed[:, m:]
-        k = predictions_sorted_transposed.shape[0]
-
-        tx = np.empty([k, m], dtype=np.float)
-        ty = np.empty([k, n], dtype=np.float)
-        tz = np.empty([k, m + n], dtype=np.float)
-        for r in range(k):
-            tx[r, :] = self.__compute_midrank(positive_examples[r, :])
-            ty[r, :] = self.__compute_midrank(negative_examples[r, :])
-            tz[r, :] = self.__compute_midrank(predictions_sorted_transposed[r, :])
-        aucs = tz[:, :m].sum(axis=1) / m / n - float(m + 1.0) / 2.0 / n
-        v01 = (tz[:, :m] - tx[:, :]) / n
-        v10 = 1.0 - (tz[:, m:] - ty[:, :]) / m
-        sx = np.cov(v01)
-        sy = np.cov(v10)
-        delongcov = sx / m + sy / n
-
-        return aucs, delongcov
-
-    def __compute_ground_truth_statistics(self, ground_truth: np.array) -> tuple[np.array, int]:
-        """
-        Computes the order of the ground truth and the number of positive examples.
-
-        Args:
-            ground_truth(np.array): np.array of 0 and 1.
-        
-        Returns:
-            Tuple[np.array, int]: ground truth ordered and the number of positive examples.
-        """
-        assert np.array_equal(np.unique(ground_truth), [0, 1])
-        order = (-ground_truth).argsort()
-        label_1_count = int(ground_truth.sum())
-        return order, label_1_count
-
-    def __calc_pvalue(self, aucs: np.array, sigma: float) -> float:
-        """
-        Computes p-values of the AUCs distribution.
-        Args:
-            aucs(np.array): 1D array of AUCs.
-            sigma (flaot): AUC DeLong covariances
-        Returns:
-            flaot: p-value of the AUCs.
-        """
-        l = np.array([[1, -1]])
-        z = np.abs(np.diff(aucs)) / np.sqrt(np.dot(np.dot(l, sigma), l.T))
-        p_value = 2 * scipy.stats.norm.sf(z, loc=0, scale=1)
-        return p_value
-
-    def __delong_roc_test(self, ground_truth: np.array, predictions_one: list, predictions_two: list) -> float:        
-        """
-        Computes log(p-value) for hypothesis that two ROC AUCs are different
-        
-        Args:
-            ground_truth(np.array): np.array of 0 and 1
-            predictions_one(np.array): np.array of floats of the probability of being class 1 for the first model.
-            predictions_two(np.array): np.array of floats of the probability of being class 1 for the second model.
-        
-        Returns:
-            flaot: p-value of the AUCs.
-        """
-        order, label_1_count = self.__compute_ground_truth_statistics(ground_truth)
-        predictions_sorted_transposed = np.vstack((predictions_one, predictions_two))[:, order]
-        aucs, delongcov = self.__fast_delong(predictions_sorted_transposed, label_1_count)
-        return self.__calc_pvalue(aucs, delongcov)
     
     def __get_metrics_failure_dict(
             self, 
-            metrics: list = [
-                'AUC', 'Sensitivity', 'Specificity', 
-                'BAC', 'AUPRC', 'Precision', 
-                'NPV', 'Accuracy', 'F1_score', 'MCC',
-                'TP', 'TN', 'FP', 'FN'
-            ]
+            metrics: list = list_metrics
         ) -> dict:
         """
         This function fills the metrics with NaNs in case of failure.
@@ -260,7 +149,7 @@ class Results:
 
         Args:
             features_dict (dict): Dictionary of features.
-            fda (bool, optional): If True, the features are from the FDA logging dict and will be
+            fda (bool, optional): If True, meaning the features are from the FDA logging dict and will be
                 treated differently. Defaults to False.
         
         Returns:
@@ -396,28 +285,6 @@ class Results:
                 
         return count_levels
 
-    def __corrected_std(self, differences: np.array, n_train: int, n_test: int) -> float:
-        """
-        Corrects standard deviation using Nadeau and Bengio's approach.
-
-        Args:
-            differences (np.array): Vector containing the differences in the score metrics of two models.
-            n_train (int): Number of samples in the training set.
-            n_test (int): Number of samples in the testing set.
-        
-        Returns:
-            float: Variance-corrected standard deviation of the set of differences.
-        
-        Reference:
-            `Statistical comparison of models <https://scikit-learn.org/stable/auto_examples/model_selection/plot_grid_search_stats.html>.`
-        """
-        # kr = k times r, r times repeated k-fold crossvalidation,
-        # kr equals the number of times the model was evaluated
-        kr = len(differences)
-        corrected_var = np.var(differences, ddof=1) * (1 / kr + n_test / n_train)
-        corrected_std = np.sqrt(corrected_var)
-        return corrected_std
-
     def __count_patients(self, path_results: Path) -> dict:
         """
         Counts the number of patients used in learning, testing and holdout.
@@ -475,16 +342,11 @@ class Results:
             'test': {},
             'holdout': {}
         }
-
-        # Metrics to process
-        metrics = ['AUC', 'AUPRC', 'BAC', 'Sensitivity', 'Specificity',
-                'Precision', 'NPV', 'F1_score', 'Accuracy', 'MCC',
-                'TN', 'FP', 'FN', 'TP']
-
+        
         # Retrieve metrics
         for dataset in ['train', 'test', 'holdout']:
             dataset_dict = results_avg[dataset]
-            for metric in metrics:
+            for metric in list_metrics:
                 metric_values = []
                 for path_test in list_path_tests:
                     results_dict = load_json(path_test / 'run_results.json')
@@ -511,477 +373,163 @@ class Results:
             return path_results / 'results_avg.json'
 
         return results_avg
-
-    def get_bengio_p_value(
-            self,
-            path_experiment: Path, 
-            experiment: str, 
-            levels: List, 
-            modalities: List
-        ) -> float:
-        """Computes right-tailed paired t-test with corrected variance.
-
-        Args:
-            path_experiment (Path): Path to the folder containing the experiment.
-            experiment (str): Name of the experiment.
-            levels (List): List of radiomics levels to analyze. For example: ['morph', 'intensity'].
-            modalities (List): List of modalities to analyze.
-        
-        Returns:
-            float: p-value of the Bengio test.
-        """
-        # Assertions
-        if len(modalities) == 1:
-            assert len(levels) == 2, "The number of levels must be 2 for a single modality"
-        elif len(modalities) == 2:
-            assert len(levels) == 1, "The number of levels must be 1 for two modalities"
-        else:
-            raise ValueError("The number of modalities must be 1 or 2")
-
-        # Initialization
-        metrics_one_all = list()
-        metrics_two_all = list()
-        nb_split = 10
-
-        # For each split
-        for i in range(1, nb_split + 1):
-            # Get level and modality
-            if len(modalities) == 1:
-                # Load ground truths and predictions
-                if i < 10:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[1]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                else:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[1]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-            else:
-                # Load ground truths and predictions
-                if i < 10:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[1]}' / f'test__00{i}' / 'run_results.json'
-                else:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[1]}' / f'test__0{i}' / 'run_results.json'
-
-            # Load patients train and test lists
-            patients_train = load_json(path_json_1.parent / 'patientsTrain.json')
-            patients_test = load_json(path_json_1.parent / 'patientsTest.json')
-            n_train = len(patients_train)
-            n_test = len(patients_test) 
-
-            # Load models dicts
-            model_one = load_json(path_json_1)
-            model_two = load_json(path_json_2)
-
-            # Get name models
-            name_model_one = list(model_one.keys())[0]
-            name_model_two = list(model_two.keys())[0]
-
-            # Get predictions
-            metric_one = model_one[name_model_one]['test']['metrics']['AUC']
-            metric_two = model_two[name_model_two]['test']['metrics']['AUC']
-            
-            # Add-up all information
-            metrics_one_all.append(metric_one)
-            metrics_two_all.append(metric_two)
-    
-        # Check if the number of predictions is the same
-        if len(metrics_one_all) != len(metrics_two_all):
-            raise ValueError("The number of metrics must be the same for both models")
-            
-        # Get differences
-        differences = np.array(metrics_one_all) - np.array(metrics_two_all)
-        df = differences.shape[0] - 1
-
-        # Get corrected std
-        mean = np.mean(differences)
-        std = self.__corrected_std(differences, n_train, n_test)
-
-        # Get p-value
-        t_stat = mean / std
-        p_val = scipy.stats.t.sf(np.abs(t_stat), df)  # right-tailed t-test
-
-        return p_val
-
-    def get_delong_p_value(
-            self, 
-            path_experiment: Path, 
-            experiment: str, 
-            levels: List, 
-            modalities: List, 
-            nb_split: int = 10
-        ) -> float:
-        """
-        Calculates the p-value of the Delong test for the given experiment.
-
-        Args:
-            path_experiment (Path): Path to the folder containing the experiment.
-            experiment (str): Name of the experiment.
-            levels (List): List of radiomics levels to analyze. For example: ['morph', 'intensity'].
-            modalities (List): List of modalities to analyze.
-        
-        Returns:
-            float: p-value of the Delong test.
-        """
-        # Assertions
-        if len(modalities) == 1:
-            assert len(levels) == 2, "The number of levels must be 2 for a single modality"
-        elif len(modalities) == 2:
-            assert len(levels) == 1, "The number of levels must be 1 for two modalities"
-        else:
-            raise ValueError("The number of modalities must be 1 or 2")
-        
-        # Load outcomes dataframe
-        try:
-            outcomes = pd.read_csv(path_experiment / "outcomes.csv", sep=',')
-        except:
-            outcomes = pd.read_csv(path_experiment / "outcomes.csv", sep=';')
-
-        # Initialization
-        list_p_values_temp = list()
-
-        # For each split
-        for i in range(1, nb_split + 1):
-            # Get level and modality
-            if len(modalities) == 1:
-                # Load ground truths and predictions
-                if i < 10:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[1]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                else:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[1]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-            else:
-                # Load ground truths and predictions
-                if i < 10:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[1]}' / f'test__00{i}' / 'run_results.json'
-                else:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[1]}' / f'test__0{i}' / 'run_results.json'
-
-            # Load models dicts
-            model_one = load_json(path_json_1)
-            model_two = load_json(path_json_2)
-
-            # Get name models
-            name_model_one = list(model_one.keys())[0]
-            name_model_two = list(model_two.keys())[0]
-
-            # Get predictions
-            predictions_one = np.array(model_one[name_model_one]['test']['response'])
-            predictions_one = np.reshape(predictions_one, (predictions_one.shape[0])).tolist()
-            predictions_two = np.array(model_two[name_model_two]['test']['response'])
-            predictions_two = np.reshape(predictions_two, (predictions_two.shape[0])).tolist()
-
-            # Get patients ids
-            patients_ids_one = model_one[name_model_one]['test']['patients'] 
-            patients_ids_two = model_two[name_model_two]['test']['patients']
-
-            # Check if the number of patients is the same
-            patients_delete = []
-            if len(patients_ids_one) > len(patients_ids_two):
-                for patient_id in patients_ids_one:
-                    if patient_id not in patients_ids_two:
-                        patients_delete.append(patient_id)
-                        predictions_one.pop(patients_ids_one.index(patient_id))
-                for patient in patients_delete:
-                    patients_ids_one.remove(patient)
-            elif len(patients_ids_one) < len(patients_ids_two):
-                for patient_id in patients_ids_two:
-                    if patient_id not in patients_ids_one:
-                        patients_delete.append(patient_id)
-                        predictions_two.pop(patients_ids_two.index(patient_id))
-                for patient in patients_delete:
-                    patients_ids_two.remove(patient)
-
-            # Check if the patient IDs are the same
-            if patients_ids_one != patients_ids_two:
-                raise ValueError("The patient IDs must be the same for both models")
-        
-            # Check if the number of predictions is the same
-            if len(predictions_one) != len(predictions_two):
-                raise ValueError("The number of predictions must be the same for both models")
-            
-            # Get ground truth for selected patients
-            ground_truth = []
-            for patient in patients_ids_two:
-                ground_truth.append(outcomes[outcomes['PatientID'] == patient][outcomes.columns[-1]].values[0])
-            
-            # to numpy array
-            ground_truth = np.array(ground_truth)
-            
-            # Get p-value
-            pvalue = self.__delong_roc_test(ground_truth, predictions_one, predictions_two).item()
-
-            list_p_values_temp.append(pvalue)
-           
-        # Compute the median p-value of all splits
-        return np.median(list_p_values_temp)
-    
-    def get_ttest_p_value(
-            self, 
-            path_experiment: Path, 
-            experiment: str, 
-            levels: List, 
-            modalities: List, 
-            metric: str = 'AUC',
-        ) -> float:
-        """
-        Calculates the p-value using the t-test for two related samples of scores.
-
-        Args:
-            path_experiment (Path): Path to the folder containing the experiment.
-            experiment (str): Name of the experiment.
-            levels (List): List of radiomics levels to analyze. For example: ['morph', 'intensity'].
-            modalities (List): List of modalities to analyze.
-            metric (str, optional): Metric to analyze. Defaults to 'AUC'.
-        
-        Returns:
-            float: p-value of the Delong test.
-        """
-        # Assertions
-        if len(modalities) == 1:
-            assert len(levels) == 2, "The number of levels must be 2 for a single modality"
-        elif len(modalities) == 2:
-            assert len(levels) == 1, "The number of levels must be 1 for two modalities"
-        else:
-            raise ValueError("The number of modalities must be 1 or 2")
-
-        # Initialization
-        metric = metric.split('_')[0] if '_' in metric else metric
-        metrics_one_all = list()
-        metrics_two_all = list()
-        nb_split = len([x[0] for x in os.walk(path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}')]) - 1
-
-        # For each split
-        for i in range(1, nb_split + 1):
-            # Get level and modality
-            if len(modalities) == 1:
-                # Load ground truths and predictions
-                if i < 10:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[1]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                else:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[1]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-            else:
-                # Load ground truths and predictions
-                if i < 10:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[1]}' / f'test__00{i}' / 'run_results.json'
-                else:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[1]}' / f'test__0{i}' / 'run_results.json'
-
-
-            # Load models dicts
-            model_one = load_json(path_json_1)
-            model_two = load_json(path_json_2)
-
-            # Get name models
-            name_model_one = list(model_one.keys())[0]
-            name_model_two = list(model_two.keys())[0]
-
-            # Get predictions
-            metric_one = model_one[name_model_one]['test']['metrics'][metric]
-            metric_two = model_two[name_model_two]['test']['metrics'][metric]
-            
-            # Add-up all information
-            metrics_one_all.append(metric_one)
-            metrics_two_all.append(metric_two)
-    
-        # Check if the number of predictions is the same
-        if len(metrics_one_all) != len(metrics_two_all):
-            raise ValueError("The number of metrics must be the same for both models")
-        
-        # Compute p-value by performing paired t-test
-        _, p_value = scipy.stats.ttest_rel(metrics_one_all, metrics_two_all)
-
-        return p_value
-    
-    def get_wilcoxin_p_value(
-            self, 
-            path_experiment: Path, 
-            experiment: str, 
-            levels: List, 
-            modalities: List, 
-            metric: str = 'AUC',
-        ) -> float:
-        """
-        Calculates the p-value using the t-test for two related samples of scores.
-
-        Args:
-            path_experiment (Path): Path to the folder containing the experiment.
-            experiment (str): Name of the experiment.
-            levels (List): List of radiomics levels to analyze. For example: ['morph', 'intensity'].
-            modalities (List): List of modalities to analyze.
-            metric (str, optional): Metric to analyze. Defaults to 'AUC'.
-        
-        Returns:
-            float: p-value of the Delong test.
-        """
-        # Assertions
-        if len(modalities) == 1:
-            assert len(levels) == 2, "The number of levels must be 2 for a single modality"
-        elif len(modalities) == 2:
-            assert len(levels) == 1, "The number of levels must be 1 for two modalities"
-        else:
-            raise ValueError("The number of modalities must be 1 or 2")
-
-        # Initialization
-        metric = metric.split('_')[0] if '_' in metric else metric
-        metrics_one_all = list()
-        metrics_two_all = list()
-        nb_split = len([x[0] for x in os.walk(path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}')]) - 1
-
-        # For each split
-        for i in range(1, nb_split + 1):
-            # Get level and modality
-            if len(modalities) == 1:
-                # Load ground truths and predictions
-                if i < 10:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[1]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                else:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[1]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-            else:
-                # Load ground truths and predictions
-                if i < 10:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__00{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[1]}' / f'test__00{i}' / 'run_results.json'
-                else:
-                    path_json_1 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[0]}' / f'test__0{i}' / 'run_results.json'
-                    path_json_2 = path_experiment / f'learn__{experiment}_{levels[0]}_{modalities[1]}' / f'test__0{i}' / 'run_results.json'
-
-
-            # Load models dicts
-            model_one = load_json(path_json_1)
-            model_two = load_json(path_json_2)
-
-            # Get name models
-            name_model_one = list(model_one.keys())[0]
-            name_model_two = list(model_two.keys())[0]
-
-            # Get predictions
-            metric_one = model_one[name_model_one]['test']['metrics'][metric]
-            metric_two = model_two[name_model_two]['test']['metrics'][metric]
-            
-            # Add-up all information
-            metrics_one_all.append(metric_one)
-            metrics_two_all.append(metric_two)
-    
-        # Check if the number of predictions is the same
-        if len(metrics_one_all) != len(metrics_two_all):
-            raise ValueError("The number of metrics must be the same for both models")
-        
-        # Compute p-value by performing wilcoxon signed rank test
-        _, p_value = scipy.stats.wilcoxon(metrics_one_all, metrics_two_all)
-        
-        return p_value
-    
-    def get_p_value(
-            self, 
-            path_experiment: Path, 
-            experiment: str, 
-            levels: List, 
-            modalities: List,
-            method: str,
-            metric: str = 'AUC',
-        ) -> float:
-        """
-        Calculates the p-value of the given method.
-
-        Args:
-            path_experiment (Path): Path to the folder containing the experiment.
-            experiment (str): Name of the experiment.
-            levels (List): List of radiomics levels to analyze. For example: ['morph', 'intensity'].
-            modalities (List): List of modalities to analyze.
-            method (str): Method to use to calculate the p-value. Available options:
-                - 'delong': Delong test.
-                - 'ttest': T-test.
-                - 'wilcoxon': Wilcoxon signed rank test.
-                - 'bengio': Bengio and Nadeau corrected t-test.
-            metric (str, optional): Metric to analyze. Defaults to 'AUC'.
-        
-        Returns:
-            float: p-value of the Delong test.
-        """
-        # Assertions
-        assert method in ['delong', 'ttest', 'wilcoxon', 'bengio'], \
-            f'method must be either "delong", "ttest", "wilcoxon" or "bengio". Given: {method}'
-        
-        # Get p-value
-        if method == 'delong':
-            return self.get_delong_p_value(path_experiment, experiment, levels, modalities)
-        elif method == 'ttest':
-            return self.get_ttest_p_value(path_experiment, experiment, levels, modalities, metric)
-        elif method == 'wilcoxon':
-            return self.get_wilcoxin_p_value(path_experiment, experiment, levels, modalities, metric)
-        elif method == 'bengio':
-            return self.get_bengio_p_value(path_experiment, experiment, levels, modalities)
-    
-    def get_model_performance_metrics(
-            self, 
-            response: list, 
-            outcome_table: pd.DataFrame,
-            threshold: float, 
-        ) -> dict:
-        """
-        Calculates the performance metrics for the given machine learning model reponse.
-
-        Args:
-            response (List): List of machine learning model predictions.
-            outcome_table (pd.DataFrame): Outcome table with binary labels.
-            threshold (float): Optimal threshold selected from the ROC curve.
-        
-        Returns:
-            Dict: Dictionary with the performance metrics.
-        """
-        
-        # Convert list of model response to a table to facilitate the process
-        results_dict = dict()
-        patient_ids = list(outcome_table.index)
-        response_table = pd.DataFrame(response)
-        response_table.index = patient_ids
-        response_table._metadata += ['Properties']
-        response_table.Properties = dict()
-        response_table.Properties['RowNames'] = patient_ids
-
-        # Make sure the outcome table and the response table have the same patients
-        outcome_binary = outcome_table.loc[patient_ids, :]
-        outcome_binary = outcome_binary.iloc[:, 0]
-        response = response_table.loc[patient_ids, :]
-        response = response.iloc[:, 0]
-        
-        # Calculating performance
-        results_dict = self.__calculate_performance(response, outcome_binary.to_frame(), threshold)
-
-        return results_dict
     
     def get_model_performance(
             self, 
             response: list, 
-            outcome_table: pd.DataFrame,
-            label:str
+            outcome_table: pd.DataFrame
         ) -> None:
         """
         Calculates the performance of the model
         Args:
             response (list): List of machine learning model predictions.
             outcome_table (pd.DataFrame): Outcome table with binary labels.
-            label (str): Label that gives context to the ROC curve. For example, "Test" or "Train".
         
         Returns:
             None: Updates the ``run_results`` attribute.
         """
         # Calculating performance metrics for the training set
         try:
-            return self.get_model_performance_metrics(response, outcome_table, self.model_dict['threshold'], label)
+            # Convert list of model response to a table to facilitate the process
+            results_dict = dict()
+            patient_ids = list(outcome_table.index)
+            response_table = pd.DataFrame(response)
+            response_table.index = patient_ids
+            response_table._metadata += ['Properties']
+            response_table.Properties = dict()
+            response_table.Properties['RowNames'] = patient_ids
+
+            # Make sure the outcome table and the response table have the same patients
+            outcome_binary = outcome_table.loc[patient_ids, :]
+            outcome_binary = outcome_binary.iloc[:, 0]
+            response = response_table.loc[patient_ids, :]
+            response = response.iloc[:, 0]
+            
+            # Calculating performance
+            results_dict = self.__calculate_performance(response, outcome_binary.to_frame(), self.model_dict['threshold'])
+
+            return results_dict
+        
         except Exception as e:
-            print(f"Error in get_model_performance_metrics: ", e, "filling metrics with nan...")
+            print(f"Error: ", e, "filling metrics with nan...")
             return self.__get_metrics_failure_dict()
+    
+    def get_optimal_level(
+            self, 
+            path_experiments: Path, 
+            experiment: str,
+            modalities: List, 
+            levels: List,
+            metric: str = 'AUC_mean',
+            p_value_test: str = 'wilcoxon',
+            aggregate: bool = False,
+        ) -> None:
+        """
+        This function plots a heatmap of the metrics values for the performance of the models in the given experiment.
+
+        Args:
+            path_experiments (Path): Path to the folder containing the experiments.
+            experiment (str): Name of the experiment to plot. Will be used to find the results.
+            modalities (List): List of imaging modalities to include in the plot.
+            levels (List): List of radiomics levels to include in plot. For example: ['morph', 'intensity'].
+                You can also use list of variants to plot the best variant for each level. For example: [['morph', 'morph5'], 'intensity'].
+            metric (str, optional): Metric to plot. Defaults to 'AUC_mean'.
+            p_value_test (str, optional): Method to use to calculate the p-value. Defaults to 'wilcoxon'.
+                Available options:
+                    - 'delong': Delong test.
+                    - 'ttest': T-test.
+                    - 'wilcoxon': Wilcoxon signed rank test.
+                    - 'bengio': Bengio and Nadeau corrected t-test.
+            aggregate (bool, optional): If True, aggregates the results of all the splits and computes one final p-value.
+                Only valid for the Delong test when cross-validation is used. Defaults to False.
+        
+        Returns:
+            None.
+        """
+        assert metric.split('_')[0] in list_metrics, f'Given metric {list_metrics} is not in the list of metrics. Please choose from {list_metrics}'
+        
+        # Initialization
+        optimal_lvls = [""] * len(modalities)
+
+        # Prepare the data for the heatmap
+        for idx_m, modality in enumerate(modalities):
+            best_levels = []
+            results_dict_best = dict()
+            results_dicts = []
+            best_exp = ""
+            for level in levels:
+                metric_compare = -1.0
+                if type(level) != list:
+                    level = [level]
+                for variant in level:
+                    exp_full_name = 'learn__' + experiment + '_' + variant + '_' + modality
+                    if 'results_avg.json' in os.listdir(path_experiments / exp_full_name):
+                        results_dict = load_json(path_experiments / exp_full_name / 'results_avg.json')
+                    else:
+                        results_dict = self.average_results(path_experiments / exp_full_name)
+                    if metric_compare < results_dict['test'][metric]:
+                        metric_compare = results_dict['test'][metric]
+                        results_dict_best = results_dict
+                        best_exp = variant
+                best_levels.append(best_exp)
+                results_dicts.append(results_dict_best)
+
+            # Create the heatmap data using the metric of interest
+            heatmap_data = np.zeros((2, len(best_levels)))
+
+            # Fill the heatmap data
+            for j in range(len(best_levels)):
+                # Get metrics and p-values
+                results_dict = results_dicts[j]
+                if aggregate and 'delong' in p_value_test:
+                    metric_stat = round(Stats.get_aggregated_metric(
+                        path_experiments, 
+                        experiment, 
+                        best_levels[j], 
+                        modality,
+                        metric.split('_')[0] if '_' in metric else metric
+                    ), 2)
+                else:
+                    metric_stat = round(results_dict['test'][metric], 2)
+                heatmap_data[0, j] = metric_stat
+            
+            # Statistical analysis
+            # Initializations
+            optimal_lvls[idx_m] = best_levels[0]
+            init_metric = heatmap_data[0][0]
+            idx_d = 0
+            start_level = 0
+
+            # Get p-values for all the levels
+            while idx_d < len(best_levels) - 1:
+                metric_val = heatmap_data[0][idx_d+1]
+                # Get p-value only if the metric is improving
+                if metric_val > init_metric:
+                    # Instantiate the Stats class
+                    stats = Stats(
+                        path_experiments, 
+                        experiment, 
+                        [best_levels[start_level], best_levels[idx_d+1]], 
+                        [modality]
+                    )
+
+                    # Get p-value
+                    p_value = stats.get_p_value(
+                        p_value_test,
+                        metric=metric if '_' not in metric else metric.split('_')[0],
+                        aggregate=aggregate
+                    )
+                    
+                    # If p-value is less than 0.05, change starting level
+                    if p_value <= 0.05:
+                        optimal_lvls[idx_m] = best_levels[idx_d+1]
+                        init_metric = metric_val
+                        start_level = idx_d + 1
+
+                # Go to next column
+                idx_d += 1
+
+        return optimal_lvls
     
     def plot_features_importance_histogram(
             self, 
@@ -1074,6 +622,7 @@ class Results:
             stat_extra: list = [],
             plot_p_values: bool = True,
             p_value_test: str = 'wilcoxon',
+            aggregate: bool = False,
             title: str = None,
             save: bool = False,
             figsize: tuple = (8, 8)
@@ -1096,6 +645,8 @@ class Results:
                     - 'ttest': T-test.
                     - 'wilcoxon': Wilcoxon signed rank test.
                     - 'bengio': Bengio and Nadeau corrected t-test.
+            aggregate (bool, optional): If True, aggregates the results of all the splits and computes one final p-value.
+                Only valid for the Delong test when cross-validation is used. Defaults to False.
             extra_xlabels (List, optional): List of extra x-axis labels. Defaults to [].
             title (str, optional): Title of the plot. Defaults to None.
             save (bool, optional): Whether to save the plot. Defaults to False.
@@ -1104,23 +655,19 @@ class Results:
         Returns:
             None.
         """
-        # Make sure the metric is in the list of metrics
-        list_metrics = [
-            'AUC', 'Sensitivity', 'Specificity', 
-            'BAC', 'AUPRC', 'Precision', 
-            'NPV', 'Accuracy', 'F1_score', 'MCC',
-            'TP', 'TN', 'FP', 'FN'
-        ]
-        assert metric.split('_')[0] in list_metrics, f'Given metric {metric} is not in the list of metrics. Please choose from {list_metrics}'
+        assert metric.split('_')[0] in list_metrics, f'Given metric {list_metrics} is not in the list of metrics. Please choose from {list_metrics}'
 
         # Prepare the data for the heatmap
         fig, axs = plt.subplots(len(modalities), figsize=figsize)
         for idx_m, modality in enumerate(modalities):
+            # Initializations
             best_levels = []
             results_dict_best = dict()
             results_dicts = []
             best_exp = ""
             patients_count = dict.fromkeys([modality])
+
+            # Loop over the levels and find the best variant for each level
             for level in levels:
                 metric_compare = -1.0
                 if type(level) != list:
@@ -1154,7 +701,16 @@ class Results:
             for j in range(len(best_levels)):
                 # Get metrics and p-values
                 results_dict = results_dicts[j]
-                metric_stat = round(results_dict['test'][metric], 2)
+                if aggregate and 'delong' in p_value_test:
+                    metric_stat = round(Stats.get_aggregated_metric(
+                        path_experiments, 
+                        experiment, 
+                        best_levels[j], 
+                        modality,
+                        metric.split('_')[0] if '_' in metric else metric
+                    ), 2)
+                else:
+                    metric_stat = round(results_dict['test'][metric], 2)
                 if plot_p_values:
                     heatmap_data[0, j] = metric_stat
                 else:
@@ -1168,8 +724,19 @@ class Results:
                             labels[1][j+1] = f'{round(heatmap_data[1, j+1], 5)}'
                             labels[1][0] = '-'
                         for extra_stat in stat_extra:
-                            extra_metric_stat = round(results_dict['test'][extra_stat], 2)
-                            labels[0][j] += f'\n{extra_stat}: {extra_metric_stat}'
+                            if aggregate and ('sensitivity' in extra_stat.lower() or 'specificity' in extra_stat.lower()):
+                                extra_metric_stat = round(Stats.get_aggregated_metric(
+                                    path_experiments, 
+                                    experiment, 
+                                    best_levels[j], 
+                                    modality,
+                                    extra_stat.split('_')[0]
+                                ), 2)
+                                extra_stat = extra_stat.split('_')[0] + '_agg' if '_' in extra_stat else extra_stat
+                                labels[0][j] += f'\n{extra_stat}: {extra_metric_stat}'
+                            else:
+                                extra_metric_stat = round(results_dict['test'][extra_stat], 2)
+                                labels[0][j] += f'\n{extra_stat}: {extra_metric_stat}'
                     else:
                         labels[0][j] = f'{metric_stat}'
                         for extra_stat in stat_extra:
@@ -1181,11 +748,11 @@ class Results:
             # Update modality name to include the number of patients for training and testing
             modalities_label = [modality + f' ({patients_count[modality]["train"]} train, {patients_count[modality]["test"]} test)']
 
-            # data to draw
+            # Data to draw
             heatmap_data_draw = heatmap_data.copy()
             labels_draw = labels.copy()
             labels_draw[1] = [''] * len(labels[1])
-            heatmap_data_draw[1] = np.array([0] * heatmap_data[1].shape[0])
+            heatmap_data_draw[1] = np.array([-1] * heatmap_data[1].shape[0]) if 'MCC' in metric else np.array([0] * heatmap_data[1].shape[0])
             
             # Set up the rows (modalities and p-values)
             if plot_p_values:
@@ -1203,36 +770,22 @@ class Results:
                 axs = [axs]
 
             # Create the heatmap using seaborn
-            if metric == 'MCC':
-                sns.heatmap(
-                    df, 
-                    annot=labels_draw, 
-                    ax=axs[idx_m],
-                    fmt="", 
-                    cmap="Blues", 
-                    cbar=True, 
-                    linewidths=0.5, 
-                    vmin=-1, 
-                    vmax=1, 
-                    annot_kws={"weight": "bold", "fontsize": 8}
-                )
-            else:
-                sns.heatmap(
-                    df, 
-                    annot=labels_draw, 
-                    ax=axs[idx_m],
-                    fmt="", 
-                    cmap="Blues", 
-                    cbar=True, 
-                    linewidths=0.5, 
-                    vmin=0, 
-                    vmax=1, 
-                    annot_kws={"weight": "bold", "fontsize": 8}
-                )
+            sns.heatmap(
+                df, 
+                annot=labels_draw, 
+                ax=axs[idx_m],
+                fmt="", 
+                cmap="Blues", 
+                cbar=True, 
+                linewidths=0.5, 
+                vmin=-1 if 'MCC' in metric else 0, 
+                vmax=1, 
+                annot_kws={"weight": "bold", "fontsize": 8}
+            )            
             
             # Plot p-values
             if plot_p_values:
-                # Initialization
+                # Initializations
                 extent_x = axs[idx_m].get_xlim()
                 step_x = 1
                 start_x = extent_x[0] + 0.5
@@ -1244,17 +797,26 @@ class Results:
                 init_metric = heatmap_data[0][0]
                 idx_d = 0
                 start_level = 0
+
+                # p-values for all levels
                 while idx_d < len(best_levels) - 1:
+                    # Retrieve the metric value
                     metric_val = heatmap_data[0][idx_d+1]
+
+                    # Instantiate the Stats class
+                    stats = Stats(
+                        path_experiments, 
+                        experiment, 
+                        [best_levels[start_level], best_levels[idx_d+1]], 
+                        [modality]
+                    )
+
                     # Get p-value only if the metric is improving
                     if metric_val > init_metric:
-                        p_value = self.get_p_value(
-                            path_experiments, 
-                            experiment, 
-                            [best_levels[start_level], best_levels[idx_d+1]], 
-                            [modality],
+                        p_value = stats.get_p_value(
                             p_value_test,
-                            metric=metric if '_' not in metric else metric.split('_')[0]
+                            metric=metric if '_' not in metric else metric.split('_')[0],
+                            aggregate=aggregate
                         )
                         
                         # round the pvalue
