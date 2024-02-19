@@ -375,6 +375,10 @@ class RadiomicsLearner:
             # Filter variables
             var_table_train = var_table_train.iloc[:, var_importance >= var_importance_threshold]
 
+            # Check if variable table is empty after filtering
+            if var_table_train.shape[1] == 0:
+                raise ValueError('Variable table is empty after variable importance filtering. Use a smaller threshold.')
+
             # Suggested scale_pos_weight
             scale_pos_weight = 1 - (outcome_table_binary_train == 0).sum().values[0] \
                 / (outcome_table_binary_train == 1).sum().values[0]
@@ -660,14 +664,12 @@ class RadiomicsLearner:
         run_results[model_id]['train']['metrics'] = result.get_model_performance(
             response_train, 
             outcome_table_binary_train,
-            label='training'
         )
         
         # Calculating performance metrics for testing phase and saving the ROC curve
         run_results[model_id]['test']['metrics'] = result.get_model_performance(
             response_test, 
             outcome_table_binary_test,
-            label='testing'
         )
 
         if holdout_test:
@@ -675,7 +677,6 @@ class RadiomicsLearner:
             run_results[model_id]['holdout']['metrics'] = result.get_model_performance(
                 response_holdout, 
                 outcome_table_binary_holdout,
-                label='holdout'
             )
 
         logging.info('\n\n--> COMPUTING PERFORMANCE METRICS ... Done in {:.2f} sec'.format(time.time()-tstart))
