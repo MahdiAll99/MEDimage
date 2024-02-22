@@ -7,6 +7,7 @@ matplotlib==3.7.0
 networkx==2.8.5
 neuroCombat==0.2.12
 nibabel==3.2.2
+nilearn==0.10.1
 numpyencoder==0.3.0
 pandas==1.5.3
 Pillow==9.2.0

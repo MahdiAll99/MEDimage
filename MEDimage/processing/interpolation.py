@@ -7,8 +7,8 @@ from copy import deepcopy
 from typing import List
 
 import numpy as np
-from MEDimage.MEDscan import MEDscan
 
+from ..MEDscan import MEDscan
 from ..processing.segmentation import compute_box
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic

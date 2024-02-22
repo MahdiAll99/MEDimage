@@ -15,8 +15,7 @@ warnings.simplefilter("ignore")
 
 from pathlib import Path
 
-from MEDimage.MEDscan import MEDscan
-
+from ..MEDscan import MEDscan
 from ..processing.segmentation import get_roi
 from ..utils.save_MEDscan import save_MEDscan
 

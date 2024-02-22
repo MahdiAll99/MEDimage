@@ -23,6 +23,7 @@ dependencies:
     - jupyter==1.0.0
     - networkx==2.8.5
     - neuroCombat==0.2.12
+    - nilearn==0.10.1
     - numpyencoder==0.3.0
     - protobuf==3.20.*
     - ray==2.5.1
@@ -32,6 +33,8 @@ dependencies:
     - seaborn==0.13.2
     - Sphinx==7.2.6
     - sphinx-carousel==1.2.0
+    - sphinx-autodoc-typehints==1.19.2
+    - sphinx-jinja2-compat==0.1.2
     - sphinx-jsonschema==1.19.1
     - sphinx-rtd-dark-mode==1.2.4
     - sphinx-rtd-theme==0.5.2

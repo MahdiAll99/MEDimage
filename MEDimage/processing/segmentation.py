@@ -7,10 +7,10 @@ from copy import deepcopy
 from typing import List, Sequence, Tuple, Union
 
 import numpy as np
-from MEDimage.MEDscan import MEDscan
 from nibabel import Nifti1Image
 from scipy.ndimage import center_of_mass
 
+from ..MEDscan import MEDscan
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
 from ..utils.inpolygon import inpolygon

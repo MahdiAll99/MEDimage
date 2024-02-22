@@ -174,14 +174,14 @@ def get_ngldm_features(vol: np.ndarray,
                     for ii_slice in np.arange(0, img_dims[2]):
 
                         # Add ngldm matrices to list
-                        ngldm_list += [GreyLevelDependenceMatrix(distance=np.int(ii_dist), diff_lvl=ii_diff_lvl,
+                        ngldm_list += [GreyLevelDependenceMatrix(distance=int(ii_dist), diff_lvl=ii_diff_lvl,
                                                                  spatial_method=ii_spatial.lower(), img_slice=ii_slice)]
 
                 # Perform 3D analysis
                 elif ii_spatial.lower() == "3d":
 
                     # Add ngldm matrices to list
-                    ngldm_list += [GreyLevelDependenceMatrix(distance=np.int(ii_dist), diff_lvl=ii_diff_lvl,
+                    ngldm_list += [GreyLevelDependenceMatrix(distance=int(ii_dist), diff_lvl=ii_diff_lvl,
                                                              spatial_method=ii_spatial.lower(), img_slice=None)]
                 else:
                     raise ValueError("Spatial methods for ngldm should be \"2d\", \"2.5d\" or \"3d\".")

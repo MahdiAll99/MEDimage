@@ -152,7 +152,17 @@ class MEDscan(object):
         # set filter type for the modality
         if 'filter_type' in im_params:
             self.params.filter.filter_type = im_params['filter_type']
-    
+        
+        # Set intensity type
+        if 'intensity_type' in im_params and im_params['intensity_type'] != "":
+            self.params.process.intensity_type = im_params['intensity_type']
+        elif self.params.filter.filter_type != "":
+            self.params.process.intensity_type = 'filtered'
+        elif self.type == 'MRscan':
+            self.params.process.intensity_type = 'arbitrary'
+        else:
+            self.params.process.intensity_type = 'definite'
+
     def __init_extraction_params(self, im_params: Dict):
         """Initializes the extraction params from a given Dict.
         
@@ -220,6 +230,9 @@ class MEDscan(object):
         """
         if 'imParamFilter' in filter_params:
             filter_params = filter_params['imParamFilter']
+        
+        # Initializae filter attribute
+        self.params.filter = self.params.Filter()
 
         # mean filter params
         if 'mean' in filter_params:
@@ -241,6 +254,10 @@ class MEDscan(object):
         if 'wavelet' in filter_params:
             self.params.filter.wavelet.init_from_json(filter_params['wavelet'])
 
+        # Textural filter params
+        if 'textural' in filter_params:
+            self.params.filter.textural.init_from_json(filter_params['textural'])
+
     def init_params(self, im_param_scan: Dict) -> None:
         """Initializes the Params class from a dictionary.
 
@@ -252,9 +269,9 @@ class MEDscan(object):
         """
         try:
             # get default scan parameters from im_param_scan
+            self.__init_filter_params(im_param_scan['imParamFilter'])
             self.__init_process_params(im_param_scan)
             self.__init_extraction_params(im_param_scan)
-            self.__init_filter_params(im_param_scan['imParamFilter'])
 
             # compute suv map for PT scans
             if self.type == 'PTscan':
@@ -646,6 +663,7 @@ class MEDscan(object):
                 self.ih = kwargs['ih'] if 'ih' in kwargs else None
                 self.im_range = kwargs['im_range'] if 'im_range' in kwargs else None
                 self.im_type = kwargs['im_type'] if 'im_type' in kwargs else None
+                self.intensity_type = kwargs['intensity_type'] if 'intensity_type' in kwargs else None
                 self.ivh = kwargs['ivh'] if 'ivh' in kwargs else None
                 self.n_algo = kwargs['n_algo'] if 'n_algo' in kwargs else None
                 self.n_exp = kwargs['n_exp'] if 'n_exp' in kwargs else None
@@ -711,6 +729,7 @@ class MEDscan(object):
                 self.gabor = self.Gabor()
                 self.laws = self.Laws()
                 self.wavelet = self.Wavelet()
+                self.textural = self.Textural()
 
 
             class Mean:
@@ -956,6 +975,52 @@ class MEDscan(object):
                     self.padding = params['padding']
                     self.rot_invariance = params['rot_invariance']
                     self.subband = params['subband']
+            
+
+            class Textural:
+                """Organizes the Textural filters parameters"""
+                def __init__(
+                        self,
+                        family: str = '',
+                        size: int = 0,
+                        discretization: dict = {},
+                        local: bool = False,
+                        name_save: str = ''
+                ) -> None:
+                    """
+                    Constructor of the Textural class.
+
+                    Args:
+                        family (str, optional): The family of the textural filter.
+                        size (int, optional): The filter size.
+                        discretization (dict, optional): The discretization parameters.
+                        local (bool, optional): If true, the discretization will be computed locally, else globally.
+                        name_save (str, optional): Specific name added to final extraction results file.
+                                       
+                    Returns:
+                        None.
+                    """
+                    self.family = family
+                    self.size = size
+                    self.discretization = discretization
+                    self.local = local
+                    self.name_save = name_save
+
+                def init_from_json(self, params: Dict) -> None:
+                    """
+                    Updates class attributes from json file.
+
+                    Args:
+                        params(Dict): Dictionary of the wavelet filter parameters.
+                    
+                    Returns:
+                        None.
+                    """
+                    self.family = params['family']
+                    self.size = params['size']
+                    self.discretization = params['discretization']
+                    self.local = params['local']
+                    self.name_save = params['name_save']
 
 
         class Radiomics:

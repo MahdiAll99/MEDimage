@@ -21,10 +21,9 @@ from nilearn import image
 from numpyencoder import NumpyEncoder
 from tqdm import tqdm, trange
 
-from MEDimage.MEDscan import MEDscan
-from MEDimage.processing.interpolation import interp_volume
-
+from ..MEDscan import MEDscan
 from ..processing.compute_suv_map import compute_suv_map
+from ..processing.interpolation import interp_volume
 from ..processing.segmentation import get_roi_from_indexes
 from ..utils.get_file_paths import get_file_paths
 from ..utils.get_patient_names import get_patient_names

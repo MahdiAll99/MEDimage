@@ -55,7 +55,8 @@
       "ngtdm" : {
         "dist_correction" : false
       },
-      "filter_type": ""
+      "filter_type": "",
+      "intensity_type": ""
     },
   "imParamCT" : {
     "interp" : {
@@ -95,7 +96,8 @@
       "ngtdm" : {
         "dist_correction" : false
       },
-      "filter_type": ""
+      "filter_type": "",
+      "intensity_type": ""
     },
   "imParamPET" : {
       "compute_suv_map" : true,
@@ -136,7 +138,8 @@
       "ngtdm" : {
         "dist_correction" : false
       },
-      "filter_type": ""
+      "filter_type": "",
+      "intensity_type": ""
   },
   "imParamFilter" : {
     "mean" : {
@@ -180,6 +183,18 @@
       "rot_invariance" : true,
       "padding" : "symmetric",
       "name_save" : "Wavelet_db3_LLH"
+    },
+    "textural" : {
+      "family" : "glcm",
+      "discretization": {
+        "type" : "FBS",
+        "bn" : null,
+        "bw" : 1,
+        "adapted" : false
+      },
+      "size" : 3,
+      "local" : false,
+      "name_save" : "glcm_global_fbs_1"
     }
   }
 }

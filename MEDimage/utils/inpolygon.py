@@ -96,13 +96,13 @@ def inpolygon(x_q: np.ndarray,
     vertex_b = vertex_b[line_mask] - origin
 
     # Find extent of contours in x
-    x_min_ind = np.int(
+    x_min_ind = int(
         np.max([np.floor(np.min(vertices[:, 0]) / spacing[0]), 0.0]))
-    x_max_ind = np.int(
+    x_max_ind = int(
         np.min([np.ceil(np.max(vertices[:, 0]) / spacing[0]), shape[0] * 1.0]))
 
     # Set up voxel grid and y-span
-    vox_grid = np.zeros(shape, dtype=np.int)
+    vox_grid = np.zeros(shape, dtype=int)
     vox_span = origin[1] + np.arange(0, shape[1]) * spacing[1]
 
     # Set ray origin and direction (starts at negative y, and travels towards
@@ -116,8 +116,8 @@ def inpolygon(x_q: np.ndarray,
 
         # Scan both forward and backward to resolve points located on
         # the polygon
-        vox_col_frwd = np.zeros(np.shape(vox_span), dtype=np.int)
-        vox_col_bkwd = np.zeros(np.shape(vox_span), dtype=np.int)
+        vox_col_frwd = np.zeros(np.shape(vox_span), dtype=int)
+        vox_col_bkwd = np.zeros(np.shape(vox_span), dtype=int)
 
         # Find lines that are intersected by the ray
         ray_hit = np.sum(

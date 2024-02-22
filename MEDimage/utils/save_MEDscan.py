@@ -1,7 +1,7 @@
 import pickle
 from pathlib import Path
 
-from MEDimage.MEDscan import MEDscan
+from ..MEDscan import MEDscan
 
 
 def save_MEDscan(medscan: MEDscan,
