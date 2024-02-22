@@ -119,11 +119,6 @@ class DesignExperiment:
         if not ml_options['datacleaning'].exists():
             raise FileNotFoundError(f"File {ml_options['datacleaning']} does not exist.")
 
-        # Imbalance settings
-        ml_options['imbalance'] = self.path_settings / 'ml_imbalance.json'
-        if not ml_options['imbalance'].exists():
-            raise FileNotFoundError(f"File {ml_options['imbalance']} does not exist.")
-
         # Normalization settings
         ml_options['normalization'] = self.path_settings / 'ml_normalization.json'
         # check if file exist:
@@ -135,12 +130,6 @@ class DesignExperiment:
         # check if file exist:
         if not ml_options['fSetReduction'].exists():
             raise FileNotFoundError(f"File {ml_options['fSetReduction']} does not exist.")
-
-        # Feature set selection settings
-        ml_options['fset_selection'] = self.path_settings / 'ml_fset_selection.json'
-        # check if file exist:
-        if not ml_options['fset_selection'].exists():
-            raise FileNotFoundError(f"File {ml_options['fset_selection']} does not exist.")
 
         # Experiment label check
         if self.experiment_label == "":
@@ -168,7 +157,6 @@ class DesignExperiment:
         # Initialization
         all_datacleaning = list()
         all_normalization = list()
-        all_imbalance = list()
         all_fset_reduction = list()
 
         # Load ml options dict
@@ -266,8 +254,6 @@ class DesignExperiment:
                     all_normalization.append((var_struct['var_normalization']))
                 if 'var_fSetReduction' in var_struct.keys():
                     all_fset_reduction.append(var_struct['var_fSetReduction']['method'])
-                    if 'imbalance' in var_struct['var_fSetReduction']:
-                        all_imbalance.append(var_struct['var_fSetReduction']['imbalance'])
 
             # Combinations of variables
             if 'combinations' in var_options.keys():
@@ -287,14 +273,13 @@ class DesignExperiment:
             algorithms = load_json(ml_options['algorithms'])
             ml['algorithms'] = {}
             ml['algorithms'][algorithm] = algorithms[algorithm]
-            flag_feat_set_selection = False
-            if 'fset_selection' in ml['algorithms'][algorithm].keys():
-                flag_feat_set_selection = True
-                feat_set_selection = ml['algorithms'][algorithm]['fset_selection']['method']
 
         # ML data processing methods and its options
-        for (method, method_list) in [('datacleaning', all_datacleaning), ('imbalance',all_imbalance),
-                                    ('normalization', all_normalization), ('fSetReduction', all_fset_reduction)]:
+        for (method, method_list) in [
+                ('datacleaning', all_datacleaning),
+                ('normalization', all_normalization), 
+                ('fSetReduction', all_fset_reduction)
+            ]:
             # Skip if no method is selected
             if all(v == "" for v in method_list):
                 continue
@@ -311,13 +296,6 @@ class DesignExperiment:
                 for name in list(set(method_list)):
                     if name != "":
                         ml[method][name] = method_options[name]
-
-        # ML feature set selection options
-        if 'fset_selection' in options:
-            feat_set_selection_content = load_json(ml_options['fset_selection'])
-            if flag_feat_set_selection:
-                ml['fset_selection'] = dict()
-                ml['fset_selection'][feat_set_selection] = feat_set_selection_content[feat_set_selection]
 
         # Save the ML dictionary
         if self.experiment_label == "":
