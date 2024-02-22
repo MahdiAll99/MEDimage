@@ -1,7 +1,7 @@
 Welcome to the MEDimage documentation!
 =======================================
 
-.. image:: docs/figures/pakcage-overview.png
+.. image:: /figures/pakcage-overview.png
    :width: 100%
 
 
