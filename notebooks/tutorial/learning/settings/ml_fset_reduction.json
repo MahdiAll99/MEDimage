@@ -1,0 +1,12 @@
+{
+	"FDA": {
+		"nSplits": 100,
+		"corrType": "Spearman",
+		"threshStableStart": 0.5,
+		"threshInterCorr": 0.7,
+		"minNfeatStable": 100,
+		"minNfeatInterCorr": 60,
+		"minNfeat": 10,
+		"seed": 54288
+	}
+}
