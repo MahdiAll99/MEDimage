@@ -102,6 +102,9 @@ BatchExtractor
 Learning
 ========
 
+Overview
+--------
+
     ``MEDimage`` offers a learning module for training a machine learning model on extracted features. The module handles features cleaning, normalization, 
     selection, model training, and testing. The workflow is summarized in the following image:
 
@@ -119,3 +122,43 @@ Learning
 
 .. |Learning_image_badge| image:: https://colab.research.google.com/assets/colab-badge.png
     :target: https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/learning/notebooks/tutorial/Learning-Tutorial.ipynb
+
+How to setup your experiment
+----------------------------
+    To fully use the ``MEDimage`` functionalities, you must follow certain norms and guidelines:
+
+    **Experiment Name**:
+
+    The experiment name is the label used to identify your machine learning experiment. In ``MEDimage`` we use the following format for the experiment name: 
+    ``<Problem>_<Level>_<Modality>``. This format is depicted in the following image:
+    
+    .. image:: /figures/ExperimentNameBreakdown.png
+        :width: 800
+        :align: center
+
+Results Analysis
+----------------
+
+    It is worth noting that to use most functionalities of the results analsys part you must follow the format for the experiment.
+
+    Analysis of results involves different key steps: 
+    
+    - Firstly, a heatmap of metrics can be used to pinpoint the optimal level by the highest performance with minimal complexity:
+    
+    .. image:: /figures/HeatmapDepicted.png
+        :width: 800
+        :align: center
+
+
+    - Secondly, a feature importance histogram is employed to further highlight the importance of individual features in the decision-making process:
+    
+    .. image:: /figures/HistogramExample.png
+        :width: 800
+        :align: center
+    
+
+    - Finally, for certain cases, a feature importance tree is utilized, where branches are connected to features incorporated into the model's training, and each branch thickness reflects the feature’s importance:
+    
+    .. image:: /figures/TreeExample.png
+        :width: 800
+        :align: center
