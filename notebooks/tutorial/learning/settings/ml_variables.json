@@ -1,19 +1,16 @@
 {
     "var1": {
-        "nameType": "RadiomicsAll",
+        "nameType": "RadiomicsText",
         "nameFile": "",
         "path": "setToFEATURESinWorkspace",
         "scans": [
-            "T1",
-            "T1CE",
-            "T2",
             "T2F"
         ],
         "rois": [
             "gliomaTumorAuto"
         ],
         "imSpaces": [
-            "image"
+            "texture"
         ],
         "combinations": {},
         "use_combinations": false,
