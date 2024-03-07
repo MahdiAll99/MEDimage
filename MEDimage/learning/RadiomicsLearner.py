@@ -606,7 +606,7 @@ class RadiomicsLearner:
         name_save_model = ml['algorithms']['XGBoost']['nameSave']
         model_id = name_save_model + '_' + str(ml['variables']['varStudy'])
         path_model = os.path.dirname(path_results) + '/' + (model_id + '.pickle')
-        model_dict = save_model(ml, model, str(ml['variables']['varStudy']), path_model)
+        model_dict = save_model(model, str(ml['variables']['varStudy']), path_model, ml=ml)
 
         logging.info("{}--> DONE. TOTAL TIME OF LEARNING PROCESS: {:.2f} min".format(" " * 4, (time.time()-tstart) / 60))
 

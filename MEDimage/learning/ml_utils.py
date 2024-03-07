@@ -945,16 +945,17 @@ def under_sample(outcome_table_binary: pd.DataFrame) -> pd.DataFrame:
 
     return outcome_table_binary.loc[new_ids, :]
 
-def save_model(ml: Dict, model: Dict, var_id: str, path_model: Path) -> Dict:
+def save_model(model: Dict, var_id: str, path_model: Path, ml: Dict = None, name_type: str = "") -> Dict:
     """
     Saves a given model locally as a pickle object and outputs a dictionary
     containing the model's information.
 
     Args:
-        ml (Dict): The machine learning dictionary.
         model (Dict): The model dict to save.
         var_id (str): The stduied variable. For ex: 'var3'.
         path_model (str): The path to save the model.
+        ml (Dict, optional): Dicionary containing the settings of the machine learning experiment.
+        name_type (str, optional): String specifying the type of the variable. For examlpe: "RadiomicsIntensity". Default is "".
     
     Returns:
         Dict: A dictionary containing the model's information.
@@ -964,7 +965,12 @@ def save_model(ml: Dict, model: Dict, var_id: str, path_model: Path) -> Dict:
         pickle.dump(model, f)
 
     # Getting the "var_names" string
-    var_names = "__".join(ml['variables'][var_id]['nameType'])
+    if ml is not None:
+        var_names = ml['variables'][var_id]['nameType']
+    elif name_type != "":
+        var_names = name_type
+    else:
+        var_names = [var_id]
 
     # Recording model info
     model_info = dict()

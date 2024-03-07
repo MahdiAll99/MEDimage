@@ -307,13 +307,19 @@ class DesignExperiment:
         # return ml
         return path_ml_object
 
-    def create_experiment(self) -> Dict:
+    def create_experiment(self, ml: dict = None) -> Dict:
         """
         Create the machine learning experiment dictionary, organizes each test/split information in a seperate folder.
+
+        Args:
+            ml (dict, optional): Dictionary containing all the machine learning settings. Defaults to None.
+        
+        Returns:
+            Dict: Dictionary containing all the organized machine learning settings.
         """
         # Initialization
         ml_path = list()
-        ml = load_json(self.path_ml_object)
+        ml = load_json(self.path_ml_object) if ml is None else ml
 
         # Learning set
         patients_learn = load_json(self.path_study / 'patientsLearn.json')
@@ -357,6 +363,12 @@ class DesignExperiment:
                         test_proportion, seed, 
                         stratify_institutions
                     )
+
+                    # If patients are not in a list
+                    if type(patients_train) != list and not hasattr((patients_train), "__len__"):
+                        patients_train = [patients_train]
+                        patients_test = [patients_test]
+                    
                     for i in range(n_splits):
                         # Create a folder for each split/run
                         run_name = "test__{0:03}".format(i+1)
@@ -417,12 +429,19 @@ class DesignExperiment:
                 cv_info = ml['design'][type_set]
                 n_splits = cv_info['nSplits']
                 seed = cv_info['seed']
+                
                 # Get the training and testing sets
                 patients_train, patients_test = cross_validation_split(
                     outcomes_table, 
                     n_splits, 
                     seed=seed
                 )
+
+                # If patients are not in a list
+                if type(patients_train) != list and not hasattr((patients_train), "__len__"):
+                    patients_train = [patients_train]
+                    patients_test = [patients_test]
+                
                 for i in range(n_splits):
                     # Create a folder for each split/run
                     run_name = "test__{0:03}".format(i+1)
