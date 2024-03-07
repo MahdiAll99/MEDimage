@@ -29,7 +29,7 @@ and optimality analysis, streamlining radiomics approaches. It complies with `in
       :width: 500
       :target: https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/radiomics/data-processing
 
-.. toctree::sta
+.. toctree::
    :maxdepth: 2
    :caption: Getting started
 
