@@ -30,7 +30,7 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering :: Image Processing',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
     ],
