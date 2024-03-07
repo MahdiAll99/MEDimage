@@ -39,8 +39,7 @@ class TestExtraction:
             vol=phantom, 
             mask_int=roi, 
             mask_morph=roi,
-            res=[1,1,1],
-            intensity_type="arbitrary"
+            res=[1,1,1]
         )
         assert morph_vol == morph["Fmorph_vol"]
         assert round(morph_vol, 2) == 0.83
@@ -54,7 +53,7 @@ class TestExtraction:
         )
         stats = MEDimage.biomarkers.stats.extract_all(
             vol=vol_int_re,
-            intensity_type="arbitrary"
+            intensity_type="definite"
         )
         kurt = MEDimage.biomarkers.stats.kurt(
             vol=vol_int_re,
