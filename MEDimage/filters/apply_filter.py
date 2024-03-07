@@ -6,7 +6,10 @@ from .gabor import *
 from .laws import *
 from .log import *
 from .mean import *
-from .TexturalFilter import TexturalFilter
+try:
+    from .TexturalFilter import TexturalFilter
+except ImportError:
+    import_failed = True
 from .wavelet import *
 
 
@@ -106,19 +109,20 @@ def apply_filter(
                         level=medscan.params.filter.wavelet.level
                     )
     elif filter_type.lower() == "textural":
-        # Initialize filter class instance
-        _filter = TexturalFilter(
-            family=medscan.params.filter.textural.family,
-        )
-        # Apply filter
-        vol_obj = _filter(
-            vol_obj,
-            size=medscan.params.filter.textural.size,
-            discretization=medscan.params.filter.textural.discretization,
-            local=medscan.params.filter.textural.local,
-            user_set_min_val=user_set_min_val,
-            feature=feature
-        )
+        if not import_failed:
+            # Initialize filter class instance
+            _filter = TexturalFilter(
+                family=medscan.params.filter.textural.family,
+            )
+            # Apply filter
+            vol_obj = _filter(
+                vol_obj,
+                size=medscan.params.filter.textural.size,
+                discretization=medscan.params.filter.textural.discretization,
+                local=medscan.params.filter.textural.local,
+                user_set_min_val=user_set_min_val,
+                feature=feature
+            )
     else:
         raise ValueError(
                 r'Filter name should either be: "mean", "log", "laws", "gabor" or "wavelet".'

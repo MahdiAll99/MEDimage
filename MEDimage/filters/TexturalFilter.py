@@ -2,10 +2,14 @@ from copy import deepcopy
 from typing import Union
 
 import numpy as np
-import pycuda.autoinit
-import pycuda.driver as cuda
-from pycuda.autoinit import context
-from pycuda.compiler import SourceModule
+try:
+    import pycuda.autoinit
+    import pycuda.driver as cuda
+    from pycuda.autoinit import context
+    from pycuda.compiler import SourceModule
+except ImportError:
+    print("PyCUDA is not installed. Please install it to use the textural filters.")
+    import_failed = True
 
 from ..processing.discretisation import discretize
 from .textural_filters_kernels import glcm_kernel, single_glcm_kernel
@@ -204,49 +208,53 @@ class TexturalFilter():
             )
 
         # Compile the CUDA kernel
-        mod = SourceModule(kernel_glcm, no_extern_c=True)
-        if self.local:
-            process_loop_kernel = mod.get_function("glcm_filter_local")
+        if not import_failed:
+            mod = SourceModule(kernel_glcm, no_extern_c=True)
+            if self.local:
+                process_loop_kernel = mod.get_function("glcm_filter_local")
+            else:
+                process_loop_kernel = mod.get_function("glcm_filter_global")
+
+            # Allocate GPU memory
+            volume_gpu = cuda.mem_alloc(input_images.nbytes)
+            volume_gpu_copy = cuda.mem_alloc(volume_copy.nbytes)
+
+            # Copy data to the GPU
+            cuda.memcpy_htod(volume_gpu, input_images)
+            cuda.memcpy_htod(volume_gpu_copy, volume_copy)
+
+            # Set up the grid and block dimensions
+            block_dim = (16, 16, 1)  # threads per block
+            grid_dim = (
+                int((volume_copy.shape[0] - 1) // block_dim[0] + 1),
+                int((volume_copy.shape[1] - 1) // block_dim[1] + 1),
+                int((volume_copy.shape[2] - 1) // block_dim[2] + 1)
+            )   # blocks in the grid
+
+            # Run the kernel
+            process_loop_kernel(volume_gpu, volume_gpu_copy, block=block_dim, grid=grid_dim)
+
+            # Synchronize to ensure all CUDA operations are complete
+            context.synchronize()
+
+            # Copy data back to the CPU
+            cuda.memcpy_dtoh(input_images, volume_gpu)
+
+            # Free the allocated GPU memory
+            volume_gpu.free()
+            volume_gpu_copy.free()
+            del volume_copy
+
+            # unpad the volume
+            if feature: # 3D (single-feature)
+                input_images = input_images[padding_size:-padding_size, padding_size:-padding_size, padding_size:-padding_size]
+            else: # 4D (all features)
+                input_images = input_images[padding_size:-padding_size, padding_size:-padding_size, padding_size:-padding_size, :]
+
+            return input_images
+
         else:
-            process_loop_kernel = mod.get_function("glcm_filter_global")
-
-        # Allocate GPU memory
-        volume_gpu = cuda.mem_alloc(input_images.nbytes)
-        volume_gpu_copy = cuda.mem_alloc(volume_copy.nbytes)
-
-        # Copy data to the GPU
-        cuda.memcpy_htod(volume_gpu, input_images)
-        cuda.memcpy_htod(volume_gpu_copy, volume_copy)
-
-        # Set up the grid and block dimensions
-        block_dim = (16, 16, 1)  # threads per block
-        grid_dim = (
-            int((volume_copy.shape[0] - 1) // block_dim[0] + 1),
-            int((volume_copy.shape[1] - 1) // block_dim[1] + 1),
-            int((volume_copy.shape[2] - 1) // block_dim[2] + 1)
-        )   # blocks in the grid
-
-        # Run the kernel
-        process_loop_kernel(volume_gpu, volume_gpu_copy, block=block_dim, grid=grid_dim)
-
-        # Synchronize to ensure all CUDA operations are complete
-        context.synchronize()
-
-        # Copy data back to the CPU
-        cuda.memcpy_dtoh(input_images, volume_gpu)
-
-        # Free the allocated GPU memory
-        volume_gpu.free()
-        volume_gpu_copy.free()
-        del volume_copy
-
-        # unpad the volume
-        if feature: # 3D (single-feature)
-            input_images = input_images[padding_size:-padding_size, padding_size:-padding_size, padding_size:-padding_size]
-        else: # 4D (all features)
-            input_images = input_images[padding_size:-padding_size, padding_size:-padding_size, padding_size:-padding_size, :]
-
-        return input_images
+            return None
     
     def __call__(
             self,
