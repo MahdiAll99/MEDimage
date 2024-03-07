@@ -7,7 +7,7 @@
 [![Continuous Integration](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml/badge.svg)](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml)
 [![Upload Python Package](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-publish.yml/badge.svg)](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-publish.yml)
 [![Documentation Status](https://readthedocs.org/projects/medimage/badge/?version=latest)](https://medimage.readthedocs.io/en/latest/?badge=latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: GPL-3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/tutorial/DataManager-Tutorial.ipynb)
 
 </div>
@@ -160,7 +160,7 @@ MEDimage is an open-source package developed at the [MEDomics-Udes](https://www.
 This package is part of https://github.com/medomics, a package providing research utility tools for developing precision medicine applications.
 
 ```
-Copyright (C) 2023 MEDomics consortium
+Copyright (C) 2024 MEDomics consortium
 
 GPL3 LICENSE SYNOPSIS
 
