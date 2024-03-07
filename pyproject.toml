@@ -29,6 +29,7 @@ numpyencoder = "0.3.0"
 pandas = "1.5.3"
 Pillow = "9.2.0"
 protobuf = "3.20.*"
+pycuda
 pydicom = "1.2.2"
 PyWavelets = "1.1.1"
 ray = "2.5.1"
