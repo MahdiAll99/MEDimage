@@ -26,6 +26,7 @@ dependencies:
     - nilearn==0.10.1
     - numpyencoder==0.3.0
     - protobuf==3.20.*
+    - pycaret==3.0.4
     - ray==2.5.1
     - scikit_image==0.18.2
     - SimpleITK==2.1.1.2
