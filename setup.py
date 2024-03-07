@@ -33,9 +33,10 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
     keywords='radiomics cancer imaging medical research computational imaging',
-    python_requires='>=3.8,<3.10',
+    python_requires='>=3.8,<=3.10',
     packages=find_packages(exclude=['docs', 'tests']),
     install_requires=requirements
 )
