@@ -176,3 +176,5 @@ Here's what the license entails:
 8. This software is provided without warranty.
 9. The software author or license can not be held liable for any damages inflicted by the software.
 ```
+
+More information on about the [LICENSE can be found here](https://github.com/MahdiAll99/MEDimage/blob/main/LICENSE.md)
