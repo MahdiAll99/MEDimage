@@ -17,27 +17,29 @@ import pydicom
 import pydicom.errors
 import pydicom.misc
 import ray
-from MEDimage.MEDimage import MEDimage
+from nilearn import image
 from numpyencoder import NumpyEncoder
 from tqdm import tqdm, trange
 
+from ..MEDscan import MEDscan
 from ..processing.compute_suv_map import compute_suv_map
+from ..processing.interpolation import interp_volume
 from ..processing.segmentation import get_roi_from_indexes
 from ..utils.get_file_paths import get_file_paths
 from ..utils.get_patient_names import get_patient_names
 from ..utils.imref import imref3d
 from ..utils.json_utils import load_json, save_json
-from ..utils.save_MEDimage import save_MEDimage
+from ..utils.save_MEDscan import save_MEDscan
 from .ProcessDICOM import ProcessDICOM
 
 
 class DataManager(object):
-    """Reads all the raw data (DICOM, NIfTI) content and organizes it in instances of the MEDimage class."""
+    """Reads all the raw data (DICOM, NIfTI) content and organizes it in instances of the MEDscan class."""
 
 
     @dataclass
     class DICOM(object):
-        """DICOM data management class that will organize data during the conversion to MEDimage class process"""
+        """DICOM data management class that will organize data during the conversion to MEDscan class process"""
         stack_series_rs: List
         stack_path_rs: List
         stack_frame_rs: List
@@ -50,7 +52,7 @@ class DataManager(object):
 
     @dataclass
     class NIfTI(object):
-        """NIfTI data management class that will organize data during the conversion to MEDimage class process"""
+        """NIfTI data management class that will organize data during the conversion to MEDscan class process"""
         stack_path_images: List
         stack_path_roi: List
         stack_path_all: List
@@ -75,7 +77,6 @@ class DataManager(object):
             path_save_checks: Union[Path, str] = None,
             path_pre_checks_settings: Union[Path, str] = None,
             save: bool = False,
-            keep_instances: bool = True,
             n_batch: int = 2
     ) -> None:
         """Constructor of the class DataManager.
@@ -86,13 +87,12 @@ class DataManager(object):
             path_to_niftis (Union[Path, str], optional): Full path to the starting directory
                 where the NIfTI is located.
             path_csv (Union[Path, str], optional): Full path to the CSV file containing the scans info list.
-            path_save (Union[Path, str], optional): Full path to the directory where to save all the MEDimage classes.
+            path_save (Union[Path, str], optional): Full path to the directory where to save all the MEDscan classes.
             path_save_checks(Union[Path, str], optional): Full path to the directory where to save all 
                 the pre-radiomics checks analysis results.
             path_pre_checks_settings(Union[Path, str], optional): Full path to the JSON file of the pre-checks analysis
                 parameters.
-            save (bool, optional): True to save the MEDimage classes in `path_save`.
-            keep_instances(bool, optional): If True, will keep the created MEDimage instances in the class instance.
+            save (bool, optional): True to save the MEDscan classes in `path_save`.
             n_batch (int, optional): Numerical value specifying the number of batch to use in the
                 parallel computations (use 0 for serial computation).
         
@@ -122,7 +122,6 @@ class DataManager(object):
                 path_pre_checks_settings,
         )
         self.save = save
-        self.keep_instances = keep_instances
         self.n_batch = n_batch
         self.__dicom = self.DICOM(
                 stack_series_rs=[],
@@ -139,7 +138,6 @@ class DataManager(object):
                 stack_path_roi=[],
                 stack_path_all=[]
         )
-        self.instances = []
         self.path_to_objects = []
         self.summary = {}
         self.csv_data = None
@@ -181,19 +179,19 @@ class DataManager(object):
 
         return all_files
 
-    def __get_MEDimage_name_save(self, MEDimg: MEDimage) -> str:
-        """Returns the name that will be used to save the MEDimage instance, based on the values of the attributes.
+    def __get_MEDscan_name_save(self, medscan: MEDscan) -> str:
+        """Returns the name that will be used to save the MEDscan instance, based on the values of the attributes.
 
         Args:
-            MEDimg(MEDimage): A MEDimage class instance.
+            medscan(MEDscan): A MEDscan class instance.
         
         Returns:
             str: String of the name save.
         """
-        series_description = MEDimg.series_description.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
-        name_id = MEDimg.patientID.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
+        series_description = medscan.series_description.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
+        name_id = medscan.patientID.translate({ord(ch): '-' for ch in '/\\ ()&:*'})
         # final saving name
-        name_complete = name_id + '__' + series_description + '.' + MEDimg.type + '.npy'
+        name_complete = name_id + '__' + series_description + '.' + medscan.type + '.npy'
         return name_complete
 
     def __associate_rt_stuct(self) -> None:
@@ -207,17 +205,20 @@ class DataManager(object):
         if n_rs:
             for i in trange(0, n_rs):
                 try: # PUT ALL THE DICOM PATHS WITH THE SAME UID IN THE SAME PATH LIST
+                    self.__dicom.stack_series_rs = list(set(self.__dicom.stack_series_rs))
                     ind_series_id = self.__find_uid_cell_index(
                                                         self.__dicom.stack_series_rs[i], 
                                                         self.__dicom.cell_series_id)
                     for n in range(len(ind_series_id)):
-                        self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
+                        if ind_series_id[n] < len(self.__dicom.cell_path_rs):
+                            self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
                 except:
                     ind_series_id = self.__find_uid_cell_index(
                                                         self.__dicom.stack_frame_rs[i], 
                                                         self.__dicom.cell_frame_id)
                     for n in range(len(ind_series_id)):
-                        self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
+                        if ind_series_id[n] < len(self.__dicom.cell_path_rs):
+                            self.__dicom.cell_path_rs[ind_series_id[n]] += [self.__dicom.stack_path_rs[i]]
         print('DONE')
 
     def __read_all_dicoms(self) -> None:
@@ -283,21 +284,22 @@ class DataManager(object):
         # ASSOCIATE ALL VOLUMES TO THEIR MASK
         self.__associate_rt_stuct()
 
-    def process_all_dicoms(self) -> Union[List[MEDimage], None]:
+    def process_all_dicoms(self) -> Union[List[MEDscan], None]:
         """This function reads the DICOM content of all the sub-folder tree of a starting directory defined by
         `path_to_dicoms`. It then organizes the data (files throughout the starting directory are associated by
-        'SeriesInstanceUID') in the MEDimage class including the region of  interest (ROI) defined by an
-        associated RTstruct. All MEDimage classes hereby created are saved in `path_save` with a name
+        'SeriesInstanceUID') in the MEDscan class including the region of  interest (ROI) defined by an
+        associated RTstruct. All MEDscan classes hereby created are saved in `path_save` with a name
         varying with every scan.
 
         Returns:
-            List[MEDimage]: List of MEDimage instances.
+            List[MEDscan]: List of MEDscan instances.
         """
         ray.init(local_mode=True, include_dashboard=True)
 
-        print('--> Reading all DICOM objects to create MEDimage classes')
+        print('--> Reading all DICOM objects to create MEDscan classes')
         self.__read_all_dicoms()
 
+        print('--> Processing DICOMs and creating MEDscan objects')
         n_scans = len(self.__dicom.cell_path_images)
         if self.n_batch is None:
             n_batch = 1
@@ -317,8 +319,7 @@ class DataManager(object):
         ids = [pd.process_files() for pd in pds]
 
         # Update the path to the created instances
-        for instance in ray.get(ids):
-            name_save = self.__get_MEDimage_name_save(instance)
+        for name_save in ray.get(ids):
             if self.paths._path_save:
                 self.path_to_objects.append(str(self.paths._path_save / name_save))
             # Update processing summary
@@ -339,27 +340,15 @@ class DataManager(object):
                 if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
                     self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
             else:
-                logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
-                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
+                if self.save:
+                    logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                        "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
 
         nb_job_left = n_scans - n_batch
 
-        # Get MEDimage instances
-        if self.keep_instances:
-            if len(self.instances)>10 and not self.__warned:
-                # User cannot save over 10 instances in the class
-                warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
-                    the rest of the instances will/can be saved locally only.")
-                self.__warned = True
-            else:
-                self.instances.extend(ray.get(ids))
-                if len(self.instances) > 10:
-                    self.instances = self.instances[:10]
-
         # Distribute the remaining tasks
         for _ in trange(n_scans):
-            _, not_ready = ray.wait(ids, num_returns=1)
-            ids = not_ready
+            _, ids = ray.wait(ids, num_returns=1)
             if nb_job_left > 0:
                 idx = n_scans - nb_job_left
                 pd = ProcessDICOM(
@@ -371,8 +360,7 @@ class DataManager(object):
                 nb_job_left -= 1
 
             # Update the path to the created instances
-            for instance in ray.get(ids):
-                name_save = self.__get_MEDimage_name_save(instance)
+            for name_save in ray.get(ids):
                 if self.paths._path_save:
                     self.path_to_objects.extend(str(self.paths._path_save / name_save))
                 # Update processing summary
@@ -393,23 +381,10 @@ class DataManager(object):
                     if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
                         self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
                 else:
-                    logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
-                        "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
-
-            # Get MEDimage instances
-            if self.keep_instances:
-                if len(self.instances)>10 and not self.__warned:
-                    warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
-                        the rest of the instances will/can be saved locally only.")
-                    self.__warned = True
-                else:
-                    self.instances.extend(ray.get(ids))
-                    if len(self.instances) > 10:
-                        self.instances = self.instances[:10]
+                    if self.save:
+                        logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                            "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
         print('DONE')
-
-        if self.instances:
-            return self.instances
 
     def __read_all_niftis(self) -> None:
         """Reads all files in the initial path and organizes other path to images and roi
@@ -419,6 +394,8 @@ class DataManager(object):
             None.
         """
         print('\n--> Scanning all folders in initial directory')
+        if not self.paths._path_to_niftis:
+            raise ValueError("The path to the niftis is not defined")
         p = Path(self.paths._path_to_niftis)
         e_rglob1 = '*.nii'
         e_rglob2 = '*.nii.gz'
@@ -438,47 +415,60 @@ class DataManager(object):
                 self.__nifti.stack_path_images.append(all_niftis[i])
         print('DONE')
 
-    def __associate_roi_to_image(self, image_file: Union[Path, str], MEDimg: MEDimage) -> MEDimage:
+    def __associate_roi_to_image(
+            self,
+            image_file: Union[Path, str], 
+            medscan: MEDscan, 
+            nifti: nib.Nifti1Image,
+            path_roi_data: Path = None
+        ) -> MEDscan:
         """Extracts all ROI data from the given path for the given patient ID and updates all class attributes with
         the new extracted data.
 
         Args:
             image_file(Union[Path, str]): Path to the ROI data.
-            MEDimg (MEDimage): MEDimage class instance that will hold the data. 
+            medscan (MEDscan): MEDscan class instance that will hold the data. 
 
         Returns:
-            MEDimage: Returns a MEDimage instance with updated roi attributes.
+            MEDscan: Returns a MEDscan instance with updated roi attributes.
         """
         image_file = Path(image_file)
         roi_index = 0
 
-        for file in self.__nifti.stack_path_roi:
+        if not path_roi_data:
+            if not self.paths._path_to_niftis:
+                raise ValueError("The path to the niftis is not defined")
+            else:
+                path_roi_data = self.paths._path_to_niftis
+
+        for file in path_roi_data.glob('*.nii.gz'):
             _id = image_file.name.split("(")[0] # id is PatientID__ImagingScanName
             # Load the patient's ROI nifti files:
             if file.name.startswith(_id) and 'ROI' in file.name.split("."):
                 roi = nib.load(file)
-                roi_data = MEDimg.scan.ROI.convert_to_LPS(data=roi.get_fdata())
+                roi = image.resample_to_img(roi, nifti, interpolation='nearest')
+                roi_data = roi.get_fdata()
                 roi_name = file.name[file.name.find("(") + 1 : file.name.find(")")]
                 name_set = file.name[file.name.find("_") + 2 : file.name.find("(")]
-                MEDimg.scan.ROI.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
-                MEDimg.scan.ROI.update_name_set(key=roi_index, name_set=name_set)
-                MEDimg.scan.ROI.update_roi_name(key=roi_index, roi_name=roi_name)
+                medscan.data.ROI.update_indexes(key=roi_index, indexes=np.nonzero(roi_data.flatten()))
+                medscan.data.ROI.update_name_set(key=roi_index, name_set=name_set)
+                medscan.data.ROI.update_roi_name(key=roi_index, roi_name=roi_name)
                 roi_index += 1
-        return MEDimg
+        return medscan
 
-    def __associate_spatialRef(self, nifti_file: Union[Path, str], MEDimg: MEDimage) -> MEDimage:
+    def __associate_spatialRef(self, nifti_file: Union[Path, str], medscan: MEDscan) -> MEDscan:
         """Computes the imref3d spatialRef using a NIFTI file and updates the spatialRef attribute.
 
         Args:
             nifti_file(Union[Path, str]): Path to the nifti data.
-            MEDimg (MEDimage): MEDimage class instance that will hold the data.
+            medscan (MEDscan): MEDscan class instance that will hold the data.
 
         Returns:
-            MEDimage: Returns a MEDimage instance with updated spatialRef attribute.
+            MEDscan: Returns a MEDscan instance with updated spatialRef attribute.
         """
         # Loading the nifti file :
         nifti = nib.load(nifti_file)
-        nifti_data = MEDimg.scan.volume.data
+        nifti_data = medscan.data.volume.array
 
         # spatialRef Creation
         pixel_x = abs(nifti.affine[0, 0])
@@ -510,63 +500,91 @@ class DataManager(object):
         spatialRef.ZIntrinsicLimits = spatialRef.ZIntrinsicLimits.tolist()
 
         # update spatialRef in the volume sub-class
-        MEDimg.scan.volume.update_spatialRef(spatialRef)
+        medscan.data.volume.update_spatialRef(spatialRef)
 
-        return MEDimg
+        return medscan
 
+    def __process_one_nifti(self, nifti_file: Union[Path, str], path_data) -> MEDscan:
+        """
+        Processes one NIfTI file to create a MEDscan class instance.
+
+        Args:
+            nifti_file (Union[Path, str]): Path to the NIfTI file.
+            path_data (Union[Path, str]): Path to the data.
+        
+        Returns:
+            MEDscan: MEDscan class instance.
+        """
+        medscan = MEDscan()
+        medscan.patientID = os.path.basename(nifti_file).split("_")[0]
+        medscan.type = os.path.basename(nifti_file).split(".")[-3]
+        medscan.series_description = nifti_file.name[nifti_file.name.find('__') + 2: nifti_file.name.find('(')]
+        medscan.format = "nifti"
+        medscan.data.set_orientation(orientation="Axial")
+        medscan.data.set_patient_position(patient_position="HFS")
+        medscan.data.volume.array = nib.load(nifti_file).get_fdata()
+        medscan.data.volume.scan_rot = None
+        
+        # Update spatialRef
+        self.__associate_spatialRef(nifti_file, medscan)
+        
+        # Assiocate ROI
+        medscan = self.__associate_roi_to_image(nifti_file, medscan, nib.load(nifti_file), path_data)
+
+        return medscan
+    
     def process_all(self) -> None:
-        """Processes both DICOM & NIfTI content to create MEDimage classes
+        """Processes both DICOM & NIfTI content to create MEDscan classes
         """
         self.process_all_dicoms()
         self.process_all_niftis()
 
-    def process_all_niftis(self) -> List[MEDimage]:
+    def process_all_niftis(self) -> List[MEDscan]:
         """This function reads the NIfTI content of all the sub-folder tree of a starting directory. 
-        It then organizes the data in the MEDimage class including the region of  interest (ROI)
-        defined by an associated mask file. All MEDimage classes hereby created are saved in a specific path
+        It then organizes the data in the MEDscan class including the region of  interest (ROI)
+        defined by an associated mask file. All MEDscan classes hereby created are saved in a specific path
         with a name specific name varying with every scan.
 
         Args:
             None.
 
         Returns:
-            List[MEDimage]: List of MEDimage instances.
+            List[MEDscan]: List of MEDscan instances.
         """
         self.__read_all_niftis()
-        print('--> Reading all NIfTI objects (imaging volumes & masks) to create MEDimage classes')
+        print('--> Reading all NIfTI objects (imaging volumes & masks) to create MEDscan classes')
         for file in tqdm(self.__nifti.stack_path_images):
-            # INITIALIZE MEDimage INSTANCE AND UPDATE ATTRIBUTES
-            MEDimg = MEDimage()
-            MEDimg.patientID = os.path.basename(file).split("_")[0]
-            MEDimg.type = os.path.basename(file).split(".")[-3]
-            MEDimg.series_description = file.name[file.name.find('__') + 2: file.name.find('(')]
-            MEDimg.format = "nifti"
-            MEDimg.scan.set_orientation(orientation="Axial")
-            MEDimg.scan.set_patientPosition(patientPosition="HFS")
-            MEDimg.scan.volume.data = nib.load(file).get_fdata()
-            # RAS to LPS
-            MEDimg.scan.volume.convert_to_LPS()
-            MEDimg.scan.volume.scan_rot = None
-            # UPDATE spatialRef
-            self.__associate_spatialRef(file, MEDimg)
-            # GET ROI
-            MEDimage_instance = self.__associate_roi_to_image(file, MEDimg)
+            # INITIALIZE MEDscan INSTANCE AND UPDATE ATTRIBUTES
+            medscan = MEDscan()
+            medscan.patientID = os.path.basename(file).split("_")[0]
+            medscan.type = os.path.basename(file).split(".")[-3]
+            medscan.series_description = file.name[file.name.find('__') + 2: file.name.find('(')]
+            medscan.format = "nifti"
+            medscan.data.set_orientation(orientation="Axial")
+            medscan.data.set_patient_position(patient_position="HFS")
+            medscan.data.volume.array = nib.load(file).get_fdata()
             
-            # User cannot save over 10 instances in the class
-            if self.keep_instances:
-                if len(self.instances)>10 and not self.__warned:
-                    warnings.warn("You have more than 10 MEDimage objects saved in the current DataManager instance, \
-                        the rest of the instances will/can be saved locally only.")
-                    self.__warned = True
-                else:
-                    self.instances.append(MEDimage_instance)
-                    if len(self.instances) > 10:
-                        self.instances = self.instances[:10]
+            # RAS to LPS
+            #medscan.data.volume.convert_to_LPS()
+            medscan.data.volume.scan_rot = None
+            
+            # Update spatialRef
+            medscan = self.__associate_spatialRef(file, medscan)
+            
+            # Get ROI
+            medscan = self.__associate_roi_to_image(file, medscan, nib.load(file))
+
+            # SAVE MEDscan INSTANCE
             if self.save and self.paths._path_save:
-                save_MEDimage(MEDimg, MEDimg.type.split('scan')[0], self.paths._path_save)
+                save_MEDscan(medscan, self.paths._path_save)
             
             # Update the path to the created instances
-            name_save = self.__get_MEDimage_name_save(MEDimage_instance)
+            name_save = self.__get_MEDscan_name_save(medscan)
+
+            # Clear memory
+            del medscan
+
+            # Update the path to the created instances
             if self.paths._path_save:
                 self.path_to_objects.append(str(self.paths._path_save / name_save))
             
@@ -588,10 +606,10 @@ class DataManager(object):
                 if name_save not in self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type]:
                     self.summary[name_save.split('-')[0]][name_save.split('-')[1]][scan_type].append(name_save)
             else:
-                logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
-                    "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
+                if self.save:
+                    logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
+                        "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
         print('DONE')
-        return self.instances
 
     def update_from_csv(self, path_csv: Union[str, Path] = None) -> None:
         """Updates the class from a given CSV and summarizes the processed scans again according to it.
@@ -698,22 +716,21 @@ class DataManager(object):
         self,
         path_data: Union[Path, str] = None,
         wildcards_dimensions: List[str] = [],
-        use_instances: bool = True,
         min_percentile: float = 0.05,
-        max_percentile: float = 0.95
+        max_percentile: float = 0.95,
+        save: bool = False
         ) -> None:
         """Finds proper voxels dimension options for radiomics analyses for a group of scans
 
         Args:
-            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+            path_data (Path, optional): Path to the MEDscan objects, if not specified will use ``path_save`` from the 
                 inner-class ``Paths`` in the current instance.
             wildcards_dimensions(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
                 :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
-            use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
-                for the analysis. If False, will analyze scans in the path where the instances were saved.
             min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
             max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
+            save (bool, optional): If True, will save the results in a json file. Defaults to False.
         
         Returns:
             None.
@@ -741,8 +758,8 @@ class DataManager(object):
         if type(wildcards_dimensions) is str:
             wildcards_dimensions = [wildcards_dimensions]
 
-        if len(wildcards_dimensions) == 0 and not use_instances:
-            print("Wildcard is empty and instances use is not allowed, the pre-checks will be aborted")
+        if len(wildcards_dimensions) == 0:
+            print("Wildcard is empty, the pre-checks will be aborted")
             return
 
         # TODO: seperate by studies and scan type (MRscan, CTscan...)
@@ -751,43 +768,29 @@ class DataManager(object):
         file_paths = list()
         for w in range(len(wildcards_dimensions)):
             wildcard = wildcards_dimensions[w]
-            if use_instances:
-                wildcard = str(wildcard).replace('*', '')
-                study, scan_type = wildcard.split('.')[0:2]
-                n_instances = len(self.instances)
-                xy_dim["data"] = np.zeros((n_instances, 1))
-                xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
-                z_dim["data"] = np.zeros((n_instances, 1))
-                z_dim["data"] = np.multiply(z_dim["data"], np.nan)
-                for i in tqdm(range(len(self.instances))):
-                    try:
-                        MEDimg = self.instances[i]
-                        if MEDimg.patientID.split('-')[0] == study and MEDimg.type == scan_type:
-                            xy_dim["data"][i] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
-                            z_dim["data"][i]  = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
-                        else:
-                            continue
-                    except Exception as e:
-                        print(e)
+            if path_data:
+                file_paths = get_file_paths(path_data, wildcard)
+            elif self.paths._path_save:
+                file_paths = get_file_paths(self.paths._path_save, wildcard)
             else:
-                if path_data:
-                    file_paths = get_file_paths(path_data, wildcard)
-                elif self.paths._path_save:
-                    file_paths = get_file_paths(self.paths._path_save, wildcard)
-                else:
-                    raise ValueError("Path data is invalid.")
-                n_files = len(file_paths)
-                xy_dim["data"] = np.zeros((n_files, 1))
-                xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
-                z_dim["data"] = np.zeros((n_files, 1))
-                z_dim["data"] = np.multiply(z_dim["data"], np.nan)
-                for f in tqdm(range(len(file_paths))):
-                    try:
-                        MEDimg = np.load(file_paths[0], allow_pickle=True)
-                        xy_dim["data"][f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
-                        z_dim["data"][f]  = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
-                    except Exception as e:
-                        print(e)
+                raise ValueError("Path data is invalid.")
+            n_files = len(file_paths)
+            xy_dim["data"] = np.zeros((n_files, 1))
+            xy_dim["data"] = np.multiply(xy_dim["data"], np.nan)
+            z_dim["data"] = np.zeros((n_files, 1))
+            z_dim["data"] = np.multiply(z_dim["data"], np.nan)
+            for f in tqdm(range(len(file_paths))):
+                try:
+                    if file_paths[f].name.endswith("nii.gz") or file_paths[f].name.endswith("nii"):
+                        medscan = nib.load(file_paths[f])
+                        xy_dim["data"][f] = medscan.header.get_zooms()[0]
+                        z_dim["data"][f]  = medscan.header.get_zooms()[2]
+                    else:
+                        medscan = np.load(file_paths[f], allow_pickle=True)
+                        xy_dim["data"][f] = medscan.data.volume.spatialRef.PixelExtentInWorldX
+                        z_dim["data"][f]  = medscan.data.volume.spatialRef.PixelExtentInWorldZ
+                except Exception as e:
+                    print(e)
 
             # Running analysis
             xy_dim["data"] = np.concatenate(xy_dim["data"])
@@ -815,11 +818,11 @@ class DataManager(object):
             df_xy = pd.DataFrame(xy_dim["data"], columns=['data'])
             del xy_dim["data"]  # no interest in keeping data (we only need statistics)
             ax = df_xy.hist(column='data')
-            min_quant, max_quant, average = df_xy.quantile(min_percentile), df_xy.quantile(max_percentile), df_xy.mean()
+            min_quant, max_quant, median = df_xy.quantile(min_percentile), df_xy.quantile(max_percentile), df_xy.median()
             for x in ax[0]:
                 x.axvline(min_quant.data, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
                 x.axvline(max_quant.data, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
-                x.axvline(average.data, linestyle='solid', color='gold', label=f"Average: {float(average.data):.3f}")
+                x.axvline(median.data, linestyle='solid', color='gold', label=f"Median: {float(median.data):.3f}")
                 x.grid(False)
                 plt.title(f"Voxels xy-spacing checks for {wildcard}")
                 plt.legend()
@@ -829,58 +832,56 @@ class DataManager(object):
             df_z = pd.DataFrame(z_dim["data"], columns=['data'])
             del z_dim["data"]  # no interest in keeping data (we only need statistics)
             ax = df_z.hist(column='data')
-            min_quant, max_quant, average = df_z.quantile(min_percentile), df_z.quantile(max_percentile), df_z.mean()
+            min_quant, max_quant, median = df_z.quantile(min_percentile), df_z.quantile(max_percentile), df_z.median()
             for x in ax[0]:
                 x.axvline(min_quant.data, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
                 x.axvline(max_quant.data, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
-                x.axvline(average.data, linestyle='solid', color='gold', label=f"Average: {float(average.data):.3f}")
+                x.axvline(median.data, linestyle='solid', color='gold', label=f"Median: {float(median.data):.3f}")
                 x.grid(False)
                 plt.title(f"Voxels z-spacing checks for {wildcard}")
                 plt.legend()
                 plt.show()
                 
             # Saving files using wildcard for name
-            wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
-            save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim, cls=NumpyEncoder)
-            save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim, cls=NumpyEncoder)
+            if save:
+                wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
+                save_json(self.paths._path_save_checks / ('xyDim_' + wildcard), xy_dim, cls=NumpyEncoder)
+                save_json(self.paths._path_save_checks / ('zDim_' + wildcard), z_dim, cls=NumpyEncoder)
 
     def __pre_radiomics_checks_window(
         self,
         path_data: Union[str, Path] = None,
         wildcards_window: List = [], 
-        use_instances: bool = True,
         path_csv: Union[str, Path] = None,
         min_percentile: float = 0.05,
-        max_percentile: float = 0.95
+        max_percentile: float = 0.95,
+        bin_width: int = 0,
+        hist_range: list = [],
+        nifti: bool = True,
+        save: bool = False
         ) -> None:
         """Finds proper re-segmentation ranges options for radiomics analyses for a group of scans
 
         Args:
-            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+            path_data (Path, optional): Path to the MEDscan objects, if not specified will use ``path_save`` from the 
                 inner-class ``Paths`` in the current instance.
             wildcards_window(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
                 :ref:`this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`.
-            use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
-                for the analysis. If False, will analyze scans in the path where the instances were saved.
             path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be
                 analyzed (a CSV file for a single ROI type).
             min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
             max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
+            bin_width(int, optional): Width of the bins for the histograms. If not provided, will use the 
+                default number of bins in the method 
+                :ref:`pandas.DataFrame.hist <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.hist.html>`: 10 bins.
+            hist_range(list, optional): Range of the histograms. If empty, will use the minimum and maximum values.
+            nifti(bool, optional): If True, will use the NIfTI files, otherwise will use the numpy files.
+            save (bool, optional): If True, will save the results in a json file. Defaults to False.
         
         Returns:
             None.
         """
-        roi_data= {
-            "data": [],
-            "mean": [],
-            "median": [],
-            "std": [],
-            "min": [],
-            "max": [],
-            f"p{min_percentile}": [],
-            f"p{max_percentile}": []
-        }
         if type(wildcards_window) is str:
             wildcards_window = [wildcards_window]
 
@@ -890,72 +891,80 @@ class DataManager(object):
         if path_csv:
             self.paths._path_csv = Path(path_csv)
         roi_table = pd.read_csv(self.paths._path_csv)
-        roi_names = [[], [], []]
-        roi_names[0] = roi_table['PatientID']
-        roi_names[1] = roi_table['ImagingScanName']
-        roi_names[2] = roi_table['ImagingModality']
-        patient_names = get_patient_names(roi_names)
-
-        temp_val = []
-        temp = []
-        file_paths = []
+        if nifti:
+            roi_table['under'] = '_'
+            roi_table['dot'] = '.'
+            roi_table['roi_label'] = 'GTV'
+            roi_table['oparenthesis'] = '('
+            roi_table['cparenthesis'] = ')'
+            roi_table['ext'] = '.nii.gz'
+            patient_names = (pd.Series(
+                roi_table[['PatientID', 'under', 'under',
+                        'ImagingScanName',
+                        'oparenthesis',
+                        'roi_label',
+                        'cparenthesis',
+                        'dot',
+                        'ImagingModality',
+                        'ext']].fillna('').values.tolist()).str.join('')).tolist()
+        else:
+            roi_names = [[], [], []]
+            roi_names[0] = roi_table['PatientID']
+            roi_names[1] = roi_table['ImagingScanName']
+            roi_names[2] = roi_table['ImagingModality']
+            patient_names = get_patient_names(roi_names)
         for w in range(len(wildcards_window)):
+            temp_val = []
+            temp = []
+            file_paths = []
+            roi_data= {
+                "data": [],
+                "mean": [],
+                "median": [],
+                "std": [],
+                "min": [],
+                "max": [],
+                f"p{min_percentile}": [],
+                f"p{max_percentile}": []
+            }
             wildcard = wildcards_window[w]
-            if not use_instances:
-                if path_data:
-                    file_paths = get_file_paths(path_data, wildcard)
-                elif self.paths._path_save:
-                    file_paths = get_file_paths(self.paths._path_save, wildcard)
-                else:
-                    raise ValueError("Path data is invalid.")
-                n_files = len(file_paths)
-                for f in tqdm(range(n_files)):
-                    file = file_paths[f]
-                    _, filename = os.path.split(file)
-                    filename, ext = os.path.splitext(filename)
-                    patient_name = filename + ext
-                    try:
-                        MEDimg = np.load(file, allow_pickle=True)
-                        if re.search('PTscan', wildcard) and MEDimg.type != 'nifti':
-                            MEDimg.scan.volume.data = compute_suv_map(
-                                                        np.double(MEDimg.scan.volume.data), 
-                                                        MEDimg.dicomH[2])
-                        patient_names = pd.Index(patient_names)
-                        ind_roi = patient_names.get_loc(patient_name)
-                        name_roi = roi_table.loc[ind_roi][3]
-                        vol_obj_init, roi_obj_init = get_roi_from_indexes(MEDimg, name_roi, 'box')
-                        temp = vol_obj_init.data[roi_obj_init.data == 1]
-                        temp_val.append(len(temp))
-                        roi_data["data"].append(np.zeros(shape=(n_files, temp_val[f])))
-                        roi_data["data"][f] = temp
-                    except:
-                        roi_data["data"][f] = []
+            if path_data:
+                file_paths = get_file_paths(path_data, wildcard)
+            elif self.paths._path_save:
+                path_data = self.paths._path_save
+                file_paths = get_file_paths(self.paths._path_save, wildcard)
             else:
-                for i in tqdm(range(len(self.instances))):
-                    wildcard = str(wildcard).replace('*', '')
-                    study, scan_type = wildcard.split('.')[0:2]
-                    MEDimg = self.instances[i]
-                    patient_name = self.__get_MEDimage_name_save(MEDimg)
-                    if MEDimg.patientID.split('-')[0] == study and MEDimg.type == scan_type:
-                        try:
-                            if re.search('PTscan', wildcard) and MEDimg.type != 'nifti':
-                                MEDimg.scan.volume.data = compute_suv_map(np.double(MEDimg.scan.volume.data), 
-                                                                            MEDimg.dicomH[2])
-                            patient_names = pd.Index(patient_names)
-                            ind_roi = patient_names.get_loc(patient_name)
-                            name_roi = roi_table.loc[ind_roi][3]
-                            vol_obj_init, roi_obj_init = get_roi_from_indexes(MEDimg, name_roi, 'box')
-                            temp = vol_obj_init.data[roi_obj_init.data == 1]
-                            temp_val.append(len(temp))
-                            roi_data["data"].append(np.zeros(shape=(len(self.instances), temp_val[i])))
-                            roi_data["data"][i] = temp
-                        except:
-                            print(f"Problem with patient {patient_name}, scan or roi not found")
-                            roi_data["data"].append([])
-                            roi_data["data"][i] = []
+                raise ValueError("Path data is invalid.")
+            n_files = len(file_paths)
+            i = 0
+            for f in tqdm(range(n_files)):
+                file = file_paths[f]
+                _, filename = os.path.split(file)
+                filename, ext = os.path.splitext(filename)
+                patient_name = filename + ext
+                try:
+                    if file.name.endswith('nii.gz') or file.name.endswith('nii'):
+                        medscan = self.__process_one_nifti(file, path_data)
                     else:
-                        roi_data["data"].append([])
-                        continue
+                        medscan = np.load(file, allow_pickle=True)
+                        if re.search('PTscan', wildcard) and medscan.format != 'nifti':
+                            medscan.data.volume.array = compute_suv_map(
+                                                        np.double(medscan.data.volume.array), 
+                                                        medscan.dicomH[2])
+                    patient_names = pd.Index(patient_names)
+                    ind_roi = patient_names.get_loc(patient_name)
+                    name_roi = roi_table.loc[ind_roi][3]
+                    vol_obj_init, roi_obj_init = get_roi_from_indexes(medscan, name_roi, 'box')
+                    temp = vol_obj_init.data[roi_obj_init.data == 1]
+                    temp_val.append(len(temp))
+                    roi_data["data"].append(np.zeros(shape=(n_files, temp_val[i])))
+                    roi_data["data"][i] = temp
+                    i+=1
+                    del medscan
+                    del vol_obj_init
+                    del roi_obj_init
+                except Exception as e:
+                    print(f"Problem with patient {patient_name}, error: {e}")
             
             roi_data["data"] = np.concatenate(roi_data["data"])
             roi_data["mean"] = np.mean(roi_data["data"][~np.isnan(roi_data["data"])])
@@ -967,40 +976,67 @@ class DataManager(object):
                                                         min_percentile)
             roi_data[f"p{max_percentile}"] = np.percentile(roi_data["data"][~np.isnan(roi_data["data"])], 
                                                         max_percentile)
-            roi_data["data"] = roi_data["data"].tolist()
+            
+            # Set bin width if not provided
+            if bin_width != 0:
+                if hist_range:
+                    nb_bins = (round(hist_range[1]) - round(hist_range[0])) // bin_width
+                else:
+                    nb_bins = (round(roi_data["max"]) - round(roi_data["min"])) // bin_width
+            else:
+                nb_bins = 10
+                if hist_range:
+                    bin_width = int((round(hist_range[1]) - round(hist_range[0])) // nb_bins)
+                else:
+                    bin_width = int((round(roi_data["max"]) - round(roi_data["min"])) // nb_bins)
+            nb_bins = int(nb_bins)
 
-            # Plotting roi data histogram
+            # Set histogram range if not provided
+            if not hist_range:
+                hist_range = (roi_data["min"], roi_data["max"])
+
+           # re-segment data according to histogram range
+            roi_data["data"] = roi_data["data"][(roi_data["data"] > hist_range[0]) & (roi_data["data"] < hist_range[1])]
             df_data = pd.DataFrame(roi_data["data"], columns=['data'])
             del roi_data["data"]  # no interest in keeping data (we only need statistics)
-            ax = df_data.hist(column='data')
+
+            # Plot histogram
+            ax = df_data.hist(column='data', bins=nb_bins, range=(hist_range[0], hist_range[1]), edgecolor='black')
             min_quant, max_quant= df_data.quantile(min_percentile), df_data.quantile(max_percentile)
             for x in ax[0]:
-                x.axvline(min_quant.data, linestyle=':', color='r', label=f"Min Percentile: {float(min_quant):.3f}")
-                x.axvline(max_quant.data, linestyle=':', color='g', label=f"Max Percentile: {float(max_quant):.3f}")
+                x.axvline(min_quant.data, linestyle=':', color='r', label=f"{min_percentile*100}% Percentile: {float(min_quant):.3f}")
+                x.axvline(max_quant.data, linestyle=':', color='g', label=f"{max_percentile*100}% Percentile: {float(max_quant):.3f}")
                 x.grid(False)
-                plt.title(f"Intensity range checks for {wildcard}")
+                x.xaxis.set_ticks(np.arange(hist_range[0], hist_range[1], bin_width, dtype=int))
+                x.set_xticklabels(x.get_xticks(), rotation=45)
+                x.xaxis.set_tick_params(pad=15)
+                plt.title(f"Intensity range checks for {wildcard}, bw={bin_width}")
                 plt.legend()
                 plt.show()
             
             # save final checks
-            wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
-            save_json(self.paths._path_save_checks / ('roi_data_' + wildcard), roi_data, cls=NumpyEncoder)
+            if save:
+                wildcard = str(wildcard).replace('*', '').replace('.npy', '.json')
+                save_json(self.paths._path_save_checks / ('roi_data_' + wildcard), roi_data, cls=NumpyEncoder)
 
     def pre_radiomics_checks(self,
                             path_data: Union[str, Path] = None,
                             wildcards_dimensions: List = [],
                             wildcards_window: List = [],
-                            use_instances: bool = True,
                             path_csv: Union[str, Path] = None,
                             min_percentile: float = 0.05,
-                            max_percentile: float = 0.95) -> None:
+                            max_percentile: float = 0.95,
+                            bin_width: int = 0,
+                            hist_range: list = [],
+                            nifti: bool = False,
+                            save: bool = False) -> None:
         """Finds proper dimension and re-segmentation ranges options for radiomics analyses. 
 
         The resulting files from this method can then be analyzed and used to set up radiomics 
         parameters options in computation methods.
 
         Args:
-            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+            path_data (Path, optional): Path to the MEDscan objects, if not specified will use ``path_save`` from the 
                 inner-class ``Paths`` in the current instance.
             wildcards_dimensions(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
@@ -1008,12 +1044,16 @@ class DataManager(object):
             wildcards_window(List[str], optional): List of wildcards that determines the scans 
                 that will be analyzed. You can learn more about wildcards in
                 `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
-            use_instances(bool, optional): If True will use the instances of the MEDimage class saved in DataManager
-                for the analysis. If False, will analyze scans in the path where the instances were saved.
             path_csv(Union[str, Path], optional): Path to a csv file containing a list of the scans that will be
                 analyzed (a CSV file for a single ROI type).
             min_percentile (float, optional): Minimum percentile to use for the histograms. Defaults to 0.05.
             max_percentile (float, optional): Maximum percentile to use for the histograms. Defaults to 0.95.
+            bin_width(int, optional): Width of the bins for the histograms. If not provided, will use the 
+                default number of bins in the method 
+                :ref:`pandas.DataFrame.hist <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.hist.html>`: 10 bins.
+            hist_range(list, optional): Range of the histograms. If empty, will use the minimum and maximum values.
+            nifti (bool, optional): Set to True if the scans are nifti files. Defaults to False.
+            save (bool, optional): If True, will save the results in a json file. Defaults to False.
 
         Returns:
             None
@@ -1066,6 +1106,10 @@ class DataManager(object):
                     os.mkdir(self.paths._path_save_checks / 'checks')
                     self.paths._path_save_checks = Path(self.paths._path_save_checks / 'checks')
 
+        # Initializing plotting params
+        plt.rcParams["figure.figsize"] = (20,20)
+        plt.rcParams.update({'font.size': 22})
+        
         start = time()
         print('\n\n************************* PRE-RADIOMICS CHECKS *************************', end='')
 
@@ -1075,9 +1119,9 @@ class DataManager(object):
         self.__pre_radiomics_checks_dimensions(
                                         path_data, 
                                         wildcards_dimensions, 
-                                        use_instances,
                                         min_percentile, 
-                                        max_percentile)
+                                        max_percentile,
+                                        save)
         print('DONE', end='')
         time1 = f"{time() - start1:.2f}"
         print(f'\nElapsed time: {time1} sec', end='')
@@ -1088,10 +1132,13 @@ class DataManager(object):
         self.__pre_radiomics_checks_window(
                                         path_data, 
                                         wildcards_window, 
-                                        use_instances, 
                                         path_csv,
                                         min_percentile, 
-                                        max_percentile)
+                                        max_percentile,
+                                        bin_width,
+                                        hist_range,
+                                        nifti,
+                                        save)
         print('DONE', end='')
         time2 = f"{time() - start2:.2f}"
         print(f'\nElapsed time: {time2} sec', end='')
@@ -1116,7 +1163,7 @@ class DataManager(object):
                 that will be analyzed (Only MRI scans will be analyzed). You can learn more about wildcards in
                 `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
                 For example: ``[\"STS*.MRscan.npy\"]``.
-            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+            path_data (Path, optional): Path to the MEDscan objects, if not specified will use ``path_save`` from the 
                 inner-class ``Paths`` in the current instance.
             path_save_checks (Path, optional): Path where to save the checks, if not specified will use the one 
                 in the current instance.
@@ -1230,10 +1277,10 @@ class DataManager(object):
                 # Loading Data
                 try:
                     print(f'\nCurrently working on: {file}', file = warn_file)
-                    with open(path_data / file, 'rb') as fe: MEDimg = pickle.load(fe)
+                    with open(path_data / file, 'rb') as fe: medscan = pickle.load(fe)
 
                     # Example of DICOM header
-                    info = MEDimg.dicomH[1]
+                    info = medscan.dicomH[1]
                     # Recording dates (info.AcquistionDates)
                     try:
                         param.dates[f] = info.AcquisitionDate
@@ -1292,12 +1339,12 @@ class DataManager(object):
                         print(f'Cannot read number averages of: {file}. Error: {e}', file = warn_file)
                     # Recording xy spacing
                     try:
-                        param.xyDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
+                        param.xyDim.data[f] = medscan.data.volume.spatialRef.PixelExtentInWorldX
                     except Exception as e:
                         print(f'Cannot read x spacing of: {file}. Error: {e}', file = warn_file)
                     # Recording z spacing
                     try:
-                        param.zDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
+                        param.zDim.data[f] = medscan.data.volume.spatialRef.PixelExtentInWorldZ
                     except Exception as e:
                         print(f'Cannot read z spacing of: {file}', file = warn_file)
                 except Exception as e:
@@ -1397,7 +1444,7 @@ class DataManager(object):
                 that will be analyzed (Only MRI scans will be analyzed). You can learn more about wildcards in
                 `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
                 For example: ``[\"STS*.CTscan.npy\"]``.
-            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+            path_data (Path, optional): Path to the MEDscan objects, if not specified will use ``path_save`` from the 
                 inner-class ``Paths`` in the current instance.
             path_save_checks (Path, optional): Path where to save the checks, if not specified will use the one 
                 in the current instance.
@@ -1483,11 +1530,11 @@ class DataManager(object):
 
                 # Loading Data
                 try:
-                    with open(path_data / file, 'rb') as fe: MEDimg = pickle.load(fe)
+                    with open(path_data / file, 'rb') as fe: medscan = pickle.load(fe)
                     print(f'Currently working on: {file}', file=warn_file)
                     
                     # DICOM header
-                    info = MEDimg.dicomH[1]
+                    info = medscan.dicomH[1]
 
                     # Recording dates
                     try:
@@ -1522,12 +1569,12 @@ class DataManager(object):
                         print(f'Cannot read Kernel of: {file}. Error: {e}', file=warn_file)
                         # Recording xy spacing
                     try:
-                        param.xyDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldX
+                        param.xyDim.data[f] = medscan.data.volume.spatialRef.PixelExtentInWorldX
                     except Exception as e:
                         print(f'Cannot read x spacing of: {file}. Error: {e}', file=warn_file)
                         # Recording z spacing
                     try:
-                        param.zDim.data[f] = MEDimg.scan.volume.spatialRef.PixelExtentInWorldZ
+                        param.zDim.data[f] = medscan.data.volume.spatialRef.PixelExtentInWorldZ
                     except Exception as e:
                         print(f'Cannot read z spacing of: {file}. Error: {e}', file=warn_file)
                 except Exception as e:
@@ -1605,7 +1652,7 @@ class DataManager(object):
                 that will be analyzed (CT and MRI scans will be analyzed). You can learn more about wildcards in
                 `this link <https://www.linuxtechtips.com/2013/11/how-wildcards-work-in-linux-and-unix.html>`_.
                 For example: ``[\"STS*.CTscan.npy\", \"STS*.MRscan.npy\"]``.
-            path_data (Path, optional): Path to the MEDimage objects, if not specified will use ``path_save`` from the 
+            path_data (Path, optional): Path to the MEDscan objects, if not specified will use ``path_save`` from the 
                 inner-class ``Paths`` in the current instance.
             path_save_checks (Path, optional): Path where to save the checks, if not specified will use the one 
                 in the current instance.

@@ -1,11 +1,11 @@
 import math
 from itertools import product
-from typing import List, Union
+from typing import Union
 
 import numpy as np
-from MEDimage.MEDimage import MEDimage
-from MEDimage.utils.image_volume_obj import image_volume_obj
 
+from ..MEDscan import MEDscan
+from ..utils.image_volume_obj import image_volume_obj
 from .utils import convolve
 
 
@@ -85,7 +85,7 @@ class LaplacianOfGaussian():
 
 def apply_log(
         input_images: Union[np.ndarray, image_volume_obj],
-        MEDimg: MEDimage = None,
+        medscan: MEDscan = None,
         ndims: int = 3,
         voxel_length: float = 0.0,
         sigma: float = 0.1,
@@ -96,7 +96,7 @@ def apply_log(
 
     Args:
         input_images (ndarray): The images to filter.
-        MEDimg (MEDimage, optional): The MEDimage object that will provide the filter parameters.
+        medscan (MEDscan, optional): The MEDscan object that will provide the filter parameters.
         ndims (int, optional): The number of dimensions of the input image.
         voxel_length (float, optional): The voxel size of the input image.
         sigma (float, optional): standard deviation of the Gaussian, controls the scale of the convolutional operator.
@@ -116,18 +116,18 @@ def apply_log(
     # Convert to shape : (B, W, H, D)
     input_images = np.expand_dims(input_images.astype(np.float64), axis=0) 
     
-    if MEDimg:
+    if medscan:
         # Initialize filter class params & instance
-        sigma = MEDimg.params.filter.log.sigma / voxel_length
-        length = 2 * int(4 * MEDimg.params.filter.log.sigma + 0.5) + 1
+        sigma = medscan.params.filter.log.sigma / voxel_length
+        length = 2 * int(4 * sigma + 0.5) + 1
         _filter = LaplacianOfGaussian(
-                    ndims=MEDimg.params.filter.log.ndims,
+                    ndims=medscan.params.filter.log.ndims,
                     size=length,
                     sigma=sigma,
-                    padding=MEDimg.params.filter.log.padding
+                    padding=medscan.params.filter.log.padding
                 )
         # Run convolution
-        result = _filter.convolve(input_images, orthogonal_rot=MEDimg.params.filter.log.orthogonal_rot)
+        result = _filter.convolve(input_images, orthogonal_rot=medscan.params.filter.log.orthogonal_rot)
     else:
         # Initialize filter class params & instance
         sigma = sigma / voxel_length

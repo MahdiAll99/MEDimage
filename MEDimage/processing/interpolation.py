@@ -4,29 +4,32 @@
 
 import logging
 from copy import deepcopy
+from typing import List
 
 import numpy as np
-from MEDimage.MEDimage import MEDimage
 
+from ..MEDscan import MEDscan
 from ..processing.segmentation import compute_box
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
 from ..utils.interp3 import interp3
 
 
-def interp_volume(MEDimage: MEDimage, 
-                  vol_obj_s: np.ndarray,
-                  vox_dim=None,
-                  interp_met=None,
-                  round_val=None,
-                  image_type=None,
-                  roi_obj_s=None,
-                  box_string=None) -> image_volume_obj:
+def interp_volume(
+        vol_obj_s: image_volume_obj,
+        medscan: MEDscan= None, 
+        vox_dim: List = None,
+        interp_met: str = None,
+        round_val: float = None,
+        image_type: str = None,
+        roi_obj_s: image_volume_obj = None,
+        box_string: str = None,
+        texture: bool = False) -> image_volume_obj:
     """3D voxel interpolation on the input volume.
 
     Args:
-        MEDimage (object): The MEDimage class object.
         vol_obj_s (image_volume_obj): Imaging  that will be interpolated.
+        medscan (object): The MEDscan class object.
         vox_dim (array): Array of the voxel dimension. The following format is used
                          [Xin,Yin,Zslice], where Xin and Yin are the X (left to right) and
                          Y (bottom to top) IN-PLANE resolutions, and Zslice is the slice spacing,
@@ -46,48 +49,66 @@ def interp_volume(MEDimage: MEDimage,
                             number of voxels to add.
                           - Ex: '2box': Computes the smallest box and outputs double its \
                             size. The number before 'box' defines the multiplication in size.
-
+        texture (bool): If True, the texture voxel spacing of ``MEDscan`` will be used for interpolation.
+    
     Returns:
         ndarray: 3D array of 1's and 0's defining the ROI mask.
     """
     try:
         # PARSING ARGUMENTS
         if vox_dim is None:
-            return deepcopy(vol_obj_s)
+            if medscan is None:
+                return deepcopy(vol_obj_s)
+            else:
+                if texture:
+                    vox_dim = medscan.params.process.scale_text
+                else:
+                    vox_dim = medscan.params.process.scale_non_text
         if np.sum(vox_dim) == 0:
             return deepcopy(vol_obj_s)
         if len(vox_dim) == 2:
             two_d = True
         else:
             two_d = False
-
-        if interp_met is None:
-            raise ValueError("Interpolation method should be provided.")
-
+                
         if image_type is None:
             raise ValueError(
                 "The type of input image should be specified as \"image\" or \"roi\".")
-        if image_type not in ["image", "roi"]:
+        elif image_type not in ["image", "roi"]:
             raise ValueError(
                 "The type of input image should either be \"image\" or \"roi\".")
-
-        if image_type == "image":
+        elif image_type == "image":
+            if not interp_met: 
+                if medscan:
+                    interp_met = medscan.params.process.vol_interp
+                else:
+                    raise ValueError("Interpolation method or MEDscan instance should be provided.")
             if interp_met not in ["linear", "cubic", "spline"]:
                 raise ValueError(
                     "Interpolation method for images should either be \"linear\", \"cubic\" or \"spline\".")
+            if medscan and not round_val:
+                round_val = medscan.params.process.gl_round
             if round_val is not None:
                 if np.mod(np.log10(round_val), 1):
                     raise ValueError("\"round_val\" should be a power of 10.")
         else:
+            if not interp_met:
+                if medscan:
+                    interp_met = medscan.params.process.roi_interp
+                else:
+                    raise ValueError("Interpolation method or MEDscan instance should be provided.")
             if interp_met not in ["nearest", "linear", "cubic"]:
                 raise ValueError(
                     "Interpolation method for images should either be \"nearest\", \"linear\" or \"cubic\".")
+            if medscan and not round_val:
+                round_val = medscan.params.process.roi_pv
             if round_val is not None:
                 if round_val < 0.0 or round_val > 1.0:
                     raise ValueError("\"round_val\" must be between 0.0 and 1.0.")
             else:
                 raise ValueError("\"round_val\" must be provided for \"roi\".")
-
+        if medscan and not box_string:
+            box_string = medscan.params.process.box_string
         if roi_obj_s is None or box_string is None:
             use_box = False
         else:
@@ -237,15 +258,18 @@ def interp_volume(MEDimage: MEDimage,
             vol_obj_q.data[vol_obj_q.data < round_val] = 0.0
 
     except Exception as e:
-        if MEDimage.params.radiomics.scale_name:
-            message = f"\n PROBLEM WITH INTERPOLATION:\n {e}"
-            logging.error(message)
-            MEDimage.radiomics.image.update(
-                {(MEDimage.params.radiomics.scale_name ): 'ERROR_PROCESSING'})
+        if medscan:
+            if medscan.params.radiomics.scale_name:
+                message = f"\n PROBLEM WITH INTERPOLATION:\n {e}"
+                logging.error(message)
+                medscan.radiomics.image.update(
+                    {(medscan.params.radiomics.scale_name ): 'ERROR_PROCESSING'})
+            else:
+                message = f"\n PROBLEM WITH INTERPOLATION:\n {e}"
+                logging.error(message)
+                medscan.radiomics.image.update(
+                    {('scale'+(str(medscan.params.process.scale_non_text[0])).replace('.','dot')): 'ERROR_PROCESSING'})
         else:
-            message = f"\n PROBLEM WITH INTERPOLATION:\n {e}"
-            logging.error(message)
-            MEDimage.radiomics.image.update(
-                {('scale'+(str(MEDimage.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
+            print(f"\n PROBLEM WITH INTERPOLATION:\n {e}")
 
     return vol_obj_q

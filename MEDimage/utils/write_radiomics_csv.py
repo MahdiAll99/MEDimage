@@ -30,6 +30,7 @@ def write_radiomics_csv(path_radiomics_table: Union[Path, str]) -> None:
     csv_name = name_table + '.csv'
     csv_path = path_to_table / csv_name
     radiomics_table_dict['Table'] = radiomics_table_dict['Table'].fillna(value='NaN')
+    radiomics_table_dict['Table'] = radiomics_table_dict['Table'].sort_index()
     radiomics_table_dict['Table'].to_csv(csv_path,
                                        sep=',',
                                        encoding='utf-8',

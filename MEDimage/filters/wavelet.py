@@ -4,8 +4,9 @@ from typing import List, Union
 
 import numpy as np
 import pywt
-from MEDimage.MEDimage import MEDimage
-from MEDimage.utils.image_volume_obj import image_volume_obj
+
+from ..MEDscan import MEDscan
+from ..utils.image_volume_obj import image_volume_obj
 
 
 class Wavelet():
@@ -167,7 +168,7 @@ class Wavelet():
 
 def apply_wavelet(
         input_images: Union[np.ndarray, image_volume_obj],
-        MEDimg: MEDimage = None,
+        medscan: MEDscan = None,
         ndims: int = 3,
         wavelet_name: str = "haar",
         subband: str = "LHL",
@@ -179,7 +180,7 @@ def apply_wavelet(
     
     Args:
         input_images (ndarray): The image to filter.
-        MEDimg (MEDimage, optional): The MEDimage object that will provide the filter parameters.
+        medscan (MEDscan, optional): The MEDscan object that will provide the filter parameters.
         ndims (int, optional): The number of dimensions of the input image.
         wavelet_name (str): The name of the wavelet kernel as string.
         level (List[str], optional): The number of decompositions steps to perform.
@@ -201,19 +202,19 @@ def apply_wavelet(
     # Convert to shape : (B, W, H, D)
     input_images = np.expand_dims(input_images.astype(np.float64), axis=0) 
 
-    if MEDimg:
+    if medscan:
         # Initialize filter class instance
         _filter = Wavelet(
-                        ndims=MEDimg.params.filter.wavelet.ndims, 
-                        wavelet_name=MEDimg.params.filter.wavelet.basis_function,
-                        rot_invariance=MEDimg.params.filter.wavelet.rot_invariance,
-                        padding=MEDimg.params.filter.wavelet.padding
+                        ndims=medscan.params.filter.wavelet.ndims, 
+                        wavelet_name=medscan.params.filter.wavelet.basis_function,
+                        rot_invariance=medscan.params.filter.wavelet.rot_invariance,
+                        padding=medscan.params.filter.wavelet.padding
                     )
         # Run convolution
         result = _filter.convolve(
                         input_images, 
-                        _filter=MEDimg.params.filter.wavelet.subband, 
-                        level=MEDimg.params.filter.wavelet.level
+                        _filter=medscan.params.filter.wavelet.subband, 
+                        level=medscan.params.filter.wavelet.level
                     )
     else:
         # Initialize filter class instance

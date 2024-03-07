@@ -2,20 +2,41 @@ Welcome to the MEDimage documentation!
 =======================================
 
 .. image:: /figures/pakcage-overview.png
-  :alt: Alternative text
+   :width: 100%
 
 
-``MEDimage`` is a Python package for processing and extracting features from medical images. It gives you the ability to process \
-and filter images and compute all types of radiomic features. This package has been standardized with the `IBSI \
-<https://arxiv.org/pdf/1612.07003.pdf>`_ norms.
+``MEDimage`` is a comprehensive tool, for processing and extracting features from medical images. It also supports the training, evaluation, 
+and optimality analysis, streamlining radiomics approaches. It complies with `international radiomic feature extraction standards \
+<https://pubs.rsna.org/doi/10.1148/radiol.2020191145>`_  and `international standards for convolotuional filters \
+<https://pubs.rsna.org/doi/epdf/10.1148/radiol.231319>`_ in the context of radiomics.
+
+``MEDimage`` also uses an interactive, easy-to-install application (see image below) that grants users access to all software modules. Find more details `here \
+<https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/radiomics>`_
+
+.. carousel::
+   :show_controls:
+   :show_dark:
+
+   .. image:: /figures/MEDimage-app-depicted.png
+      :width: 500
+      :target: https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/radiomics/learning
+
+   .. image:: /figures/MEDimage-app-be.png
+      :width: 500
+      :target: https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/radiomics/feature-extraction
+
+   .. image:: /figures/MEDimage-app-dm.png
+      :width: 500
+      :target: https://medomics-udes.gitbook.io/medomicslab-docs/tutorials/radiomics/data-processing
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Getting started
 
    Installation
-   configuration_file
+   configurations_file
    csv_file
+   input_data
 
 .. toctree::
    :maxdepth: 1

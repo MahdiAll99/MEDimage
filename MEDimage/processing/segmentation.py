@@ -7,10 +7,10 @@ from copy import deepcopy
 from typing import List, Sequence, Tuple, Union
 
 import numpy as np
-from MEDimage.MEDimage import MEDimage
 from nibabel import Nifti1Image
 from scipy.ndimage import center_of_mass
 
+from ..MEDscan import MEDscan
 from ..utils.image_volume_obj import image_volume_obj
 from ..utils.imref import imref3d, intrinsicToWorld, worldToIntrinsic
 from ..utils.inpolygon import inpolygon
@@ -23,16 +23,16 @@ _logger = logging.getLogger(__name__)
 
 
 def get_roi_from_indexes(
-        MEDimg: MEDimage, 
+        medscan: MEDscan, 
         name_roi: str, 
         box_string: str
     ) -> Tuple[image_volume_obj, image_volume_obj]:
     """Extracts the ROI box (+ smallest box containing the region of interest)
-    and associated mask from the indexes saved in 'MEDimage' file.
+    and associated mask from the indexes saved in ``medscan`` scan.
     
     Args:
-        MEDimage (MEDimage): The MEDimage class object.
-        name_roi (str): name of the ROI since the a volume can have multuiple
+        medscan (MEDscan): The MEDscan class object.
+        name_roi (str): name of the ROI since the a volume can have multiple
             ROIs.
         box_string (str): Specifies the size if the box containing the ROI
 
@@ -60,7 +60,7 @@ def get_roi_from_indexes(
     try:
         name_structure_set = []
         delimiters = ["\+", "\-"]
-        n_contour_data = len(MEDimg.scan.ROI.indexes)
+        n_contour_data = len(medscan.data.ROI.indexes)
 
         name_roi, vect_plus_minus = get_sep_roi_names(name_roi, delimiters)
         contour_number = np.zeros(len(name_roi))
@@ -76,11 +76,11 @@ def get_roi_from_indexes(
 
         for i in range(0, len(name_roi)):
             for j in range(0, n_contour_data):
-                name_temp = MEDimg.scan.ROI.get_roi_name(key=j)
+                name_temp = medscan.data.ROI.get_roi_name(key=j)
                 if name_temp == name_roi[i]:
                     if name_structure_set:
                         # FOR DICOM + RTSTRUCT
-                        name_set_temp = MEDimg.scan.ROI.get_name_set(key=j)
+                        name_set_temp = medscan.data.ROI.get_name_set(key=j)
                         if name_set_temp == name_structure_set[i]:
                             contour_number[i] = j
                             break
@@ -114,16 +114,16 @@ def get_roi_from_indexes(
             n_contour = len(contour_number)
 
         # Note: sData is a nested dictionary not an object
-        spatial_ref = MEDimg.scan.volume.spatialRef
-        vol = MEDimg.scan.volume.data.astype(np.float32)
+        spatial_ref = medscan.data.volume.spatialRef
+        vol = medscan.data.volume.array.astype(np.float32)
 
         # APPLYING OPERATIONS ON ALL MASKS
-        roi = MEDimg.scan.get_indexes_by_roi_name(name_roi[0])
+        roi = medscan.data.get_indexes_by_roi_name(name_roi[0])
         for c in np.arange(start=1, stop=n_contour):
             if operations[c-1] == "+":
-                roi += MEDimg.scan.get_indexes_by_roi_name(name_roi[c])
+                roi += medscan.data.get_indexes_by_roi_name(name_roi[c])
             elif operations[c-1] == "-":
-                roi -= MEDimg.scan.get_indexes_by_roi_name(name_roi[c])
+                roi -= medscan.data.get_indexes_by_roi_name(name_roi[c])
             else:
                 raise ValueError("Unknown operation on ROI.")
 
@@ -144,8 +144,8 @@ def get_roi_from_indexes(
         logging.error(message)
         print(message)
 
-        MEDimg.radiomics.image.update(
-            {('scale'+(str(MEDimg.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
+        medscan.radiomics.image.update(
+            {('scale'+(str(medscan.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
 
     return vol_obj, roi_obj
 
@@ -574,16 +574,16 @@ def compute_bounding_box(mask:np.ndarray) -> np.ndarray:
 
     return box_bound.astype(int)
 
-def get_roi(MEDimage: MEDimage,
+def get_roi(medscan: MEDscan,
             name_roi: str,
             box_string: str,
             interp=False) -> Union[image_volume_obj,
                                    image_volume_obj]:
     """Computes the ROI box (box containing the region of interest)
-    and associated mask from MEDimage object.
+    and associated mask from MEDscan object.
 
     Args:
-        MEDimage (MEDimage): The MEDimage class object.
+        medscan (MEDscan): The MEDscan class object.
         name_roi (str): name of the ROI since the a volume can have multuiple ROIs.
         box_string (str): Specifies the size if the box containing the ROI
 
@@ -609,7 +609,7 @@ def get_roi(MEDimage: MEDimage,
     try:
         name_structure_set = []
         delimiters = ["\+", "\-"]
-        n_contour_data = len(MEDimage.scan.ROI.indexes)
+        n_contour_data = len(medscan.data.ROI.indexes)
 
         name_roi, vect_plus_minus = get_sep_roi_names(name_roi, delimiters)
         contour_number = np.zeros(len(name_roi))
@@ -625,11 +625,11 @@ def get_roi(MEDimage: MEDimage,
 
         for i in range(0, len(name_roi)):
             for j in range(0, n_contour_data):
-                name_temp = MEDimage.scan.ROI.get_roi_name(key=j)
+                name_temp = medscan.data.ROI.get_roi_name(key=j)
                 if name_temp == name_roi[i]:
                     if name_structure_set:
                         # FOR DICOM + RTSTRUCT
-                        name_set_temp = MEDimage.scan.ROI.get_name_set(key=j)
+                        name_set_temp = medscan.data.ROI.get_name_set(key=j)
                         if name_set_temp == name_structure_set[i]:
                             contour_number[i] = j
                             break
@@ -667,27 +667,27 @@ def get_roi(MEDimage: MEDimage,
             n_contour = len(contour_number)
 
         roi_mask_list = []
-        if MEDimage.type not in ["PTscan", "CTscan", "MRscan", "ADCscan"]:
+        if medscan.type not in ["PTscan", "CTscan", "MRscan", "ADCscan"]:
             raise ValueError("Unknown scan type.")
 
-        spatial_ref = MEDimage.scan.volume.spatialRef
-        vol = MEDimage.scan.volume.data.astype(np.float32)
+        spatial_ref = medscan.data.volume.spatialRef
+        vol = medscan.data.volume.array.astype(np.float32)
 
         # COMPUTING ALL MASKS
         for c in np.arange(start=0, stop=n_contour):
             contour = contour_number[c]
-            # GETTING THE XYZ POINTS FROM MEDimage
-            roi_xyz = MEDimage.scan.ROI.get_indexes(key=contour).copy()
+            # GETTING THE XYZ POINTS FROM medscan
+            roi_xyz = medscan.data.ROI.get_indexes(key=contour).copy()
 
             # APPLYING ROTATION TO XYZ POINTS (if necessary --> MRscan)
-            if hasattr(MEDimage.scan.volume, 'scan_rot') and MEDimage.scan.volume.scan_rot is not None:
+            if hasattr(medscan.data.volume, 'scan_rot') and medscan.data.volume.scan_rot is not None:
                 roi_xyz[:, [0, 1, 2]] = np.transpose(
-                    MEDimage.scan.volume.scan_rot @ np.transpose(roi_xyz[:, [0, 1, 2]]))
+                    medscan.data.volume.scan_rot @ np.transpose(roi_xyz[:, [0, 1, 2]]))
 
             # APPLYING TRANSLATION IF SIMULATION STRUCTURE AS INPUT
             # (software STAMP utility)
-            if hasattr(MEDimage.scan.volume, 'transScanToModel'):
-                translation = MEDimage.scan.volume.transScanToModel
+            if hasattr(medscan.data.volume, 'transScanToModel'):
+                translation = medscan.data.volume.transScanToModel
                 roi_xyz[:, 0] += translation[0]
                 roi_xyz[:, 1] += translation[1]
                 roi_xyz[:, 2] += translation[2]
@@ -700,8 +700,8 @@ def get_roi(MEDimage: MEDimage,
             # be able to fully use the "box" argument, so we are fourré...TO SOLVE!
             roi_mask_list += [compute_roi(roi_xyz=roi_xyz, 
                                         spatial_ref=spatial_ref,
-                                        orientation=MEDimage.scan.orientation,
-                                        scan_type=MEDimage.type,
+                                        orientation=medscan.data.orientation,
+                                        scan_type=medscan.type,
                                         interp=interp).astype(np.float32)]
 
         # APPLYING OPERATIONS ON ALL MASKS
@@ -731,8 +731,8 @@ def get_roi(MEDimage: MEDimage,
         message = f"\n PROBLEM WITH PRE-PROCESSING OF FEATURES IN get_roi(): \n {e}"
         _logger.error(message)
 
-        MEDimage.radiomics.image.update(
-            {('scale'+(str(MEDimage.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
+        medscan.radiomics.image.update(
+            {('scale'+(str(medscan.params.process.scale_non_text[0])).replace('.', 'dot')): 'ERROR_PROCESSING'})
 
     return vol_obj, roi_obj
 

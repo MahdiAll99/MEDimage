@@ -21,6 +21,11 @@ Install from source
 In order to install the package using conda, make sure to have Anaconda distribution on your machine, you can download and install it by \
 following the instructions `here <https://docs.anaconda.com/anaconda/install/index.html>`__.
 
+.. note::
+    We recommend updating conda before installing the environnement by running :: 
+        
+        conda update --yes --name base --channel defaults conda
+
 * Cloning the repository ::
 
     git clone https://github.com/MahdiAll99/MEDimage.git
@@ -37,20 +42,15 @@ following the instructions `here <https://docs.anaconda.com/anaconda/install/ind
 
     conda activate medimage
 
-* If you wanna run notebooks later, add your installed environnement to jupyter notebook kernels :: 
+* If you want to run the notebooks, you must add your installed environnement to jupyter notebook kernels :: 
      
     python -m ipykernel install --user --name=medimage
-
-.. note::
-    We recommend updating conda before installing the environnement by running :: 
-        
-        conda update --yes --name base --channel defaults conda
 
 .. |conda-logo| image:: https://www.psych.mcgill.ca/labs/mogillab/anaconda2/pkgs/anaconda-navigator-1.4.3-py27_0/lib/python2.7/site-packages/anaconda_navigator/static/images/anaconda-icon-1024x1024.png
     :width: 3%
     :target: https://docs.anaconda.com/anaconda/install/index.html
 
-1. **Using Poetry** |poetry-logo|
+2. **Using Poetry** |poetry-logo|
 
 * Download and install poetry ::
 
@@ -85,4 +85,4 @@ The created environment will be activated automatically.
     :width: 3%
     :target: https://python-poetry.org/docs/
 
-Now that you have successfully installed the package and to further understand the usage of the it, we invite you to follow these :doc:`../tutorials`.
+Now that you have successfully installed the package, we invite you to follow these :doc:`../tutorials` to further comprehend how to use it.

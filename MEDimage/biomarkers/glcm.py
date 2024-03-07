@@ -858,10 +858,10 @@ def get_glcm_matrices(vol,
                         distance="chebyshev",
                         centre=False,
                         complete=False,
-                        dim3=False) * np.int(ii_dist)
+                        dim3=False) * int(ii_dist)
                     for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                         # Add glcm matrices to list
-                        glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist),
+                        glcm_list += [CooccurrenceMatrix(distance=int(ii_dist),
                                                         direction=nbrs[:, ii_direction],
                                                         direction_id=ii_direction,
                                                         spatial_method=ii_spatial.lower(),
@@ -874,11 +874,11 @@ def get_glcm_matrices(vol,
                                             distance="chebyshev",
                                             centre=False,
                                             complete=False,
-                                            dim3=True) * np.int(ii_dist)
+                                            dim3=True) * int(ii_dist)
 
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                     # Add glcm matrices to list
-                    glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), 
+                    glcm_list += [CooccurrenceMatrix(distance=int(ii_dist), 
                                                     direction=nbrs[:, ii_direction], 
                                                     direction_id=ii_direction,
                                                     spatial_method=ii_spatial.lower())]
@@ -983,10 +983,10 @@ def get_cm_features(vol,
                         distance="chebyshev",
                         centre=False,
                         complete=False,
-                        dim3=False) * np.int(ii_dist)
+                        dim3=False) * int(ii_dist)
                     for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                         # Add glcm matrices to list
-                        glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist),
+                        glcm_list += [CooccurrenceMatrix(distance=int(ii_dist),
                                                         direction=nbrs[:, ii_direction],
                                                         direction_id=ii_direction,
                                                         spatial_method=ii_spatial.lower(),
@@ -999,11 +999,11 @@ def get_cm_features(vol,
                                             distance="chebyshev",
                                             centre=False,
                                             complete=False,
-                                            dim3=True) * np.int(ii_dist)
+                                            dim3=True) * int(ii_dist)
 
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
                     # Add glcm matrices to list
-                    glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), 
+                    glcm_list += [CooccurrenceMatrix(distance=int(ii_dist), 
                                                     direction=nbrs[:, ii_direction], 
                                                     direction_id=ii_direction,
                                                     spatial_method=ii_spatial.lower())]
@@ -1441,11 +1441,11 @@ class CooccurrenceMatrix:
         # Don't return data for empty slices or slices without a good matrix
         if self.matrix is None:
             # Update names
-            df_feat.columns += self._parse_names()
+            #df_feat.columns += self._parse_names()
             return df_feat
         elif len(self.matrix) == 0:
             # Update names
-            df_feat.columns += self._parse_names()
+            #df_feat.columns += self._parse_names()
             return df_feat
 
         df_pij, df_pi, df_pj, df_pimj, df_pipj, n_g = self.get_cm_data(intensity_range)

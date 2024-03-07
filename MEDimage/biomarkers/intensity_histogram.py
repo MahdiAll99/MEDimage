@@ -8,7 +8,7 @@ import numpy as np
 from scipy.stats import scoreatpercentile, variation
 
 
-def init_IH(vol: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.integer, np.ndarray, np.ndarray]:
+def init_IH(vol: np.ndarray) -> Tuple[np.ndarray, np.ndarray, int, np.ndarray, np.ndarray]:
     """Initialize Intensity Histogram Features.
 
     Args:
@@ -343,7 +343,7 @@ def max(vol: np.ndarray) -> float:
 
     return np.max(x)  # Maximum grey level
 
-def mode(vol: np.ndarray) -> np.integer:
+def mode(vol: np.ndarray) -> int:
     """Compute Intensity histogram mode feature of the input dataset (3D Array).
     This feature refers to "Fih_mode" (ID = AMMC) in 
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.

@@ -3,9 +3,9 @@ from itertools import product
 from typing import List, Union
 
 import numpy as np
-from MEDimage.MEDimage import MEDimage
-from MEDimage.utils.image_volume_obj import image_volume_obj
 
+from ..MEDscan import MEDscan
+from ..utils.image_volume_obj import image_volume_obj
 from .utils import convolve
 
 
@@ -96,7 +96,8 @@ class Gabor():
 
     def convolve(self,
                  images: np.ndarray,
-                 orthogonal_rot=False) -> np.ndarray:
+                 orthogonal_rot=False,
+                 pooling_method='mean') -> np.ndarray:
         """Filter a given image using the Gabor kernel defined during the construction of this instance.
 
         Args:
@@ -121,7 +122,12 @@ class Gabor():
         result = np.linalg.norm(result, axis=0)
 
         # Rotation invariance.
-        result = np.mean(result, axis=2) if orthogonal_rot else np.mean(result, axis=1)
+        if pooling_method == 'mean':
+            result = np.mean(result, axis=2) if orthogonal_rot else np.mean(result, axis=1)
+        elif pooling_method == 'max':
+            result = np.max(result, axis=2) if orthogonal_rot else np.max(result, axis=1)
+        else:
+            raise ValueError("Pooling method should be either 'mean' or 'max'.")
 
         # Aggregate orthogonal rotation
         result = np.mean(result, axis=0) if orthogonal_rot else result
@@ -130,7 +136,7 @@ class Gabor():
 
 def apply_gabor(
         input_images: Union[image_volume_obj, np.ndarray],
-        MEDimg: MEDimage = None,
+        medscan: MEDscan = None,
         voxel_length: float = 0.0,
         sigma: float = 0.0,
         _lambda: float = 0.0,
@@ -138,13 +144,14 @@ def apply_gabor(
         theta: float = 0.0,
         rot_invariance: bool = False,
         padding: str = "symmetric",
-        orthogonal_rot: bool = False
+        orthogonal_rot: bool = False,
+        pooling_method: str = "mean"
     ) -> np.ndarray:
-    """Apply the Gabor filter to a given MEDimage.
+    """Apply the Gabor filter to a given imaging data.
     
     Args:
         input_images (Union[image_volume_obj, np.ndarray]): The input images to filter.
-        MEDimg (MEDimage, optional): The MEDimage to filter.
+        medscan (MEDscan, optional): The MEDscan object that will provide the filter parameters.
         voxel_length (float, optional): The voxel size of the input image.
         sigma (float, optional): A positive float that represent the scale of the Gabor filter.
         _lambda (float, optional): A positive float that represent the wavelength in the Gabor filter.
@@ -168,22 +175,22 @@ def apply_gabor(
     # Convert to shape : (B, W, H, D)
     input_images = np.expand_dims(input_images.astype(np.float64), axis=0) 
 
-    if MEDimg:
+    if medscan:
         # Initialize filter class params & instance
-        voxel_length = MEDimg.params.process.scale_non_text[0]
-        sigma = MEDimg.params.filter.gabor.sigma / voxel_length
-        lamb = MEDimg.params.filter.gabor._lambda / voxel_length
-        size = 2 * int(7 * MEDimg.params.filter.gabor.sigma + 0.5) + 1
+        voxel_length = medscan.params.process.scale_non_text[0]
+        sigma = medscan.params.filter.gabor.sigma / voxel_length
+        lamb = medscan.params.filter.gabor._lambda / voxel_length
+        size = 2 * int(7 * sigma + 0.5) + 1
         _filter = Gabor(size=size,
                         sigma=sigma,
                         lamb=lamb,
-                        gamma=MEDimg.params.filter.gabor.gamma,
-                        theta=-MEDimg.params.filter.gabor.theta,
-                        rot_invariance=MEDimg.params.filter.gabor.rot_invariance,
-                        padding=MEDimg.params.filter.gabor.padding
+                        gamma=medscan.params.filter.gabor.gamma,
+                        theta=-medscan.params.filter.gabor.theta,
+                        rot_invariance=medscan.params.filter.gabor.rot_invariance,
+                        padding=medscan.params.filter.gabor.padding
                         )
         # Run convolution
-        result = _filter.convolve(input_images, orthogonal_rot=MEDimg.params.filter.gabor.orthogonal_rot)
+        result = _filter.convolve(input_images, orthogonal_rot=medscan.params.filter.gabor.orthogonal_rot)
     else:
         if not (voxel_length and sigma and _lambda and gamma and theta):
             raise ValueError("Missing parameters to build the Gabor filter.")
@@ -200,7 +207,7 @@ def apply_gabor(
                         padding=padding
                         )
         # Run convolution
-        result = _filter.convolve(input_images, orthogonal_rot=orthogonal_rot)
+        result = _filter.convolve(input_images, orthogonal_rot=orthogonal_rot, pooling_method=pooling_method)
     
     if spatial_ref:
         return image_volume_obj(np.squeeze(result), spatial_ref)

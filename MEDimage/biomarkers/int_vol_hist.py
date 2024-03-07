@@ -5,16 +5,16 @@ import logging
 from typing import Dict, Tuple
 
 import numpy as np
-from MEDimage.MEDimage import MEDimage
 
 from ..biomarkers.utils import find_i_x, find_v_x
+from ..MEDscan import MEDscan
 
 
-def init_ivh(MEDimg: MEDimage, 
+def init_ivh(medscan: MEDscan, 
              vol: np.ndarray, 
              vol_int_re: np.ndarray, 
              wd: int, 
-             user_set_range: np.ndarray=None) -> Tuple[np.ndarray, np.ndarray, np.integer, np.integer]:
+             user_set_range: np.ndarray=None) -> Tuple[np.ndarray, np.ndarray, int, int]:
     """Computes Intensity-volume Histogram Features.
 
     Note:
@@ -25,7 +25,7 @@ def init_ivh(MEDimg: MEDimage,
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     Args:
-        MEDimg (MEDimage): MEDimage instance.
+        medscan (MEDscan): MEDscan instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
         wd (int): Discretisation width.
@@ -35,22 +35,22 @@ def init_ivh(MEDimg: MEDimage,
         Dict: Dict of the Intensity Histogram Features.
     """
     try:
-        if 'type' in MEDimg.params.process.ivh and MEDimg.params.process.ivh:
+        if 'type' in medscan.params.process.ivh and medscan.params.process.ivh:
             # PET example case (definite intensity units -- continuous case)
-            if MEDimg.params.process.ivh['type'] == 'FBS' or MEDimg.params.process.ivh['type'] == 'FBSequal':
+            if medscan.params.process.ivh['type'] == 'FBS' or medscan.params.process.ivh['type'] == 'FBSequal':
                 range_fbs = [0, 0]
-                if not MEDimg.params.process.im_range:
+                if not medscan.params.process.im_range:
                     range_fbs[0] = np.nanmin(vol_int_re)
                     range_fbs[1] = np.nanmax(vol_int_re)
                 else:
-                    if MEDimg.params.process.im_range[0] == -np.inf:
+                    if medscan.params.process.im_range[0] == -np.inf:
                         range_fbs[0] = np.nanmin(vol_int_re)
                     else:
-                        range_fbs[0] = MEDimg.params.process.im_range[0]
-                    if MEDimg.params.process.im_range[1] == np.inf:
+                        range_fbs[0] = medscan.params.process.im_range[0]
+                    if medscan.params.process.im_range[1] == np.inf:
                         range_fbs[1] = np.nanmax(vol_int_re)
                     else:
-                        range_fbs[1] = MEDimg.params.process.im_range[1]
+                        range_fbs[1] = medscan.params.process.im_range[1]
                 # In this case, wd = wb (see discretisation.m)
                 range_fbs[0] = range_fbs[0] + 0.5*wd
                 # In this case, wd = wb (see discretisation.m)
@@ -61,7 +61,7 @@ def init_ivh(MEDimg: MEDimage,
                 user_set_range = None
 
         else:  # CT example case (definite intensity units -- discrete case)
-            user_set_range = MEDimg.params.process.im_range
+            user_set_range = medscan.params.process.im_range
 
         # INITIALIZATION
         X = vol[~np.isnan(vol[:])]
@@ -91,14 +91,14 @@ def init_ivh(MEDimg: MEDimage,
     
     except Exception as e:
         message = f'PROBLEM WITH INITIALIZATION OF INTENSITY-VOLUME HISTOGRAM FEATURES \n {e}'
-        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
+        medscan.radiomics.image['intVolHist_3D'][medscan.params.radiomics.ivh_name].update(
             {'error': 'ERROR_INITIALIZATION'})
         logging.error(message)
         print(message)
 
     return X, levels, n_g, n_v
 
-def extract_all(MEDimg: MEDimage, 
+def extract_all(medscan: MEDscan, 
                 vol: np.ndarray, 
                 vol_int_re: np.ndarray, 
                 wd: int, 
@@ -113,7 +113,7 @@ def extract_all(MEDimg: MEDimage,
         quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     Args:
-        MEDimg (MEDimage): MEDimage instance.
+        medscan (MEDscan): MEDscan instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
         wd (int): Discretisation width.
@@ -124,7 +124,7 @@ def extract_all(MEDimg: MEDimage,
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
-        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+        X, levels, n_g, n_v = init_ivh(medscan, vol, vol_int_re, wd, user_set_range)
 
         # Initialization of final structure (Dictionary) containing all features.
         int_vol_hist = {'Fivh_V10': [],
@@ -180,14 +180,14 @@ def extract_all(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF INTENSITY-VOLUME HISTOGRAM FEATURES \n {e}'
-        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
+        medscan.radiomics.image['intVolHist_3D'][medscan.params.radiomics.ivh_name].update(
             {'error': 'ERROR_COMPUTATION'})
         logging.error(message)
         print(message)
 
     return int_vol_hist
 
-def v10(MEDimg: MEDimage, 
+def v10(medscan: MEDscan, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
@@ -198,7 +198,7 @@ def v10(MEDimg: MEDimage,
 
 
     Args:
-        MEDimg (MEDimage): MEDimage instance.
+        medscan (MEDscan): MEDscan instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
         wd (int): Discretisation width.
@@ -209,7 +209,7 @@ def v10(MEDimg: MEDimage,
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
-        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+        X, levels, n_g, n_v = init_ivh(medscan, vol, vol_int_re, wd, user_set_range)
 
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
@@ -224,14 +224,14 @@ def v10(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF V10 FEATURE \n {e}'
-        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
+        medscan.radiomics.image['intVolHist_3D'][medscan.params.radiomics.ivh_name].update(
             {'error': 'ERROR_V10'})
         logging.error(message)
         print(message)
 
     return v10
 
-def v90(MEDimg: MEDimage, 
+def v90(medscan: MEDscan, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
@@ -241,7 +241,7 @@ def v90(MEDimg: MEDimage,
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
-        MEDimg (MEDimage): MEDimage instance.
+        medscan (MEDscan): MEDscan instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
         wd (int): Discretisation width.
@@ -252,7 +252,7 @@ def v90(MEDimg: MEDimage,
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
-        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+        X, levels, n_g, n_v = init_ivh(medscan, vol, vol_int_re, wd, user_set_range)
 
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
@@ -267,14 +267,14 @@ def v90(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF V90 FEATURE \n {e}'
-        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
+        medscan.radiomics.image['intVolHist_3D'][medscan.params.radiomics.ivh_name].update(
             {'error': 'ERROR_V90'})
         logging.error(message)
         print(message)
 
     return v90
 
-def i10(MEDimg: MEDimage, 
+def i10(medscan: MEDscan, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
@@ -284,7 +284,7 @@ def i10(MEDimg: MEDimage,
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
-        MEDimg (MEDimage): MEDimage instance.
+        medscan (MEDscan): MEDscan instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
         wd (int): Discretisation width.
@@ -295,7 +295,7 @@ def i10(MEDimg: MEDimage,
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
-        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+        X, levels, n_g, n_v = init_ivh(medscan, vol, vol_int_re, wd, user_set_range)
 
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
@@ -310,14 +310,14 @@ def i10(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF I10 FEATURE \n {e}'
-        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
+        medscan.radiomics.image['intVolHist_3D'][medscan.params.radiomics.ivh_name].update(
             {'error': 'ERROR_I10'})
         logging.error(message)
         print(message)
 
     return i10
 
-def i90(MEDimg: MEDimage, 
+def i90(medscan: MEDscan, 
         vol: np.ndarray, 
         vol_int_re: np.ndarray, 
         wd: int, 
@@ -327,7 +327,7 @@ def i90(MEDimg: MEDimage,
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
-        MEDimg (MEDimage): MEDimage instance.
+        medscan (MEDscan): MEDscan instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
         wd (int): Discretisation width.
@@ -338,7 +338,7 @@ def i90(MEDimg: MEDimage,
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
-        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+        X, levels, n_g, n_v = init_ivh(medscan, vol, vol_int_re, wd, user_set_range)
 
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
@@ -353,14 +353,14 @@ def i90(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF I90 FEATURE \n {e}'
-        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
+        medscan.radiomics.image['intVolHist_3D'][medscan.params.radiomics.ivh_name].update(
             {'error': 'ERROR_I90'})
         logging.error(message)
         print(message)
 
     return i90
 
-def v10_minus_v90(MEDimg: MEDimage, 
+def v10_minus_v90(medscan: MEDscan, 
                 vol: np.ndarray, 
                 vol_int_re: np.ndarray, 
                 wd: int, 
@@ -370,7 +370,7 @@ def v10_minus_v90(MEDimg: MEDimage,
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
-        MEDimg (MEDimage): MEDimage instance.
+        medscan (MEDscan): MEDscan instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
         wd (int): Discretisation width.
@@ -381,7 +381,7 @@ def v10_minus_v90(MEDimg: MEDimage,
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
-        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+        X, levels, n_g, n_v = init_ivh(medscan, vol, vol_int_re, wd, user_set_range)
 
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
@@ -399,14 +399,14 @@ def v10_minus_v90(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF V10minusV90 FEATURE \n {e}'
-        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
+        medscan.radiomics.image['intVolHist_3D'][medscan.params.radiomics.ivh_name].update(
             {'error': 'ERROR_V10minusV90'})
         logging.error(message)
         print(message)
 
     return v10 - v90
 
-def i10_minus_i90(MEDimg: MEDimage, 
+def i10_minus_i90(medscan: MEDscan, 
                 vol: np.ndarray, 
                 vol_int_re: np.ndarray, 
                 wd: int, 
@@ -416,7 +416,7 @@ def i10_minus_i90(MEDimg: MEDimage,
     the `IBSI1 reference manual <https://arxiv.org/pdf/1612.07003.pdf>`__.
 
     Args:
-        MEDimg (MEDimage): MEDimage instance.
+        medscan (MEDscan): MEDscan instance.
         vol (ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re (ndarray): 3D volume, with NaNs outside the region of interest
         wd (int): Discretisation width.
@@ -427,7 +427,7 @@ def i10_minus_i90(MEDimg: MEDimage,
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
-        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+        X, levels, n_g, n_v = init_ivh(medscan, vol, vol_int_re, wd, user_set_range)
 
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
@@ -448,14 +448,14 @@ def i10_minus_i90(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF I10minusI90 FEATURE \n {e}'
-        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
+        medscan.radiomics.image['intVolHist_3D'][medscan.params.radiomics.ivh_name].update(
             {'error': 'ERROR_I10minusI90'})
         logging.error(message)
         print(message)
 
     return i10 - i90
 
-def auc(MEDimg: MEDimage, 
+def auc(medscan: MEDscan, 
                 vol: np.ndarray, 
                 vol_int_re: np.ndarray, 
                 wd: int, 
@@ -473,7 +473,7 @@ def auc(MEDimg: MEDimage,
             quantized (e.g., nBins = 100), with levels = [min, ..., max]
 
     Args:
-        MEDimg(MEDimage): MEDimage instance.
+        medscan(MEDscan): MEDscan instance.
         vol(ndarray): 3D volume, QUANTIZED, with NaNs outside the region of interest
         vol_int_re(ndarray): 3D volume, with NaNs outside the region of interest
         wd(int): Discretisation width.
@@ -484,7 +484,7 @@ def auc(MEDimg: MEDimage,
     """
     try:
         # Retrieve relevant parameters from init_ivh() method.
-        X, levels, n_g, n_v = init_ivh(MEDimg, vol, vol_int_re, wd, user_set_range)
+        X, levels, n_g, n_v = init_ivh(medscan, vol, vol_int_re, wd, user_set_range)
 
         # Calculating fractional volume
         fract_vol = np.zeros(n_g)
@@ -496,7 +496,7 @@ def auc(MEDimg: MEDimage,
 
     except Exception as e:
         message = f'PROBLEM WITH COMPUTATION OF AUC FEATURE \n {e}'
-        MEDimg.radiomics.image['intVolHist_3D'][MEDimg.params.radiomics.ivh_name].update(
+        medscan.radiomics.image['intVolHist_3D'][medscan.params.radiomics.ivh_name].update(
             {'error': 'ERROR_AUC'})
         logging.error(message)
         print(message)

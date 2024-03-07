@@ -45,13 +45,19 @@ def create_radiomics_table(radiomics_files_paths: List, image_space: str, log_fi
 
     # INITIALIZE FEATURE NAMES
     logging.info(f"\nnFiles: {n_files}")
-    rand_patient = np.floor(n_files * random.uniform(0, 1)).astype(int)
-    with open(radiomics_files_paths[rand_patient], "r") as fp: 
-        radiomics_struct = load(fp)
+    non_text_cell = []
+    text_cell = []
+    while len(non_text_cell) == 0 and len(text_cell) == 0:
+        try:
+            rand_patient = np.floor(n_files * random.uniform(0, 1)).astype(int)
+            with open(radiomics_files_paths[rand_patient], "r") as fp: 
+                radiomics_struct = load(fp)
 
-    # IMAGE SPACE STRUCTURE --> .morph, .locInt, ...,  .texture
-    image_space_struct = radiomics_struct[image_space]
-    non_text_cell, text_cell = initialize_features_names(image_space_struct)
+            # IMAGE SPACE STRUCTURE --> .morph, .locInt, ...,  .texture
+            image_space_struct = radiomics_struct[image_space]
+            non_text_cell, text_cell = initialize_features_names(image_space_struct)
+        except:
+            pass
 
     # CREATE TABLE DATA
     features_name_dict = {}
