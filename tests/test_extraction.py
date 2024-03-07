@@ -53,7 +53,7 @@ class TestExtraction:
         )
         stats = MEDimage.biomarkers.stats.extract_all(
             vol=vol_int_re,
-            intensity_type="arbitrary"
+            intensity_type="definite"
         )
         kurt = MEDimage.biomarkers.stats.kurt(
             vol=vol_int_re,
