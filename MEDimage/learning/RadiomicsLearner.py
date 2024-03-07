@@ -11,7 +11,6 @@ from numpyencoder import NumpyEncoder
 from pycaret.classification import *
 from sklearn import metrics
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from supervised.automl import AutoML
 from xgboost import XGBClassifier
 
 from MEDimage.learning.DataCleaner import DataCleaner
@@ -314,7 +313,6 @@ class RadiomicsLearner:
                 - "pycaret": Use PyCaret to train the model (automatic).
                 - "grid_search": Grid search with cross-validation to find the best parameters.
                 - "random_search": Random search with cross-validation to find the best parameters.
-                - "auto": AutoML to find the best XGBoost model.
             use_gpu (bool, optional): Boolean specifying if the GPU should be used to train the model. Default is True.
             seed (int, optional): Integer specifying the seed to use for the random number generator.
         
@@ -328,14 +326,7 @@ class RadiomicsLearner:
         # Finalize the new radiomics table with the remaining variables
         var_table_train = finalize_rad_table(var_table_train)
 
-        if method == "auto":
-            # Best model using AutoML
-            classifier = AutoML(algorithms=["Xgboost"], mode="Compete", golden_features=False, eval_metric=metrics.matthews_corrcoef)
-
-            # Fit the best XGB Classifier
-            classifier.fit(var_table_train, outcome_table_binary_train)
-        
-        elif method.lower() == "pycaret":
+        if method.lower() == "pycaret":
             # Set up data for PyCaret
             temp_data = pd.merge(var_table_train, outcome_table_binary_train, left_index=True, right_index=True)
 
@@ -699,7 +690,6 @@ class RadiomicsLearner:
                 - "pycaret": Use PyCaret to train the model (automatic).
                 - "grid_search": Grid search with cross-validation to find the best parameters.
                 - "random_search": Random search with cross-validation to find the best parameters.
-                - "auto": AutoML to find the best XGBoost model.
             
         Returns:
             None
