@@ -22,19 +22,20 @@ class Normalization:
         self.institutions = institutions
     
     def apply_combat(
-                self, 
-                variable_table: pd.DataFrame, 
-                covariate_df: pd.DataFrame = None, 
-                institutions: list = None
+            self, 
+            variable_table: pd.DataFrame, 
+            covariate_df: pd.DataFrame = None, 
+            institutions: list = None
         ) -> pd.DataFrame:
         """
         Applys ComBat Normalization method to the data.
         More details :ref:`this link <https://github.com/Jfortin1/ComBatHarmonization/tree/master/Python>`.
 
         Args:
-            variable_table (pd.DataFrame): pandas data frame on which Combat harmonization will be
-                applied. This table is of size N X F (Observations X Features) and has the IDs as index.
-                Requirements for this table:
+            variable_table (pd.DataFrame): pandas data frame on which Combat harmonization will be applied. 
+                This table is of size N X F (Observations X Features) and has the IDs as index. 
+                Requirements for this table
+
                     - Does not contain NaNs.
                     - No feature has 0 variance.
                     - All variables are continuous (For example: Radiomics variables).

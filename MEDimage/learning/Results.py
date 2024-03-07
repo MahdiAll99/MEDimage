@@ -436,6 +436,7 @@ class Results:
             metric (str, optional): Metric to plot. Defaults to 'AUC_mean'.
             p_value_test (str, optional): Method to use to calculate the p-value. Defaults to 'wilcoxon'.
                 Available options:
+                    
                     - 'delong': Delong test.
                     - 'ttest': T-test.
                     - 'wilcoxon': Wilcoxon signed rank test.
@@ -639,8 +640,8 @@ class Results:
             metric (str, optional): Metric to plot. Defaults to 'AUC_mean'.
             stat_extra (list, optional): List of extra statistics to include in the plot. Defaults to [].
             plot_p_values (bool, optional): If True plots the p-value of the choosen test. Defaults to True.
-            p_value_test (str, optional): Method to use to calculate the p-value. Defaults to 'wilcoxon'.
-                Available options:
+            p_value_test (str, optional): Method to use to calculate the p-value. Defaults to 'wilcoxon'. Available options:
+                    
                     - 'delong': Delong test.
                     - 'ttest': T-test.
                     - 'wilcoxon': Wilcoxon signed rank test.
