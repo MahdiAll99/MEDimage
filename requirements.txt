@@ -9,7 +9,7 @@ neuroCombat
 nibabel
 nilearn
 numpyencoder
-pandas
+pandas<2.0.0
 Pillow
 protobuf
 pycaret
