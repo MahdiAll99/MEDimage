@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 import warnings
 
 import numpy as np
@@ -224,7 +224,7 @@ class Stats:
         T2[J] = T + 1
         return T2
 
-    def __fast_delong(self, predictions_sorted_transposed: np.array, label_1_count: int) -> tuple[float, float]:
+    def __fast_delong(self, predictions_sorted_transposed: np.array, label_1_count: int) -> Tuple[float, float]:
         """
         Computes the empricial AUC and its covariance using the fast version of DeLong's method.
 
@@ -273,7 +273,7 @@ class Stats:
 
         return aucs, delongcov
 
-    def __compute_ground_truth_statistics(self, ground_truth: np.array) -> tuple[np.array, int]:
+    def __compute_ground_truth_statistics(self, ground_truth: np.array) -> Tuple[np.array, int]:
         """
         Computes the order of the ground truth and the number of positive examples.
 
