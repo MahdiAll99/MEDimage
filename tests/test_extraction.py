@@ -10,43 +10,105 @@ import MEDimage
 
 
 class TestExtraction:
-        
-    def _get_phantom(self):
-        phantom = np.zeros((64,64,64))
-        phantom[32,32,32] = 255
+    """
+    Test the extraction of morphological and statistical features.
+
+    Features are extracted from the IBSI phantom, and values are compared to the IBSI ones.
+
+    Phantom and reference values can be found in the IBSI manual: https://arxiv.org/pdf/1612.07003.pdf
+    """
+    def __get_phantom(self):
+        phantom = np.array(
+            [[
+                [1, 1, 1, 1,],
+                [1, 1, 1, 1,],
+                [4, 1, 1, 1,],
+                [4, 4, 1, 1,]],
+
+                [[4, 4, 4, 4,],
+                [4, 1, 1, 1,],
+                [1, 1, 1, 1,],
+                [4, 4, 1, 1,]],
+
+                [[4, 4, 4, 4,],
+                [6, 6, 1, 1,],
+                [6, 3, 9, 1,],
+                [6, 6, 6, 6,]],
+
+                [[1, 1, 1, 1,],
+                [1, 1, 1, 1,],
+                [4, 1, 1, 1,],
+                [4, 1, 1, 1,]],
+
+                [[1, 1, 1, 1,],
+                [1, 1, 1, 1,],
+                [1, 1, 1, 1,],
+                [1, 1, 1, 1,]]], dtype=np.float32
+        )
 
         return phantom
     
-    def _get_random_roi(self):
-        roi = np.zeros((64,64,64))
-        roi[
-            np.random.randint(0,64,5),
-            np.random.randint(0,64,5),
-            np.random.randint(0,64,5)] = 1
+    def __get_random_roi(self):
+        roi = np.array(
+            [[
+                [1, 1, 1, 1],
+                [1, 1, 1, 1],
+                [1, 0, 1, 1],
+                [1, 1, 1, 1]],
+
+                [[1, 1, 1, 1],
+                [1, 1, 1, 1],
+                [1, 1, 1, 1],
+                [1, 1, 1, 1]],
+
+                [[1, 1, 1, 1],
+                [1, 1, 1, 1],
+                [1, 1, 0, 1],
+                [1, 1, 1, 1]],
+
+                [[1, 1, 0, 0],
+                [1, 1, 1, 1],
+                [1, 1, 1, 1],
+                [1, 1, 1, 1]],
+
+                [[1, 1, 0, 0],
+                [1, 1, 1, 1],
+                [1, 1, 1, 1],
+                [1, 1, 1, 1]]], dtype=np.int16
+        )
+
         return roi
     
     def test_morph_features(self):
-        phantom = self._get_phantom()
-        roi = self._get_random_roi()
+        phantom = self.__get_phantom()
+        roi = self.__get_random_roi()
         morph = MEDimage.biomarkers.morph.extract_all(
             vol=phantom, 
             mask_int=roi, 
             mask_morph=roi,
-            res=[1,1,1],
+            res=[2, 2, 2],
             intensity_type="arbitrary"
         )
         morph_vol = MEDimage.biomarkers.morph.vol(
             vol=phantom, 
             mask_int=roi, 
             mask_morph=roi,
-            res=[1,1,1]
+            res=[2, 2, 2]
+        )
+        surface_area = MEDimage.biomarkers.morph.area(
+            vol=phantom, 
+            mask_int=roi, 
+            mask_morph=roi,
+            res=[2, 2, 2]
         )
         assert morph_vol == morph["Fmorph_vol"]
-        assert round(morph_vol, 2) == 0.83
+        assert abs(morph_vol - 556) < 1
+        assert surface_area == morph["Fmorph_area"]
+        assert abs(surface_area - 388) < 1
 
     def test_stats_features(self):
-        phantom = self._get_phantom()
-        roi = self._get_random_roi()
+        phantom = self.__get_phantom()
+        roi = self.__get_random_roi()
         vol_int_re = MEDimage.processing.roi_extract(
             vol=phantom, 
             roi=roi
@@ -58,5 +120,10 @@ class TestExtraction:
         kurt = MEDimage.biomarkers.stats.kurt(
             vol=vol_int_re,
         )
+        skewness = MEDimage.biomarkers.stats.skewness(
+            vol=vol_int_re,
+        )
         assert kurt == stats["Fstat_kurt"]
-        assert round(kurt, 2) == -3.0
+        assert abs(kurt + 0.355) < 0.01
+        assert skewness == stats["Fstat_skew"]
+        assert abs(skewness - 1.08) < 0.01
