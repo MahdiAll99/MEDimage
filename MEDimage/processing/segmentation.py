@@ -190,7 +190,7 @@ def get_sep_roi_names(name_roi_in: str,
     ind_start = strfind(string=name_roi_in, pattern="{")
     n_roi = len(ind_start)
     ind_stop = strfind(string=name_roi_in, pattern="}")
-    ind_keep = np.ones(n_delim, dtype=np.bool)
+    ind_keep = np.ones(n_delim, dtype=bool)
     for d in np.arange(n_delim):
         for r in np.arange(n_roi):
              # Thus not indise a ROI name
