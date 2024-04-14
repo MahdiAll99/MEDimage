@@ -21,7 +21,7 @@ def main(full_sts: bool, subset: bool) -> None:
     print("\n================ Downloading first part of data ================")
     try:
         wget.download(
-        "https://sandbox.zenodo.org/record/1106515/files/MEDimage-Dataset-No-STS.zip?download=1",
+        "https://sandbox.zenodo.org/records/45640/files/MEDimage-Dataset-No-STS.zip?download=1",
         out=os.getcwd())
     except Exception as e:
         print("MEDimage-Dataset-No-STS.zip download failed, error:", e)
@@ -114,29 +114,29 @@ def main(full_sts: bool, subset: bool) -> None:
         print("\n================ Downloading second part of data ================")
         try:
             wget.download(
-            "https://sandbox.zenodo.org/record/1106515/files/MEDimage-Dataset-STS-McGill-001-005.zip?download=1",
+            "https://sandbox.zenodo.org/records/45644/files/MEDimage-STS-Dataset-Subset.zip?download=1",
             out=os.getcwd())
             pass
         except Exception as e:
-            print("MEDimage-Dataset-STS-McGill-001-005.zip download failed, error:", e)
+            print("MEDimage-STS-Dataset-Subset.zip download failed, error:", e)
         
         # unzip data
         print("\n================ Extracting second part of data  ================")
         try:
-            with zipfile.ZipFile(os.getcwd() + "/MEDimage-Dataset-STS-McGill-001-005.zip", 'r') as zip_ref:
+            with zipfile.ZipFile(os.getcwd() + "/MEDimage-STS-Dataset-Subset.zip", 'r') as zip_ref:
                 zip_ref.extractall(os.getcwd())
                 # remove zip file after extraction
-            os.remove(os.getcwd() + "/MEDimage-Dataset-STS-McGill-001-005.zip")
+            os.remove(os.getcwd() + "/MEDimage-STS-Dataset-Subset.zip")
         except Exception as e:
-            print("MEDimage-Dataset-STS-McGill-001-005.zip extraction failed, error:", e)
+            print("MEDimage-STS-Dataset-Subset.zip extraction failed, error:", e)
         
         # organize data in the right folder
         print("\n================== Organizing data in folders  ==================")
         try:
-            shutil.move(os.getcwd() + "/STS-McGill-001-005", 
+            shutil.move(os.getcwd() + "/MEDimage-STS-Dataset-Subset", 
                     os.getcwd() + "/notebooks" + "/tutorial" + "/data" + "/DICOM-STS")
         except Exception as e:
-            print("Failed to move STS-McGill-001-005 folder, error:", e)
+            print("Failed to move MEDimage-STS-Dataset-Subset folder, error:", e)
 
 
 if __name__ == "__main__":
