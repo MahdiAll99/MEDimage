@@ -5,7 +5,6 @@
 [![PyPI - Python Version](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10-blue)](https://www.python.org/downloads/release/python-380/)
 [![TestPyPI - version](https://img.shields.io/badge/pypi-v0.2.0-blue)](https://test.pypi.org/project/medimage-pkg/0.2.0/)
 [![Continuous Integration](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml/badge.svg)](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-app.yml)
-[![Upload Python Package](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-publish.yml/badge.svg)](https://github.com/MahdiAll99/MEDimage/actions/workflows/python-publish.yml)
 [![Documentation Status](https://readthedocs.org/projects/medimage/badge/?version=latest)](https://medimage.readthedocs.io/en/latest/?badge=latest)
 [![License: GPL-3](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/tutorial/DataManager-Tutorial.ipynb)
@@ -39,7 +38,7 @@ The MEDimage package requires *Python 3.8* or more. If you don't have it install
 ### Package installation
 You can easily install the ``MEDimage`` package from PyPI using:
 ```
-pip install MEDimage
+pip install medimage-pkg
 ```
 
 For more installation options (Conda, Poetry...) check out the [installation documentation](https://medimage.readthedocs.io/en/latest/Installation.html).
