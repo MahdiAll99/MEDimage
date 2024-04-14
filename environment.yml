@@ -8,7 +8,7 @@ dependencies:
   - nibabel
   - pandas<2.0.0
   - pillow
-  - pydicom
+  - pydicom>1.2.0, <=1.3.0
   - pywavelets
   - scikit-image
   - scipy
@@ -27,7 +27,7 @@ dependencies:
     - numpyencoder
     - protobuf
     - pycaret
-    - ray
+    - ray[default]
     - scikit_image
     - SimpleITK
     - scikit_learn

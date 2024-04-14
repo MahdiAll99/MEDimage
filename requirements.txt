@@ -13,9 +13,9 @@ pandas<2.0.0
 Pillow
 protobuf
 pycaret
-pydicom
+pydicom>1.2.0, <=1.3.0
 PyWavelets
-ray
+ray[default]
 scikit_image
 scipy
 setuptools

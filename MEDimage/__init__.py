@@ -14,7 +14,7 @@ stream_handler.setLevel(logging.WARNING)
 logging.getLogger(__name__).addHandler(stream_handler)
 
 __author__ = "MEDomicsLab consortium"
-__version__ = "0.9.0"
+__version__ = "0.9.4"
 __copyright__ = "Copyright (C) MEDomicsLab consortium"
 __license__ = "GNU General Public License 3.0"
 __maintainer__ = "MAHDI AIT LHAJ LOUTFI"
