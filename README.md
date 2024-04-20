@@ -19,7 +19,7 @@
   * [5. Tutorials](#5-tutorials)
   * [6. IBSI Standardization](#6-ibsi-standardization)
     * [IBSI Chapter 1](#ibsi-chapter-1)
-    * [IBSI Chapter 2 (In progress)](#ibsi-chapter-2-in-progress)
+    * [IBSI Chapter 2](#ibsi-chapter-2)
   * [7. Acknowledgement](#7-acknowledgement)
   * [8. Authors](#8-authors)
   * [9. Statement](#9-statement)
@@ -110,8 +110,8 @@ The image biomarker standardization initiative ([IBSI](https://theibsi.github.io
       - **Phase 1**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/ibsi/ibsi1p1.ipynb)
       - **Phase 2**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/ibsi/ibsi1p2.ipynb)
 
-  - ### IBSI Chapter 2 (In progress)
-      [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and is still in progress. It is dedicated to the standardization of commonly used imaging filters in radiomic studies. We have created two [jupyter notebooks](https://github.com/MahdiAll99/MEDimage/tree/main/notebooks/ibsi) for each phase of the chapter and made them available for the users to run the IBSI tests for themselves and validate image filtering and image biomarker calculations from filter response maps. The tests can also be explored in interactive Colab notebooks that are directly accessible here: 
+  - ### IBSI Chapter 2
+      [The IBSI chapter 2](https://theibsi.github.io/ibsi2/) was launched in June 2020 and reached completion in February 2024. It is dedicated to the standardization of commonly used imaging filters in radiomic studies. We have created two [jupyter notebooks](https://github.com/MahdiAll99/MEDimage/tree/main/notebooks/ibsi) for each phase of the chapter and made them available for the users to run the IBSI tests for themselves and validate image filtering and image biomarker calculations from filter response maps. The tests can also be explored in interactive Colab notebooks that are directly accessible here: 
       
       - **Phase 1**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/ibsi/ibsi2p1.ipynb)
       - **Phase 2**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MahdiAll99/MEDimage/blob/main/notebooks/ibsi/ibsi2p2.ipynb)
@@ -176,4 +176,4 @@ Here's what the license entails:
 9. The software author or license can not be held liable for any damages inflicted by the software.
 ```
 
-More information on about the [LICENSE can be found here](https://github.com/MahdiAll99/MEDimage/blob/main/LICENSE.md)
+More information on about the [LICENSE can be found here](https://github.com/MEDomics-UdeS/MEDimage/blob/main/LICENSE.md)

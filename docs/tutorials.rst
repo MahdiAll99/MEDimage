@@ -3,18 +3,18 @@ Instructions
 
 Download dataset
 ----------------
-    In all tutorials, we use an open-access dataset containing medical images for various cancer types (Glioma, sarcoma...) 
-    and different imaging modalities (MR, CT, and PET). The dataset has been pre-processed to adhere to package norms.
+    In all tutorials, we use open-access data of medical images of various cancer types (Glioma, sarcoma...) 
+    and with different imaging modalities (MR, CT, and PET). All data has been pre-processed to adhere to package norms.
 
-    To download the dataset (~3.2 GB) and organize it in your local workspace, run the following command in your terminal from 
-    the package parent folder ::
+    In order to run the tutorials, you must first download the dataset. We recommend downloading only a subset (~347 MB) instead of the 
+    full dataset (~3.2 GB). To do so, run the following command in your terminal from the package parent folder: ::
     
-       python scripts/download_data.py --full-sts
+       python scripts/download_data.py --subset
     
     .. note::
-        The dataset is large, and options are available to download only a subset. For more information, run:
-        
-           python scripts/download_data.py --help
+        To download the full dataset, simply run the following command in your terminal from the package parent folder: ::
+
+           python scripts/download_data.py --full-sts
 
 CSV file
 --------
