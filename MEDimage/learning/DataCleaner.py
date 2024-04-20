@@ -51,7 +51,7 @@ class DataCleaner:
         """
         # Initialization
         n_observation, n_features = self.df_features.shape
-        empty_vec = np.zeros(n_observation, dtype=np.int)
+        empty_vec = np.zeros(n_observation, dtype=int)
         data = self.df_features[var_of_type]
         empty_vec += data.isna().sum(axis=1).values
         

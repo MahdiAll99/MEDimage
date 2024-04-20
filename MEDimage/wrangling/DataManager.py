@@ -76,7 +76,7 @@ class DataManager(object):
             path_save: Union[Path, str] = None,
             path_save_checks: Union[Path, str] = None,
             path_pre_checks_settings: Union[Path, str] = None,
-            save: bool = False,
+            save: bool = True,
             n_batch: int = 2
     ) -> None:
         """Constructor of the class DataManager.
@@ -144,7 +144,6 @@ class DataManager(object):
         self.__studies = []
         self.__institutions = []
         self.__scans = []
-        self.__warned = False
 
     def __find_uid_cell_index(self, uid: Union[str, List[str]], cell: List[str]) -> List: 
         """Finds the cell with the same `uid`. If not is present in `cell`, creates a new position
@@ -202,10 +201,11 @@ class DataManager(object):
         """
         print('--> Associating all RT objects to imaging volumes')
         n_rs = len(self.__dicom.stack_path_rs)
+        self.__dicom.stack_series_rs = list(dict.fromkeys(self.__dicom.stack_series_rs))
         if n_rs:
             for i in trange(0, n_rs):
-                try: # PUT ALL THE DICOM PATHS WITH THE SAME UID IN THE SAME PATH LIST
-                    self.__dicom.stack_series_rs = list(set(self.__dicom.stack_series_rs))
+                try: 
+                    # PUT ALL THE DICOM PATHS WITH THE SAME UID IN THE SAME PATH LIST
                     ind_series_id = self.__find_uid_cell_index(
                                                         self.__dicom.stack_series_rs[i], 
                                                         self.__dicom.cell_series_id)
@@ -275,6 +275,8 @@ class DataManager(object):
                         except:
                             frame_uid = info.FrameOfReferenceUID
                         self.__dicom.stack_frame_rs += [frame_uid]
+                    else:
+                        print("Modality not supported: ", info.Modality)
 
                 except Exception as e:
                     print(f'Error while reading: {file}, error: {e}\n')
@@ -551,9 +553,18 @@ class DataManager(object):
         Returns:
             List[MEDscan]: List of MEDscan instances.
         """
+
+        # Reading all NIfTI files
         self.__read_all_niftis()
+
+        # Create the MEDscan instances
         print('--> Reading all NIfTI objects (imaging volumes & masks) to create MEDscan classes')
+        list_instances = []
         for file in tqdm(self.__nifti.stack_path_images):
+            # Assert the list of instances does not exceed the a size of 10
+            if len(list_instances) >= 10:
+                print('The number of MEDscan instances exceeds 10, please consider saving the instances')
+                break
             # INITIALIZE MEDscan INSTANCE AND UPDATE ATTRIBUTES
             medscan = MEDscan()
             medscan.patientID = os.path.basename(file).split("_")[0]
@@ -577,6 +588,8 @@ class DataManager(object):
             # SAVE MEDscan INSTANCE
             if self.save and self.paths._path_save:
                 save_MEDscan(medscan, self.paths._path_save)
+            else:
+                list_instances.append(medscan)
             
             # Update the path to the created instances
             name_save = self.__get_MEDscan_name_save(medscan)
@@ -610,6 +623,9 @@ class DataManager(object):
                     logging.warning(f"The patient ID of the following file: {name_save} does not respect the MEDimage "\
                         "naming convention 'study-institution-id' (Ex: Glioma-TCGA-001)")
         print('DONE')
+
+        if list_instances:
+            return list_instances
 
     def update_from_csv(self, path_csv: Union[str, Path] = None) -> None:
         """Updates the class from a given CSV and summarizes the processed scans again according to it.

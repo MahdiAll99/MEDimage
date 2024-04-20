@@ -11,7 +11,7 @@ Install via pip
 ---------------
 ``MEDimage`` is available on PyPi for installation via ``pip`` which allows you to install the package in one step ::
 
-    pip install MEDimage
+    pip install medimage-pkg
 
 Install from source
 -------------------
