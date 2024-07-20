@@ -32,7 +32,7 @@ class Stats:
         levels (List): List of radiomics levels to analyze.
         modalities (List): List of modalities to analyze.
     """
-    def __init__(self, path_experiment: Path, experiment: str, levels: List, modalities: List):
+    def __init__(self, path_experiment: Path, experiment: str = "", levels: List = [], modalities: List = []):
         # Initialization
         self.path_experiment = path_experiment
         self.experiment = experiment
