@@ -417,9 +417,7 @@ class Results:
     def get_optimal_level(
             self, 
             path_experiments: Path, 
-            experiment: str,
-            modalities: List, 
-            levels: List,
+            experiments_labels: List[str],
             metric: str = 'AUC_mean',
             p_value_test: str = 'wilcoxon',
             aggregate: bool = False,
@@ -429,10 +427,8 @@ class Results:
 
         Args:
             path_experiments (Path): Path to the folder containing the experiments.
-            experiment (str): Name of the experiment to plot. Will be used to find the results.
-            modalities (List): List of imaging modalities to include in the plot.
-            levels (List): List of radiomics levels to include in plot. For example: ['morph', 'intensity'].
-                You can also use list of variants to plot the best variant for each level. For example: [['morph', 'morph5'], 'intensity'].
+            experiments_labels (List): List of experiments labels to use for the plot. including variants is possible. For
+                example: ['experiment1_morph_CT', ['experiment1_intensity5_CT', 'experiment1_intensity10_CT'], 'experiment1_texture_CT'].
             metric (str, optional): Metric to plot. Defaults to 'AUC_mean'.
             p_value_test (str, optional): Method to use to calculate the p-value. Defaults to 'wilcoxon'.
                 Available options:
@@ -449,8 +445,37 @@ class Results:
         """
         assert metric.split('_')[0] in list_metrics, f'Given metric {list_metrics} is not in the list of metrics. Please choose from {list_metrics}'
         
-        # Initialization
+        # Extract modalities and initialize the dictionary
+        if type(experiments_labels[0]) == str:
+            experiment = '_'.join(experiments_labels[0].split('_')[:-2])
+        elif type(experiments_labels[0]) == list:
+            experiment = '_'.join(experiments_labels[0][0].split('_')[:-2])
+
+        modalities = set()
+        for exp_label in experiments_labels:
+            if isinstance(exp_label, str):
+                modalities.add(exp_label.split("_")[-1])
+            elif isinstance(exp_label, list):
+                for sub_exp_label in exp_label:
+                    modalities.add(sub_exp_label.split("_")[-1])
+            else:
+                raise ValueError(f'experiments_labels must be a list of strings or a list of list of strings, given: {type(exp_label)}')
+
+        levels_dict = {modality: [] for modality in modalities}
         optimal_lvls = [""] * len(modalities)
+
+        # Populate the dictionary
+        variants = []
+        for label in experiments_labels:
+            if isinstance(label, str):
+                modality = label.split("_")[-1]
+                levels_dict[modality].append(label.split("_")[-2])
+            elif isinstance(label, list):
+                modality = label[0].split("_")[-1]
+                variants = []
+                for sub_label in label:
+                    variants.append(sub_label.split("_")[-2])
+                levels_dict[modality] += [variants]
 
         # Prepare the data for the heatmap
         for idx_m, modality in enumerate(modalities):
@@ -458,6 +483,9 @@ class Results:
             results_dict_best = dict()
             results_dicts = []
             best_exp = ""
+            levels = levels_dict[modality]
+            
+            # Loop over the levels and find the best variant for each level
             for level in levels:
                 metric_compare = -1.0
                 if type(level) != list:
@@ -496,7 +524,7 @@ class Results:
             
             # Statistical analysis
             # Initializations
-            optimal_lvls[idx_m] = best_levels[0]
+            optimal_lvls[idx_m] = experiment + "_" + best_levels[0] + "_" + modality
             init_metric = heatmap_data[0][0]
             idx_d = 0
             start_level = 0
@@ -523,7 +551,7 @@ class Results:
                     
                     # If p-value is less than 0.05, change starting level
                     if p_value <= 0.05:
-                        optimal_lvls[idx_m] = best_levels[idx_d+1]
+                        optimal_lvls[idx_m] = experiment + "_" + best_levels[idx_d+1] + "_" + modality
                         init_metric = metric_val
                         start_level = idx_d + 1
 
@@ -616,9 +644,7 @@ class Results:
     def plot_heatmap(
             self, 
             path_experiments: Path, 
-            experiment: str,
-            modalities: List, 
-            levels: List,
+            experiments_labels: List[str],
             metric: str = 'AUC_mean',
             stat_extra: list = [],
             plot_p_values: bool = True,
@@ -633,10 +659,8 @@ class Results:
 
         Args:
             path_experiments (Path): Path to the folder containing the experiments.
-            experiment (str): Name of the experiment to plot. Will be used to find the results.
-            modalities (List): List of imaging modalities to include in the plot.
-            levels (List): List of radiomics levels to include in plot. For example: ['morph', 'intensity'].
-                You can also use list of variants to plot the best variant for each level. For example: [['morph', 'morph5'], 'intensity'].
+            experiments_labels (List): List of experiments labels to use for the plot. including variants is possible. For
+                example: ['experiment1_morph_CT', ['experiment1_intensity5_CT', 'experiment1_intensity10_CT'], 'experiment1_texture_CT'].
             metric (str, optional): Metric to plot. Defaults to 'AUC_mean'.
             stat_extra (list, optional): List of extra statistics to include in the plot. Defaults to [].
             plot_p_values (bool, optional): If True plots the p-value of the choosen test. Defaults to True.
@@ -657,9 +681,42 @@ class Results:
             None.
         """
         assert metric.split('_')[0] in list_metrics, f'Given metric {list_metrics} is not in the list of metrics. Please choose from {list_metrics}'
+        
+        # Extract modalities and initialize the dictionary
+        if type(experiments_labels[0]) == str:
+            experiment = '_'.join(experiments_labels[0].split('_')[:-2])
+        elif type(experiments_labels[0]) == list:
+            experiment = '_'.join(experiments_labels[0][0].split('_')[:-2])
+
+        modalities = set()
+        for exp_label in experiments_labels:
+            if isinstance(exp_label, str):
+                modalities.add(exp_label.split("_")[-1])
+            elif isinstance(exp_label, list):
+                for sub_exp_label in exp_label:
+                    modalities.add(sub_exp_label.split("_")[-1])
+            else:
+                raise ValueError(f'experiments_labels must be a list of strings or a list of list of strings, given: {type(exp_label)}')
+
+        levels_dict = {modality: [] for modality in modalities}
+
+        # Populate the dictionary
+        variants = []
+        for label in experiments_labels:
+            if isinstance(label, str):
+                modality = label.split("_")[-1]
+                levels_dict[modality].append(label.split("_")[-2])
+            elif isinstance(label, list):
+                modality = label[0].split("_")[-1]
+                variants = []
+                for sub_label in label:
+                    variants.append(sub_label.split("_")[-2])
+                levels_dict[modality] += [variants]
 
         # Prepare the data for the heatmap
         fig, axs = plt.subplots(len(modalities), figsize=figsize)
+
+        # Heatmap conception
         for idx_m, modality in enumerate(modalities):
             # Initializations
             best_levels = []
@@ -667,6 +724,7 @@ class Results:
             results_dicts = []
             best_exp = ""
             patients_count = dict.fromkeys([modality])
+            levels = levels_dict[modality]
 
             # Loop over the levels and find the best variant for each level
             for level in levels:
@@ -1502,7 +1560,7 @@ class Results:
             fig.tight_layout()
             
             # Save the plot (Mandatory, since the plot is not well displayed on matplotlib)
-            fig.savefig(path_experiments / f'Original_level_{experiment}_{level}_{modality}_explanation.png', dpi=300)
+            fig.savefig(path_experiments / f'Original_level_{experiment}_{level}_{modality}_explanation_tree.png', dpi=300)
 
     def plot_lf_level_tree(
             self, 
