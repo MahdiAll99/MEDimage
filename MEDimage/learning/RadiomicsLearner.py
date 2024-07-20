@@ -338,6 +338,7 @@ class RadiomicsLearner:
                 fold=5,
                 target=temp_data.columns[-1],
                 use_gpu=use_gpu,
+                feature_selection_estimator="xgboost",
                 session_id=seed
             )
 
