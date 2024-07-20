@@ -295,7 +295,7 @@ class RadiomicsLearner:
             optimal_threshold: float = None,
             optimization_metric: str = 'MCC',
             method : str = "pycaret",
-            use_gpu: bool = True,
+            use_gpu: bool = False,
             seed: int = None,
         ) -> Dict:
         """
