@@ -372,7 +372,7 @@ e.g.
 
     {
         "$schema": "http://json-schema.org/draft-04/schema#",
-        "title": "discretisation",
+        "title": "discretization",
         "description": "Discretization parameters.",
         "type": "dict",
         "options": {
@@ -443,7 +443,7 @@ e.g.
         "type": "dict",
         "options": {
                     "type": {
-                        "description": "List of discretisation algorithms: ``\"FBS\"`` for fixed bin size and
+                        "description": "List of discretization algorithms: ``\"FBS\"`` for fixed bin size and
                             ``\"FBN\"`` for fixed bin number. Texture features will be computed for each algorithm in the list",
                         "type": "List[string]"
                     },
@@ -461,7 +461,7 @@ e.g. for CT only (the parameters are the same for MR and PET):
 
     {
         "imParamCT" : {
-            "discretisation" : {
+            "discretization" : {
                 "IH" : {
                     "type" : "FBS",
                     "val" : 25
@@ -1258,7 +1258,7 @@ Here is an example of a complete settings dictionary:
                 "range" : [-500, "inf"],
                 "outliers" : ""
                 },
-                "discretisation" : {
+                "discretization" : {
                 "IH" : {
                     "type" : "FBS",
                     "val" : 25
@@ -1297,7 +1297,7 @@ Here is an example of a complete settings dictionary:
                 "range" : [-1000,400],
                 "outliers" : ""
                 },
-                "discretisation" : {
+                "discretization" : {
                 "IH" : {
                     "type" : "FBS",
                     "val" : 25
@@ -1338,7 +1338,7 @@ Here is an example of a complete settings dictionary:
                     "range" : [0, "inf"],
                     "outliers" : ""
                 },
-                "discretisation" :  {
+                "discretization" :  {
                     "IH" : {
                     "type" : "FBN",
                     "val" : 64

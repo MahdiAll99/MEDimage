@@ -10,7 +10,7 @@ compute\_suv\_map
    :undoc-members:
    :show-inheritance:
 
-discretisation 
+discretization 
 -----------------------------------------
 
 .. automodule:: MEDimage.processing.discretisation
