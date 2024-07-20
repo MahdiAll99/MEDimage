@@ -7,8 +7,8 @@ try:
     import pycuda.driver as cuda
     from pycuda.autoinit import context
     from pycuda.compiler import SourceModule
-except ImportError:
-    print("PyCUDA is not installed. Please install it to use the textural filters.")
+except Exception as e:
+    print("PyCUDA is not installed. Please install it to use the textural filters.", e)
     import_failed = True
 
 from ..processing.discretisation import discretize
