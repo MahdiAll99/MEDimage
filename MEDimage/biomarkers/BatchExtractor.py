@@ -29,7 +29,8 @@ class BatchExtractor(object):
             path_csv: Union[str, Path],
             path_params: Union[str, Path],
             path_save: Union[str, Path],
-            n_batch: int = 4
+            n_batch: int = 4,
+            skip_existing: bool = False
     ) -> None:
         """
         constructor of the BatchExtractor class 
@@ -41,6 +42,7 @@ class BatchExtractor(object):
         self.roi_types = []
         self.roi_type_labels = []
         self.n_bacth = n_batch
+        self.skip_existing = skip_existing
 
     def __load_and_process_params(self) -> Dict:
         """Load and process the computing & batch parameters from JSON file"""
@@ -79,6 +81,13 @@ class BatchExtractor(object):
         Returns:
             Union[Path, str]: Path to the updated logging file.
         """
+        # Check if features are already computed for the current scan
+        if self.skip_existing:
+            modality = name_patient.split('.')[1]
+            name_save = name_patient.split('.')[0] + f'({roi_type_label})' + f'.{modality}.json'
+            if Path(self._path_save / name_save).exists():
+                return log_file
+        
         # Setting up logging settings
         logging.basicConfig(filename=log_file, level=logging.DEBUG, force=True)
 
